@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { ProjectOverviewExportButtonData, ProjectOverviewReadset } from './types'
 import ExternalIDReadSetDashboard from './ExternalIDReadSetDashboard'
@@ -6,9 +6,9 @@ import api from '../../utils/api'
 import { useAppDispatch } from '../../hooks'
 
 import type { ColumnsType } from 'antd/es/table'
-import { Space, Spin, Table, Tag, Typography } from 'antd'
+import { Spin, Table, Tag, Typography } from 'antd'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
-import { csvEscape } from './utils'
+import { useCreateCsvExportFunction } from './useCsvExport'
 
 const { Text } = Typography
 
@@ -213,87 +213,11 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 		}
 	}, [externalID, hasSearched, isActive, dispatch])
 
-	//////////////////////////////////////////////////////////
-
-	//1- Set headers as keys of an T object, in string format
-	// 1.a -- Function
-	const getObjectKeys = useCallback(<T extends object>(item: T): string[] => {
-		return Object.keys(item)
-	}, [])
-
-	const getHeadersFromItems = useCallback(
-		<T extends object>(items: T[]): string[] => {
-			if (items.length === 0) {
-				return []
-			}
-
-			return getObjectKeys(items[0])
-		},
-		[getObjectKeys],
-	)
-
-	//1.b Function call
-	const headers = useMemo(() => {
-		return getHeadersFromItems(projectOverviewReadsets)
-	}, [projectOverviewReadsets, getHeadersFromItems])
-
-	//2- Set fields as keys of an T object
-	// 2.a -- Function
-	const getTypedObjectKeys = useCallback(<T extends object>(item: T): Array<keyof T> => {
-		return Object.keys(item) as Array<keyof T>
-	}, [])
-
-	const getTypedFieldsFromItems = useCallback(
-		<T extends object>(items: T[]): Array<keyof T> => {
-			if (items.length === 0) {
-				return []
-			}
-
-			return getTypedObjectKeys(items[0])
-		},
-		[getTypedObjectKeys],
-	)
-
-	// 1.a -- Function call
-	const exportFields = useMemo(() => {
-		return getTypedFieldsFromItems(projectOverviewReadsets)
-	}, [getTypedFieldsFromItems, projectOverviewReadsets])
-
-	//3-Mapping
-	//3.1 - Function
-	const formatExportRows = <T extends Record<string, unknown>>(items: T[], fields: Array<keyof T>) => {
-		return items.map((item) =>
-			fields.map((field) => {
-				const value = item[field]
-
-				if (field === 'created_at' || field === 'updated_at' || field instanceof Date) {
-					return value
-						? new Date(String(value)).toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								year: 'numeric',
-							})
-						: ''
-				}
-
-				return value
-			}),
-		)
-	}
-
-	//3.2 - Function call
-	const rows = formatExportRows(projectOverviewReadsets, exportFields)
-
-	// 4- Generate the CSV content
-	const generateCsvContent = useCallback(() => {
-		headers
-		rows
-		const csv = [headers.map(csvEscape).join(','), ...rows.map((row) => row.map(csvEscape).join(','))].join('\n')
-
-		return Promise.resolve(csv)
-	}, [headers, rows])
-	////////////////////////////////////////////////////////////////
-
+	///////////////////////////////////////////////////////////////////////
+	// Final function passed to the export button.
+	// Type: () => Promise<string>
+	const generateCsvContent2 = useCreateCsvExportFunction(projectOverviewReadsets)
+	//////////////////////////////////////////////////////////////////////
 	if (isLoading) {
 		return <Spin />
 	}
@@ -302,13 +226,9 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 		return <div>Error: {error}</div>
 	}
 
-	//Debut des operations dexport
-	//1-
-	//
-
 	const exportButtonData: ProjectOverviewExportButtonData = {
 		exportType: 'Project Readsets',
-		exportFunction: generateCsvContent,
+		exportFunction: generateCsvContent2,
 		filename: 'Project Readsets',
 		itemsCount: projectOverviewReadsets.length,
 		disabled: projectOverviewReadsets.length === 0,
