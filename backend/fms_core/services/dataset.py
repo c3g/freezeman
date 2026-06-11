@@ -385,11 +385,13 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
         errors.append(f"create_validation_info_file requires a valid dataset object.")
         return None, errors, warnings
 
-    dataset_id = str(dataset_obj.id)
+
     external_project_id = dataset_obj.project.external_id
     if not external_project_id:
         errors.append(f"Cannot create validation info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
         return None, errors, warnings
+
+    dataset_id = str(dataset_obj.id)
     project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
@@ -448,11 +450,12 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
         warnings.append(f"No dataset files listed.")
         return None, errors, warnings
 
-    dataset_id = str(dataset_obj.id)
     external_project_id = dataset_obj.project.external_id
     if not external_project_id:
         errors.append(f"Cannot create release info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
         return None, errors, warnings
+
+    dataset_id = str(dataset_obj.id)
     project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
