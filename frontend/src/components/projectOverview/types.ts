@@ -67,3 +67,11 @@ export type ProjectOverviewReadset = {
 	pf_reads_aligned: string | null
 	duplicate_aligned: string | null
 }
+
+export interface ProjectOverviewExportButtonData {
+	exportType: string
+	exportFunction: () => Promise<string>
+	filename: string
+	itemsCount: number
+	disabled: boolean
+}

@@ -1,16 +1,21 @@
 import React from 'react'
 import ExportButton from '../ExportButton'
+import { ProjectOverviewExportButtonData } from './types'
 
 interface ProjectOverviewExportButtonProps {
-	exportType: string
-	exportFunction: () => Promise<string>
-	filename: string
-	itemsCount: number
-	disabled: boolean
+	data: ProjectOverviewExportButtonData
 }
 
-const ProjectOverviewExportButton = () => {
-	return <></>
+const ProjectOverviewExportButton = ({ data }: ProjectOverviewExportButtonProps) => {
+	return (
+		<ExportButton
+			exportType={data.exportType}
+			exportFunction={data.exportFunction}
+			filename={data.filename}
+			itemsCount={data.itemsCount}
+			disabled={data.disabled}
+		/>
+	)
 }
 
 export default ProjectOverviewExportButton
