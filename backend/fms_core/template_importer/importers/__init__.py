@@ -12,6 +12,7 @@ from .extraction import ExtractionImporter
 from .transfer import TransferImporter
 from .project_study_link_sample import ProjectStudyLinkSamples
 from .library_preparation import LibraryPreparationImporter
+from .library_preparation_with_selection import LibraryPreparationWithSelectionImporter
 from .library_conversion import LibraryConversionImporter
 from .library_capture import LibraryCaptureImporter
 from .library_qc import LibraryQCImporter
@@ -41,6 +42,7 @@ __all__ = [
     "ContainerRenameImporter",
     "ContainerMoveImporter",
     "LibraryPreparationImporter",
+    "LibraryPreparationWithSelectionImporter",
     "LibraryConversionImporter",
     "LibraryCaptureImporter",
     "LibraryQCImporter",

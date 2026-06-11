@@ -58,13 +58,13 @@ def prepare_production_report_data(log):
         queryset = queryset.annotate(library_capture_date=library_capture_subquery[:1])
 
         # Subquery for the library creation date
-        basic_library_creation_subquery = Sample.objects.filter(derived_samples__in=OuterRef("derived_sample_id")).filter(child_sample__process_measurement__process__protocol__name="Library Preparation").values("creation_date")
-        captured_library_creation_subquery = Sample.objects.filter(derived_samples__in=OuterRef("derived_sample__derived_from_id")).filter(child_sample__process_measurement__process__protocol__name="Library Preparation").values("creation_date")
+        basic_library_creation_subquery = Sample.objects.filter(derived_samples__in=OuterRef("derived_sample_id")).filter(child_sample__process_measurement__process__protocol__is_library_preparation=True).values("creation_date")
+        captured_library_creation_subquery = Sample.objects.filter(derived_samples__in=OuterRef("derived_sample__derived_from_id")).filter(child_sample__process_measurement__process__protocol__is_library_preparation=True).values("creation_date")
         queryset = queryset.annotate(library_creation_date=Case(When(library_capture_date__isnull=True, then=basic_library_creation_subquery[:1]), default=captured_library_creation_subquery[:1], output_field=DateField()))
 
         # Subquery for the library batch id (process id)
-        basic_library_process_subquery =  Process.objects.filter(process_measurement__lineage__child__derived_samples__in=OuterRef("derived_sample_id")).filter(protocol__name="Library Preparation").values("id")
-        captured_library_process_subquery =  Process.objects.filter(process_measurement__lineage__child__derived_samples__in=OuterRef("derived_sample__derived_from_id")).filter(protocol__name="Library Preparation").values("id")
+        basic_library_process_subquery =  Process.objects.filter(process_measurement__lineage__child__derived_samples__in=OuterRef("derived_sample_id")).filter(protocol__is_library_preparation=True).values("id")
+        captured_library_process_subquery =  Process.objects.filter(process_measurement__lineage__child__derived_samples__in=OuterRef("derived_sample__derived_from_id")).filter(protocol__is_library_preparation=True).values("id")
         queryset = queryset.annotate(library_batch_id=Case(When(library_capture_date__isnull=True, then=basic_library_process_subquery[:1]), default=captured_library_process_subquery[:1], output_field=BigIntegerField()))
 
         # internal library

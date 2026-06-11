@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 
 from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
-from fms_core.template_importer._constants import ROBOT_BIOMEK, ROBOT_JANUS, GENOTYPING_TYPE, LIBRARY_TYPE, SAMPLE_TYPE
+from fms_core.template_importer._constants import ROBOT_BIOMEK, ROBOT_JANUS, GENOTYPING_TYPE, LIBRARY_TYPE, SAMPLE_TYPE, BIOSPECIMEN_TYPE
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 
 from fms_core.models import Container
@@ -156,7 +156,7 @@ class NormalizationPlanningImporter(GenericImporter):
         if type == LIBRARY_TYPE:
             ROBOT_SRC_PREFIX = "Source"
             ROBOT_DST_PREFIX = "Dil"
-        elif type == SAMPLE_TYPE or type == GENOTYPING_TYPE:
+        elif type == SAMPLE_TYPE or type == BIOSPECIMEN_TYPE or type == GENOTYPING_TYPE:
             ROBOT_SRC_PREFIX = "Src"
             ROBOT_DST_PREFIX = "Dst"
 
