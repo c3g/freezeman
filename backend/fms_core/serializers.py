@@ -102,6 +102,7 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ProjectOverviewReadsetMetricSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -124,6 +125,7 @@ __all__ = [
     "ProfileSerializer",
     "DerivedSampleSerializer"
     "FreezemanPermissionSerializer",
+   
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -599,6 +601,50 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+
+class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    readset_sample_name = serializers.CharField()
+    external_id = serializers.CharField()
+    run_name = serializers.CharField()
+    run_start_date = serializers.DateField()
+
+    alias = serializers.CharField(allow_null=True)
+    cohort = serializers.CharField(allow_blank=True, allow_null=True)
+    library_type = serializers.CharField(allow_null=True)
+    barcodes = serializers.ListField(
+    child=serializers.CharField(allow_null=True),
+    allow_empty=True,
+)
+
+
+    number_of_reads = serializers.IntegerField(allow_null=True)
+
+    average_quality = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    pf_reads_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    duplicate_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    readset_file_paths = serializers.ListField(required=False)
+    readset_file_sizes = serializers.ListField(required=False)
+   
+    
+
+
+
+
+
 
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
