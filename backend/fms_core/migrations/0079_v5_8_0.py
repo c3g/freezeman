@@ -17,11 +17,10 @@ def rename_experiment_run_steps(apps, schema_editor):
         reversion.set_user(admin_user)
 
         for old_name, new_name in OLD_TO_NEW_STEP_NAMES.items():
-            step = Step.objects.filter(name=old_name).first()
-            if step:
-                step.name = new_name
-                step.save(update_fields=['name'])
-                reversion.add_to_revision(step)
+            step = Step.objects.get(name=old_name)
+            step.name = new_name
+            step.save(update_fields=['name'])
+            reversion.add_to_revision(step)
 
 class Migration(migrations.Migration):
     dependencies = [
