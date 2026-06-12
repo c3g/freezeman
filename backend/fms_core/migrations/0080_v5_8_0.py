@@ -37,6 +37,24 @@ def set_new_protocol_fields(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
 
+def rename_experiment_run_steps(apps, schema_editor):
+    OLD_TO_NEW_STEP_NAMES = {
+        'PacBio Experiment Run': 'Experiment Run PacBio',
+        'Ultima Experiment Run': 'Experiment Run Ultima',
+    }
+
+    Step = apps.get_model('fms_core', 'Step')
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment('Rename experiment run steps to standard naming.')
+        reversion.set_user(admin_user)
+
+        for old_name, new_name in OLD_TO_NEW_STEP_NAMES.items():
+            step = Step.objects.get(name=old_name)
+            step.name = new_name
+            step.save()
+            reversion.add_to_revision(step)
+
 class Migration(migrations.Migration):
     dependencies = [
         ('fms_core', '0079_v5_8_0_data'),
@@ -54,4 +72,5 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False, help_text='Indicator that the current protocol generates a library.'),
         ),
         migrations.RunPython(set_new_protocol_fields, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(rename_experiment_run_steps, reverse_code=migrations.RunPython.noop),
     ]
