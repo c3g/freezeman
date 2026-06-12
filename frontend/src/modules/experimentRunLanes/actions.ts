@@ -1,6 +1,7 @@
 import { FMSId } from "../../models/fms_api_models"
 import { AppDispatch, RootState } from "../../store"
 import api from "../../utils/api"
+import { notifyError } from "../notification/actions"
 import { ValidationStatus } from "./models"
 import { LaneInfo, LaneNumber } from "./models"
 import { FLUSH_EXPERIMENT_LANES, SET_EXPANDED_LANES, SET_EXPERIMENT_LANES, SET_LANE_VALIDATION_STATUS, SET_LANE_VALIDATION_TIME, SET_READS_PER_SAMPLE } from "./reducers"
@@ -31,18 +32,28 @@ export function loadReadsPerSample(experimentRunId: FMSId, lane: LaneNumber) {
 
 export function setRunLaneValidationStatus(lane: LaneInfo, status: ValidationStatus) {
 	return async (dispatch) => {
-		const response = await(dispatch(api.experimentRuns.setLaneValidationStatus(lane.experimentRunId, lane.laneNumber, status)))
-		if (response.ok) {
-			// NOTE: Loading experiment runs is expensive so, rather than reloading
-			// everything from the server, we just update the lane's status in the redux store.
-			dispatch({
-				type: SET_LANE_VALIDATION_STATUS,
-				experimentRunId: lane.experimentRunId,
-				laneNumber: lane.laneNumber,
-				status: status
-			})
-		}
-	}
+        try {
+            const response = await(dispatch(api.experimentRuns.setLaneValidationStatus(lane.experimentRunId, lane.laneNumber, status)))
+            if (response.ok) {
+                // NOTE: Loading experiment runs is expensive so, rather than reloading
+                // everything from the server, we just update the lane's status in the redux store.
+                dispatch({
+                    type: SET_LANE_VALIDATION_STATUS,
+                    experimentRunId: lane.experimentRunId,
+                    laneNumber: lane.laneNumber,
+                    status: status
+                })
+            }
+        } catch (error) {
+            const message = error?.data || 'Failed to update validation status.'
+            dispatch(notifyError({
+                id: `VALIDATION_STATUS_ERROR_${lane.experimentRunId}_${lane.laneNumber}`,
+                title: 'Failed to update validation status',
+                description: message,
+                duration: 0,
+            }))
+        }
+    }
 }
 
 export function setRunLaneValidationTime(lane: LaneInfo) {
