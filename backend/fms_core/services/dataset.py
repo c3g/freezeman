@@ -305,12 +305,13 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
         except Exception as e:
             errors.append(f"Failed to get Dataset {dataset_id}.")
             return None, errors, warnings # no good outcome to be expected.
-        readset_ids = [int(i) for i in readsets_release_status.keys()]
-        readsets = Readset.objects.filter(dataset=dataset_id, id__in=readset_ids)
 
         if not dataset_obj.project.external_id:
             errors.append(f"Cannot set release status for Dataset {dataset_id} because project {dataset_obj.project.name} is missing an external project id.")
             return None, errors, warnings
+
+        readset_ids = [int(i) for i in readsets_release_status.keys()]
+        readsets = Readset.objects.filter(dataset=dataset_id, id__in=readset_ids)
 
         try:
             release_status_timestamp = timezone.now()
