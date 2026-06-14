@@ -57,11 +57,15 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 
 			<Row gutter={[8, 8]}>
 				<Col xs={24} lg={8}>
-					<Card size="small" title="Process Coverage" styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}>
-						<Progress percent={Number(summary.process_coverage_percent.toFixed(1))} size="small" />
+					<Card
+						size="small"
+						title="Samples Assigned to a Process (%)"
+						styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}
+					>
+						<Progress percent={Number(summary.samples_assigned_to_a_process_rate.toFixed(1))} size="small" />
 						<Space wrap size={4} style={{ paddingBottom: 8 }}>
-							<Tag color="green">With Process: {summary.with_process_count}</Tag>
-							<Tag color="orange">Without Process: {summary.without_process_count}</Tag>
+							<Tag color="green">Samples with assigned Process: {summary.samples_with_assigned_process_count}</Tag>
+							<Tag color="orange">Samples without assigned Process: {summary.samples_without_assigned_process_count}</Tag>
 						</Space>
 					</Card>
 				</Col>

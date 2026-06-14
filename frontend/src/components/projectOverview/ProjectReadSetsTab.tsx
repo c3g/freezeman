@@ -36,7 +36,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		title: 'ID',
 		dataIndex: 'id',
 		key: 'id',
-		fixed: 'left',
+		//fixed: 'left',
 		width: 70,
 		onHeaderCell: compactHeaderCell,
 		onCell: () => nowrapCell,
@@ -46,7 +46,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		title: 'Readset',
 		dataIndex: 'name',
 		key: 'name',
-		fixed: 'left',
+		//fixed: 'left',
 		width: 450,
 		onHeaderCell: compactHeaderCell,
 		render: (name: string) => <Text strong>{name}</Text>,
@@ -213,11 +213,8 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 		}
 	}, [externalID, hasSearched, isActive, dispatch])
 
-	///////////////////////////////////////////////////////////////////////
-	// Final function passed to the export button.
-	// Type: () => Promise<string>
-	const generateCsvContent2 = useCreateCsvExportFunction(projectOverviewReadsets)
-	//////////////////////////////////////////////////////////////////////
+	const generateCsvContent = useCreateCsvExportFunction(projectOverviewReadsets)
+
 	if (isLoading) {
 		return <Spin />
 	}
@@ -228,7 +225,7 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 
 	const exportButtonData: ProjectOverviewExportButtonData = {
 		exportType: 'Project Readsets',
-		exportFunction: generateCsvContent2,
+		exportFunction: generateCsvContent,
 		filename: 'Project Readsets',
 		itemsCount: projectOverviewReadsets.length,
 		disabled: projectOverviewReadsets.length === 0,

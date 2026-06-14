@@ -126,7 +126,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 						title={
 							<Space>
 								<ClusterOutlined />
-								<span>Run Monitoring</span>
+								<span>Run Statistics</span>
 							</Space>
 						}
 					>
@@ -183,7 +183,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 						title={
 							<Space>
 								<CheckCircleOutlined />
-								<span>Quality Monitoring</span>
+								<span>Quality Statistics</span>
 							</Space>
 						}
 					>

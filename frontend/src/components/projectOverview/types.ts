@@ -29,9 +29,9 @@ export type ExternalIDProjectSamplesSummary = {
 	qc_review_count: number
 	missing_qc_count: number
 
-	with_process_count: number
-	without_process_count: number
-	process_coverage_percent: number
+	samples_with_assigned_process_count: number
+	samples_without_assigned_process_count: number
+	samples_assigned_to_a_process_rate: number
 
 	total_quantity: number
 	avg_concentration: number | null
