@@ -174,7 +174,11 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		onHeaderCell: compactHeaderCell,
 		render: (sizes?: number[] | null) =>
 			sizes?.length ? (
-				sizes.map((size) => `${(Number(size) / 1024 / 1024).toFixed(2)}`).join(', ')
+				<div style={{ whiteSpace: 'nowrap' }}>
+					{sizes.map((size, index) => (
+						<div key={`${size}-${index}`}>{(Number(size) / 1024 / 1024).toFixed(2)}</div>
+					))}
+				</div>
 			) : (
 				<Text type="secondary">N/A</Text>
 			),
