@@ -138,7 +138,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		align: 'right',
 		width: 100,
 		onHeaderCell: compactHeaderCell,
-		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}%` : <Text type="secondary">N/A</Text>),
+		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}` : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: '% Duplicate',
@@ -147,7 +147,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		align: 'right',
 		width: 100,
 		onHeaderCell: compactHeaderCell,
-		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}%` : <Text type="secondary">N/A</Text>),
+		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}` : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: 'Readset Files',
@@ -166,7 +166,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 			),
 	},
 	{
-		title: 'Readset File Sizes',
+		title: 'Readset File Sizes (MB)',
 		dataIndex: 'readset_file_sizes',
 		key: 'readset_file_sizes',
 		align: 'right',
@@ -174,7 +174,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		onHeaderCell: compactHeaderCell,
 		render: (sizes?: number[] | null) =>
 			sizes?.length ? (
-				sizes.map((size) => `${(Number(size) / 1024 / 1024).toFixed(2)} MB`).join(', ')
+				sizes.map((size) => `${(Number(size) / 1024 / 1024).toFixed(2)}`).join(', ')
 			) : (
 				<Text type="secondary">N/A</Text>
 			),
