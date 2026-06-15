@@ -3,6 +3,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import transaction
 from django.http import HttpResponseServerError, HttpResponseNotFound
 
 from fms_core.filters import ExperimentRunFilter
@@ -93,6 +94,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             response = Response("Time set successfully.")
         return response
 
+    @transaction.atomic
     @action(detail=True, methods=["post"])
     def set_experiment_run_lane_validation_status(self, _request, pk=None):
         lane = _request.data.get("lane", None)
@@ -102,6 +104,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         
         if errors:
             response = HttpResponseServerError(errors)
+            transaction.set_rollback(True)
         elif count == 0:
             response = Response("No validation status was set.")
         else:
