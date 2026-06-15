@@ -5,10 +5,11 @@ import ExperimentRunListContent from './ExperimentRunListContent'
 import { ActionDropdown } from '../../utils/templateActions'
 import ExportButton from '../ExportButton'
 import api, { withToken } from '../../utils/api'
-import mergedListQueryParams from '../../utils/mergedListQueryParams'
+
 import { useAppSelector } from '../../hooks'
 import { selectAuthTokenAccess, selectExperimentRunsTable, selectExperimentRunsTemplateActions } from '../../selectors'
 import { EXPERIMENT_RUN_FILTERS } from '../filters/descriptions'
+import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
 
 const pageStyle = {
 	padding: 0,
@@ -24,7 +25,7 @@ function ExperimentRunsListContentWithActions() {
 	function getPageHeaderExtra() {
     const listExport = () =>
       withToken(token, api.experimentRuns.listExport)(
-        mergedListQueryParams(EXPERIMENT_RUN_FILTERS, experimentRunsTableState.filters, experimentRunsTableState.sortBy)
+        filtersQueryParams(experimentRunsTableState.filters, experimentRunsTableState.sortByList)
       )
       .then(response => response.data)
 
