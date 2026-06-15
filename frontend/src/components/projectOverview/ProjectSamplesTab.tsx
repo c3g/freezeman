@@ -721,7 +721,7 @@ const ProjectSamplesTab = ({ projectIds, hasSearched, isActive }: ProjectSamples
 				dataSource={samples}
 				columns={sampleColumns}
 				loading={isLoading}
-				scroll={{ y: 'calc(100vh - 260px)' }}
+				scroll={{ y: 'calc(100vh - 260px)', x: 'max-content' }}
 				pagination={{
 					pageSize: 10,
 					showSizeChanger: true,
