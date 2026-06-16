@@ -6,7 +6,8 @@ import api from '../../utils/api'
 import { useAppDispatch } from '../../hooks'
 
 import type { ColumnsType } from 'antd/es/table'
-import { Spin, Table, Tag, Typography } from 'antd'
+import { Button, Spin, Table, Tag, Typography } from 'antd'
+import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
 import { useCreateCsvExportFunction } from './useCsvExport'
 
@@ -29,6 +30,32 @@ const nowrapCell = {
 	style: {
 		whiteSpace: 'nowrap',
 	},
+}
+
+function CopyableReadsetFilePath({ file }: { file: string }) {
+	const [copiedToClipboard, setCopiedToClipboard] = useState(false)
+
+	const handleCopy = async (event: React.MouseEvent<HTMLElement>) => {
+		event.stopPropagation()
+		await navigator.clipboard.writeText(file)
+		setCopiedToClipboard(true)
+
+		setTimeout(() => {
+			setCopiedToClipboard(false)
+		}, 2000)
+	}
+
+	return (
+		<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+			<span>{file}</span>
+			<Button
+				type="text"
+				size="small"
+				onClick={handleCopy}
+				icon={copiedToClipboard ? <CheckCircleTwoTone twoToneColor="#52c41a" /> : <CopyOutlined />}
+			/>
+		</div>
+	)
 }
 
 const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
@@ -157,9 +184,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		render: (files?: string[] | null) =>
 			files?.length ? (
 				<div style={{ whiteSpace: 'nowrap' }}>
-					{files.map((file, index) => (
-						<div key={`${file}-${index}`}>{file}</div>
-					))}
+					{files.map((file, index) => (file ? <CopyableReadsetFilePath key={`${file}-${index}`} file={file} /> : null))}
 				</div>
 			) : (
 				<Text type="secondary">N/A</Text>
