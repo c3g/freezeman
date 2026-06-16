@@ -11,6 +11,8 @@ import { Button, Input, Spin, Table, Tag, Typography } from 'antd'
 import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, FilterOutlined } from '@ant-design/icons'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
 import { useCreateCsvExportFunction } from './useCsvExport'
+import LaneValidationStatus from '../experimentRuns/LaneValidationStatus'
+import { ValidationStatus } from '../../modules/experimentRunLanes/models'
 
 const { Text } = Typography
 
@@ -158,6 +160,16 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 		key: 'run_start_date',
 		width: 120,
 		onHeaderCell: compactHeaderCell,
+	},
+	{
+		title: 'Validation Status',
+		dataIndex: 'validation_status',
+		key: 'validation_status',
+		width: 170,
+		onHeaderCell: compactHeaderCell,
+		render: (validationStatus: ValidationStatus) => (
+			<LaneValidationStatus validationStatus={validationStatus} isValidationInProgress={false} />
+		),
 	},
 	// {
 	// 	title: 'Barcodes',

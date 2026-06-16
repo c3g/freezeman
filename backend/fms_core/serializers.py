@@ -696,6 +696,8 @@ class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
     readset_file_paths = serializers.ListField(required=False)
     readset_file_sizes = serializers.ListField(required=False)
 
+    validation_status = serializers.IntegerField(allow_null=True)
+
 
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:

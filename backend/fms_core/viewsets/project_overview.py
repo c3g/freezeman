@@ -7,7 +7,6 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework.response import Response
 
 
-
 def get_external_id_from_request(request):
     external_id = request.query_params.get("external_id")
     if not external_id:
@@ -47,6 +46,7 @@ PROJECT_OVERVIEW_VALUE_FIELDS = [
     "duplicate_aligned",
     "readset_file_paths",
     "readset_file_sizes",
+    "validation_status",
 ]
 
 PROJECT_OVERVIEW_VALUE_ALIASES = {
@@ -58,7 +58,8 @@ PROJECT_OVERVIEW_VALUE_ALIASES = {
     "cohort": F("derived_sample__biosample__individual__cohort"),
     "library_type": F("derived_sample__library__library_type__name"),
     "number_of_reads": F("production_data__reads"),
-  
+
+
 
 }
 
@@ -67,7 +68,6 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
 
     queryset = Readset.objects.all()
     serializer_class = ProjectOverviewReadsetMetricSerializer
-
 
     @action(detail=False, methods=["get"])
     def reads(self, request):
@@ -118,7 +118,6 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-    
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-            

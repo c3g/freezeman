@@ -54,6 +54,7 @@ export type ProjectOverviewReadset = {
 	external_id: string
 	run_name: string
 	run_start_date: string // YYYY-MM-DD
+	validation_status: number
 
 	alias: string | null
 	cohort: string | null
