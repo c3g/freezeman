@@ -34,6 +34,11 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 	const metrics = useMemo(() => {
 		const total = readsets.length || 1
 
+		const validAlignments = readsets
+			.map((x) => x.pf_reads_aligned)
+			.filter((value) => value !== null && value !== undefined)
+			.map(Number)
+
 		return {
 			totalReadsets: readsets.length,
 			totalReads: readsets.reduce((sum, x) => sum + Number(x.number_of_reads || 0), 0),
@@ -41,7 +46,8 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 			totalSamples: new Set(readsets.map((x) => x.readset_sample_name)).size,
 			totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
 			avgQuality: readsets.reduce((sum, x) => sum + Number(x.average_quality), 0) / total,
-			avgAlignment: readsets.reduce((sum, x) => sum + Number(x.pf_reads_aligned), 0) / total,
+			avgAlignment:
+				validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,
 			avgDuplication: readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned), 0) / total,
 		}
 	}, [readsets])
@@ -108,7 +114,12 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 
 				<Col xs={24} sm={12} lg={6} xl={3}>
 					<Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-						<Statistic title="Avg Alignment" value={metrics.avgAlignment * 100} precision={2} suffix="%" />
+						<Statistic
+							title="Avg Alignment"
+							value={metrics.avgAlignment === null ? '—' : metrics.avgAlignment * 100}
+							precision={metrics.avgAlignment === null ? undefined : 2}
+							suffix={metrics.avgAlignment === null ? undefined : '%'}
+						/>
 					</Card>
 				</Col>
 
@@ -191,14 +202,14 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 							<Col xs={24} lg={12}>
 								<Card size="small" type="inner" title="Alignement rate">
 									<Statistic
-										value={metrics.avgAlignment * 100}
-										precision={2}
-										suffix="%"
+										value={metrics.avgAlignment === null ? '-' : metrics.avgAlignment * 100}
+										precision={metrics.avgAlignment === null ? undefined : 2}
+										suffix={metrics.avgAlignment === null ? undefined : '%'}
 										valueStyle={{ color: '#1677ff' }}
 									/>
 									<Progress
 										size="small"
-										percent={Number((metrics.avgAlignment * 100).toFixed(2))}
+										percent={metrics.avgAlignment === null ? 0 : Number((metrics.avgAlignment * 100).toFixed(2))}
 										strokeColor={{ color: '#1677ff' }}
 										style={{ marginBottom: 52 }}
 									/>
