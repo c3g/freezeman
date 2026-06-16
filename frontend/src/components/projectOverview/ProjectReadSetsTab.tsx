@@ -6,8 +6,9 @@ import api from '../../utils/api'
 import { useAppDispatch } from '../../hooks'
 
 import type { ColumnsType } from 'antd/es/table'
-import { Button, Spin, Table, Tag, Typography } from 'antd'
-import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
+import type { FilterDropdownProps } from 'antd/es/table/interface'
+import { Button, Input, Spin, Table, Tag, Typography } from 'antd'
+import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, FilterOutlined } from '@ant-design/icons'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
 import { useCreateCsvExportFunction } from './useCsvExport'
 
@@ -58,7 +59,7 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
 	)
 }
 
-const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
+const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; value: string }[]): ColumnsType<ProjectOverviewReadset> => [
 	{
 		title: 'ID',
 		dataIndex: 'id',
@@ -107,6 +108,9 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		key: 'library_type',
 		width: 140,
 		onHeaderCell: compactHeaderCell,
+		filters: libraryTypeFilters,
+		filterIcon: (filtered) => <FilterOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+		onFilter: (value, record) => record.library_type === value,
 		render: (libraryType: string | null) => (libraryType ? <Tag>{libraryType}</Tag> : <Text type="secondary">N/A</Text>),
 	},
 	{
@@ -115,6 +119,38 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		key: 'run_name',
 		width: 260,
 		onHeaderCell: compactHeaderCell,
+		filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+		filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: FilterDropdownProps) => (
+			<div style={{ padding: 8 }}>
+				<Input
+					placeholder="Search run"
+					value={selectedKeys[0]}
+					onChange={(event) => {
+						setSelectedKeys(event.target.value ? [event.target.value] : [])
+					}}
+					onPressEnter={() => confirm()}
+					style={{ marginBottom: 8, display: 'block' }}
+				/>
+				<Button type="primary" size="small" onClick={() => confirm()} style={{ width: 90, marginRight: 8 }}>
+					Search
+				</Button>
+				<Button
+					size="small"
+					onClick={() => {
+						clearFilters?.()
+						confirm()
+					}}
+					style={{ width: 90 }}
+				>
+					Reset
+				</Button>
+			</div>
+		),
+
+		onFilter: (value, record) =>
+			String(record.run_name ?? '')
+				.toLowerCase()
+				.includes(String(value).toLowerCase()),
 	},
 	{
 		title: 'Run Start',
@@ -243,6 +279,19 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 	}, [externalID, hasSearched, isActive, dispatch])
 
 	const generateCsvContent = useCreateCsvExportFunction(projectOverviewReadsets)
+
+	const libraryTypeFilters = Array.from(
+		new Set(
+			projectOverviewReadsets
+				.map((readset) => readset.library_type)
+				.filter((libraryType): libraryType is string => Boolean(libraryType)),
+		),
+	).map((libraryType) => ({
+		text: libraryType,
+		value: libraryType,
+	}))
+
+	const projectOverviewReadsetColumns = getProjectOverviewReadsetColumns(libraryTypeFilters)
 
 	if (isLoading) {
 		return <Spin />
