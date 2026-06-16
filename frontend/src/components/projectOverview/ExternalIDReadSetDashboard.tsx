@@ -1,6 +1,13 @@
 import React, { useMemo } from 'react'
-import { Card, Col, Progress, Row, Space, Statistic, Typography } from 'antd'
-import { CheckCircleOutlined, ClusterOutlined, DatabaseOutlined, ExperimentOutlined, TeamOutlined } from '@ant-design/icons'
+import { Card, Col, Progress, Row, Space, Statistic, Tooltip, Typography } from 'antd'
+import {
+	CheckCircleOutlined,
+	ClusterOutlined,
+	DatabaseOutlined,
+	InfoCircleOutlined,
+	ExperimentOutlined,
+	TeamOutlined,
+} from '@ant-design/icons'
 import { Column } from '@ant-design/charts'
 import { ProjectOverviewReadset } from './types'
 
@@ -170,7 +177,22 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 							</Col>
 
 							<Col xs={24} lg={12}>
-								<Card size="small" type="inner" title="QC Completeness">
+								<Card
+									size="small"
+									type="inner"
+									title={
+										<Space size={4}>
+											<span>QC Completeness</span>
+											<Tooltip
+												color="#eef6ff"
+												overlayInnerStyle={{ color: '#1f2937' }}
+												title="Shows the percentage of readsets with all required QC metrics available: average quality, PF reads aligned, and duplicate aligned."
+											>
+												<InfoCircleOutlined style={{ color: '#1677ff' }} />
+											</Tooltip>
+										</Space>
+									}
+								>
 									<Space direction="vertical" style={{ width: '100%' }} size={0}>
 										<Text>Complete QC Metrics</Text>
 										<Progress size="small" percent={qcCompleteness.complete} strokeColor="#2fbd5b" />
