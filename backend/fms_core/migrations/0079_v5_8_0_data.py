@@ -288,6 +288,60 @@ def create_phage_library_selections(apps, schema_editor):
                                                                 updated_by_id=admin_user_id)
             reversion.add_to_revision(library_selection)
 
+def insert_normalization_step_into_ultima_workflow(apps, schema_editor):
+    Workflow = apps.get_model("fms_core", "Workflow")
+    Step = apps.get_model("fms_core", "Step")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Insert Normalization (Library) into Ultima ready-to-sequence workflow.")
+        reversion.set_user(admin_user)
+
+        workflow_obj = Workflow.objects.get(name="Ready-to-Sequence Ultima")
+        insertion_order = 2
+
+        next_step_order_obj = StepOrder.objects.get(
+            order=insertion_order,
+            workflow=workflow_obj
+        )
+
+        previous_step_order_obj = StepOrder.objects.get(
+            order=insertion_order - 1,
+            workflow=workflow_obj
+        )
+
+        last_step_order_obj = StepOrder.objects.get(
+            next_step_order=None,
+            workflow=workflow_obj
+        )
+
+        # Replace order for the rest of the workflow
+        current_step_order_obj = last_step_order_obj
+        while current_step_order_obj.order >= insertion_order:
+            new_order = current_step_order_obj.order + 1
+            current_step_order_obj.order = new_order
+            current_step_order_obj.save()
+            reversion.add_to_revision(current_step_order_obj)
+            current_step_order_obj = StepOrder.objects.get(next_step_order=current_step_order_obj)
+
+        normalization_step_obj = Step.objects.get(name="Normalization (Library)")
+
+        # Insert new step
+        new_step_order_obj = StepOrder.objects.create(
+            step=normalization_step_obj,
+            next_step_order=next_step_order_obj,
+            order=insertion_order,
+            workflow=workflow_obj,
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
+        )
+        reversion.add_to_revision(new_step_order_obj)
+
+        # Rewire previous step
+        previous_step_order_obj.next_step_order = new_step_order_obj
+        previous_step_order_obj.save()
+        reversion.add_to_revision(previous_step_order_obj)
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -303,4 +357,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_phage_display_normalization_and_pooling_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_phage_display_workflow, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_phage_library_selections, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(insert_normalization_step_into_ultima_workflow, reverse_code=migrations.RunPython.noop),
     ]
