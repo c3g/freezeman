@@ -85,7 +85,7 @@ On this page we list the various steps needed for deployments. The first section
     # To test
     /usr/local/bin/openssl version
     ```
-    * Install sqlite
+  * Install sqlite
     ```
     wget https://www.sqlite.org/2026/sqlite-src-3530100.zip
     unzip sqlite-src-3530100.zip
@@ -96,7 +96,6 @@ On this page we list the various steps needed for deployments. The first section
     make -j4
     make install
     ```
-
   * Install 3.14 with sqlite
     ```
     yum install -y centos-release-scl devtoolset-11
