@@ -85,33 +85,50 @@ On this page we list the various steps needed for deployments. The first section
     # To test
     /usr/local/bin/openssl version
     ```
-  * Install python 3.11.4
+  * Install sqlite
     ```
-    cd /opt
-    wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
-    tar xzf Python-3.11.4.tgz
-    cd Python-3.11.4
-    ./configure --enable-optimizations --with-openssl=/usr/local -with-openssl-rpath=auto
+    wget https://www.sqlite.org/2026/sqlite-src-3530100.zip
+    unzip sqlite-src-3530100.zip
+    cd sqlite-src-3530100
+
+    ./configure --prefix=/usr/local CFLAGS="-O2 -fPIC"
+
+    make -j4
+    make install
+    ```
+  * Install 3.14 with sqlite
+    ```
+    yum install -y centos-release-scl devtoolset-11
+    scl enable devtoolset-11 bash
+
+    cd /opt/
+    wget https://www.python.org/ftp/python/3.14.4/Python-3.14.4.tgz
+    tar xzf Python-3.14.4
+    cd Python-3.14.4
+
+    make clean
+    make distclean
+
+    export CPPFLAGS="-I/usr/local/include"
+    export LDFLAGS="-L/usr/local/lib"
+    export LD_RUN_PATH="/usr/local/lib"
+    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+
+    ./configure --enable-optimizations --with-openssl=/usr/local --with-openssl-rpath=auto
+    make -j4
     make altinstall #to prevent replacing the default python binary file /usr/bin/python
+
     export PATH=/usr/local/bin:$PATH
 
-    # To test:
+    # test
+    /usr/local/bin/python3.14 -V
+    /usr/local/bin/pip3.14 -V
 
-    /usr/local/bin/python3.11 -V
-    /usr/local/bin/pip3.11 
+    # ssl test
+    /usr/local/bin/python3.14 -m ssl
 
-    # Python ssl test
-    python3.11 -m ssl
-    ```
-  * Install uWsgi and django with pip, and llvm
-    ```
-    pip3.11 install asgiref Django djangorestframework djangorestframework-simplejwt PyJWT pytz sqlparse list --no-cache-dir
-    CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" UWSGI_PROFILE_OVERRIDE=ssl=true pip3.11 install uwsgi -I  --no-cache-dir
-
-    yum install -y clang llvm-toolset-7
-
-    mkdir -p /usr/lib64/llvm5.0/bin
-    ln -s /opt/rh/llvm-toolset-7/root/usr/bin/llvm-lto /usr/lib64/llvm5.0/bin/
+    # sqlite3 test
+    /usr/local/bin/python3.14  -c "import sqlite3"
     ```
   * Install Node.js
     ```
@@ -159,18 +176,19 @@ On this page we list the various steps needed for deployments. The first section
 # Routine deployments
   * Backup the database (`pg_dumpall > backup_release_vX_X_X.pgsql`)
   * Kill the uwsgi processes (`ps -aux | grep uwsgi` to find, `kill -9 PROCESS_NUMBER` may need only kill the master)
-  * Move to the repository base directory (`cd ./freezeman`) and checkout the release tag from the repository (`git checkout vX.X.X`)
+  * Move to the repository base directory (`cd ./freezeman`)
+  * Fetch updates on the repository (`git fetch`) and checkout the release tag from the repository (`git checkout vX.X.X`)
   * Update the submodule pg_fzy (`git submodule update --init --recursive`) (if changed)
   * Move to the frontend (`cd frontend`) and install any new dependency (`npm install`) and fix security issues (`npm audit fix`)
   * Compile the frontend (`npm run build`)
   * Move to the backend directory (`cd ../backend`) and activate the the virtual environment (`. env/bin/activate`)
-  * Install any new dependency (`pip3.11 install -r requirements.txt`) (version of pip may change)
+  * Install any new dependency (`pip install -r requirements.txt`)
   * Install pg_fzy (`cd backend/dependencies/pg_fzy && make && sudo make install`) (`make restore_precompiled_binary` to get precompiled binaries) (if needed)
-  * Move back to the backend root (`cd ../..`) and migrate the database (`python3.11 manage.py migrate`)
-  * Create the first revisions for newly created models (`python3.11 manage.py createinitialrevisions`)
-  * Serve new and modified templates (`python3.11 manage.py collectstatic`)
+  * Move back to the backend root (`cd ../..`) and migrate the database (`python manage.py migrate`)
+  * Create the first revisions for newly created models (`python manage.py createinitialrevisions`)
+  * Serve new and modified templates (`python manage.py collectstatic`)
   * Activate the pg_fzy module (`psql -u postgres -d fms -c "create extension fzy;"`)
-  * Restart the uwsgi (`uwsgi uwsgi.ini &`)
+  * Restart the uwsgi (`./env/bin/uwsgi uwsgi.ini &`)
 
 ### Notes on submodule setup
   * If the `git submodule update --init --recursive` command fails to reach the repo and set the submodule, check the inside the .git hidden directory of the repo base directory. Inside, open the config file and replace in the section [submodule "backend/dependencies/pg_fzy"], "url = git:" by "url = https:". Execute `git submodule update --init --recursive` then go into .git/modules/backend/dependencies/pg_fzy and open "config". Replace in the section [submodule "fzy_native"], "url = git:" by "url = https:". Execute `git submodule update --init --recursive` again.
@@ -180,7 +198,7 @@ On this page we list the various steps needed for deployments. The first section
 # Specific deployments
 
 * Version 3.1 : 
-  * Upgrade python version to 3.8.
+  * Upgrade Python version to 3.8.
   * Clone the new repository.
   * Modify the nginx and uwsgi for the new locations.
 * Version 3.2 : 
@@ -191,7 +209,7 @@ On this page we list the various steps needed for deployments. The first section
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini.
 * Version 4.4.0:
-  * Upgrade python version to 3.11.
+  * Upgrade Python version to 3.11.
   * Upgrade Openssl version to 1.1.1u.
 * Version 4.5.0:
   * Backend Django version upgrade to 4.2.4 (run `pip3.11 install -r requirements.txt`).
@@ -207,3 +225,6 @@ On this page we list the various steps needed for deployments. The first section
   * If RUN_INFO_OUTPUT_PATH not defined in environment, move triggered mechanisms from /backend/lims-run-info/ to /backend/triggers/lims-run-info/
 * Version 5.5.0
   * Apply curation for initial assignment of launch and relaunch permissions.
+* Version 5.7.0:
+  * Upgrade Python version to 3.14.
+  * Upgrade Django version to 6.0.4.

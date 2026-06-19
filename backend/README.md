@@ -15,7 +15,7 @@ tracking of biological samples in a laboratory environment.
 ## Dependencies
 
   * Python `virtualenv`
-  * Postgres 9.5 or later (tested on 11 and 12)
+  * Postgres 15 or later
   * Postgres development headers
   * Make & C compiler
   
@@ -23,14 +23,14 @@ Python package dependencies are listed in `requirements.txt`.
   
 ## Running locally for development
 
-  1. Set up a virtual environment with Python 3.11 or later, and install 
+  1. Set up a virtual environment with Python 3.14 or later, and install 
      dependencies into it:
      
      ```bash
      cd backend # move into backend repository directory
-     virtualenv -p python3.11 ./env
+     python3.14 -m venv ./env
      source env/bin/activate
-     pip3.11 install -r requirements.txt
+     pip install -r requirements.txt
      ```
      
   2. Create a database for the application to use locally in Postgres. The
@@ -173,7 +173,7 @@ echo '<<< Drop DB fms >>>'
 sudo -u postgres dropdb fms
 echo '<<< Create DB fms >>>'
 sudo -u postgres createdb fms
-sudo -u postgres psql < /home/ufgauthi/Work/freezeman/instance/RollbackDB.pgsql
+sudo -u postgres psql < /home/myuser/Work/freezeman/instance/RollbackDB.pgsql
 echo '<<< Set user permission >>>'
 sudo -u postgres psql -d fms -c 'ALTER ROLE admin CREATEDB;'
 ```
@@ -182,7 +182,7 @@ On OS X, you can run these commands in the terminal (replacing the path to the .
 ```
 dropdb fms
 createdb fms
-psql -d fms < /Users/ckostiw/Downloads/2022-05-04.pgsql 
+psql -d fms < /Users/myuser/Downloads/2022-05-04.pgsql 
 psql -d fms -c 'ALTER ROLE admin CREATEDB;'
 ```
 > Note: You may need to use `sudo -u <USER>` where `<USER>` is the user created
