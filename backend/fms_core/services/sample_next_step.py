@@ -123,6 +123,27 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             errors.append(err)
     return dequeued, errors, warnings
 
+def skip_sample_over_specific_step_study_workflow(sample: Sample, study: Study, order: int):
+    errors = []
+
+    try:
+        # identify the sample next step instance
+        step_order = StepOrder.objects.get(order=order, workflow=study.workflow)
+
+        _, errors, _ = move_sample_to_next_step(
+            current_step=step_order.step,
+            current_sample=sample,
+            process_measurement=None,
+            workflow_action=WorkflowAction.SKIP_STEP,
+            next_sample=None,
+            keep_current=True
+        )
+    except Exception as err:
+        errors.append(err)
+    
+    return errors
+
+
 def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
 
@@ -275,7 +296,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement | None = None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample | None = None, keep_current: bool = False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
     """
     Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
     A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -313,7 +334,12 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
             for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
                 next_sample_next_step = None
                 study = sample_next_step_by_study.study
+                
                 current_step_order = sample_next_step_by_study.step_order
+                if current_step_order.mandatory and workflow_action == WorkflowAction.SKIP_STEP:
+                    errors.append(f"Sample {current_sample.name} cannot skip step {current_step.name} in workflow {study.workflow.name}.")
+                    continue
+
                 next_step_order = current_step_order.next_step_order \
                                   if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
                                   else None

@@ -12,8 +12,8 @@ from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core._constants import WorkflowAction
-from fms_core.models import SampleNextStepByStudy, Sample, Study, StepHistory
-from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history
+from fms_core.models import SampleNextStep, SampleNextStepByStudy, Sample, Study, StepHistory
+from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, skip_sample_over_specific_step_study_workflow
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
 
@@ -43,6 +43,37 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     ordering = ["id"]
 
     filterset_class = SampleNextStepByStudyFilter
+
+    @action(detail=False, methods=['post'])
+    def skip(self, request):
+        sample_ids = request.data.get("sample_ids", [])
+        study = request.data.get("study", None)
+        stepOrder = request.data.get("step_order", None)
+        if sample_ids == []:
+            return HttpResponseBadRequest("No sample IDs provided.")
+        if study is None:
+            return HttpResponseBadRequest("No study ID provided.")
+        if stepOrder is None:
+            return HttpResponseBadRequest("No step order provided.")
+
+        errors = []
+
+        with transaction.atomic():
+            for sample_id in sample_ids:
+                sample_next_step: SampleNextStep = self.get_queryset().get(sample_next_step__sample__id=sample_id, study=study, step_order__order=stepOrder)
+                _, sample_errors, _ = skip_sample_over_specific_step_study_workflow(
+                    sample=sample_next_step.sample,
+                    study=sample_next_step.studies.first(),
+                    order=stepOrder
+                )
+                if sample_errors:
+                    transaction.set_rollback(True)
+                errors.extend(sample_errors)
+
+        if errors:
+            return HttpResponseBadRequest(errors)
+        else:
+            return Response(status=HTTPStatus.NO_CONTENT)
 
     def destroy(self, request, pk=None):
         removed = False

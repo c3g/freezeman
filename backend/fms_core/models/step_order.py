@@ -18,6 +18,7 @@ class StepOrder(TrackedModel):
     next_step_order = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="previous_step_order", help_text="The next step following the one defined here.")
     order = models.PositiveIntegerField(help_text="Ordinal value of the step in the workflow (starting at 1).")
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="steps_order", help_text="Workflow of the step order.")
+    mandatory = models.BooleanField(default=True, help_text="Samples cannot skip this step in this workflow.")
 
     class Meta:
         indexes = [
