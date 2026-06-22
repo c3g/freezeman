@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -63,7 +65,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                 sample_next_step: SampleNextStep = self.get_queryset().get(sample_next_step__sample__id=sample_id, study=study, step_order__order=stepOrder)
                 _, sample_errors, _ = skip_sample_over_specific_step_study_workflow(
                     sample=sample_next_step.sample,
-                    study=sample_next_step.studies.first(),
+                    study=sample_next_step.studies.get(),
                     order=stepOrder
                 )
                 if sample_errors:
