@@ -3,12 +3,12 @@ from typing import cast
 import reversion
 
 from django.db import migrations, models
-from fms_core.models import StepOrder
+from django.contrib.auth import get_user_model
 
 ADMIN_USERNAME = 'biobankadmin'
 
 def make_library_normalization_step_optional(apps, schema_editor):
-    StepOrder = cast(StepOrder, apps.get_model('fms_core', 'StepOrder'))
+    StepOrder = apps.get_model('fms_core', 'StepOrder')
     with reversion.create_revision(manage_manually=True):
         admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         reversion.set_comment('Make Normalization (Library) step optional.')
