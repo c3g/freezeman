@@ -772,16 +772,16 @@ class SampleNextStepServicesTestCase(TestCase):
         workflow = Workflow.objects.get(name="Ready-to-Sequence Ultima")
 
         step_orders = StepOrder.objects.filter(workflow=workflow)
-        libqc_step = step_orders.get(step__name="Library QC")
-        libnorm_step = step_orders.get(step__name="Normalization (Library)")
-        pool_step = step_orders.get(step__name="Normalization and Pooling (Experiment Run)")
+        libqc_steporder = step_orders.get(step__name="Library QC")
+        libnorm_steporder = step_orders.get(step__name="Normalization (Library)")
+        pool_steporder = step_orders.get(step__name="Normalization and Pooling (Experiment Run)")
 
         study = Study.objects.create(
             letter="B",
             project=self.project,
             workflow=workflow,
-            start=libqc_step.order,
-            end=pool_step.order
+            start=libqc_steporder.order,
+            end=pool_steporder.order
         )
 
         index, *_ = create_index(index_name="ULTIMA_INDEX", index_structure="No_Flankers")
@@ -808,47 +808,49 @@ class SampleNextStepServicesTestCase(TestCase):
         )
         assert sample is not None # type hint
 
-        # libqc_step
+        # study B: libqc_steporder (not skippable)
 
-        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libqc_step.order)
+        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libqc_steporder.order)
 
-        errors = skip_sample_over_specific_step_study_workflow(sample, study, libqc_step.order)
+        errors = skip_sample_over_specific_step_study_workflow(sample, study, libqc_steporder.order)
         self.assertEqual(
             errors,
-            [f"Sample {sample.name} cannot skip step {libqc_step.step.name} in workflow {workflow.name}."]
+            [f"Sample {sample.name} cannot skip step {libqc_steporder.step.name} in workflow {workflow.name}."]
         )
-        step_histories = StepHistory.objects.filter(study=study, step_order=libqc_step)
-        dequeue_sample_from_specific_step_study_workflow(sample, study, libqc_step.order)
+        step_histories = StepHistory.objects.filter(study=study, step_order=libqc_steporder)
+        dequeue_sample_from_specific_step_study_workflow(sample, study, libqc_steporder.order)
 
-        # libnorm_step
+        # study B: libnorm_steporder (skippable)
 
-        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_step.order)
+        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_steporder.order)
 
-        errors = skip_sample_over_specific_step_study_workflow(sample, study, libnorm_step.order)
+        errors = skip_sample_over_specific_step_study_workflow(sample, study, libnorm_steporder.order)
         self.assertEqual(errors, [])
 
-        step_histories = StepHistory.objects.filter(study=study, step_order=libnorm_step.order)
+        step_histories = StepHistory.objects.filter(study=study, step_order=libnorm_steporder)
         self.assertEqual(step_histories.count(), 1)
         self.assertEqual(step_histories.get().workflow_action, WorkflowAction.SKIP_STEP)
 
-        sample_next_steps = SampleNextStep.objects.filter(step=pool_step.step, sample=sample).all()
+        sample_next_steps = SampleNextStep.objects.filter(step=pool_steporder.step, sample=sample).all()
         self.assertEqual(sample_next_steps.count(), 1)
-        self.assertEqual(sample_next_steps.get().step.pk, pool_step.step.pk)
+        self.assertEqual(sample_next_steps.get().step.pk, pool_steporder.step.pk)
 
-        # last step is skippable
+        dequeue_sample_from_specific_step_study_workflow(sample, study, pool_steporder.order)
+
+        # study C: last step is libnorm_steporder (skippable)
 
         study = Study.objects.create(
             letter="C",
             project=self.project,
             workflow=workflow,
-            start=libqc_step.order,
-            end=libnorm_step.order
+            start=libqc_steporder.order,
+            end=libnorm_steporder.order
         )
-        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_step.order)
-        errors = skip_sample_over_specific_step_study_workflow(sample, study, libqc_step.order)
+        queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_steporder.order)
+        errors = skip_sample_over_specific_step_study_workflow(sample, study, libnorm_steporder.order)
         self.assertEqual(errors, [])
 
-        step_histories = StepHistory.objects.filter(study=study, step_order=libnorm_step.order)
+        step_histories = StepHistory.objects.filter(study=study, step_order=libnorm_steporder)
         self.assertEqual(step_histories.count(), 1)
         self.assertEqual(step_histories.get().workflow_action, WorkflowAction.SKIP_STEP)
 

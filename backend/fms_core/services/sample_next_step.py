@@ -137,7 +137,7 @@ def skip_sample_over_specific_step_study_workflow(sample: Sample, study: Study, 
             process_measurement=None,
             workflow_action=WorkflowAction.SKIP_STEP,
             next_sample=None,
-            keep_current=True
+            keep_current=False
         )
     except Exception as err:
         errors.append(err)
@@ -335,7 +335,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
 
     with transaction.atomic():
         for current_sample_next_step in current_sample_next_steps.all():
-            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
+            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all():
                 next_sample_next_step = None
                 study = sample_next_step_by_study.study
                 
@@ -374,6 +374,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                                             process_measurement=process_measurement,
                                             sample=current_sample,
                                             workflow_action=workflow_action)
+                    pass
                 except Exception as err:
                     transaction.set_rollback(True)
                     errors.append(f"Failed to create StepHistory.")

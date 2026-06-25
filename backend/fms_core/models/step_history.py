@@ -40,8 +40,10 @@ class StepHistory(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        if self.process_measurement is None and self.step_order.step.protocol is not None:
-            add_error("process_measurement", f"process_measurement required to create protocol step step_history.")
+        if self.process_measurement is None:
+            if self.workflow_action is not WorkflowAction.SKIP_STEP:
+                if self.step_order.step.protocol is not None:
+                    add_error("process_measurement", f"process_measurement required to create protocol step step_history.")
 
         if errors:
             raise ValidationError(errors)
