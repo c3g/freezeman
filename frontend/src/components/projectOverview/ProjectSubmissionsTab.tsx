@@ -99,7 +99,7 @@ const ProjectSubmissionsTab = ({ projectIds, hasSearched, searchedExternalID }: 
 
 	//c- Prepare export button data
 	const exportButtonData = {
-		exportType: 'Project Submissions',
+		exportType: 'Associated Projects',
 		exportFunction: listExport,
 		filename: 'project_submissions',
 		itemsCount: projects.length,

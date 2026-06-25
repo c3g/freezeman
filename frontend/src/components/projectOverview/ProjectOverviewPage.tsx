@@ -94,7 +94,7 @@ const ProjectOverviewPage = () => {
 					type="card"
 					items={[
 						{
-							label: 'Project Submissions',
+							label: 'Associated Freezeman Projects',
 							key: 'submissions',
 							children: (
 								<ProjectSubmissionsTab
