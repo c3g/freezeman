@@ -699,9 +699,12 @@ class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
 
     validation_status = serializers.IntegerField(allow_null=True)
 
+
 class ProjectOverviewProjectsByExternalIDSerializer(serializers.Serializer):
     external_id = serializers.CharField(allow_blank=True, allow_null=True)
     external_id_number = serializers.IntegerField(allow_null=True)
+    hercules_project_name = serializers.CharField(
+        allow_blank=True, allow_null=True)
     project_count = serializers.IntegerField()
     projects = ProjectSerializer(many=True)
 

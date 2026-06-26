@@ -152,6 +152,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
             {
                 "external_id": external_id or None,
                 "external_id_number": get_external_id_number(external_id),
+                "hercules_project_name": projects[0].external_name if projects else None,
                 "project_count": len(projects),
                 "projects": projects,
             }

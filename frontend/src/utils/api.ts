@@ -35,6 +35,7 @@ import { AnyAction, Dispatch } from 'redux'
 import { RootState } from '../store'
 import { notifyError } from '../modules/notification/actions'
 import { ProjectOverviewReadset } from '../components/projectOverview/types'
+import { ProjectsByExternalIDGroup } from '../components/projectOverview/types'
 
 const api = {
 	auth: {
@@ -245,6 +246,8 @@ const api = {
 	projectOverview: {
 		readsets: (options: QueryParams, abort?: boolean) =>
 			get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>('/project-overview/reads/', options, { abort }),
+		projectsByExternalID: (options?: QueryParams, abort?: boolean) =>
+			get<JsonResponse<ProjectsByExternalIDGroup[]>>('/project-overview/projects_by_external_id/', options, { abort }),
 	},
 
 	propertyValues: {
