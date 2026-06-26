@@ -77,7 +77,7 @@ const ProjectsByExternalIDPage = () => {
 			width: 120,
 			render: (externalID: string | null) =>
 				externalID ? (
-					<Link to={`/project-overview/external-id/${encodeURIComponent(externalID)}`}>{externalID}</Link>
+					<Link to={`/project-overview/external-id/${encodeURIComponent(externalID)}#submissions`}>{externalID}</Link>
 				) : (
 					<span>No External ID</span>
 				),
