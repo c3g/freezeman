@@ -77,18 +77,17 @@ const ProjectsByExternalIDPage = () => {
 			width: 120,
 			render: (externalID: string | null) =>
 				externalID ? (
-					<Link to={`/project-overview/external-id/${encodeURIComponent(externalID)}#submissions`}>{externalID}</Link>
-				) : (
-					<span>No External ID</span>
-				),
+				<Link to={`/project-overview/external-id/${encodeURIComponent(externalID)}#submissions`}>{externalID}</Link>) 
+				: 
+				(<span>No External ID</span>
+
+			),
 		},
 		{
 			title: 'Hercules Project Name',
 			dataIndex: 'hercules_project_name',
 			key: 'hercules_project_name',
-			filteredValue: filters[HERCULES_PROJECT_NAME_FILTER_KEY]?.value
-				? [String(filters[HERCULES_PROJECT_NAME_FILTER_KEY].value)]
-				: null,
+			filteredValue: filters[HERCULES_PROJECT_NAME_FILTER_KEY]?.value ? [String(filters[HERCULES_PROJECT_NAME_FILTER_KEY].value)] : null,
 			filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
 			filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
 				<div style={{ padding: 8 }}>
@@ -104,10 +103,7 @@ const ProjectsByExternalIDPage = () => {
 						size="small"
 						onClick={() => {
 							const value = String(selectedKeys[0] || '')
-
-							setFilters(
-								value
-									? {
+							setFilters( value ? {
 											[HERCULES_PROJECT_NAME_FILTER_KEY]: {
 												value,
 												description: {
@@ -115,7 +111,7 @@ const ProjectsByExternalIDPage = () => {
 													key: HERCULES_PROJECT_NAME_FILTER_KEY,
 													label: 'Hercules Project Name',
 												},
-											},
+										    }  ,
 										}
 									: {},
 							)

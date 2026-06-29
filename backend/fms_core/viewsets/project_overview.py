@@ -70,9 +70,6 @@ PROJECT_OVERVIEW_VALUE_ALIASES = {
     "cohort": F("derived_sample__biosample__individual__cohort"),
     "library_type": F("derived_sample__library__library_type__name"),
     "number_of_reads": F("production_data__reads"),
-
-
-
 }
 
 
