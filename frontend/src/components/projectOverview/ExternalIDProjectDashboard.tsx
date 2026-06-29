@@ -24,7 +24,7 @@ const ExternalIDProjectsDashboard = ({ data }: ExternalIDProjectsDashboardProps)
 	const uniqueRequestors = new Set(data.map((project) => project.requestor_name).filter(Boolean)).size
 
 	return (
-		<Row gutter={[16, 16]} justify="center" style={{ margin: '32px 0' }}>
+		<Row gutter={[16, 16]} justify="center" style={{ margin: '12px 0' }}>
 			<Col xs={24} sm={12} md={6}>
 				<Card size="small" style={dashboardCardStyle}>
 					<Statistic title="Total Projects" value={total} prefix={<FolderOpenOutlined />} />

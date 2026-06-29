@@ -102,6 +102,7 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ProjectOverviewReadsetMetricSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -124,27 +125,33 @@ __all__ = [
     "ProfileSerializer",
     "DerivedSampleSerializer"
     "FreezemanPermissionSerializer",
+
 ]
+
 
 class BiosampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Biosample
         fields = "__all__"
 
+
 class ContainerSerializer(serializers.ModelSerializer):
     children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    experiment_run = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    experiment_run = serializers.PrimaryKeyRelatedField(
+        many=False, read_only=True)
 
     class Meta:
         model = Container
         fields = "__all__"
         extra_fields = ('experiment_run')
 
+
 class DerivedSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = DerivedSample
         fields = "__all__"
+
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -153,21 +160,25 @@ class SimpleContainerSerializer(serializers.ModelSerializer):
 
 
 class ContainerExportSerializer(serializers.ModelSerializer):
-    location = serializers.SlugRelatedField(slug_field='barcode', read_only=True)
+    location = serializers.SlugRelatedField(
+        slug_field='barcode', read_only=True)
     container_kind = serializers.CharField(source='kind')
     children_containers_count = serializers.SerializerMethodField()
     samples_contained_count = serializers.SerializerMethodField()
-    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+    coordinate = serializers.CharField(
+        read_only=True, source="coordinate.name")
 
     class Meta:
         model = Container
-        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinate', 'children_containers_count', 'samples_contained_count', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinate',
+                  'children_containers_count', 'samples_contained_count', 'comment')
 
     def get_children_containers_count(self, obj):
         return obj.children.all().count()
 
     def get_samples_contained_count(self, obj):
         return obj.samples.all().count()
+
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
@@ -179,7 +190,8 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExperimentRun
         fields = "__all__"
-        extra_fields = ('children_processes', 'instrument_type', 'platform', 'lanes')
+        extra_fields = ('children_processes',
+                        'instrument_type', 'platform', 'lanes')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
@@ -200,14 +212,19 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     def get_run_processing_end_time(self, obj):
         return obj.run_processing_completion_time
 
+
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_run_id = serializers.IntegerField(read_only=True, source="id")
     experiment_run_name = serializers.CharField(read_only=True, source="name")
     run_type = serializers.CharField(read_only=True, source="run_type.name")
-    instrument = serializers.CharField(read_only=True, source="instrument.name")
-    container_kind = serializers.CharField(read_only=True, source="container.kind")
-    container_name = serializers.CharField(read_only=True, source="container.name")
-    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    instrument = serializers.CharField(
+        read_only=True, source="instrument.name")
+    container_kind = serializers.CharField(
+        read_only=True, source="container.kind")
+    container_name = serializers.CharField(
+        read_only=True, source="container.name")
+    container_barcode = serializers.CharField(
+        read_only=True, source="container.barcode")
     lanes = serializers.SerializerMethodField()
 
     class Meta:
@@ -257,12 +274,14 @@ class RunTypeSerializer(serializers.ModelSerializer):
 
 class TaxonSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()
+
     class Meta:
         model = Taxon
         fields = ("id",
                   "name",
                   "ncbi_id",
                   "editable")
+
     def get_editable(self, obj):
         return can_edit_taxon(obj.id)
 
@@ -271,6 +290,7 @@ class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = Individual
         fields = "__all__"
+
 
 class IndividualExportSerializer(serializers.ModelSerializer):
     individual_id = serializers.IntegerField(read_only=True, source="id")
@@ -315,6 +335,7 @@ class IndividualExportSerializer(serializers.ModelSerializer):
         reference_genome_assembly_name = '' if obj.reference_genome is None else obj.reference_genome.assembly_name
         return reference_genome_assembly_name
 
+
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instrument
@@ -351,7 +372,8 @@ class ProtocolSerializer(serializers.ModelSerializer):
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
     children_processes = serializers.SerializerMethodField()
-    imported_template_filename = serializers.CharField(read_only=True, source="imported_template.filename")
+    imported_template_filename = serializers.CharField(
+        read_only=True, source="imported_template.filename")
 
     class Meta:
         model = Process
@@ -367,7 +389,8 @@ class ProcessSerializer(serializers.ModelSerializer):
 
 
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
-    protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
+    protocol = serializers.IntegerField(
+        read_only=True, source="process.protocol.id")
     child_sample = serializers.IntegerField(read_only=True)
     properties = serializers.SerializerMethodField()
 
@@ -382,24 +405,30 @@ class ProcessMeasurementSerializer(serializers.ModelSerializer):
 
 
 class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
-    process_measurement_id = serializers.IntegerField(read_only=True, source="id")
-    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    process_measurement_id = serializers.IntegerField(
+        read_only=True, source="id")
+    protocol_name = serializers.CharField(
+        read_only=True, source="process.protocol.name")
     child_sample_name = serializers.CharField(read_only=True)
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = ProcessMeasurement
-        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name',
+                  'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
 
 class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         process_measurements = data.all() if isinstance(data, models.Manager) else data
-        process_measurements = process_measurements.select_related("process", "process__protocol")
+        process_measurements = process_measurements.select_related(
+            "process", "process__protocol")
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
         property_types = PropertyType.objects.filter(
-            object_id__in=Subquery(process_measurements.values("process__protocol__id")),
+            object_id__in=Subquery(
+                process_measurements.values("process__protocol__id")),
             content_type=protocol_content_type
         ).values("id", "name", "object_id").all()
 
@@ -413,7 +442,8 @@ class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSeria
         property_types_by_protocol = defaultdict(list[tuple[int, str]])
         for property_type in property_types:
             protocol_id = property_type['object_id']
-            property_types_by_protocol[protocol_id].append((property_type['id'], property_type['name']))
+            property_types_by_protocol[protocol_id].append(
+                (property_type['id'], property_type['name']))
 
         property_value_by_pm_and_pt = defaultdict[int, dict[int, Any]](dict)
         for property_value in property_values:
@@ -432,43 +462,50 @@ class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSeria
                 property_value = (
                     property_value_by_pm_and_pt.get(process_measurement.id, {})
                     or
-                    property_value_by_pm_and_pt.get(process_measurement.process.id, {})
+                    property_value_by_pm_and_pt.get(
+                        process_measurement.process.id, {})
                 ).get(property_type_id, None)
                 if property_value is not None:
                     datum[property_type_name] = property_value
             data.append(datum)
         return data
 
+
 class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
-    DEFAULT_META_FIELDS = ( 'process_measurement_id',
-                            'process_id',
-                            'protocol_name',
-                            'source_sample_name',
-                            'child_sample_name',
-                            'volume_used',
-                            'execution_date',
-                            'comment' )
+    DEFAULT_META_FIELDS = ('process_measurement_id',
+                           'process_id',
+                           'protocol_name',
+                           'source_sample_name',
+                           'child_sample_name',
+                           'volume_used',
+                           'execution_date',
+                           'comment')
 
     def __init__(self, *args, **kwargs):
         # Reset Meta fields
         self.Meta.fields = self.DEFAULT_META_FIELDS
         # Instantiate the superclass normally
-        super(ProcessMeasurementWithPropertiesExportSerializer, self).__init__(*args, **kwargs)
+        super(ProcessMeasurementWithPropertiesExportSerializer,
+              self).__init__(*args, **kwargs)
         # List all property fields that are tied to the protocol
         self.property_types = self.list_property_types(self.instance)
         for property_type in self.property_types:
-            self.fields[property_type.name] = serializers.CharField(read_only=True)
+            self.fields[property_type.name] = serializers.CharField(
+                read_only=True)
             self.Meta.fields = self.Meta.fields + (property_type.name,)
 
-    process_measurement_id = serializers.IntegerField(read_only=True, source="id")
-    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    process_measurement_id = serializers.IntegerField(
+        read_only=True, source="id")
+    protocol_name = serializers.CharField(
+        read_only=True, source="process.protocol.name")
     child_sample_name = serializers.CharField(read_only=True)
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = ProcessMeasurement
         list_serializer_class = ProcessMeasurementWithPropertiesExportListSerializer
-        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name',
+                  'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
     def list_property_types(self, obj):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
@@ -485,21 +522,26 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
     def get_model(self, obj):
         return PropertyValue.objects.filter(property_type=obj).values_list('content_type__model', flat=True).first()
 
+
 class PropertyValueSerializer(serializers.ModelSerializer):
-    property_name = serializers.CharField(read_only=True, source="property_type.name")
+    property_name = serializers.CharField(
+        read_only=True, source="property_type.name")
 
     class Meta:
         model = PropertyValue
         fields = "__all__"
         extra_fields = ('property_name')
 
+
 class SampleMetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleMetadata
         fields = "__all__"
 
+
 class SampleSerializer(serializers.Serializer):
-    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    derived_samples_counts = serializers.IntegerField(
+        read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
@@ -508,9 +550,12 @@ class SampleSerializer(serializers.Serializer):
                   'collection_site', 'experimental_group', 'quality_flag', 'quantity_flag', 'identity_flag', 'created_by', 'created_at',
                   'updated_by', 'updated_at', 'deleted', 'comment')
 
+
 class SampleExportSerializer(serializers.Serializer):
-    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
-    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    coordinates = serializers.CharField(
+        read_only=True, source="coordinate.name")
+    derived_samples_count = serializers.IntegerField(
+        read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
@@ -522,8 +567,10 @@ class SampleExportSerializer(serializers.Serializer):
 
 
 class LibrarySerializer(serializers.Serializer):
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
-    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    library_size = serializers.DecimalField(
+        max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
+    derived_samples_count = serializers.IntegerField(
+        read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool', 'derived_samples_count',
@@ -532,9 +579,12 @@ class LibrarySerializer(serializers.Serializer):
 
 
 class LibraryExportSerializer(serializers.Serializer):
-    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
-    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    coordinates = serializers.CharField(
+        read_only=True, source="coordinate.name")
+    library_size = serializers.DecimalField(
+        max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
+    derived_samples_count = serializers.IntegerField(
+        read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool', 'derived_samples_count',
@@ -554,6 +604,7 @@ class RevisionSerializer(serializers.ModelSerializer):
         model = Revision
         fields = "__all__"
 
+
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
     preferences = serializers.SerializerMethodField(read_only=True)
@@ -565,13 +616,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_preferences(self, instance: Profile):
         return instance.final_preferences()
 
+
 class UserSerializer(serializers.ModelSerializer):
-    profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
-    permissions = serializers.SerializerMethodField(read_only=True, required=False)
+    profile = serializers.IntegerField(
+        read_only=True, source="freezeman_user.profile.id")
+    permissions = serializers.SerializerMethodField(
+        read_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile", "permissions")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups",
+                  "is_staff", "is_superuser", "is_active", "date_joined", "profile", "permissions")
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -580,13 +635,16 @@ class UserSerializer(serializers.ModelSerializer):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.save()
-        FreezemanUser.objects.create(user=user, profile=Profile.objects.get(name="Default"))
+        FreezemanUser.objects.create(
+            user=user, profile=Profile.objects.get(name="Default"))
         return user
 
     def get_permissions(self, instance):
         permissions_queryset = instance.freezeman_user.permissions.all()
-        serialized_data = FreezemanPermissionSerializer(permissions_queryset, many=True)
+        serialized_data = FreezemanPermissionSerializer(
+            permissions_queryset, many=True)
         return serialized_data.data
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -600,10 +658,52 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
 
+
+class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    readset_sample_name = serializers.CharField()
+    external_id = serializers.CharField()
+    run_name = serializers.CharField()
+    run_start_date = serializers.DateField()
+
+    alias = serializers.CharField(allow_null=True)
+    cohort = serializers.CharField(allow_blank=True, allow_null=True)
+    library_type = serializers.CharField(allow_null=True)
+
+    barcodes = serializers.ListField(
+        child=serializers.CharField(allow_null=True),
+        allow_empty=True,
+    )
+
+    number_of_reads = serializers.IntegerField(allow_null=True)
+
+    average_quality = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    pf_reads_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    duplicate_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    readset_file_paths = serializers.ListField(required=False)
+    readset_file_sizes = serializers.ListField(required=False)
+
+    validation_status = serializers.IntegerField(allow_null=True)
+
+
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
+        fields = ("id", "name", "principal_investigator", "requestor_name",
+                  "requestor_email", "status", "targeted_end_date",  "comment")
 
 
 class IndexSetSerializer(serializers.ModelSerializer):
@@ -618,8 +718,11 @@ class IndexSetSerializer(serializers.ModelSerializer):
 
 
 class IndexSerializer(serializers.ModelSerializer):
-    index_sets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
-    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+    index_sets = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name")
+    index_structure = serializers.CharField(
+        read_only=True, source="index_structure.name")
+
     class Meta:
         model = Index
         fields = "__all__"
@@ -627,14 +730,16 @@ class IndexSerializer(serializers.ModelSerializer):
 
 class IndexExportSerializer(serializers.ModelSerializer):
     index_sets = serializers.SerializerMethodField()
-    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+    index_structure = serializers.CharField(
+        read_only=True, source="index_structure.name")
 
     sequences_3prime = serializers.SerializerMethodField()
     sequences_5prime = serializers.SerializerMethodField()
 
     class Meta:
         model = Index
-        fields = ("id", "name", "external_name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
+        fields = ("id", "name", "external_name", "index_sets",
+                  "index_structure", "sequences_3prime", "sequences_5prime")
 
     def get_index_sets(self, obj):
         index_sets = obj.list_index_sets
@@ -666,34 +771,41 @@ class LibraryTypeSerializer(serializers.ModelSerializer):
         model = LibraryType
         fields = "__all__"
 
+
 class ImportedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImportedFile
         fields = "__all__"
+
 
 class ArchivedCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArchivedComment
         fields = "__all__"
 
+
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
     readset_count = serializers.SerializerMethodField()
-    archived_comments = ArchivedCommentSerializer("archived_comments", many=True)
+    archived_comments = ArchivedCommentSerializer(
+        "archived_comments", many=True)
     latest_release_update = serializers.SerializerMethodField()
     released_by = serializers.SerializerMethodField()
     validation_status = serializers.SerializerMethodField()
     latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
-    external_project_id = serializers.CharField(read_only=True, source="project.external_id")
+    external_project_id = serializers.CharField(
+        read_only=True, source="project.external_id")
     project_name = serializers.CharField(read_only=True, source="project.name")
-    run_name = serializers.CharField(read_only=True, source="experiment_run.name")
+    run_name = serializers.CharField(
+        read_only=True, source="experiment_run.name")
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "experiment_run_id", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_id", "project_name", "metric_report_url", "readset_count", "archived_comments")
+        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "experiment_run_id", "lane", "files", "released_status_count",
+                  "blocked_status_count", "latest_release_update", "validation_status", "project_id", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -722,14 +834,19 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_released_by(self, obj):
         return obj.released_by
 
+
 class ReadsetSerializer(serializers.ModelSerializer):
     sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
-    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
-    index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
+    library_type = serializers.CharField(
+        read_only=True, source="derived_sample.library.library_type.name")
+    index = serializers.CharField(
+        read_only=True, source="derived_sample.library.index.name")
+
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp",
+                  "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
@@ -739,21 +856,31 @@ class ReadsetSerializer(serializers.ModelSerializer):
         if experiment_container is None:
             return None
         else:
-            container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
-            experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
-            source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
+            container_spec = CONTAINER_KIND_SPECS.get(
+                experiment_container.kind, None)
+            coordinates = convert_ordinal_to_alpha_digit_coord(
+                obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            experimental_sample = Sample.objects.get(
+                container=experiment_container, coordinate__name=coordinates)
+            source_sample, _, _ = get_sample_source_from_derived_sample(
+                experimental_sample.id, obj.derived_sample.id)
             return source_sample
+
 
 class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
     metrics = serializers.SerializerMethodField(read_only=True)
-    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
-    index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
+    library_type = serializers.CharField(
+        read_only=True, source="derived_sample.library.library_type.name")
+    index = serializers.CharField(
+        read_only=True, source="derived_sample.library.index.name")
+
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp",
+                  "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "metrics", "library_type", "index")
+
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)
@@ -767,11 +894,16 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
         if experiment_container is None:
             return None
         else:
-            container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
-            experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
-            source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
+            container_spec = CONTAINER_KIND_SPECS.get(
+                experiment_container.kind, None)
+            coordinates = convert_ordinal_to_alpha_digit_coord(
+                obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            experimental_sample = Sample.objects.get(
+                container=experiment_container, coordinate__name=coordinates)
+            source_sample, _, _ = get_sample_source_from_derived_sample(
+                experimental_sample.id, obj.derived_sample.id)
             return source_sample
+
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
@@ -779,6 +911,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetFile
         fields = ("id", "readset", "file_path", "size")
+
 
 class PooledSampleSerializer(serializers.ModelSerializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample.
@@ -788,34 +921,52 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
     pool_name = serializers.CharField(read_only=True, source='sample.name')
 
-    volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
+    volume_ratio = serializers.DecimalField(
+        max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='project.id')
     project_name = serializers.CharField(read_only=True, source='project.name')
 
     # Sample info
-    alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
-    collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
-    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
-    individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
-    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
+    alias = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.alias')
+    collection_site = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.collection_site')
+    experimental_groups = serializers.JSONField(
+        read_only=True, source='derived_sample.experimental_group')
+    individual_id = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.id')
+    individual_name = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual_name')
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
-    container_id = serializers.IntegerField(read_only=True, source='sample.container.id')
-    container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
-    parent_container_id = serializers.IntegerField(read_only=True, source='sample.container.location.id')
-    coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
-    sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
+    container_id = serializers.IntegerField(
+        read_only=True, source='sample.container.id')
+    container_barcode = serializers.CharField(
+        read_only=True, source='sample.container.barcode')
+    parent_container_id = serializers.IntegerField(
+        read_only=True, source='sample.container.location.id')
+    coordinates = serializers.CharField(
+        read_only=True, source='sample.coordinate.name')
+    sample_kind = serializers.CharField(
+        read_only=True, source='derived_sample.sample_kind.name')
 
     # Library info
-    index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
-    index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
-    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
-    library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
-    library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
-    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
-    strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+    index = serializers.CharField(
+        read_only=True, source='derived_sample.library.index.name')
+    index_id = serializers.CharField(
+        read_only=True, source='derived_sample.library.index.id')
+    library_type = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_type.name')
+    library_selection = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_selection.name')
+    library_selection_target = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_selection.target')
+    platform = serializers.CharField(
+        read_only=True, source='derived_sample.library.platform.name')
+    strandedness = serializers.CharField(
+        read_only=True, source='derived_sample.library.strandedness')
 
     class Meta:
         model = DerivedBySample
@@ -847,47 +998,71 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'volume_ratio',
         ]
 
+
 class PooledSampleExportSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample, for export to CSV.
     '''
-    volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
+    volume_ratio = serializers.DecimalField(
+        max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='project.id')
     project_name = serializers.CharField(read_only=True, source='project.name')
 
     # Sample info
-    alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
-    collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
-    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
+    alias = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.alias')
+    collection_site = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.collection_site')
+    experimental_groups = serializers.JSONField(
+        read_only=True, source='derived_sample.experimental_group')
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
-    container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
-    coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
-    sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
+    container_barcode = serializers.CharField(
+        read_only=True, source='sample.container.barcode')
+    coordinates = serializers.CharField(
+        read_only=True, source='sample.coordinate.name')
+    sample_kind = serializers.CharField(
+        read_only=True, source='derived_sample.sample_kind.name')
 
     # Individual info
-    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.name')
-    taxon_ncbi_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
-    taxon_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.name')
-    sex = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.sex')
-    mother = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.mother.name')
-    father = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.father.name')
-    pedigree = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.pedigree')
-    cohort = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.cohort')
+    individual_name = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.name')
+    taxon_ncbi_id = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
+    taxon_name = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.taxon.name')
+    sex = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.sex')
+    mother = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.mother.name')
+    father = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.father.name')
+    pedigree = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.pedigree')
+    cohort = serializers.CharField(
+        read_only=True, source='derived_sample.biosample.individual.cohort')
 
     # Library info
-    index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
-    index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.index_structure.name')
+    index = serializers.CharField(
+        read_only=True, source='derived_sample.library.index.name')
+    index_structure = serializers.CharField(
+        read_only=True, source='derived_sample.library.index.index_structure.name')
     index_sets = serializers.SerializerMethodField()
     index_sequences_3prime = serializers.SerializerMethodField()
     index_sequences_5prime = serializers.SerializerMethodField()
-    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='sample.fragment_size')
-    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
-    library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
-    library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
-    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
-    strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+    library_size = serializers.DecimalField(
+        read_only=True, max_digits=20, decimal_places=0, source='sample.fragment_size')
+    library_type = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_type.name')
+    library_selection = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_selection.name')
+    library_selection_target = serializers.CharField(
+        read_only=True, source='derived_sample.library.library_selection.target')
+    platform = serializers.CharField(
+        read_only=True, source='derived_sample.library.platform.name')
+    strandedness = serializers.CharField(
+        read_only=True, source='derived_sample.library.strandedness')
 
     def get_index_sets(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
@@ -904,7 +1079,6 @@ class PooledSampleExportSerializer(serializers.Serializer):
             return ", ".join(sequences)
         else:
             return ""
-
 
     def get_index_sequences_5prime(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
@@ -947,34 +1121,44 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'mother',
             'father',
             'pedigree',
-            ]
+        ]
+
 
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StepSpecification
         fields = ("id", "name", "sheet_name", "column_name", "value")
 
+
 class StepSerializer(serializers.ModelSerializer):
     step_specifications = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Step
-        fields = ["id", "name", "type", "protocol_id","needs_placement", "needs_planning", "step_specifications"]
+        fields = ["id", "name", "type", "protocol_id",
+                  "needs_placement", "needs_planning", "step_specifications"]
 
     def get_step_specifications(self, instance):
         step_specifications = instance.step_specifications.all()
-        serialized_data = StepSpecificationSerializer(step_specifications, many=True)
+        serialized_data = StepSpecificationSerializer(
+            step_specifications, many=True)
         return serialized_data.data
+
 
 class StepOrderSerializer(serializers.ModelSerializer):
     step_id = serializers.IntegerField(read_only=True, source='step.id')
-    protocol_id = serializers.IntegerField(read_only=True, source='step.protocol_id')
+    protocol_id = serializers.IntegerField(
+        read_only=True, source='step.protocol_id')
     step_name = serializers.CharField(read_only=True, source='step.name')
+
     class Meta:
         model = StepOrder
         fields = ["id", "step_id", "step_name", "protocol_id", "order"]
 
+
 class WorkflowSerializer(serializers.ModelSerializer):
     steps_order = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Workflow
         fields = ("id", "name", "structure", "steps_order")
@@ -984,9 +1168,11 @@ class WorkflowSerializer(serializers.ModelSerializer):
         serialized_data = StepOrderSerializer(steps_order, many=True)
         return serialized_data.data
 
+
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()
     taxon_id = serializers.IntegerField(read_only=True, source='taxon.id')
+
     class Meta:
         model = ReferenceGenome
         fields = ("id",
@@ -996,51 +1182,70 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
                   "taxon_id",
                   "size",
                   "editable")
+
     def get_editable(self, obj):
         return can_edit_referenceGenome(obj.id)
 
+
 class StudySerializer(serializers.ModelSerializer):
-    project_id = serializers.IntegerField(read_only=False, required=True) # Read-only false to prevent Django glitch
-    removable = serializers.SerializerMethodField(read_only=True, required=False)
+    # Read-only false to prevent Django glitch
+    project_id = serializers.IntegerField(read_only=False, required=True)
+    removable = serializers.SerializerMethodField(
+        read_only=True, required=False)
 
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "description", "removable")
+        fields = ("id", "letter", "project_id", "workflow_id",
+                  "start", "end", "description", "removable")
 
     def get_removable(self, instance: Study):
         is_removable, _, _ = can_remove_study(instance.pk)
         return is_removable
 
+
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)
     studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     class Meta:
         model = SampleNextStep
         fields = ("id", "sample", "step", "studies")
 
+
 class SampleNextStepByStudySerializer(serializers.ModelSerializer):
-    sample = serializers.IntegerField(read_only=True, source='sample_next_step.sample.id')
+    sample = serializers.IntegerField(
+        read_only=True, source='sample_next_step.sample.id')
+
     class Meta:
         model = SampleNextStepByStudy
         fields = ("id", "sample", "step_order", "study")
 
+
 class StepHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = StepHistory
-        fields = ("id", "study", "step_order", "process_measurement", "sample", "workflow_action", "created_at", "created_by")
+        fields = ("id", "study", "step_order", "process_measurement",
+                  "sample", "workflow_action", "created_at", "created_by")
+
 
 class CoordinateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coordinate
         fields = "__all__"
 
+
 class MetricSerializer(serializers.ModelSerializer):
     readset_id = serializers.IntegerField(read_only=True)
-    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
-    derived_sample_id = serializers.IntegerField(read_only=True, source='readset.derived_sample_id')
-    run_name = serializers.CharField(read_only=True, source='readset.dataset.experiment_run.name')
-    experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
-    lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
+    sample_name = serializers.CharField(
+        read_only=True, source='readset.sample_name')
+    derived_sample_id = serializers.IntegerField(
+        read_only=True, source='readset.derived_sample_id')
+    run_name = serializers.CharField(
+        read_only=True, source='readset.dataset.experiment_run.name')
+    experiment_run_id = serializers.IntegerField(
+        read_only=True, source='readset.dataset.exeriment_run_id')
+    lane = serializers.IntegerField(
+        read_only=True, source='readset.dataset.lane')
 
     class Meta:
         model = Metric
@@ -1056,9 +1261,13 @@ class MetricSerializer(serializers.ModelSerializer):
                   "value_numeric",
                   "value_string"]
 
+
 class SampleIdentityMatchSerializer(serializers.ModelSerializer):
-    tested_biosample_id = serializers.IntegerField(read_only=True, source='tested.biosample_id')
-    matched_biosample_id = serializers.IntegerField(read_only=True, source='matched.biosample_id')
+    tested_biosample_id = serializers.IntegerField(
+        read_only=True, source='tested.biosample_id')
+    matched_biosample_id = serializers.IntegerField(
+        read_only=True, source='matched.biosample_id')
+
     class Meta:
         model = SampleIdentityMatch
         fields = ["id",
@@ -1072,6 +1281,7 @@ class SampleIdentityMatchSerializer(serializers.ModelSerializer):
 class SampleIdentitySerializer(serializers.ModelSerializer):
     sex_concordance = serializers.SerializerMethodField(read_only=True)
     identity_matches = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = SampleIdentity
         fields = ["id",
@@ -1087,6 +1297,7 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
+
 
 class FreezemanPermissionSerializer(serializers.ModelSerializer):
     class Meta:
