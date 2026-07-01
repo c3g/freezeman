@@ -61,24 +61,54 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
     dataIndex: ['sample', 'id'],
     width: 100,
     render: (_: any, { sample }: SampleAndLibrary) => {
-      return <Popconfirm
-        title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
-        onConfirm={async () => {
-          if (!sample) return;
-          const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
-          notification.info({
-            message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
-            key: REMOVE_NOTIFICATION_KEY
-          })
-          await dispatch(api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]))
-          await dispatch(refreshStudySamples(studyID))
-          notification.destroy(REMOVE_NOTIFICATION_KEY)
-        }}
-        disabled={!sample}
-        placement={'topLeft'}
-      >
-        <Button color="danger" variant="link">Remove</Button>
-      </Popconfirm>
+      return [
+        <Popconfirm
+          key={"remove"}
+          title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
+          onConfirm={async () => {
+            if (!sample) return;
+            const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
+            notification.info({
+              message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
+              key: REMOVE_NOTIFICATION_KEY
+            })
+            await dispatch(api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]))
+            await dispatch(refreshStudySamples(studyID))
+            notification.destroy(REMOVE_NOTIFICATION_KEY)
+          }}
+          disabled={!sample}
+          placement={'topLeft'}
+        >
+          <Button color="danger" variant="link">Remove</Button>
+        </Popconfirm>,
+        <Popconfirm
+          title={`Are you sure you want to skip step '${step.stepName}' for sample '${sample?.name ?? 'Loading...'}'?`}
+          onConfirm={async () => {
+            if (!sample) return;
+            const SKIPPING_KEY = `StudyStepSamplesTable.skip-${studyID}-${step.stepID}-${sample.id}`
+            notification.info({
+              message: `Skipping step '${step.stepName}' for sample '${sample?.name}'`,
+              key: SKIPPING_KEY
+            })
+            try {
+              await dispatch(api.sampleNextStepByStudy.skip([sample.id], studyID, step.stepOrder))
+              await dispatch(refreshStudySamples(studyID))
+            } catch (e) {
+              const ERROR_KEY = `StudyStepSamplesTable.skip_error-${studyID}-${step.stepID}-${sample.id}`
+              notification.error({
+                message: e.data,
+                key: ERROR_KEY
+              })
+            } finally {
+              notification.destroy(SKIPPING_KEY)
+            }
+          }}
+          disabled={!sample}
+          placement={'topLeft'}
+        >
+          <Button color="danger" variant="link">Skip</Button>
+        </Popconfirm>
+      ]
     }
   }), [dispatch, step.ready.sampleNextStepByID, step.stepID, step.stepName, studyID])
 

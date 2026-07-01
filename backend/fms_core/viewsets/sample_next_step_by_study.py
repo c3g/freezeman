@@ -62,10 +62,10 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             for sample_id in sample_ids:
-                sample_next_step: SampleNextStep = self.get_queryset().get(sample_next_step__sample__id=sample_id, study=study, step_order__order=stepOrder)
-                _, sample_errors, _ = skip_sample_over_specific_step_study_workflow(
-                    sample=sample_next_step.sample,
-                    study=sample_next_step.studies.get(),
+                sample_next_step_by_study: SampleNextStepByStudy = self.get_queryset().get(sample_next_step__sample__id=sample_id, study=study, step_order__order=stepOrder)
+                sample_errors = skip_sample_over_specific_step_study_workflow(
+                    sample=sample_next_step_by_study.sample_next_step.sample,
+                    study=sample_next_step_by_study.study,
                     order=stepOrder
                 )
                 if sample_errors:

@@ -815,7 +815,7 @@ class SampleNextStepServicesTestCase(TestCase):
         errors = skip_sample_over_specific_step_study_workflow(sample, study, libqc_steporder.order)
         self.assertEqual(
             errors,
-            [f"Sample {sample.name} cannot skip step {libqc_steporder.step.name} in workflow {workflow.name}."]
+            [f"Step {libqc_steporder.step.name} cannot be skipped in workflow {workflow.name}."]
         )
         step_histories = StepHistory.objects.filter(study=study, step_order=libqc_steporder)
         dequeue_sample_from_specific_step_study_workflow(sample, study, libqc_steporder.order)

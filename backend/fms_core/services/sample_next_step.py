@@ -341,7 +341,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                 
                 current_step_order = sample_next_step_by_study.step_order
                 if current_step_order.mandatory and workflow_action == WorkflowAction.SKIP_STEP:
-                    errors.append(f"Sample {current_sample.name} cannot skip step {current_step.name} in workflow {study.workflow.name}.")
+                    errors.append(f"Step {current_step.name} cannot be skipped in workflow {study.workflow.name}.")
                     continue
 
                 next_step_order = current_step_order.next_step_order \
