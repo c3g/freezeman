@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Case, When, Q, F, BooleanField
 from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core._constants import WorkflowAction
@@ -122,6 +123,27 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
         except Exception as err:
             errors.append(err)
     return dequeued, errors, warnings
+
+def skip_sample_over_specific_step_study_workflow(sample: Sample, study: Study, order: int):
+    errors = []
+
+    try:
+        # identify the sample next step instance
+        step_order = StepOrder.objects.get(order=order, workflow=study.workflow)
+
+        _, errors, _ = move_sample_to_next_step(
+            current_step=step_order.step,
+            current_sample=sample,
+            process_measurement=None,
+            workflow_action=WorkflowAction.SKIP_STEP,
+            next_sample=None,
+            keep_current=False
+        )
+    except Exception as err:
+        errors.append(err)
+    
+    return errors
+
 
 def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
@@ -275,7 +297,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement | None = None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample | None = None, keep_current: bool = False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
     """
     Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
     A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -304,19 +326,27 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
     if not isinstance(workflow_action, WorkflowAction):
         errors.append(f"A valid workflow action instance must be provided.")
 
-    if not errors:
-        new_sample = next_sample if next_sample is not None else current_sample
+    if errors:
+        return None, errors, warnings
 
-        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
+    new_sample = next_sample if next_sample is not None else current_sample
 
+    current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
+
+    with transaction.atomic():
         for current_sample_next_step in current_sample_next_steps.all():
-            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
+            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all():
                 next_sample_next_step = None
                 study = sample_next_step_by_study.study
+                
                 current_step_order = sample_next_step_by_study.step_order
+                if current_step_order.mandatory and workflow_action == WorkflowAction.SKIP_STEP:
+                    errors.append(f"Step {current_step.name} cannot be skipped in workflow {study.workflow.name}.")
+                    continue
+
                 next_step_order = current_step_order.next_step_order \
-                                  if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
-                                  else None
+                                if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
+                                else None
                 if next_step_order is not None:
                     try:
                         if SampleNextStep.objects.filter(step=next_step_order.step, sample=new_sample).exists():
@@ -328,10 +358,10 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                                                 "of study {2} of project {3}.", [new_sample.name, next_step_order.order if next_step_order is not None else '', study.letter, study.project.name]))
                             else:
                                 errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
-                                              f"of study {study.letter} of project {study.project.name}.")
+                                            f"of study {study.letter} of project {study.project.name}.")
                         else:
                             next_sample_next_step = SampleNextStep.objects.create(step=next_step_order.step,
-                                                                                  sample=new_sample)
+                                                                                sample=new_sample)
                             if next_sample_next_step is not None:
                                 SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
                                 new_sample_next_steps.append(next_sample_next_step)
@@ -340,11 +370,13 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                 try:
                     # Create the entry in StepHistory
                     StepHistory.objects.create(study=study,
-                                               step_order=current_step_order,
-                                               process_measurement=process_measurement,
-                                               sample=current_sample,
-                                               workflow_action=workflow_action)
+                                            step_order=current_step_order,
+                                            process_measurement=process_measurement,
+                                            sample=current_sample,
+                                            workflow_action=workflow_action)
+                    pass
                 except Exception as err:
+                    transaction.set_rollback(True)
                     errors.append(f"Failed to create StepHistory.")
             try:
                 # Remove old sample next step once the new one is created
@@ -353,11 +385,13 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                         sample_next_step_by_study.delete()
                     current_sample_next_step.delete()
             except Exception as err:
+                transaction.set_rollback(True)
                 errors.append(f"Failed to remove old sample next step.")
 
-    # an error will return None, no matching current_sample_next_step will return []
-    if errors:
-        new_sample_next_steps = None
+        # an error will return None, no matching current_sample_next_step will return []
+        if errors:
+            transaction.set_rollback(True)
+            new_sample_next_steps = None
 
     return new_sample_next_steps, errors, warnings
 
