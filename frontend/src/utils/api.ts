@@ -1,35 +1,11 @@
 import { stringify as qs } from 'querystring'
 import { API_BASE_PATH } from '../config'
-import {
-	FMSDataset,
-	FMSId,
-	FMSPagedResultsReponse,
-	FMSProject,
-	FMSProtocol,
-	FMSReadset,
-	FMSSample,
-	FMSSampleNextStep,
-	FMSSampleNextStepByStudy,
-	FMSStep,
-	FMSStepHistory,
-	FMSStudy,
-	FMSWorkflow,
-	LabworkStepInfo,
-	ReleaseStatus,
-	FMSReportInformation,
-	WorkflowStepOrder,
-	FMSReportData,
-	FMSPooledSample,
-	FMSSampleIdentity,
-	FMSSampleIdentityMatch,
-	FMSBiosample,
-	FMSUser,
-	FMSProfile,
-	FMSSampleLineageGraph,
-	FMSTemplateAction,
-	FMSTemplatePrefillOption,
-	FMSVersion,
-	FMSExperimentRun,
+import {FMSDataset,FMSId,FMSPagedResultsReponse,FMSProject,FMSProtocol,FMSReadset, 
+	FMSSample,FMSSampleNextStep,FMSSampleNextStepByStudy,FMSStep,FMSStepHistory,FMSStudy,
+	FMSWorkflow,LabworkStepInfo,ReleaseStatus,FMSReportInformation,WorkflowStepOrder,
+	FMSReportData,FMSPooledSample,FMSSampleIdentity,FMSSampleIdentityMatch,FMSBiosample,
+	FMSUser,FMSProfile,FMSSampleLineageGraph,FMSTemplateAction,FMSTemplatePrefillOption,
+	FMSVersion,FMSExperimentRun,
 } from '../models/fms_api_models'
 import { AnyAction, Dispatch } from 'redux'
 import { RootState } from '../store'
@@ -44,7 +20,7 @@ const api = {
 		resetPassword: (email) => post('/password_reset/', { email }),
 		changePassword: (token, password) => post('/password_reset/confirm/', { token, password }),
 	},
-
+	
 	biosamples: {
 		get: (biosampleId: FMSId) => get<JsonResponse<FMSBiosample>>(`/biosamples/${biosampleId}/`),
 		list: (options: QueryParams, abort?: boolean) =>
@@ -491,21 +467,14 @@ export default api
 type AuthTokensAccess = Partial<Omit<RootState, 'auth'>> & Pick<RootState, 'auth'>
 
 export function dispatchForApi<T>(token: string | undefined, thunk: (_: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => T): T {
-	return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({
-		auth: {
-			isFetching: false,
-			error: null,
-			currentUserID: null,
-			tokens: { access: token, refresh: null },
-			_persist: { version: 0, rehydrated: false },
-		},
+	return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { isFetching: false, error: null, currentUserID: null, tokens: { access: token, refresh: null },_persist: { version: 0, rehydrated: false },},
 	}))
 }
 
-type WithTokenFn<R extends ResponseWithData<any>, Args extends any[]> = (
-	...args: Args
-) => (dispatch: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => Promise<R>
-export function withToken<R extends ResponseWithData<any>, Args extends any[]>(token: string | undefined, fn: WithTokenFn<R, Args>) {
+type WithTokenFn<R extends ResponseWithData<any>, Args extends any[]> = (...args: Args) => 
+(dispatch: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => Promise<R>
+export function withToken<R extends ResponseWithData<any>, Args extends any[]>(token: string | 
+undefined, fn: WithTokenFn<R, Args>) {
 	// dispatch is hopefully not used in the fn function
 	return (...args: Parameters<typeof fn>) => dispatchForApi(token, fn(...args))
 }
@@ -521,12 +490,8 @@ export interface APIFetchOptions {
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
-function apiFetch<R extends ResponseWithData<any>>(
-	method: HTTPMethod,
-	route: string,
-	body?: any,
-	options: APIFetchOptions = { abort: false, notifyError: false },
-) {
+function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod,route: string,body?: any, 
+options: APIFetchOptions = { abort: false, notifyError: false },) {
 	const baseRoute = getPathname(route)
 
 	return (dispatch: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => {
@@ -581,10 +546,9 @@ function apiFetch<R extends ResponseWithData<any>>(
 					}
 					dispatch(
 						notifyError({
-							id: requestID,
+						    id: requestID,
 							title: detail || 'API request failed',
-						}),
-					)
+						}),)
 				}
 				return Promise.reject(createAPIError(response))
 			})
@@ -658,25 +622,20 @@ export interface FMSResponse<T = any> extends Response {
 	data: T
 	filename?: string
 }
-interface JsonResponse<T = any> extends FMSResponse<T> {
-	isJSON: true
-}
-interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> {
-	isJSON: false
-}
-interface StringResponse extends FMSResponse<string> {
-	isJSON: false
-}
-interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> {
-	isJSON: false
-}
-type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | AttachDataErrorResponse
+interface JsonResponse<T = any> extends FMSResponse<T> {isJSON: true}
+interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> {isJSON: false}
+interface StringResponse extends FMSResponse<string> {isJSON: false}
+interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> {isJSON: false}
+type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | 
+AttachDataErrorResponse
 
-function attachData<R extends ResponseWithData<any>>(response: Response & Partial<ResponseWithData>) {
+function attachData<R extends ResponseWithData<any>>(response: Response & 
+	Partial<ResponseWithData>) {
 	const contentType = response.headers.get('content-type') || ''
 	const contentDispo = response.headers.get('content-disposition')
 	const filename = getFilenameOrNull(contentDispo)
-	if (filename) response.filename = filename
+	if (filename) 
+		response.filename = filename
 
 	/*
       TODO: This code was causing downloaded excel templates to become corrupted because
@@ -712,7 +671,8 @@ function getFilenameOrNull(contentDispo: string | null) {
 			? // eslint-disable-next-line no-useless-escape
 				contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
 			: null
-	else return null
+	else 
+		return null
 }
 
 function form(params: Record<string, string | Blob>) {
