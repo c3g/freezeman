@@ -1,5 +1,4 @@
 from collections import defaultdict
-import re
 
 from fms_core.models.project import Project
 from fms_core.models.readset import Readset
@@ -20,10 +19,8 @@ def get_external_id_from_request(request):
 
 def get_external_id_number(external_id):
     if not external_id:
-        return None
-
-    match = re.search(r"\d+", external_id)
-    return int(match.group()) if match else None
+        return None   
+    return int(external_id[1:]) 
 
 
 ACTIVE_READSET_FILTERS = {
@@ -133,11 +130,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"])
     def projects_by_external_id(self, request):
-        projects = (
-            Project.objects
-            .filter(deleted=False)
-            .order_by("name", "id")
-        )
+        projects = Project.objects.all()        
 
         grouped_projects_map = defaultdict(list)
 
@@ -149,7 +142,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
             {
                 "external_id": external_id or None,
                 "external_id_number": get_external_id_number(external_id),
-                "hercules_project_name": projects[0].external_name if projects else None,
+                "external_project_name": projects[0].external_name if projects else None,
                 "project_count": len(projects),
                 "projects": projects,
             }

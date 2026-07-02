@@ -82,7 +82,7 @@ export interface ProjectOverviewExportButtonData {
 export type ProjectsByExternalIDGroup = {
 	external_id: string | null
 	external_id_number: number | null
-	hercules_project_name: string | null
+	external_project_name: string | null
 	project_count: number
 	projects: FMSProject[]
 }

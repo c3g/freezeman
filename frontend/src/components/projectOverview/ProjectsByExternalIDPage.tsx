@@ -14,7 +14,7 @@ import { SearchOutlined } from '@ant-design/icons'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { FilterSet } from '../../models/paged_items'
 
-const HERCULES_PROJECT_NAME_FILTER_KEY = 'hercules_project_name'
+const EXTERNAL_PROJECT_NAME_FILTER_KEY = 'external_project_name'
 
 const projectColumns: ColumnsType<FMSProject> = [
 	{
@@ -84,15 +84,15 @@ const ProjectsByExternalIDPage = () => {
 			),
 		},
 		{
-			title: 'Hercules Project Name',
-			dataIndex: 'hercules_project_name',
-			key: 'hercules_project_name',
-			filteredValue: filters[HERCULES_PROJECT_NAME_FILTER_KEY]?.value ? [String(filters[HERCULES_PROJECT_NAME_FILTER_KEY].value)] : null,
+			title: 'External Project Name',
+			dataIndex: 'external_project_name',
+			key: 'external_project_name',
+			filteredValue: filters[EXTERNAL_PROJECT_NAME_FILTER_KEY]?.value ? [String(filters[EXTERNAL_PROJECT_NAME_FILTER_KEY].value)] : null,
 			filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
 			filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
 				<div style={{ padding: 8 }}>
 					<Input
-						placeholder="Search Hercules project name"
+						placeholder="Search External project name"
 						value={selectedKeys[0]}
 						onChange={(event) => setSelectedKeys(event.target.value ? [event.target.value] : [])}
 						onPressEnter={() => confirm()}
@@ -104,12 +104,12 @@ const ProjectsByExternalIDPage = () => {
 						onClick={() => {
 							const value = String(selectedKeys[0] || '')
 							setFilters( value ? {
-											[HERCULES_PROJECT_NAME_FILTER_KEY]: {
+											[EXTERNAL_PROJECT_NAME_FILTER_KEY]: {
 												value,
 												description: {
 													type: 'INPUT',
-													key: HERCULES_PROJECT_NAME_FILTER_KEY,
-													label: 'Hercules Project Name',
+													key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
+													label: 'External Project Name',
 												},
 										    }  ,
 										}
@@ -135,8 +135,8 @@ const ProjectsByExternalIDPage = () => {
 					</Button>
 				</div>
 			),
-			onFilter: (value, record) => (record.hercules_project_name || '').toLowerCase().includes(String(value).toLowerCase()),
-			render: (herculesProjectName: string | null) => herculesProjectName || '',
+			onFilter: (value, record) => (record.external_project_name || '').toLowerCase().includes(String(value).toLowerCase()),
+			render: (externalProjectName: string | null) => externalProjectName || '',
 		},
 		{
 			title: 'Freezeman Projects',
