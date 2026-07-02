@@ -66,6 +66,7 @@ import { getProfile } from '../../modules/profiles'
 import api from '../../utils/api'
 import store from '../../store'
 import ProjectOverviewPage from '../projectOverview/ProjectOverviewPage'
+import ProjectsByExternalIDPage from '../projectOverview/ProjectsByExternalIDPage'
 
 const { Title } = Typography
 
@@ -378,13 +379,13 @@ const App = ({ userID, usersByID, logOut }) => {
 							path="/project-overview"
 							element={
 								<PrivateNavigate>
-									<ProjectOverviewPage />
+									<ProjectsByExternalIDPage />
 								</PrivateNavigate>
 							}
 						/>
 
 						<Route
-							path="/project-overview/:id"
+							path="/project-overview/external-id/:externalID"
 							element={
 								<PrivateNavigate>
 									<ProjectOverviewPage />

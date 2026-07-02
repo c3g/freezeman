@@ -1,7 +1,7 @@
 import { Input, Tabs, Typography } from 'antd'
 import FlexBar from '../shared/Flexbar'
 
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import useHashURL from '../../hooks/useHashURL'
 import AppPageHeader from '../AppPageHeader'
@@ -11,14 +11,14 @@ import ProjectSubmissionsTab from './ProjectSubmissionsTab'
 import ProjectSamplesTab from './ProjectSamplesTab'
 import ProjectLibrariesTab from './ProjectLibrariesTab'
 import ProjectReadSetsTab from './ProjectReadSetsTab'
-import ProjectAnalysisTab from './ProjectAnalysisTab'
-import ProjectDocumentsTab from './ProjectDocumentsTab'
 
 import { useAppSelector } from '../../hooks'
 import ProjectsTableActions from '../../modules/projectsTable/actions'
-import { selectProjectsTable } from '../../selectors'
+import { selectProjectsByID, selectProjectsTable } from '../../selectors'
 import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { PROJECT_FILTERS, PROJECT_FILTER_KEYS, ProjectColumnID } from '../projects/ProjectsTableColumns'
+
+import { useParams } from 'react-router-dom'
 
 /*
 ProjectOverview fetch tous les projets a partir du stotre Redux , puis applique le filtre External ID pour 
@@ -30,12 +30,13 @@ Eux qui les utilise,pour fetcher duatres informations selon leurs besoins et tra
 */
 
 const ProjectOverviewPage = () => {
+	const { externalID } = useParams()
+	const selectedExternalID = externalID || ''
+
 	const [activeKey, setActiveKey] = useHashURL('submissions')
-	const [externalID, setExternalID] = useState('')
-	const [searchedExternalID, setSearchedExternalID] = useState('')
-	const [hasSearched, setHasSearched] = useState(false)
 
 	const projectsTableState = useAppSelector(selectProjectsTable)
+	const projectsByID = useAppSelector(selectProjectsByID)
 	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
 
 	const externalIDFilter = useMemo(
@@ -46,27 +47,27 @@ const ProjectOverviewPage = () => {
 		[],
 	)
 
-	const handleSearch = useCallback(
-		async (value: string) => {
-			const trimmedValue = value.trim()
-
-			setExternalID(trimmedValue)
-			setSearchedExternalID(trimmedValue)
-			setHasSearched(Boolean(trimmedValue))
-			setActiveKey('submissions')
-
+	useEffect(() => {
+		async function applyExternalIDFilter() {
 			await projectsTableCallbacks.resetPagedItemsCallback()
 
-			if (!trimmedValue) {
+			if (!selectedExternalID) {
 				return
 			}
 
-			await projectsTableCallbacks.setFilterCallback(trimmedValue, externalIDFilter)
-		},
-		[projectsTableCallbacks, externalIDFilter, setActiveKey],
-	)
+			await projectsTableCallbacks.setFilterCallback(selectedExternalID, externalIDFilter)
+		}
+
+		applyExternalIDFilter()
+	}, [selectedExternalID, externalIDFilter, projectsTableCallbacks])
+
+	const hasSearched = Boolean(selectedExternalID)
+	const searchedExternalID = selectedExternalID
 
 	const projectIds = projectsTableState.items
+	const selectedProjects = projectIds.map((projectId) => projectsByID[projectId]).filter(Boolean)
+
+	const herculesProjectName = selectedProjects[0]?.external_name || ''
 
 	return (
 		<>
@@ -74,16 +75,7 @@ const ProjectOverviewPage = () => {
 
 			<PageContent tabs>
 				<FlexBar style={{ alignItems: 'center', justifyContent: 'flex-start', gap: 8, marginBottom: 16 }}>
-					<Typography.Text strong>Project External ID</Typography.Text>
-					<Input.Search
-						allowClear
-						enterButton="Search"
-						placeholder="Enter a project external ID"
-						value={externalID}
-						onChange={(event) => setExternalID(event.target.value)}
-						onSearch={handleSearch}
-						style={{ maxWidth: 420 }}
-					/>
+					<Typography.Text strong style={{ fontSize: 18 }}>{herculesProjectName}</Typography.Text>
 					<span>{!hasSearched && '(Ex : P000123)'}</span>
 				</FlexBar>
 

@@ -1,3 +1,5 @@
+import { FMSProject } from '../../models/fms_api_models'
+
 export type ExternalIDProjectSample = {
 	id: number
 	external_id: string
@@ -75,4 +77,12 @@ export interface ProjectOverviewExportButtonData {
 	filename: string
 	itemsCount: number
 	disabled: boolean
+}
+
+export type ProjectsByExternalIDGroup = {
+	external_id: string | null
+	external_id_number: number | null
+	external_project_name: string | null
+	project_count: number
+	projects: FMSProject[]
 }
