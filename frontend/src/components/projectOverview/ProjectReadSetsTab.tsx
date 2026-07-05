@@ -16,6 +16,13 @@ import { ValidationStatus } from '../../modules/experimentRunLanes/models'
 
 const { Text } = Typography
 
+const PROJECT_OVERVIEW_READSETS_DEFAULT_ORDERING = [
+	'dataset__experiment_run__start_date',
+	'dataset__experiment_run__name',
+	'dataset__lane',
+	'id',
+].join(',')
+
 interface ProjectReadSetsTabProps {
 	externalID: string
 	hasSearched: boolean
@@ -275,6 +282,7 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 					api.projectOverview.readsets({
 						external_id: externalID,
 						limit: 100,
+						ordering: PROJECT_OVERVIEW_READSETS_DEFAULT_ORDERING,
 					}),
 				)
 				setProjectOverviewReadsets(response.data.results)

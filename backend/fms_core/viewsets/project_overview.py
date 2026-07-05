@@ -1,5 +1,5 @@
 from fms_core.models.readset import Readset
-from fms_core.serializers import ProjectOverviewReadsetMetricSerializer
+#from fms_core.serializers import ProjectOverviewReadsetMetricSerializer
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from django.db.models import Max, Q, F
@@ -11,10 +11,14 @@ def get_external_id_from_request(request):
     external_id = request.query_params.get("external_id")
     if not external_id:
         raise ValueError("external_id query parameter is required")
-    return external_id
+    else:
+        return external_id
 
 
-ACTIVE_READSET_FILTERS = {
+READSET_SOFT_DELETE_FILTERS = {
+    #These are intended to be backend queryset constraints to exclude soft-deleted records from the ReadSet-related
+    # before serialization, not frontend filter state.
+
     "deleted": False,
     "dataset__deleted": False,
     "dataset__project__deleted": False,
@@ -31,7 +35,7 @@ ACTIVE_READSET_FILTERS = {
 }
 
 
-PROJECT_OVERVIEW_ORDERING = [
+PROJECT_OVERVIEW_ORDERING_FIELDS = [
     "dataset__experiment_run__start_date",
     "dataset__experiment_run__name",
     "dataset__lane",
@@ -58,16 +62,14 @@ PROJECT_OVERVIEW_VALUE_ALIASES = {
     "cohort": F("derived_sample__biosample__individual__cohort"),
     "library_type": F("derived_sample__library__library_type__name"),
     "number_of_reads": F("production_data__reads"),
-
-
-
 }
 
 
 class ProjectOverviewViewSet(viewsets.GenericViewSet):
 
     queryset = Readset.objects.all()
-    serializer_class = ProjectOverviewReadsetMetricSerializer
+  #  serializer_class = ProjectOverviewReadsetMetricSerializer
+    ordering_fields = PROJECT_OVERVIEW_ORDERING_FIELDS
 
     @action(detail=False, methods=["get"])
     def reads(self, request):
@@ -76,7 +78,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
 
         queryset = (
             Readset.objects.filter(
-                **ACTIVE_READSET_FILTERS,
+                **READSET_SOFT_DELETE_FILTERS,
                 dataset__project__external_id=external_id
             )
             .annotate(
@@ -101,7 +103,6 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
                     distinct=True,
                 ),
             )
-            .order_by(*PROJECT_OVERVIEW_ORDERING)
             .values(
                 *PROJECT_OVERVIEW_VALUE_FIELDS,
                 **PROJECT_OVERVIEW_VALUE_ALIASES,
@@ -113,12 +114,13 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
                 )
             )
         )
+        queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(queryset)
+
         page = self.paginate_queryset(queryset)
 
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(page)
 
         else:
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
+            return Response(list(queryset))
