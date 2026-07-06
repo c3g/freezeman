@@ -4,6 +4,7 @@ import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMS
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
+import { ProjectOverviewReadset } from '../components/projectOverview/types'
 
 const api = {
   auth: {
@@ -197,6 +198,11 @@ const api = {
       submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
     },
   },
+  
+  projectOverview: {
+		readsets: (options: QueryParams, abort?: boolean) =>
+			get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>('/project-overview/reads/', options, { abort }),
+	},
 
   propertyValues: {
     list: (options, abort?: boolean) => get("/property-values/", options, { abort }),

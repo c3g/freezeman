@@ -1,10 +1,17 @@
 import React from 'react'
-
+import { useState } from 'react'
 interface ProjectDocumentsTabProps {
-	projectID: number
+	projectIds: readonly number[]
+	hasSearched: boolean
+	isActive: boolean
 }
 
-const ProjectDocumentsTab = ({ projectID }: ProjectDocumentsTabProps) => {
+interface ProjectDocument {}
+
+const ProjectDocumentsTab = ({ projectIds, hasSearched, isActive }: ProjectDocumentsTabProps) => {
+	const [documents, setDocuments] = useState<ProjectDocument[]>([])
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 	return <>{'Documents Tab to build later'}</>
 }
 
