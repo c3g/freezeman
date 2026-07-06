@@ -15,7 +15,7 @@ def get_external_id_from_request(request):
         return external_id
 
 
-READSET_SOFT_DELETE_FILTERS = {
+EXCLUDE_DELETED_READSET_FILTERS = {
     #These are intended to be backend queryset constraints to exclude soft-deleted records from the ReadSet-related
     # before serialization, not frontend filter state.
 
@@ -78,7 +78,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
 
         queryset = (
             Readset.objects.filter(
-                **READSET_SOFT_DELETE_FILTERS,
+                **EXCLUDE_DELETED_READSET_FILTERS,
                 dataset__project__external_id=external_id
             )
             .annotate(
