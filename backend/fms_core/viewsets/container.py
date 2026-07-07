@@ -186,8 +186,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     When(IStartsWith(search_input, F("name")), Value(2)),
                     When(Contains(search_input, F("barcode")), Value(4)),
                     When(Contains(search_input, F("name")), Value(4)),
-                    When(IContains(search_input, F("barcode")), Value(5)),
-                    When(IContains(search_input, F("name")), Value(5)),
                 ])
                 queryset = queryset.annotate(priority=Case(
                     *cases,
