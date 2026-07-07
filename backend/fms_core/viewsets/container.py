@@ -176,6 +176,10 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 cases = [
                     When(Exact(search_input, F("barcode")), Value(0)),
                     When(Exact(search_input, F("name")), Value(0)),
+                ]
+                if search_input.isdigit():
+                    cases.append(When(Exact(search_input, F("pk")), Value(0)))
+                cases.extend([
                     When(StartsWith(search_input, F("barcode")), Value(1)),
                     When(StartsWith(search_input, F("name")), Value(1)),
                     When(IStartsWith(search_input, F("barcode")), Value(2)),
@@ -184,9 +188,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     When(Contains(search_input, F("name")), Value(4)),
                     When(IContains(search_input, F("barcode")), Value(5)),
                     When(IContains(search_input, F("name")), Value(5)),
-                ]
-                if search_input.isdigit():
-                    cases.append(When(Exact(search_input, F("pk")), Value(3)))
+                ])
                 queryset = queryset.annotate(priority=Case(
                     *cases,
                     default=Value(100)
