@@ -174,6 +174,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 )
             else:
                 cases = [
+                    When(Exact(search_input, F("barcode")), Value(0)),
+                    When(Exact(search_input, F("name")), Value(0)),
                     When(StartsWith(search_input, F("barcode")), Value(1)),
                     When(StartsWith(search_input, F("name")), Value(1)),
                     When(IStartsWith(search_input, F("barcode")), Value(2)),
