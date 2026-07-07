@@ -173,6 +173,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     Q(id=search_input)
                 )
             else:
+                queryset = queryset.filter(
+                    Q(barcode__icontains=search_input) |
+                    Q(name__icontains=search_input) |
+                    Q(id__icontains=search_input)
+                )
+
                 cases = [
                     When(Exact(search_input, F("barcode")), Value(0)),
                     When(Exact(search_input, F("name")), Value(0)),
@@ -191,12 +197,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     *cases,
                     default=Value(100)
                 ))
-
-                queryset = queryset.filter(
-                    Q(barcode__icontains=search_input) |
-                    Q(name__icontains=search_input) |
-                    Q(id__icontains=search_input)
-                )
             if is_parent:
                 kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
                 queryset = queryset.filter(Q(kind__in=kinds))
