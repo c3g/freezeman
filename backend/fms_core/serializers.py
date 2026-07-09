@@ -678,6 +678,21 @@ class ProjectOverviewProjectsByExternalIDSerializer(serializers.Serializer):
     projects = ProjectSerializer(many=True)
 
 
+class ProjectOverviewLibrarySerializer(serializers.Serializer):
+    library_id = serializers.IntegerField()
+    index_id = serializers.CharField(allow_null=True)
+    strandedness = serializers.CharField(allow_null=True)
+    library_type_id = serializers.IntegerField(allow_null=True)
+    library_type_name = serializers.CharField(allow_null=True)
+    platform_id = serializers.IntegerField(allow_null=True)
+    platform_name = serializers.CharField(allow_null=True)
+    library_selection_name = serializers.CharField(allow_null=True)
+    library_selection_target = serializers.CharField(allow_null=True)
+    index_name = serializers.CharField(allow_null=True)
+    biosample_alias = serializers.CharField(allow_null=True)
+    collection_site = serializers.CharField(allow_null=True)
+    individual_name = serializers.CharField(allow_null=True)
+
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
