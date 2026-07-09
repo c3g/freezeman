@@ -139,6 +139,42 @@ class CellValueFloat(float):
         else: # delegate to parent
             return super().__getattribute__(name)
 
+# https://stackoverflow.com/a/33272874
+class CellValueDecimal(Decimal):
+    def __init__(self, content: Decimal, sheet_name: str, header: str, row_id: int) -> None:
+        super().__init__()
+        self.content = content
+        self.sheet_name = sheet_name
+        self.header = header
+        self.row_id = row_id
+    def __new__(cls, content: Decimal, sheet_name: str, header: str, row_id: int):
+        return super().__new__(cls, content)
+
+    def __repr__(self):
+        return f'{CellValueDecimal.__name__}({repr(self.sheet_name)}, {repr(self.header)}, {repr(self.row_id)}, {super().__repr__()})'
+
+    def __getattribute__(self, name):
+        if name in dir(Decimal): # only handle Decimal methods here
+            def method(self: CellValueDecimal, *args, **kwargs):
+                try:
+                    ret = getattr(super(), name)(*args, **kwargs)
+                    if isinstance(ret, int):
+                        return CellValueInt(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, float):
+                        return CellValueFloat(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, str):
+                        return CellValueString(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, Decimal):
+                        return CellValueDecimal(ret, self.sheet_name, self.header, self.row_id)
+                    else: # other types
+                        return ret
+                except Exception as e:
+                    e.add_note(f"{repr(self.content)} at {self.sheet_name}!'{self.header}':{self.row_id}")
+                    raise
+            return method.__get__(self) # bound method 
+        else: # delegate to parent
+            return super().__getattribute__(name)
+
 def unique(sequence):
     seen = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
