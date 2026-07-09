@@ -1,5 +1,6 @@
 import math
 import re
+from typing_extensions import Self
 import unicodedata
 import os
 import time
@@ -31,6 +32,112 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
+
+# https://stackoverflow.com/a/33272874
+class CellValueString(str):
+    def __init__(self, content: str, sheet_name: str, header: str, row_id: int) -> None:
+        super().__init__()
+        self.content = content
+        self.sheet_name = sheet_name
+        self.header = header
+        self.row_id = row_id
+    def __new__(cls, content: str, sheet_name: str, header: str, row_id: int):
+        return super().__new__(cls, content)
+
+    def __repr__(self):
+        return f'{CellValueString.__name__}({repr(self.sheet_name)}, {repr(self.header)}, {repr(self.row_id)}, {super().__repr__()})'
+
+    def __getattribute__(self, name):
+        if name in dir(str): # only handle str methods here
+            def method(self: CellValueString, *args, **kwargs):
+                try:
+                    ret = getattr(super(), name)(*args, **kwargs)
+                    if isinstance(ret, int):
+                        return CellValueInt(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, float):
+                        return CellValueFloat(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, str):
+                        return CellValueString(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, list):
+                        return [CellValueString(i, self.sheet_name, self.header, self.row_id) for i in ret]
+                    elif isinstance(ret, tuple):
+                        return tuple(CellValueString(i, self.sheet_name, self.header, self.row_id) for i in ret)
+                    else: # other types
+                        return ret
+                except Exception as e:
+                    e.add_note(f"{repr(self.content)} at {self.sheet_name}!'{self.header}':{self.row_id}")
+                    raise
+            return method.__get__(self) # bound method 
+        else: # delegate to parent
+            return super().__getattribute__(name)
+
+# https://stackoverflow.com/a/33272874
+class CellValueInt(int):
+    def __init__(self, content: int, sheet_name: str, header: str, row_id: int) -> None:
+        super().__init__()
+        self.content = content
+        self.sheet_name = sheet_name
+        self.header = header
+        self.row_id = row_id
+    def __new__(cls, content: int, sheet_name: str, header: str, row_id: int):
+        return super().__new__(cls, content)
+
+    def __repr__(self):
+        return f'{CellValueInt.__name__}({repr(self.sheet_name)}, {repr(self.header)}, {repr(self.row_id)}, {super().__repr__()})'
+
+    def __getattribute__(self, name):
+        if name in dir(int): # only handle int methods here
+            def method(self: CellValueInt, *args, **kwargs):
+                try:
+                    ret = getattr(super(), name)(*args, **kwargs)
+                    if isinstance(ret, int):
+                        return CellValueInt(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, float):
+                        return CellValueFloat(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, str):
+                        return CellValueString(ret, self.sheet_name, self.header, self.row_id)
+                    else: # other types
+                        return ret
+                except Exception as e:
+                    e.add_note(f"{repr(self.content)} at {self.sheet_name}!'{self.header}':{self.row_id}")
+                    raise
+            return method.__get__(self) # bound method 
+        else: # delegate to parent
+            return super().__getattribute__(name)
+
+# https://stackoverflow.com/a/33272874
+class CellValueFloat(float):
+    def __init__(self, content: float, sheet_name: str, header: str, row_id: int) -> None:
+        super().__init__()
+        self.content = content
+        self.sheet_name = sheet_name
+        self.header = header
+        self.row_id = row_id
+    def __new__(cls, content: float, sheet_name: str, header: str, row_id: int):
+        return super().__new__(cls, content)
+
+    def __repr__(self):
+        return f'{CellValueFloat.__name__}({repr(self.sheet_name)}, {repr(self.header)}, {repr(self.row_id)}, {super().__repr__()})'
+
+    def __getattribute__(self, name):
+        if name in dir(float): # only handle float methods here
+            def method(self: CellValueFloat, *args, **kwargs):
+                try:
+                    ret = getattr(super(), name)(*args, **kwargs)
+                    if isinstance(ret, int):
+                        return CellValueInt(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, float):
+                        return CellValueFloat(ret, self.sheet_name, self.header, self.row_id)
+                    elif isinstance(ret, str):
+                        return CellValueString(ret, self.sheet_name, self.header, self.row_id)
+                    else: # other types
+                        return ret
+                except Exception as e:
+                    e.add_note(f"{repr(self.content)} at {self.sheet_name}!'{self.header}':{self.row_id}")
+                    raise
+            return method.__get__(self) # bound method 
+        else: # delegate to parent
+            return super().__getattribute__(name)
 
 def unique(sequence):
     seen = set()
