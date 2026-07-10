@@ -145,7 +145,7 @@ const tableData: ObjectWithLibrary[] = projectOverviewLibraries.map((library) =>
 					bordered
 					scroll={{ x: 'max-content'}}
 					pagination={{
-						pageSize: 15,
+						pageSize: 10,
 						showSizeChanger: true,
 					}}
 				/>
