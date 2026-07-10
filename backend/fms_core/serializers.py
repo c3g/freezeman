@@ -530,10 +530,8 @@ class SampleSerializer(serializers.Serializer):
 
 
 class SampleExportSerializer(serializers.Serializer):
-    coordinates = serializers.CharField(
-        read_only=True, source="coordinate.name")
-    derived_samples_count = serializers.IntegerField(
-        read_only=True, source="count_derived_samples")
+    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
+    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
@@ -677,22 +675,6 @@ class ProjectOverviewProjectsByExternalIDSerializer(serializers.Serializer):
     project_count = serializers.IntegerField()
     projects = ProjectSerializer(many=True)
 
-
-class ProjectOverviewLibrarySerializer(serializers.Serializer):
-    library_id = serializers.IntegerField()
-    index_id = serializers.CharField(allow_null=True)
-    strandedness = serializers.CharField(allow_null=True)
-    library_type_id = serializers.IntegerField(allow_null=True)
-    library_type_name = serializers.CharField(allow_null=True)
-    platform_id = serializers.IntegerField(allow_null=True)
-    platform_name = serializers.CharField(allow_null=True)
-    library_selection_name = serializers.CharField(allow_null=True)
-    library_selection_target = serializers.CharField(allow_null=True)
-    index_name = serializers.CharField(allow_null=True)
-    biosample_alias = serializers.CharField(allow_null=True)
-    collection_site = serializers.CharField(allow_null=True)
-    individual_name = serializers.CharField(allow_null=True)
-
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -721,8 +703,7 @@ class IndexSerializer(serializers.ModelSerializer):
 
 class IndexExportSerializer(serializers.ModelSerializer):
     index_sets = serializers.SerializerMethodField()
-    index_structure = serializers.CharField(
-        read_only=True, source="index_structure.name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
 
     sequences_3prime = serializers.SerializerMethodField()
     sequences_5prime = serializers.SerializerMethodField()

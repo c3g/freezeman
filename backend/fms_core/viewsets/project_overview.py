@@ -1,29 +1,15 @@
 from collections import defaultdict
-
 from fms_core.models.project import Project
 from fms_core.models.readset import Readset
-from fms_core.serializers import ProjectOverviewLibrarySerializer, ProjectOverviewProjectsByExternalIDSerializer, ProjectOverviewReadsetMetricSerializer
+from fms_core.serializers import ProjectOverviewProjectsByExternalIDSerializer, ProjectOverviewReadsetMetricSerializer
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from django.db.models import Max, Q, F
-from django.contrib.postgres.aggregates import ArrayAgg,JSONBAgg
+from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework.response import Response
+from fms_core.viewsets._fetch_data import FetchLibraryData
 
-from django.db.models.functions import JSONObject
-
-
-
-def get_external_id_from_request(request):
-    external_id = request.query_params.get("external_id")
-    if not external_id:
-        raise ValueError("external_id query parameter is required")
-    return external_id
-
-
-def get_external_id_number(external_id):
-    if not external_id:
-        return None   
-    return int(external_id[1:]) 
+from django.db.models import Case, Max, When, BooleanField, F, Q, OuterRef, Subquery
+from fms_core.models import Sample, DerivedBySample
 
 
 ACTIVE_READSET_FILTERS = {
@@ -76,32 +62,81 @@ PROJECT_OVERVIEW_VALUE_ALIASES = {
 }
 
 
-LIBRARIES_ALIASES = {
-    "library_id": F("derived_sample__library__id"),
-    "index_id": F("derived_sample__library__index_id"),
-    "strandedness": F("derived_sample__library__strandedness"),
-    "library_type_id": F("derived_sample__library__library_type__id"),
-    "library_type_name": F("derived_sample__library__library_type__name"),
-    "platform_id": F("derived_sample__library__platform_id"),
-    "platform_name": F("derived_sample__library__platform__name"),
-    "library_selection_name": F("derived_sample__library__library_selection__name"),
-    "library_selection_target": F("derived_sample__library__library_selection__target"),
-    "index_name": F("derived_sample__library__index__name"),
-    "biosample_alias": F("derived_sample__biosample__alias"),
-    "collection_site": F("derived_sample__biosample__collection_site"),
-    "individual_name": F("derived_sample__biosample__individual__name"),
+EXCLUDE_DELETED_LIBRAIRIES_FILTERS = {"derived_samples__library__isnull": False}
 
 
-}
 
 
-class ProjectOverviewViewSet(viewsets.GenericViewSet):
+def get_external_id_from_request(request):
+    external_id = request.query_params.get("external_id")
+    if not external_id:
+        raise ValueError("external_id query parameter is required")
+    return external_id
 
-    queryset = Readset.objects.all()
-    serializer_class = ProjectOverviewReadsetMetricSerializer
+
+def get_external_id_number(external_id):
+    if not external_id:
+        return None   
+    return int(external_id[1:]) 
+
+
+
+
+class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
+
+    ordering_fields = ()
+
+    def get_queryset(self):
+
+        if self.action == "reads":
+            return Readset.objects.all()
+        
+        if self.action == "projects_by_external_id":
+            return Project.objects.all()
+
+     #   if self.action == "samples":
+     #       return Sample.objects.none()
+
+        if self.action == "libraries":
+            external_id = getattr(self, "project_libraries_external_id", None)
+
+            if external_id is None:
+                external_id = get_external_id_from_request(self.request)
+
+            return self.get_project_libraries_queryset(external_id)
+
+        # Par default, return an empty queryset for other actions
+        return Readset.objects.none()
+    
+
+    def get_project_libraries_queryset(self, external_id):
+        queryset = Sample.objects.select_related("container").all().distinct()
+        queryset = queryset.filter(**EXCLUDE_DELETED_LIBRAIRIES_FILTERS, derived_by_samples__project__external_id=external_id)
+        queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(quality_flag=False) | Q(quantity_flag=False) | Q(identity_flag=False), then=False,),
+            When(Q(quality_flag=True) | Q(quantity_flag=True),then=True,),
+            default=None,
+            output_field=BooleanField(),
+        )
+    )
+        queryset = queryset.annotate(quantity_ng=F("concentration") * F("volume")
+    )
+        queryset = queryset.annotate(
+        first_volume_ratio=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("volume_ratio", flat=True)[:1]
+        )
+    )
+
+        return queryset
+    
 
     @action(detail=False, methods=["get"])
     def reads(self, request):
+
+        queryset = self.get_queryset()
 
         external_id = get_external_id_from_request(request)
 
@@ -147,17 +182,20 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
         page = self.paginate_queryset(queryset)
 
         if page is not None:
-           serializer = self.get_serializer(page, many=True)
+           serializer = ProjectOverviewReadsetMetricSerializer(page, many=True)
            return self.get_paginated_response(serializer.data)
         
         else:
 
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = ProjectOverviewReadsetMetricSerializer(queryset, many=True)
             return Response(serializer.data)
+        
+
+    
 
     @action(detail=False, methods=["get"])
     def projects_by_external_id(self, request):
-        projects = Project.objects.all()        
+        projects = self.get_queryset()       
 
         grouped_projects_map = defaultdict(list)
 
@@ -187,27 +225,21 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
         )
         return Response(serializer.data)
     
-    #project → dataset → readset → derivedsample → library pour les data concernant <Library>
+    
+
     @action(detail=False, methods=["get"])
     def libraries(self, request):
         external_id = get_external_id_from_request(request)
 
-        queryset = (
-            Readset.objects.filter(
-                **ACTIVE_READSET_FILTERS,
-                dataset__project__external_id=external_id
-            )
-            .values(
-               **LIBRARIES_ALIASES
-            )
-        .distinct()
-        )
-        page = self.paginate_queryset(queryset)
+        #On utilise self.project_libraries_external_id et self.queryset a cause des du mixin FetchLibraryData 
+        # qui utilise ces attributs pour filtrer les données. 
 
-        if page is not None:
-            serializer = ProjectOverviewLibrarySerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        self.project_libraries_external_id = external_id
+        self.queryset = self.filter_queryset(self.get_queryset())
 
-        else:
-            serializer = ProjectOverviewLibrarySerializer(queryset, many=True)
-            return Response(serializer.data)
+        serialized_data, count = self.fetch_data()
+
+        return Response({
+            "results": serialized_data,
+            "count": count,
+    })

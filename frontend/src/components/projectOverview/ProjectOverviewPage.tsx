@@ -108,7 +108,7 @@ const ProjectOverviewPage = () => {
 							key: 'libraries',
 							children: (
 								<ProjectLibrariesTab
-									projectIds={projectIds}
+									externalID={searchedExternalID}
 									hasSearched={hasSearched}
 									isActive={activeKey === 'libraries'}
 								/>
