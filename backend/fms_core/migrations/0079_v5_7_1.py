@@ -5,7 +5,6 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 from fms_core.models._constants import INDEX_READ_FORWARD
-from fms_core.containers import CONTAINER_SPEC_ILLUMINA_MISEQ_i100_FLOWCELLS
 
 ADMIN_USERNAME = 'biobankadmin'
 
