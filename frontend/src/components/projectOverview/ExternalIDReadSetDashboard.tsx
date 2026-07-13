@@ -150,7 +150,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 					>
 						<Row gutter={[12, 12]}>
 							<Col xs={24} lg={12}>
-								<Card size="small" type="inner" title="Library Type Distribution" bodyStyle={{ padding: 8 }}>
+								<Card size="small" type="inner" title="Library Type Distribution" styles = {{ body: { padding: 8 }}}>
 									<Column
 										height={120}
 										data={libraryTypeData}
@@ -185,7 +185,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 											<span>QC Completeness</span>
 											<Tooltip
 												color="#eef6ff"
-												overlayInnerStyle={{ color: '#1f2937' }}
+												styles={{ container:{ color: '#1f2937' }}}
 												title="Shows the percentage of readsets with all required QC metrics available: average quality, PF reads aligned, and duplicate aligned."
 											>
 												<InfoCircleOutlined style={{ color: '#1677ff' }} />
@@ -193,7 +193,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 										</Space>
 									}
 								>
-									<Space direction="vertical" style={{ width: '100%' }} size={0}>
+									<Space orientation="vertical" style={{ width: '100%' }} size={0}>
 										<Text>Complete QC Metrics</Text>
 										<Progress size="small" percent={qcCompleteness.complete} strokeColor="#2fbd5b" />
 
@@ -227,7 +227,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 										value={metrics.avgAlignment === null ? '-' : metrics.avgAlignment * 100}
 										precision={metrics.avgAlignment === null ? undefined : 2}
 										suffix={metrics.avgAlignment === null ? undefined : '%'}
-										valueStyle={{ color: '#1677ff' }}
+										styles={{ content: { color: '#1677ff' }}}
 									/>
 									<Progress
 										size="small"
@@ -245,9 +245,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 										value={metrics.avgDuplication * 100}
 										precision={2}
 										suffix="%"
-										valueStyle={{
-											color: '#1677ff',
-										}}
+										styles={{ content: { color: '#1677ff' }}}
 									/>
 									<Progress
 										size="small"

@@ -633,6 +633,9 @@ class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
     readset_sample_name = serializers.CharField()
     external_id = serializers.CharField()
     run_name = serializers.CharField()
+    lane = serializers.IntegerField()
+    reference_genome_id = serializers.IntegerField()
+    sequencing_index_name = serializers.CharField(allow_null=True)
     run_start_date = serializers.DateField()
 
     alias = serializers.CharField(allow_null=True)
