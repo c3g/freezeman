@@ -20,6 +20,7 @@ __all__ = [
     "CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_MISEQ_I100_FLOWCELLS",
     "CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL",
     "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA",
     "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB",
@@ -289,6 +290,17 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL = ContainerSpec(
      is_run_container=True,
 )
 
+CONTAINER_SPEC_ILLUMINA_MISEQ_I100_FLOWCELLS = [
+    ContainerSpec(
+        container_kind_id=f"illumina-miseq-i100-{m}m flowcell",
+        coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+        coordinate_overlap_allowed=False,
+        children=(),  # Leaf node; sample-holding
+        is_run_container=True,
+    )
+    for m in [5, 25, 50, 100]
+]
+
 CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
      container_kind_id="illumina-iseq-100 flowcell",
      coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
@@ -331,6 +343,7 @@ RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL,
+    *CONTAINER_SPEC_ILLUMINA_MISEQ_I100_FLOWCELLS,
     CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL,
     CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY,
     CONTAINER_SPEC_ULTIMA_WAFER,
