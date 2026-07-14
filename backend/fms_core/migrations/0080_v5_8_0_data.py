@@ -345,7 +345,7 @@ def insert_normalization_step_into_ultima_workflow(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('fms_core', '0080_v5_8_0'),
+        ('fms_core', '0079_v5_7_1'),
     ]
 
     operations = [
