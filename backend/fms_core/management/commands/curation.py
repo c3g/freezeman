@@ -19,6 +19,7 @@ from ._delete_sample import delete_sample
 from ._delete_datasetfile import delete_datasetfile
 from ._delete_dataset import delete_dataset
 from ._create_entity import create_entity
+from ._delete_entity import delete_entity
 
 # This curation module can be called using manage.py :
 # > python manage.py curation -p NameOfConfigFileWithoutExtension
@@ -35,6 +36,7 @@ ACTION_DELETE_SAMPLE = "delete_sample"
 ACTION_DELETE_DATASETFILE = "delete_datasetfile"
 ACTION_DELETE_DATASET = "delete_dataset"
 ACTION_CREATE_ENTITY = "create_entity"
+ACTION_DELETE_ENTITY = "delete_entity"
 
 # Curation params template
 # [CURATION_ACTION_TEMPLATE_1,CURATION_ACTION_TEMPLATE_2,...]
@@ -60,6 +62,7 @@ class Command(BaseCommand):
         ACTION_DELETE_DATASETFILE: delete_datasetfile,
         ACTION_DELETE_DATASET: delete_dataset,
         ACTION_CREATE_ENTITY: create_entity,
+        ACTION_DELETE_ENTITY: delete_entity,
     }
 
     def init_logging(self, log_name, timestamp):
