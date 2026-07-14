@@ -49,7 +49,7 @@ def delete_entity(params, objects_to_delete, log):
         for identifier in identifiers_array:
             try:
                 entity_obj = entity_model_obj.objects.get(**identifier)
-                set_entity_for_deletion(entity_obj, user_id, objects_to_delete, log)                            # sample
+                set_entity_for_deletion(entity_obj, user_id, objects_to_delete, log)
                 count_deleted += 1
             except entity_model_obj.DoesNotExist:
                 log.error(f"No {entity_model} found for identifier [{identifier}].")
