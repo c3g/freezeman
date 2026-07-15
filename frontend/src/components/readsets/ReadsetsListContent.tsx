@@ -325,8 +325,8 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
                 const id = "SET_RELEASE_STATUS_ERROR"
                 dispatch(notifyError({
                     id,
-                    title: "Failed to release dataset readsets",
-                    description: error.message,
+                    title: "Failed to update release statuses",
+                    description: error.data,
                     duration: INFINITE_DURATION,
                 }))
             }

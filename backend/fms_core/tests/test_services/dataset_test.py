@@ -7,6 +7,7 @@ from fms_core.services.dataset import (create_dataset,
                                        reset_dataset_content,
                                        set_experiment_run_lane_validation_status,
                                        get_experiment_run_lane_validation_status,
+                                       set_dataset_release_status,
                                        get_dataset_root_folder)
 from fms_core.models._constants import ReleaseStatus, ValidationStatus, INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_core.models import (
@@ -54,6 +55,7 @@ class DatasetServicesTestCase(TestCase):
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
         self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553")
+        self.project_without_external = Project.objects.create(name="MY_PROJECT_NO_EXTERNAL")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
@@ -187,6 +189,38 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.FAILED)
         self.assertIsNotNone(dataset_file.readset.validation_status_timestamp)
         self.assertEqual(dataset_file.readset.validated_by, self.currentuser)
+
+    def test_set_experiment_run_lane_validation_status_missing_external_project_id(self):
+        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk, experiment_run_id=self.experiment_run.pk, lane=1)
+        assert dataset is not None
+
+        Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
+
+        count, errors, warnings = set_experiment_run_lane_validation_status(
+            experiment_run_id=self.experiment_run.pk,
+            lane=dataset.lane,
+            validation_status=ValidationStatus.PASSED,
+            validated_by=self.currentuser
+        )
+
+        self.assertEqual(count, 0)
+        self.assertTrue(errors)
+        self.assertIn("missing an external project id", errors[0])
+        self.assertEqual(warnings, [])
+
+    def test_set_dataset_release_status_missing_external_project_id(self):
+        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk, experiment_run_id=self.experiment_run.pk, lane=1)
+        assert dataset is not None
+
+        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
+        readset_ids = {str(readset.pk): ReleaseStatus.RELEASED}
+
+        count, errors, warnings = set_dataset_release_status(dataset_id=dataset.pk, readsets_release_status=readset_ids, released_by=self.currentuser)
+
+        self.assertIsNone(count)
+        self.assertTrue(errors)
+        self.assertIn("missing an external project id", errors[0])
+        self.assertEqual(warnings, [])
 
     def test_get_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)

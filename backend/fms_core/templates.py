@@ -35,6 +35,7 @@ __all__ = [
     "LIBRARY_CAPTURE_TEMPLATE",
     "LIBRARY_CONVERSION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
+    "LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
     "NORMALIZATION_PLANNING_TEMPLATE",
@@ -453,6 +454,52 @@ LIBRARY_PREPARATION_TEMPLATE: TemplateDefinition = {
           'name': 'Library',
           'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
+                      'Library Parent Container Coordinates', 'Sample Current Volume (uL)', 'Sample Volume Used (uL)', 'Library Volume (uL)',
+                      'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
+          'stitch_column': 'Library Batch ID',
+          'batch': False,
+      },
+  ],
+  "user prefill info": {
+      "Sample Volume Used (uL)": "text",
+      "Library Volume (uL)": "number",
+      "Index Set": INDEX_SETS_FOR_LIBRARY_PREPARATION,
+      "Strandedness": STRANDEDNESS_CHOICES,
+      "Comment": "text"
+  },
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("Library", "Sample Name", "name", "name", None),
+      ("Library", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Library", "Sample Current Volume (uL)", "volume", "volume", None),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Library", "Library Container Barcode", "container_barcode"),
+      ("Library", "Library Container Coordinates", "coordinates"),
+      ("Library", "Library Container Name", "container_name"),
+      ("Library", "Library Container Kind", "container_kind"),
+  ],
+}
+
+LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE: TemplateDefinition = {
+  "identity": {"description": "Template to prepare libraries with selection",
+               "file": static("submission_templates/Library_preparation_with_selection_v5_8_0.xlsx"),
+               "protocol": "Library Preparation with Selection"},
+  "sheets info": [
+      {
+          'name': 'Library Batch',
+          'headers': ['Library Batch ID', 'Library Type', 'Library Selection', 'Library Selection Target', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
+                      'Library Technician Name', 'Bacteriophage', 'Library Diversity', 'Peptides Size', 'Overlaps Size',
+                      'Library Kit Used', 'Library Kit Lot', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+          'stitch_column': 'Library Batch ID',
+          'batch': True,
+      },
+      {
+          'name': 'Library',
+          'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
+                      'Library Container Coordinates', 'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Current Volume (uL)', 'Sample Volume Used (uL)', 'Library Volume (uL)',
                       'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
           'stitch_column': 'Library Batch ID',

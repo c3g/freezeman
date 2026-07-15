@@ -342,7 +342,6 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     library_to_find : Library = library
 
     capture_protocol = Protocol.objects.get(name="Library Capture")
-    library_prep_protocol: Protocol = Protocol.objects.get(name="Library Preparation")
 
     if library.library_selection is not None:
         # If a library was captured then that generated a new library instance.
@@ -368,7 +367,7 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     # Find the library preparation process measurement
     try: 
         lineage: SampleLineage = SampleLineage.objects.get(
-            process_measurement__process__protocol_id=library_prep_protocol.pk,
+            process_measurement__process__protocol__is_library_preparation=True,
             child__derived_samples__library__id=library_to_find.pk)
         library_prep = lineage.process_measurement
     except SampleLineage.DoesNotExist:

@@ -1,5 +1,6 @@
 # Normalization planning
 SAMPLE_TYPE = "Sample"
+BIOSPECIMEN_TYPE = "Biospecimen"
 LIBRARY_TYPE = "Library"
 GENOTYPING_TYPE = "Genotyping"
 ROBOT_BIOMEK = "Biomek"
@@ -43,6 +44,7 @@ INDEX_SETS_FOR_LIBRARY_PREPARATION = [
     "NEBNext_Unique_Dual_Index_non_UMI_Set2_NEB_E6442",
     "NEBNext_Unique_Dual_Index_non_UMI_Set3_NEB_E6444",
     "NEBNext_Unique_Dual_Index_non_UMI_Set4_NEB_E6446",
+    "NEBNext_Unique_Dual_Index_UMI_Set1_NEB_E7395",
     "Illumina_IDT_TruSeq_DNA_RNA_UD",
     "Illumina IDT Nextera UDP TAG Set A",
     "Illumina IDT Nextera UDP TAG Set B",

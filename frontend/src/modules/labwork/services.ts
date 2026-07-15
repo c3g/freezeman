@@ -55,7 +55,7 @@ export function processFMSLabworkSummary(
 		})
 
 		// Hard-coded grouping
-		if (protocol.name === 'Library Preparation') {
+		if (protocol.name === 'Library Preparation' || protocol.name === 'Library Preparation with Selection') {
 
 			// Create a group for each platform
 			const groupsMap = new Map<string, LabworkStepGroup>()
