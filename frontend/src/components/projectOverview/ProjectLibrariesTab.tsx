@@ -140,12 +140,12 @@ const tableData: ObjectWithLibrary[] = projectOverviewLibraries.map((library) =>
 				<Table
 					dataSource={tableData}
 					columns={projectOverviewLibraryColumns}
-					rowKey="id"
+					rowKey={(record) => record.library?.id ?? ''}
 					size="small"
 					bordered
 					scroll={{ x: 'max-content'}}
 					pagination={{
-						pageSize: 10,
+						pageSize: 12,
 						showSizeChanger: true,
 					}}
 				/>

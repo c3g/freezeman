@@ -1,34 +1,11 @@
 import React, { CSSProperties, useMemo } from 'react'
-import {
-  Alert,
-  Card,
-  Col,
-  Empty,
-  Flex,
-  Row,
-  Space,
-  Statistic,
-  Table,
-  Tag,
-  Typography,
-} from 'antd'
-import type { ColumnsType } from 'antd/es/table'
-import {
-  AppstoreOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
-  DatabaseOutlined,
-  ExperimentOutlined,
-  ProjectOutlined,
-  TeamOutlined,
-  WarningOutlined,
-} from '@ant-design/icons'
-import { Bar, Column, Line, Pie } from '@ant-design/plots'
+import {Alert,Card,Col,Empty,Flex,Statistic,Tag,Typography,} from 'antd'
+import {AppstoreOutlined,BarcodeOutlined,CheckCircleOutlined,ClockCircleOutlined,DatabaseOutlined,ExperimentOutlined,TeamOutlined,WarningOutlined,} from '@ant-design/icons'
+import { Column} from '@ant-design/plots'
 
 import { Library } from '../../models/frontend_models'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 type LibraryStatus =
   | 'ready'
@@ -65,17 +42,6 @@ type ProjectData = {
   attention: number
 }
 
-type TrendData = {
-  period: string
-  count: number
-  cumulative: number
-}
-
-type QualityData = {
-  category: string
-  status: NormalizedFlag
-  value: number
-}
 
 type KpiCardProps = {
   title: string
@@ -94,29 +60,22 @@ type DashboardCardProps = {
 const styles: Record<string, CSSProperties> = {
   dashboard: {
     minHeight: '100%',
-    padding: 24,
+    padding: 4,
     background: '#f5f7fa',
   },
 
-  dashboardHeader: {
-    marginBottom: 20,
-  },
-
-  dashboardTitle: {
-    margin: '0 0 4px',
-  },
-
+ 
   alert: {
     marginBottom: 16,
     borderRadius: 10,
   },
 
   kpiSection: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
 
   kpiCard: {
-    height: '100%',
+    height: 'auto',
     border: '1px solid #eaecf0',
     borderRadius: 12,
     boxShadow: '0 2px 8px rgba(16, 24, 40, 0.04)',
@@ -140,7 +99,7 @@ const styles: Record<string, CSSProperties> = {
 
   chartCard: {
     height: '100%',
-    marginBottom: 16,
+    marginBottom: 4,
     border: '1px solid #eaecf0',
     borderRadius: 12,
     boxShadow: '0 2px 8px rgba(16, 24, 40, 0.04)',
@@ -233,12 +192,6 @@ const qualityColors: Record<NormalizedFlag, string> = {
   not_evaluated: '#bfbfbf',
 }
 
-const qualityLabels: Record<NormalizedFlag, string> = {
-  passed: 'Conforme',
-  warning: 'À vérifier',
-  failed: 'Échec',
-  not_evaluated: 'Non évalué',
-}
 
 const normalizeFlag = (
   value?: boolean | null,
@@ -414,9 +367,6 @@ function ExternalIDReadSetDashboard({
       (status) => status === 'blocked',
     ).length
 
-    const incomplete = statuses.filter(
-      (status) => status === 'incomplete',
-    ).length
 
     const uniqueBiosamples = new Set(
       libraries
@@ -457,7 +407,7 @@ function ExternalIDReadSetDashboard({
       ready,
       review,
       blocked,
-      incomplete,
+   
 
       completionRate: calculatePercentage(
         ready,
@@ -486,52 +436,10 @@ function ExternalIDReadSetDashboard({
         label: statusLabels.blocked,
         value: dashboardData.blocked,
       },
-      {
-        status: 'incomplete',
-        label: statusLabels.incomplete,
-        value: dashboardData.incomplete,
-      },
+      
     ],
     [dashboardData],
   )
-
-  const trendData = useMemo<TrendData[]>(() => {
-    const periodCounts = new Map<
-      string,
-      number
-    >()
-
-    libraries.forEach((library) => {
-      const period = getPeriodKey(
-        library.creation_date,
-      )
-
-      if (!period) {
-        return
-      }
-
-      periodCounts.set(
-        period,
-        (periodCounts.get(period) ?? 0) + 1,
-      )
-    })
-
-    let cumulative = 0
-
-    return Array.from(periodCounts.entries())
-      .sort(([periodA], [periodB]) =>
-        periodA.localeCompare(periodB),
-      )
-      .map(([period, count]) => {
-        cumulative += count
-
-        return {
-          period,
-          count,
-          cumulative,
-        }
-      })
-  }, [libraries])
 
   const projectData = useMemo<ProjectData[]>(() => {
     const projects = new Map<
@@ -605,93 +513,6 @@ function ExternalIDReadSetDashboard({
       .slice(0, 10)
   }, [libraries])
 
-  const qualityData = useMemo<QualityData[]>(
-    () => {
-      const qualityDimensions = [
-        {
-          category: 'Qualité',
-          getValue: (library: Library) =>
-            library.quality_flag,
-        },
-        {
-          category: 'Quantité',
-          getValue: (library: Library) =>
-            library.quantity_flag,
-        },
-        {
-          category: 'Identité',
-          getValue: (library: Library) =>
-            library.identity_flag,
-        },
-      ]
-
-      return qualityDimensions.flatMap(
-        ({ category, getValue }) => {
-          const counts: Record<
-            NormalizedFlag,
-            number
-          > = {
-            passed: 0,
-            warning: 0,
-            failed: 0,
-            not_evaluated: 0,
-          }
-
-          libraries.forEach((library) => {
-            const status = normalizeFlag(
-              getValue(library),
-            )
-
-            counts[status] += 1
-          })
-
-          return (
-            Object.entries(counts) as [
-              NormalizedFlag,
-              number,
-            ][]
-          ).map(([status, value]) => ({
-            category,
-            status,
-            value,
-          }))
-        },
-      )
-    },
-    [libraries],
-  )
-
-  const attentionLibraries = useMemo(
-    () =>
-      libraries
-        .filter(
-          (library) =>
-            getLibraryStatus(library) !==
-            'ready',
-        )
-        .sort((libraryA, libraryB) => {
-          const priority: Record<
-            LibraryStatus,
-            number
-          > = {
-            blocked: 0,
-            review: 1,
-            incomplete: 2,
-            ready: 3,
-          }
-
-          return (
-            priority[
-              getLibraryStatus(libraryA)
-            ] -
-            priority[
-              getLibraryStatus(libraryB)
-            ]
-          )
-        }),
-    [libraries],
-  )
-
   if (libraries.length === 0) {
     return (
       <Card
@@ -716,13 +537,14 @@ function ExternalIDReadSetDashboard({
           showIcon
           type="error"
           style={styles.alert}
-          message={`${dashboardData.blocked} library(s) bloquée(s) nécessitent une action.`}
+          title={`${dashboardData.blocked} library(s) bloquée(s) nécessitent une action.`}
         />
       )}
 
-      {/* Deux lignes de quatre KPI */}
-      <Row
-        gutter={[16, 16]}
+      <Flex
+        justify="space-between"
+        gap={12}
+        wrap="wrap"
         style={styles.kpiSection}
       >
         <KpiCard
@@ -734,7 +556,7 @@ function ExternalIDReadSetDashboard({
         />
 
         <KpiCard
-          title="Biosamples couverts"
+          title="Biosamples"
           value={
             dashboardData.uniqueBiosamples
           }
@@ -742,6 +564,29 @@ function ExternalIDReadSetDashboard({
           tone="purple"
           description="Échantillons uniques"
         />
+
+{/* 
+        <KpiCard
+        title="Libraries indexées"
+        value={dashboardData.indexedLibraries}
+        icon={<BarcodeOutlined />}
+        tone="cyan"
+        description={`${calculatePercentage(
+            dashboardData.indexedLibraries,
+            dashboardData.total,
+        )}% des libraries`}
+        />
+
+        <KpiCard
+        title="Prêtes au séquençage"
+        value={dashboardData.readyLibraries}
+        icon={<CheckCircleOutlined />}
+        tone="green"
+        description={`${calculatePercentage(
+            dashboardData.readyLibraries,
+            dashboardData.total,
+        )}% prêtes`}
+        /> */}
 
         <KpiCard
           title="Pools créés"
@@ -755,186 +600,14 @@ function ExternalIDReadSetDashboard({
         />
 
         <KpiCard
-          title="Prêtes"
+          title="Prêtes Prêtes au séquençage"
           value={dashboardData.ready}
           icon={<CheckCircleOutlined />}
           tone="green"
           description={`${dashboardData.completionRate}% du total`}
         />
 
-        <KpiCard
-          title="À vérifier"
-          value={dashboardData.review}
-          icon={<WarningOutlined />}
-          tone="gold"
-          description="Action de validation"
-        />
-
-        <KpiCard
-          title="Bloquées"
-          value={dashboardData.blocked}
-          icon={<CloseCircleOutlined />}
-          tone="red"
-          description="Action prioritaire"
-        />
-
-        <KpiCard
-          title="Incomplètes"
-          value={dashboardData.incomplete}
-          icon={<ClockCircleOutlined />}
-          tone="gray"
-          description="Informations manquantes"
-        />
-      </Row>
-
-      <Row gutter={[16, 16]}>
-
-
-        <Col xs={24} xl={6}>
-          <DashboardCard
-            title="État global"
-            subtitle="Niveau de préparation des libraries"
-          >
-            <Pie
-              height={220}
-              data={statusData}
-              angleField="value"
-              colorField="status"
-              innerRadius={0.68}
-              scale={{
-                color: {
-                  domain: [
-                    'ready',
-                    'review',
-                    'blocked',
-                    'incomplete',
-                  ],
-                  range: [
-                    statusColors.ready,
-                    statusColors.review,
-                    statusColors.blocked,
-                    statusColors.incomplete,
-                  ],
-                },
-              }}
-              label={{
-                text: 'value',
-                position: 'outside',
-              }}
-              legend={{
-                color: {
-                  position: 'bottom',
-                },
-              }}
-              annotations={[
-                {
-                  type: 'text',
-                  style: {
-                    text: `${dashboardData.completionRate}%\nprêtes`,
-                    x: '50%',
-                    y: '50%',
-                    textAlign: 'center',
-                    fontSize: 20,
-                    fontWeight: 600,
-                  },
-                },
-              ]}
-              tooltip={{
-                items: [
-                  {
-                    field: 'label',
-                    name: 'Statut',
-                  },
-                  {
-                    field: 'value',
-                    name: 'Libraries',
-                  },
-                ],
-              }}
-            />
-          </DashboardCard>
-        </Col>
-
-        <Col xs={24} xl={9}>
-          <DashboardCard
-            title="Charge par projet"
-            subtitle="Top 10 des projets par nombre de libraries"
-          >
-            {projectData.length > 0 ? (
-              <Bar
-                height={220}
-                data={projectData}
-                xField="total"
-                yField="project"
-                label={{
-                  text: 'total',
-                  position: 'right',
-                }}
-                axis={{
-                  x: {
-                    title:
-                      'Nombre de libraries',
-                  },
-                  y: {
-                    title: false,
-                  },
-                }}
-                tooltip={{
-                  items: [
-                    {
-                      field: 'total',
-                      name: 'Total',
-                    },
-                    {
-                      field: 'ready',
-                      name: 'Prêtes',
-                    },
-                    {
-                      field: 'attention',
-                      name: 'À traiter',
-                    },
-                  ],
-                }}
-              />
-            ) : (
-              <ChartEmpty />
-            )}
-          </DashboardCard>
-        </Col>
-
-  <Col xs={24} xl={9}>
-          <DashboardCard
-            title="Composition des libraries"
-            subtitle="Répartition par type de library"
-          >
-            {libraryTypeData.length > 0 ? (
-              <Column
-                height={220}
-                data={libraryTypeData}
-                xField="type"
-                yField="value"
-                label={{
-                  text: 'value',
-                  position: 'top',
-                }}
-                axis={{
-                  x: {
-                    title: false,
-                    labelAutoRotate: true,
-                  },
-                  y: {
-                    title:
-                      'Nombre de libraries',
-                  },
-                }}
-              />
-            ) : (
-              <ChartEmpty />
-            )}
-          </DashboardCard>
-        </Col>
-      
-      </Row>
+      </Flex>
 
     </div>
   )
@@ -948,7 +621,7 @@ function KpiCard({
   description,
 }: KpiCardProps) {
   return (
-  <Col xs={24} sm={12} md={6} lg={3}>
+  <Col xs={24} sm={12} md={6} lg={4}>
       <Card
         style={styles.kpiCard}
         styles={{
@@ -967,11 +640,11 @@ function KpiCard({
               title={title}
               value={value}
               groupSeparator=" "
-              valueStyle={{
+              styles={{ content: { 
                 fontSize: 22,
                 fontWeight: 700,
                 lineHeight: 1.1,
-              }}
+              }}}
             />
 
             <Text
@@ -1012,22 +685,24 @@ function DashboardCard({
             style={styles.chartTitle}
           >
             {title}
-          </Text>
-
-          <Text
+            <span>{" --- "}</span>
+            <Text
             type="secondary"
             style={styles.chartSubtitle}
           >
             {subtitle}
           </Text>
+          </Text>
+
+          
         </Flex>
       }
       styles={{
         header: {
-          minHeight: 62,
+          minHeight: 30,
         },
         body: {
-          padding: 10,
+           padding: '2px 5px 0',
         },
       }}
     >
