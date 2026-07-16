@@ -455,9 +455,13 @@ function deserialize(values) {
 
   if (newValues.coordinate)
     newValues.coordinate = Number(newValues.coordinate)
-  
-  if (newValues.sample_kind === null)
-    newValues.sample_kind = 0
+
+  if (newValues.sample_kind === null){
+    newValues.sample_kind = 0 // Fake Pool sample kind
+  }
+  else if (newValues.sample_kind) {
+    newValues.sample_kind = Number(newValues.sample_kind)
+  }
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
@@ -527,7 +531,7 @@ function serializeFormData(form) {
   }
 
   if (form.getFieldValue("sample_kind") === 0){
-    newValues.sample_kind = null
+    newValues.sample_kind = null // remove fake pool sample kind from request
   }
   else if (form.getFieldValue("sample_kind")) {
     newValues.sample_kind = Number(form.getFieldValue("sample_kind"))
