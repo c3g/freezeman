@@ -18,7 +18,7 @@ const { Item } = Form
 const { TextArea } = Input
 
 import { nameWithoutDotRules, requiredRules } from "../../constants";
-import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
+import { sample as EMPTY_SAMPLE, pool_sample_kind as POOL_KIND } from "../../models/empty_models";
 import { add, update } from "../../modules/samples/actions";
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import { selectAppInitialized, selectAuthTokenAccess, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
@@ -166,7 +166,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
   const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
   const onSearchSampleKind = useCallback(input => {
-    const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
+    const sampleKindOptions = sample.is_pool ? [POOL_KIND] : input ?  [sampleKinds.itemsByID[input]] : [...sampleKindsSorted]
     setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
   }, [sampleKinds])
 
@@ -285,7 +285,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
-          <Item label="Sample Kind" {...props("sample_kind")}
+          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}
             extra="Biosample nature." >
             <Select
               options={sampleKindOptions}
@@ -455,9 +455,9 @@ function deserialize(values) {
 
   if (newValues.coordinate)
     newValues.coordinate = Number(newValues.coordinate)
-
-  if (newValues.sample_kind)
-    newValues.sample_kind = Number(newValues.sample_kind)
+  
+  if (newValues.sample_kind === null)
+    newValues.sample_kind = 0
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
@@ -526,8 +526,12 @@ function serializeFormData(form) {
     newValues.container = Number(form.getFieldValue("container"))
   }
 
-  if (form.getFieldValue("sample_kind"))
+  if (form.getFieldValue("sample_kind") === 0){
+    newValues.sample_kind = null
+  }
+  else if (form.getFieldValue("sample_kind")) {
     newValues.sample_kind = Number(form.getFieldValue("sample_kind"))
+  }
 
   if (!form.getFieldValue("individual")) {
     newValues.individual = ""
