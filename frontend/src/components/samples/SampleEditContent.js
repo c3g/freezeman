@@ -285,7 +285,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
-          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}
+          <Item label="Sample Kind" {...props("sample_kind")}
             extra="Biosample nature." >
             <Select
               options={sampleKindOptions}
