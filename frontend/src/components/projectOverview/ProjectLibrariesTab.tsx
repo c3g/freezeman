@@ -150,7 +150,7 @@ const tableData: ObjectWithLibrary[] = projectOverviewLibraries.map((library) =>
 					}}
 				/>
 			) : (
-				<div>No read sets found for External ID: {externalID}</div>
+				<div>No libraries found for External ID: {externalID}</div>
 			)}
 		</>
 		)
