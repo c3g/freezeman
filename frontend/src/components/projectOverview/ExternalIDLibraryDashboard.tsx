@@ -7,13 +7,7 @@ import { Library } from '../../models/frontend_models'
 
 const { Text } = Typography
 
-type KpiTone =
-  | 'blue'
-  | 'purple'
-  | 'geekblue'
-  | 'green'
-  | 'gold'
-
+type KpiTone =  | 'blue'  | 'purple'  | 'geekblue'  | 'green'  | 'gold'
 
 
 type KpiCardProps = {
@@ -70,49 +64,21 @@ const styles: Record<string, CSSProperties> = {
 }
 
 const kpiToneStyles: Record<KpiTone, CSSProperties> = {
-  blue: {
-    color: '#1677ff',
-    background: '#e6f4ff',
-  },
-
-  purple: {
-    color: '#722ed1',
-    background: '#f9f0ff',
-  },
-
-  geekblue: {
-    color: '#2f54eb',
-    background: '#f0f5ff',
-  },
-
-  green: {
-    color: '#389e0d',
-    background: '#f6ffed',
-  },
-
-  gold: {
-    color: '#d48806',
-    background: '#fffbe6',
-  },
-
+  blue: {color: '#1677ff',background: '#e6f4ff',},
+  purple: {color: '#722ed1',background: '#f9f0ff',},
+  geekblue: {color: '#2f54eb',background: '#f0f5ff',},
+  green: {color: '#389e0d',background: '#f6ffed',},
+  gold: {color: '#d48806',background: '#fffbe6',},
 }
 
 
-const calculatePercentage = (
-  value: number,
-  total: number,
-): number => {
-  if (total === 0) {
-    return 0
-  }
-
+const calculatePercentage = ( value: number,total: number,): number => {
+  if (total === 0) {return 0 }
   return Math.round((value / total) * 100)
 }
 
 
-const getKpiIconStyle = (
-  tone: KpiTone,
-): CSSProperties => ({
+const getKpiIconStyle = (tone: KpiTone,): CSSProperties => ({
   ...styles.kpiIcon,
   ...kpiToneStyles[tone],
 })
@@ -168,16 +134,12 @@ function KpiCard({title,value,icon,tone,description,}: KpiCardProps) {
   )
 }
 
-function ExternalIDLibraryDashboard({
-  libraries,
-}: {
-  libraries: Library[]
-}) {
+function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
   const dashboardData = useMemo(() => { 
-
     const uniqueBiosamples = new Set(libraries.map((library) => library.biosample_id).filter(Boolean),).size
     const pools = libraries.filter((library) => library.is_pool,).length
     const depletedLibraries = libraries.filter((library) => library.depleted).length
+  
     const qcPassed = libraries.filter((library) =>
         library.quality_flag === true &&
         library.quantity_flag === true
