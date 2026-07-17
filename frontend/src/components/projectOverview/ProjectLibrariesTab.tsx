@@ -8,10 +8,7 @@ import { useAppDispatch } from '../../hooks'
 import { useCreateCsvExportFunction } from './useCsvExport'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
 
-import {
-  LIBRARY_COLUMN_DEFINITIONS,
-  ObjectWithLibrary,
-} from "../libraries/LibraryTableColumns";
+import {LIBRARY_COLUMN_DEFINITIONS,ObjectWithLibrary,} from "../libraries/LibraryTableColumns";
 import ExternalIDLibraryDashboard from './ExternalIDLibraryDashboard'
 
 interface ProjectLibrariesTabProps {
@@ -145,7 +142,7 @@ const tableData: ObjectWithLibrary[] = projectOverviewLibraries.map((library) =>
 					bordered
 					scroll={{ x: 'max-content'}}
 					pagination={{
-						pageSize: 12,
+						pageSize: 15,
 						showSizeChanger: true,
 					}}
 				/>
