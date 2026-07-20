@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .tracked_model import TrackedModel
-from django.contrib.auth.models import User
+from .parent_project import ParentProject
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH, PROJECT_STATUS_CHOICES
 from ._utils import add_error as _add_error
@@ -24,8 +24,7 @@ class Project(TrackedModel):
     status = models.CharField(choices=((type, type) for type in PROJECT_STATUS_CHOICES), max_length=20, default="Open",
                               help_text="The status of the project.")
 
-    external_id = models.CharField(blank=True, null=True, max_length=200, help_text="Identifier to connect to an external system.")
-    external_name = models.CharField(blank=True, null=True, max_length=200, help_text="Original project name used by external client.")
+    parent_project = models.ForeignKey(ParentProject, blank=True, null=True, on_delete=models.PROTECT, related_name="projects", help_text="Parent project from external system.")
 
     comment = models.TextField(blank=True, help_text="Other relevant information about the project.")
 

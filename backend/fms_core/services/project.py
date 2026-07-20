@@ -2,7 +2,7 @@ from collections import defaultdict
 from fms_core.utils import dict_remove_falsy_entries
 from fms_core.services.sample_next_step import is_sample_queued_in_study, queue_sample_to_study_workflow
 from fms_core.services.study import get_study
-from fms_core.models import Project, Sample
+from fms_core.models import Project, Sample, ParentProject
 from django.core.exceptions import ValidationError
 
 def get_project(name=None):
@@ -21,7 +21,7 @@ def get_project(name=None):
     return (project, errors, warnings)
 
 def create_project(name=None, principal_investigator=None, requestor_name=None,
-                   requestor_email=None, status=None, targeted_end_date=None, comment=None):
+                   requestor_email=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
     project = None
     errors = []
     warnings = []
@@ -32,6 +32,7 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
         **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
         **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
         **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
+        **(dict(parent_project=parent_project) if parent_project is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
         **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
         **(dict(comment=comment) if comment is not None else dict())
@@ -43,6 +44,18 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
         errors.append(str(e))
 
     return (project, errors, warnings)
+
+def create_parent_project(external_id, name):
+    parent_project = None
+    errors = []
+    warnings = []
+
+    try:
+        parent_project = ParentProject.objects.create(external_id=external_id, name=name)
+    except ValidationError as e:
+        errors.append(str(e))
+
+    return (parent_project, errors, warnings)
 
 def add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None) -> tuple[dict[str, list | str], dict[str, list | str]]:
     """Add a sample to a study of a project.

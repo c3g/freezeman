@@ -206,8 +206,8 @@ _project_filterset_fields: FiltersetFields = {
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
     "requestor_email": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
-    "external_id": CATEGORICAL_FILTERS_LOOSE,
-    "external_name": CATEGORICAL_FILTERS_LOOSE,
+    "parent_project__external_id": CATEGORICAL_FILTERS_LOOSE,
+    "parent_project__name": CATEGORICAL_FILTERS_LOOSE,
     "targeted_end_date": DATE_FILTERS,
     **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
@@ -269,7 +269,7 @@ _library_filterset_fields: FiltersetFields = {
 _dataset_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "project": FK_FILTERS,
-    "project__external_id": CATEGORICAL_FILTERS_LOOSE,
+    "project__parent_project__external_id": CATEGORICAL_FILTERS_LOOSE,
     "project__name": CATEGORICAL_FILTERS_LOOSE,
     "experiment_run": FK_FILTERS,
     "experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
