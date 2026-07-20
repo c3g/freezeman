@@ -10,7 +10,8 @@ from fms_core.models import (
     Process,
     Protocol,
     ExperimentRun,
-    Project
+    Project,
+    ParentProject
 )
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 
@@ -42,7 +43,8 @@ class DatasetFileTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        my_project = Project.objects.create(name="MyProject", external_id="P000311")
+        parent_project_obj = ParentProject.objects.create(external_id="P000311", name="ClientProject")
+        my_project = Project.objects.create(name="MyProject", parent_project=parent_project_obj)
 
         my_experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                          run_type=self.run_type,

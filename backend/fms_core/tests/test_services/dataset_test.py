@@ -20,6 +20,7 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
+    ParentProject,
     Dataset,
     DatasetFile,
     Readset,
@@ -54,7 +55,8 @@ class DatasetServicesTestCase(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553")
+        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
+        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", parent_project=parent_project_obj)
         self.project_without_external = Project.objects.create(name="MY_PROJECT_NO_EXTERNAL")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
@@ -71,7 +73,7 @@ class DatasetServicesTestCase(TestCase):
         self.assertIsNotNone(dataset)
 
         self.assertEqual(Dataset.objects.count(), 1)
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
@@ -84,7 +86,7 @@ class DatasetServicesTestCase(TestCase):
         self.assertIsNotNone(dataset)
 
         self.assertEqual(Dataset.objects.count(), 1)
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.project.name, self.project.name)

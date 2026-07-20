@@ -11,6 +11,7 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
+    ParentProject,
     Dataset,
     DatasetFile,
     Readset,
@@ -44,7 +45,8 @@ class MetricTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="test", external_id="P031553")
+        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
+        self.project = Project.objects.create(name="test", parent_project=parent_project_obj)
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
