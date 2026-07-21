@@ -35,4 +35,4 @@ class ParentProject(TrackedModel):
         super().save(*args, **kwargs)  # Save the object
 
     def __str__(self):
-        return '%d: %s' % (self.external_id, self.name)
+        return '%s: %s' % (self.external_id, self.name)

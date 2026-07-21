@@ -3,8 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db.models import F
+from django.db import transaction
+from django.core.exceptions import ValidationError
 
-from fms_core.models import Project
+from fms_core.models import Project, ParentProject
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
 from fms_core.template_importer.importers import ProjectStudyLinkSamples
 from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE
@@ -35,6 +37,42 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "importer": ProjectStudyLinkSamples,
         }
     ]
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        full_project_data = request.data
+        parent_project_obj = None
+        project_obj = None
+
+        try:
+            if full_project_data.get("external_id") is not None:
+                parent_project_obj = ParentProject.objects.filter(external_id=full_project_data["external_id"]).first()
+                if parent_project_obj is None and full_project_data.get("external_name") is not None:
+                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"], name=full_project_data["external_name"])
+        
+            project_obj = Project.objects.create(name=full_project_data['name'],
+                                                 principal_investigator=full_project_data['principal_investigator'],
+                                                 requestor_name=full_project_data['requestor_name'],
+                                                 requestor_email=full_project_data['requestor_email'],
+                                                 targeted_end_date=full_project_data['targeted_end_date'],
+                                                 status=full_project_data['status'],
+                                                 comment=full_project_data['comment'],
+                                                 parent_project=parent_project_obj)
+
+        except ValidationError as err:
+            transaction.set_rollback(True)
+            raise ValidationError(err)
+
+        # Serialize full project using the created project
+        try:
+            instance = self.get_queryset().get(pk=project_obj.id)
+            serializer = self.get_serializer_class()(instance, data=full_project_data)
+            serializer.is_valid(raise_exception=True)
+        except Exception as err:
+            transaction.set_rollback(True)
+            raise ValidationError(err)
+
+        return Response(serializer.data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
