@@ -129,7 +129,7 @@ const ProjectEditContent = () => {
             extra="External identifier for the project (Hercules project number)." >
             <Input />
           </Form.Item>
-          <Form.Item label="External Name" {...props("external_name")}
+          <Form.Item label="External Name" {...props("external_name")} rules={isAdmin ? [] : requiredRules}
             extra="Full external name of the project (Hercules name)." >
             <Input />
           </Form.Item>

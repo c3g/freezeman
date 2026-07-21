@@ -102,7 +102,7 @@ class ProjectTest(TestCase):
         self.assertEqual(my_project.parent_project, None)
 
     def test_not_empty_parent_project(self):
-        parent_project_obj = ParentProject.objects.create(external_id="P000001", name="TESTS")
+        parent_project_obj = ParentProject.objects.create(external_id="P000010", name="TESTS")
         my_project = Project.objects.create(name=self.name,
                                             principal_investigator=self.principal_investigator,
                                             requestor_name=self.requestor_name,
@@ -110,5 +110,5 @@ class ProjectTest(TestCase):
                                             targeted_end_date=self.targeted_end_date,
                                             parent_project=parent_project_obj,
                                             comment=self.comment)
-        self.assertEqual(my_project.parent_project.external_id, "P000001")
+        self.assertEqual(my_project.parent_project.external_id, "P000010")
         self.assertEqual(my_project.parent_project.name, "TESTS")

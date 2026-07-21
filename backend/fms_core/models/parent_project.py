@@ -11,7 +11,7 @@ __all__ = ["ParentProject"]
 
 @reversion.register()
 class ParentProject(TrackedModel):
-    external_id = models.CharField(max_length=200, help_text="Identifier to connect to an external system.")
+    external_id = models.CharField(max_length=200, unique=True, help_text="Identifier to connect to an external system.")
     name = models.CharField(max_length=200, help_text="Parent project name used by external client.")
 
     class Meta:

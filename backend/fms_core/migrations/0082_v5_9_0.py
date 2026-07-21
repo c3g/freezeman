@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('external_id', models.CharField(help_text='Identifier to connect to an external system.', max_length=200)),
+                ('external_id', models.CharField(help_text='Identifier to connect to an external system.', max_length=200, unique=True)),
                 ('name', models.CharField(help_text='Parent project name used by external client.', max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
