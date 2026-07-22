@@ -212,6 +212,12 @@ _project_filterset_fields: FiltersetFields = {
     **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
 
+_parent_project_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "external_id": CATEGORICAL_FILTERS_LOOSE,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _index_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

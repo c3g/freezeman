@@ -35,6 +35,7 @@ from .models import (
     Process,
     ProcessMeasurement,
     Project,
+    ParentProject,
     Sample,
     SampleKind,
     SampleMetadata,
@@ -602,10 +603,17 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
 
+
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
+
+class ParentProjectSerializer(serializers.ModelSerializer):
+    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    class Meta:
+        model = ParentProject
+        fields = '__all__'
 
 
 class IndexSetSerializer(serializers.ModelSerializer):
