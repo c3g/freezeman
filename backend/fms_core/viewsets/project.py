@@ -74,6 +74,63 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         return Response(serializer.data)
 
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        full_project_data = request.data
+        parent_project_obj = None
+        project_obj = None
+        project_data = {}
+
+        # Prepare updated data
+        try:
+            if full_project_data.get("external_id") is not None:
+                parent_project_obj = ParentProject.objects.filter(external_id=full_project_data["external_id"]).first()
+                # Case project is associated to a new Parent Project
+                if parent_project_obj is None and full_project_data.get("external_name") is not None:
+                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"], name=full_project_data["external_name"])
+                # Case Parent Project is renamed
+                elif parent_project_obj is not None and full_project_data.get("external_name") != parent_project_obj.name:
+                    parent_project_obj.name = full_project_data.get("external_name")
+                    parent_project_obj.save()
+
+            project_data = dict(
+                name=full_project_data['name'],
+                **(dict(principal_investigator=full_project_data['principal_investigator']) if full_project_data['principal_investigator'] is not None else dict()),
+                **(dict(requestor_name=full_project_data['requestor_name']) if full_project_data['requestor_name'] is not None else dict()),
+                **(dict(requestor_email=full_project_data['requestor_email']) if full_project_data['requestor_email'] is not None else dict()),
+                **(dict(targeted_end_date=full_project_data['targeted_end_date']) if full_project_data['targeted_end_date'] is not None else dict()),
+                **(dict(status=full_project_data['status']) if full_project_data['status'] is not None else dict()),
+                **(dict(comment=full_project_data['comment']) if full_project_data['comment'] is not None else dict()),
+                **(dict(parent_project_id=parent_project_obj.id) if parent_project_obj is not None else dict())
+            )
+        except Exception as err:
+            raise ValidationError(err)
+
+        # Retrieve the project to update
+        try:
+            project_to_update = Project.objects.select_for_update().get(pk=full_project_data['id'])
+            project_to_update.__dict__.update(project_data)
+        except Exception as err:
+            raise ValidationError(dict(non_field_errors=err))
+
+        # Save the updated project
+        try:
+            project_to_update.save()
+        except Exception as err:
+            raise ValidationError(err)
+
+        # Return updated project
+        # Serialize full project using the created project
+        try:
+            instance = self.get_queryset().get(pk=project_to_update.id)
+            serializer = self.get_serializer_class()(instance, data=project_data)
+            serializer.is_valid(raise_exception=True)
+        except Exception as err:
+            transaction.set_rollback(True)
+            raise ValidationError(err)
+
+        return Response(serializer.data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
