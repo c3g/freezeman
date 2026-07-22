@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSSampleIdentityMatch, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion, FMSExperimentRun } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSParentProject, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSSampleIdentityMatch, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion, FMSExperimentRun } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -147,6 +147,11 @@ const api = {
 
   metrics: {
     getReadsPerSampleForLane: (experimentRunId, lane) => get(`/metrics/`, {limit: 100000, name: 'nb_reads', metric_group: 'qc', readset__dataset__experiment_run_id: experimentRunId, readset__dataset__lane: lane})
+  },
+
+  parentProjects: {
+    get: parentProjectId => get(`/parent-projects/${parentProjectId}/`),
+    list: (options, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, { abort, requestID }),
   },
 
   platforms: {
