@@ -65,8 +65,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         # Serialize full project using the created project
         try:
-            instance = self.get_queryset().get(pk=project_obj.id)
-            serializer = self.get_serializer_class()(instance, data=full_project_data)
+            serializer = self.get_serializer_class()(project_obj, data=full_project_data)
             serializer.is_valid(raise_exception=True)
         except Exception as err:
             transaction.set_rollback(True)
@@ -122,8 +121,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         # Return updated project
         # Serialize full project using the created project
         try:
-            instance = self.get_queryset().get(pk=project_to_update.id)
-            serializer = self.get_serializer_class()(instance, data=project_data)
+            serializer = self.get_serializer_class()(project_to_update, data=project_data)
             serializer.is_valid(raise_exception=True)
         except Exception as err:
             transaction.set_rollback(True)

@@ -24,6 +24,7 @@ def populate_parent_project(apps, schema_editor):
             "P000001": "TESTS",
             "P000002": "SHARED REAGENTS AND CONTROLS",
             "P000003": "INTERNAL WORKSHOPS",
+            "P000004": "BIOBANKS",
         }
         for external_id, name in PREDEFINED_ID_NAME_PAIRS.items():
             parent_project_obj = ParentProject.objects.create(external_id=external_id,
