@@ -1,4 +1,5 @@
 from collections import defaultdict
+from fms_core.models.sample_lineage import SampleLineage
 from fms_core.models.project import Project
 from fms_core.models.readset import Readset
 from fms_core.serializers import ProjectOverviewProjectsByExternalIDSerializer, ProjectOverviewReadsetMetricSerializer
@@ -8,7 +9,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework.response import Response
 from fms_core.viewsets._fetch_data import FetchLibraryData
 
-from django.db.models import Case, Max, When, BooleanField, F, Q, OuterRef, Subquery
+from django.db.models import Case, Exists, Max, When, BooleanField, F, Q, OuterRef, Subquery
 from fms_core.models import Sample, DerivedBySample
 from django.db.models import Count
 
@@ -80,7 +81,11 @@ def get_external_id_number(external_id):
         return None   
     return int(external_id[1:]) 
 
-
+has_child_library = SampleLineage.objects.filter(
+    parent=OuterRef("pk"),
+    child__derived_samples__library__isnull=False,
+    child__deleted=False,
+)
 
 
 class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
@@ -115,6 +120,9 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
 
         # La ligne ci dessous exlut les pool. Is_pool netant pas un attribut de Sample, mais plutot une propriete calculee.
         queryset = (Sample.objects.select_related("container").annotate(derived_count=Count("derived_by_samples")).filter(derived_count__lte=1))
+
+        #exclure les libraries qui apparaissent comme parent dans SampleLineage quand leur child est aussi une library.
+        queryset = queryset.annotate(is_terminal_library=Exists(has_child_library)).filter(is_terminal_library=False)
       
         queryset = queryset.filter(**EXCLUDE_DELETED_LIBRAIRIES_FILTERS, derived_by_samples__project__external_id=external_id)
         queryset = queryset.annotate(
