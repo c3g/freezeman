@@ -10,7 +10,7 @@ import {FMSDataset,FMSId,FMSPagedResultsReponse,FMSProject,FMSProtocol,FMSReadse
 import { AnyAction, Dispatch } from 'redux'
 import { RootState } from '../store'
 import { notifyError } from '../modules/notification/actions'
-import { ProjectOverviewLibrary, ProjectOverviewReadset } from '../components/projectOverview/types'
+import { ExternalIDProjectSample, ExternalIDProjectSamplesResponse, ProjectOverviewLibrary, ProjectOverviewReadset } from '../components/projectOverview/types'
 import { ProjectsByExternalIDGroup } from '../components/projectOverview/types'
 
 const api = {
@@ -226,6 +226,8 @@ const api = {
 			get<JsonResponse<ProjectsByExternalIDGroup[]>>('/project-overview/projects_by_external_id/', options, { abort }),
 		libraries: (options: QueryParams, abort?: boolean) =>
 			get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewLibrary>>>('/project-overview/libraries/', options, { abort }),
+		samples: (options: QueryParams, abort?: boolean) =>
+	get<JsonResponse<FMSPagedResultsReponse<ExternalIDProjectSample>>>('/project-overview/samples/', options, { abort }),
 	},
 
 

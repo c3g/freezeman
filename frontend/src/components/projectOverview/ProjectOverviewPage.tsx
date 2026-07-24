@@ -100,7 +100,12 @@ const ProjectOverviewPage = () => {
 							label: 'Samples',
 							key: 'samples',
 							children: (
-								<ProjectSamplesTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'samples'} />
+								<ProjectSamplesTab
+									externalID={searchedExternalID}
+									projectIds={projectIds}
+									hasSearched={hasSearched}
+									isActive={activeKey === 'samples'}
+									/>
 							),
 						},
 						{
