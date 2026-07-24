@@ -10,6 +10,7 @@ from fms_core.viewsets._fetch_data import FetchLibraryData
 
 from django.db.models import Case, Max, When, BooleanField, F, Q, OuterRef, Subquery
 from fms_core.models import Sample, DerivedBySample
+from django.db.models import Count
 
 
 ACTIVE_READSET_FILTERS = {
@@ -111,6 +112,10 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
 
     def get_project_libraries_queryset(self, external_id):
         queryset = Sample.objects.select_related("container").all().distinct()
+
+        # La ligne ci dessous exlut les pool. Is_pool netant pas un attribut de Sample, mais plutot une propriete calculee.
+        queryset = (Sample.objects.select_related("container").annotate(derived_count=Count("derived_by_samples")).filter(derived_count__lte=1))
+      
         queryset = queryset.filter(**EXCLUDE_DELETED_LIBRAIRIES_FILTERS, derived_by_samples__project__external_id=external_id)
         queryset = queryset.annotate(
         qc_flag=Case(

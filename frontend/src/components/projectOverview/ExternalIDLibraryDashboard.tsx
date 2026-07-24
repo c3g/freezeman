@@ -1,13 +1,13 @@
 import React, { CSSProperties, useMemo } from 'react'
 import {Card,Col,Empty,Flex,Statistic,Typography,} from 'antd'
-import {DatabaseOutlined,DeleteOutlined,ExperimentOutlined,SafetyCertificateOutlined,TeamOutlined,} from '@ant-design/icons'
+import {BarcodeOutlined, DatabaseOutlined,DeleteOutlined,ExperimentOutlined,SafetyCertificateOutlined,TeamOutlined,} from '@ant-design/icons'
 
 
 import { Library } from '../../models/frontend_models'
 
 const { Text } = Typography
 
-type KpiTone =  | 'blue'  | 'purple'  | 'geekblue'  | 'green'  | 'gold'
+type KpiTone =  | 'blue'  | 'purple'  | 'geekblue'  | 'green'  | 'gold'  | 'gray'
 
 
 type KpiCardProps = {
@@ -69,6 +69,7 @@ const kpiToneStyles: Record<KpiTone, CSSProperties> = {
   geekblue: {color: '#2f54eb',background: '#f0f5ff',},
   green: {color: '#389e0d',background: '#f6ffed',},
   gold: {color: '#d48806',background: '#fffbe6',},
+  gray: {color: '#595959',background: '#f5f5f5',},
 }
 
 
@@ -137,9 +138,8 @@ function KpiCard({title,value,icon,tone,description,}: KpiCardProps) {
 function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
   const dashboardData = useMemo(() => { 
     const uniqueBiosamples = new Set(libraries.map((library) => library.biosample_id).filter(Boolean),).size
-    const pools = libraries.filter((library) => library.is_pool,).length
     const depletedLibraries = libraries.filter((library) => library.depleted).length
-  
+  const indexedLibraries = libraries.filter((library) => library.index !== null,).length
     const qcPassed = libraries.filter((library) =>
         library.quality_flag === true &&
         library.quantity_flag === true
@@ -148,7 +148,7 @@ function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
     return {
       total: libraries.length,
       uniqueBiosamples,
-      pools,
+      indexedLibraries,
       depletedLibraries,
       qcPassed, 
      
@@ -181,6 +181,7 @@ function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
         wrap="wrap"
         style={styles.kpiSection}
       >
+
             <KpiCard
             title="Total Libraries"
             value={dashboardData.total}
@@ -199,6 +200,8 @@ function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
             description="Unique samples"
             />
 
+
+
             <KpiCard
                 title="Depleted"
                 value={dashboardData.depletedLibraries}
@@ -207,6 +210,19 @@ function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
                 description={`${calculatePercentage(dashboardData.depletedLibraries,dashboardData.total,)}% des libraries`}
             />
 
+
+            <KpiCard
+              title="Indexed"
+              value={dashboardData.indexedLibraries}
+              icon={<BarcodeOutlined />}
+              tone="gray"
+              description={`${calculatePercentage(
+              dashboardData.indexedLibraries,
+              dashboardData.total,
+              )}% indexed`}
+            />
+
+
             <KpiCard
             title="QC Passed"
             value={dashboardData.qcPassed}
@@ -214,15 +230,7 @@ function ExternalIDLibraryDashboard({libraries,}: {libraries: Library[]}) {
             tone="green"
             description={`${calculatePercentage(dashboardData.qcPassed,dashboardData.total,)}% passed QC`}
             />
-        
-
-            <KpiCard
-            title="Pools created"
-            value={dashboardData.pools}
-            icon={<ExperimentOutlined />}
-            tone="geekblue"
-            description="Pools"
-            />      
+           
 
       </Flex>
 
