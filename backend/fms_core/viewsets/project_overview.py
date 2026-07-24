@@ -1,4 +1,5 @@
 from collections import defaultdict
+from fms_core.models.process_measurement import ProcessMeasurement
 from fms_core.models.sample_lineage import SampleLineage
 from fms_core.models.project import Project
 from fms_core.models.readset import Readset
@@ -100,8 +101,13 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
         if self.action == "projects_by_external_id":
             return Project.objects.all()
 
-     #   if self.action == "samples":
-     #       return Sample.objects.none()
+        if self.action == "samples":
+            external_id = getattr(self, "project_samples_external_id", None)
+
+            if external_id is None:
+                external_id = get_external_id_from_request(self.request)
+
+            return self.get_project_samples_queryset(external_id)
 
         if self.action == "libraries":
             external_id = getattr(self, "project_libraries_external_id", None)
@@ -113,6 +119,68 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
 
         # Par default, return an empty queryset for other actions
         return Readset.objects.none()
+
+
+
+    
+    def get_project_samples_queryset(self, external_id):
+       queryset = Sample.objects.select_related("container").all().distinct()
+
+       # samples liés à external_id
+       queryset = queryset.filter(derived_by_samples__project__external_id=external_id)
+
+
+        #  pas de parent lié au même sous-projet
+       parent_in_same_project = SampleLineage.objects.filter(child=OuterRef("pk"),
+       parent__derived_by_samples__project=OuterRef("derived_by_samples__project"),)
+
+       queryset = queryset.annotate(has_parent_in_same_project=Exists(parent_in_same_project))
+       queryset = queryset.filter(has_parent_in_same_project=False)
+
+        #  pas des libraries
+       queryset = queryset.filter(derived_samples__library__isnull=True)
+
+        # pas des pools
+       queryset = queryset.annotate(derived_count=Count("derived_by_samples"))
+       queryset = queryset.filter(derived_count__lte=1)
+
+        #champs/annotations nécessaires pour préparer la structure de réponse frontend.
+       queryset = queryset.annotate(
+            external_id=F("derived_by_samples__project__external_id"),
+            project_id=F("derived_by_samples__project_id"),
+            project_name=F("derived_by_samples__project__name"),
+            container_barcode=F("container__barcode"),)
+       
+       queryset = queryset.annotate(
+            alias=ArrayAgg(
+                "derived_samples__biosample__alias",
+                distinct=True,
+            ),
+            individual=ArrayAgg(
+                "derived_samples__biosample__individual__name",
+                distinct=True,
+            ),
+            collection_site=ArrayAgg(
+                "derived_samples__biosample__collection_site",
+                distinct=True,
+            ),
+            experimental_group=ArrayAgg(
+                "derived_samples__experimental_group",
+                distinct=True,
+            ),)
+       last_process = ProcessMeasurement.objects.filter(source_sample=OuterRef("pk")).order_by("-execution_date", "-id")
+
+       queryset = queryset.annotate(
+            last_process_id=Subquery(last_process.values("process_id")[:1]),
+            last_process_name=Subquery(last_process.values("process__protocol__name")[:1]),
+            last_process_execution_date=Subquery(last_process.values("execution_date")[:1]),)
+
+       return queryset
+
+
+
+
+
     
 
     def get_project_libraries_queryset(self, external_id):
@@ -256,3 +324,41 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
             "results": serialized_data,
             "count": count,
     })
+
+    # Pour chaque sous-projet lié à l’External ID,
+    # afficher les samples liés à ce sous-projet
+    # qui n’ont aucun parent lié à ce même sous-projet.
+
+    @action(detail=False, methods=["get"])
+    def samples(self, request):
+        external_id = get_external_id_from_request(request)
+        self.project_samples_external_id = external_id
+        queryset = self.get_project_samples_queryset(external_id)
+        data = queryset.values(
+            "id",
+            "external_id",
+            "project_id",
+            "project_name",
+            "name",
+            "alias",
+            "container_barcode",
+            "individual",
+            "creation_date",
+            "collection_site",
+            "comment",
+            "experimental_group",
+            "volume",
+            "concentration",
+            "quality_flag",
+            "quantity_flag",
+            "identity_flag",
+            "last_process_id",
+            "last_process_name",
+            "last_process_execution_date",)
+
+        return Response({
+        "results": list(data),
+        "count": data.count(),
+    })
+            
+    
