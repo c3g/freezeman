@@ -150,8 +150,8 @@ const api = {
   },
 
   parentProjects: {
-    get: parentProjectId => get(`/parent-projects/${parentProjectId}/`),
-    list: (options, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, { abort, requestID }),
+    get: (parentProjectId: FMSId) => get<JsonResponse<FMSParentProject>>(`/parent-projects/${parentProjectId}/`),
+    list: (options: object, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, { abort, requestID }),
   },
 
   platforms: {
