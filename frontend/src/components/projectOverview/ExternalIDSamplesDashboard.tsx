@@ -29,14 +29,14 @@ const KpiCard = ({
 			suffix={suffix}
 			precision={precision}
 			prefix={icon}
-			valueStyle={{ fontSize: 20, ...(color ? { color } : {}) }}
+			styles={{content: {fontSize: 20,color,},}}
 		/>
 	</Card>
 )
 
 const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSamplesSummary }) => {
 	return (
-		<Space direction="vertical" size={8} style={{ width: '100%', margin: 12 }}>
+	<Space  orientation="vertical"size={8} style={{ width: '100%', margin: 12 }}>
 			<Row gutter={[8, 8]}>
 				<Col xs={12} md={6}>
 					<KpiCard title="Total Samples" value={summary.total_samples} icon={<ExperimentOutlined />} />
@@ -80,7 +80,7 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 									precision={1}
 									suffix="ng"
 									prefix={<DatabaseOutlined />}
-									valueStyle={{ fontSize: 18 }}
+									styles={{content: {fontSize: 18,},}}
 								/>
 							</Col>
 
@@ -90,7 +90,7 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 									value={summary.avg_concentration ?? 0}
 									precision={2}
 									suffix="ng/uL"
-									valueStyle={{ fontSize: 18 }}
+									styles={{content: {fontSize: 18,},}}
 								/>
 							</Col>
 						</Row>
@@ -101,7 +101,7 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 					<Card size="small" title="Sequencing Reads" styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}>
 						<Row gutter={[8, 8]}>
 							<Col span={12}>
-								<Statistic title="Total Reads" value={summary.total_reads} valueStyle={{ fontSize: 18 }} />
+								<Statistic title="Total Reads" value={summary.total_reads} styles={{content: {fontSize: 18,},}} />
 							</Col>
 
 							<Col span={12}>
@@ -109,7 +109,7 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 									title="Avg Reads / Sample"
 									value={summary.avg_reads_per_sample}
 									precision={0}
-									valueStyle={{ fontSize: 18 }}
+									styles={{content: {fontSize: 18,},}}
 								/>
 							</Col>
 						</Row>
