@@ -1,13 +1,10 @@
 import { merge } from "object-path-immutable"
 
 import { indexByID } from "../../utils/objects"
-import { templateActionsReducerFactory } from "../../utils/templateActions"
 
 import { AnyAction } from "redux"
 import { ItemsByID, ParentProject } from "../../models/frontend_models"
 import PARENT_PROJECTS from "./actions"
-
-export const parentProjectTemplateActions = templateActionsReducerFactory(PARENT_PROJECTS);
 
 interface ParentProjectsState {
     itemsByID: ItemsByID<ParentProject>
