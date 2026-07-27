@@ -194,7 +194,17 @@ const ProjectSamplesTab = ({ externalID, hasSearched, isActive }: ProjectSamples
 		return <Empty description={error} />
 	}
 
-	const test: ExternalIDProjectSamplesSummary = {
+	const samplesWithReads = samples.filter((sample) => sample.number_of_reads != null)
+	const totalReads =
+	samplesWithReads.length === 0 ? null : samplesWithReads.reduce((sum, sample) => sum + (sample.number_of_reads ?? 0), 0)
+	
+
+	const avgReadsPerSample =
+	totalReads === null ? null : totalReads / samplesWithReads.length
+
+
+
+	const summary: ExternalIDProjectSamplesSummary = {
 		total_samples: samples.length,
 
 		qc_passed_count: samples.filter((s) => s.quality_flag === true).length,
@@ -210,15 +220,15 @@ const ProjectSamplesTab = ({ externalID, hasSearched, isActive }: ProjectSamples
 							return sum + quantity
 						}, 0),
 		avg_concentration: samples.reduce((sum, s) => sum + (s.concentration ?? 0), 0) / samples.length,
-		total_reads: samples.reduce((sum, s) => sum + s.number_of_reads, 0),
-		avg_reads_per_sample: samples.reduce((sum, s) => sum + s.number_of_reads, 0) / samples.length,
+		total_reads: totalReads,
+		avg_reads_per_sample: avgReadsPerSample,
 		
 	}
 	return (
 		<>
 			<button> Export !!!</button>
 
-			<ExternalIDSamplesDashboard summary={test} />
+			<ExternalIDSamplesDashboard summary={summary} />
 			<Table
 				style={{ fontSize: 10 }}
 				size="small"

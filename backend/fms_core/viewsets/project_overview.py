@@ -133,7 +133,6 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
         #  pas de parent lié au même sous-projet
        parent_in_same_project = SampleLineage.objects.filter(child=OuterRef("pk"),
        parent__derived_by_samples__project=OuterRef("derived_by_samples__project"),)
-
        queryset = queryset.annotate(has_parent_in_same_project=Exists(parent_in_same_project))
        queryset = queryset.filter(has_parent_in_same_project=False)
 

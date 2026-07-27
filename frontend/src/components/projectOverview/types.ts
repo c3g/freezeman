@@ -38,8 +38,8 @@ export type ExternalIDProjectSamplesSummary = {
 	total_quantity: number
 	avg_concentration: number | null
 
-	total_reads: number
-	avg_reads_per_sample: number
+	total_reads: number | null
+	avg_reads_per_sample: number | null
 }
 
 export type ExternalIDProjectSamplesResponse = {

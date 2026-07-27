@@ -101,13 +101,17 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 					<Card size="small" title="Sequencing Reads" styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}>
 						<Row gutter={[8, 8]}>
 							<Col span={12}>
-								<Statistic title="Total Reads" value={summary.total_reads} styles={{content: {fontSize: 18,},}} />
-							</Col>
+								<Statistic
+									title="Total Reads"
+									value={summary.total_reads === null ? '---' : summary.total_reads}
+									styles={{ content: { fontSize: 18 } }}
+								/>
+																							</Col>
 
 							<Col span={12}>
 								<Statistic
 									title="Avg Reads / Sample"
-									value={summary.avg_reads_per_sample}
+									value={summary.avg_reads_per_sample === null ? '---' : summary.avg_reads_per_sample}
 									precision={0}
 									styles={{content: {fontSize: 18,},}}
 								/>
