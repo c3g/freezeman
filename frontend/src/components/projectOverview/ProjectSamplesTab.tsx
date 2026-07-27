@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react'
 
 import { Empty, Table } from 'antd'
 import { Link } from 'react-router-dom'
-import { ExternalIDProjectSample, ExternalIDProjectSamplesResponse, ExternalIDProjectSamplesSummary } from './types'
+import { ExternalIDProjectSample, ExternalIDProjectSamplesSummary ,ProjectOverviewExportButtonData} from './types'
 import ExternalIDSamplesDashboard from './ExternalIDSamplesDashboard'
 import api from '../../utils/api'
 import { useAppDispatch } from '../../hooks'
+import { useCreateCsvExportFunction } from './useCsvExport'
+import ProjectOverviewExportButton from './ProjectOverviewExportButton'
+
 
 /*
 ProjectSamplesTab reçoit projectIds
@@ -189,6 +192,7 @@ const ProjectSamplesTab = ({ externalID, hasSearched, isActive }: ProjectSamples
 	}
 }, [externalID, hasSearched, isActive, dispatch])
 
+const generateCsvContent = useCreateCsvExportFunction(samples)
 
 	if (error) {
 		return <Empty description={error} />
@@ -224,11 +228,29 @@ const ProjectSamplesTab = ({ externalID, hasSearched, isActive }: ProjectSamples
 		avg_reads_per_sample: avgReadsPerSample,
 		
 	}
+
+
+		const exportButtonData: ProjectOverviewExportButtonData = {
+			exportType: 'Project Samples',
+			exportFunction: generateCsvContent,
+			filename: 'Project Samples',
+			itemsCount: samples.length,
+			disabled: samples.length === 0,
+		}
+
+
 	return (
 		<>
-			<button> Export !!!</button>
+		{!isLoading && samples.length > 0 && (
+				<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+					<ProjectOverviewExportButton data={exportButtonData} />
+				</div>
+			)}
+			{!isLoading && hasSearched && isActive && <ExternalIDSamplesDashboard summary={summary} />}
+					
 
-			<ExternalIDSamplesDashboard summary={summary} />
+
+			{samples.length > 0 ? (
 			<Table
 				style={{ fontSize: 10 }}
 				size="small"
@@ -245,6 +267,9 @@ const ProjectSamplesTab = ({ externalID, hasSearched, isActive }: ProjectSamples
 					showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
 				}}
 			/>
+			) : (
+				<div>No samples found for External ID: {externalID}</div>
+			)}
 		</>
 	)
 }
