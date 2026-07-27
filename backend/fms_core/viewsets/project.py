@@ -87,10 +87,6 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 # Case project is associated to a new Parent Project
                 if parent_project_obj is None and full_project_data.get("external_name") is not None:
                     parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"], name=full_project_data["external_name"])
-                # Case Parent Project is renamed
-                elif parent_project_obj is not None and full_project_data.get("external_name") != parent_project_obj.name:
-                    parent_project_obj.name = full_project_data.get("external_name")
-                    parent_project_obj.save()
 
             project_data = dict(
                 name=full_project_data['name'],

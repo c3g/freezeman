@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
+  AutoComplete,
   Button,
   DatePicker,
   Form,
@@ -22,6 +23,9 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { selectProjectsByID } from "../../selectors"
 import dayjs from "dayjs";
 
+import api from "../../utils/api"
+import * as Options from "../../utils/options";
+
 
 const ProjectEditContent = () => {
   const dispatch = useAppDispatch()
@@ -34,27 +38,65 @@ const ProjectEditContent = () => {
   const project = id ? projectsByID[id] : undefined
   const user = useCurrentUser()
   const isAdmin = user ? user.is_staff : false
+  const [form] = Form.useForm()
 
   /*
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT : project))
+  const [formData, setFormData] = useState(deserialize(form, isAdding ? EMPTY_PROJECT : project))
   const [formErrors, setFormErrors] = useState<any>({})
 
   if (!isAdding && formData === undefined && project !== undefined) {
-    const newData = deserialize(project)
+    const newData = deserialize(form, project)
     setFormData(newData)
   }
 
   const projectValue = project || EMPTY_PROJECT
   useEffect(() => {
-    const newData = deserialize(projectValue)
+    const newData = deserialize(form, projectValue)
   }, [projectValue])
 
+  /*
+   * External id autocomplete
+   */
+  const listParentProjects = useCallback((input) => {
+      return dispatch(api.parentProjects.list({ external_id__startswith: input, limit: 100 }))
+    }, [dispatch])
+  const [externalIdOptions, setExternalIdOptions] = useState(projectValue.count > 0 ? [projectValue.external_id].map(Options.renderParentProject) : [])
+  const onFocusExternalId = ev => { onSearchExternalId(ev.target.value) }
+  const onChangeExternalId = useCallback((input) => {
+      if (!input){
+        form.setFieldsValue({"external_name": ""})
+      }
+      else {
+        listParentProjects(input).then(response => {
+          const currentExternalName = response.data.results[0]?.name
+          form.setFieldsValue({"external_name": currentExternalName})
+        })
+      }
+    }, [])
+  const onSearchExternalId = useCallback((input) => {
+    listParentProjects(input).then(response => {
+      setExternalIdOptions(response.data.results.map(Options.renderParentProject))
+    })
+  }, [])
+
   const onValuesChange = (values) => {
-    setFormData(deserialize({ ...formData, ...values }))
+    if (!values.external_id) {
+      const newData = { ...formData, ...values, external_id: "", external_name: "" }
+      setFormData(deserialize(form, newData))
+    }
+    else{
+      listParentProjects(values.external_id).then(response => {
+          const currentExternalName = response.data.results[0]?.name
+          const newData = { ...formData, ...values, external_id: values.external_id, external_name: currentExternalName }
+          setFormData(deserialize(form, newData))
+      })
+    }
   }
+
+  
 
   const onSubmit = () => {
     const data = serialize(formData)
@@ -111,6 +153,7 @@ const ProjectEditContent = () => {
       />
       <PageContent>
         <Form
+          form={form}
           key={project ? 'with-project' : 'without-project'}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 14 }}
@@ -127,7 +170,12 @@ const ProjectEditContent = () => {
           <Form.Item label="External ID" {...props("external_id")} rules={isAdmin ? externalIdRules : requiredRules.concat(externalIdRules)}
             tooltip="Format: P000000."
             extra="External identifier for the project (Hercules project number)." >
-            <Input />
+            <AutoComplete
+                options={externalIdOptions}
+                onSearch={onSearchExternalId}
+                onChange={onChangeExternalId}
+                onFocus={onFocusExternalId}
+            />
           </Form.Item>
           <Form.Item label="External Name" {...props("external_name")} rules={isAdmin ? [] : requiredRules}
             extra="Full external name of the project (Hercules name)." >
@@ -185,7 +233,7 @@ const ProjectEditContent = () => {
   );
 }
 
-function deserialize(values) {
+function deserialize(form, values) {
   if (!values)
     return undefined
   const newValues = { ...values }
@@ -194,6 +242,9 @@ function deserialize(values) {
     newValues.status = false
   else
     newValues.status = true
+
+  if (!newValues.external_id)
+    form.setFieldsValue({"external_name": null})
 
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = dayjs(newValues.targeted_end_date)
