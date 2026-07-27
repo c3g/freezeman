@@ -1,8 +1,6 @@
-import { FMSId, FMSPagedResultsReponse } from '../../models/fms_api_models'
-import { ParentProject } from '../../models/frontend_models'
-import { selectParentProjectsByID } from '../../selectors'
+import { FMSId } from '../../models/fms_api_models'
 import { AppDispatch, RootState } from '../../store'
-import { NetworkActionThunk, createNetworkActionTypes, networkAction } from '../../utils/actions'
+import { createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
 
 export const GET = createNetworkActionTypes('PARENT_PROJECTS.GET')
