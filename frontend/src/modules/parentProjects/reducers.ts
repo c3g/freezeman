@@ -47,7 +47,7 @@ export const parentProjects = (
     }
 };
 
-function preprocess(parentProject) {
+function preprocess(parentProject: ParentProject) {
     parentProject.isFetching = false;
     parentProject.isLoaded = true;
     return parentProject
