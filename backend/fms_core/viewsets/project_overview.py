@@ -81,11 +81,11 @@ def get_external_id_number(external_id):
         return None   
     return int(external_id[1:]) 
 
-has_child_library = SampleLineage.objects.filter(
-    parent=OuterRef("pk"),
-    child__derived_samples__library__isnull=False,
-    child__deleted=False,
-)
+# has_child_library = SampleLineage.objects.filter(
+#     parent=OuterRef("pk"),
+#     child__derived_samples__library__isnull=False,
+#     child__deleted=False,
+# )
 
 
 class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
@@ -122,7 +122,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
         queryset = (Sample.objects.select_related("container").annotate(derived_count=Count("derived_by_samples")).filter(derived_count__lte=1))
 
         #exclure les libraries qui apparaissent comme parent dans SampleLineage quand leur child est aussi une library.
-        queryset = queryset.annotate(is_terminal_library=Exists(has_child_library)).filter(is_terminal_library=False)
+       # queryset = queryset.annotate(is_terminal_library=Exists(has_child_library)).filter(is_terminal_library=False)
       
         queryset = queryset.filter(**EXCLUDE_DELETED_LIBRAIRIES_FILTERS, derived_by_samples__project__external_id=external_id)
         queryset = queryset.annotate(
