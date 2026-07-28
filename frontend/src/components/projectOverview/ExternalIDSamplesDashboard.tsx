@@ -87,7 +87,8 @@ const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSam
 							<Col span={12}>
 								<Statistic
 									title="Avg Concentration"
-									value={summary.avg_concentration ?? 0}
+									value={
+    								summary.avg_concentration === null ? '---' : summary.avg_concentration}
 									precision={2}
 									suffix="ng/uL"
 									styles={{content: {fontSize: 18,},}}

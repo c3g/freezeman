@@ -88,6 +88,14 @@ has_child_library = SampleLineage.objects.filter(
     child__deleted=False,
 )
 
+parent_same_biosample = SampleLineage.objects.filter(
+    child=OuterRef("pk"),
+    parent__derived_samples__biosample_id=OuterRef(
+        "derived_samples__biosample_id"
+    ),
+    parent__deleted=False,
+)
+
 
 class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
 
@@ -124,57 +132,63 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
 
     
     def get_project_samples_queryset(self, external_id):
-       queryset = Sample.objects.select_related("container").all().distinct()
-
-       # samples liés à external_id
-       queryset = queryset.filter(derived_by_samples__project__external_id=external_id)
-
-
-        #  pas de parent lié au même sous-projet
-       parent_in_same_project = SampleLineage.objects.filter(child=OuterRef("pk"),
-       parent__derived_by_samples__project=OuterRef("derived_by_samples__project"),)
-       queryset = queryset.annotate(has_parent_in_same_project=Exists(parent_in_same_project))
-       queryset = queryset.filter(has_parent_in_same_project=False)
-
+     
+        queryset = Sample.objects .filter(
+            deleted=False,
+            derived_by_samples__project__deleted=False,
+            derived_by_samples__project__external_id=external_id,
+            derived_samples__deleted=False,
+            derived_samples__biosample__deleted=False,
+        ).select_related("container")
+    
         #  pas des libraries
-       queryset = queryset.filter(derived_samples__library__isnull=True)
+        queryset = queryset.filter(derived_samples__library__isnull=True)
+
 
         # pas des pools
-       queryset = queryset.annotate(derived_count=Count("derived_by_samples"))
-       queryset = queryset.filter(derived_count__lte=1)
+        queryset = queryset.annotate(derived_count=Count("derived_samples", distinct=True))
+        queryset = queryset.filter(derived_count__lte=1)
+
+   
+       #Chaque résultat doit obligatoirement contenir biosample_id
+        queryset = queryset.annotate(biosample_id=F("derived_samples__biosample_id"))
+
+        # Trouver le sample racine le plus ancien du biosample.
+        initial_sample = (Sample.objects.filter(
+             derived_samples__biosample_id=OuterRef("biosample_id"),)
+            .annotate(has_parent_same_biosample=Exists(parent_same_biosample))
+            .filter(has_parent_same_biosample=False)
+            .order_by(
+                 "creation_date",
+                "id",)
+            )
+
+        # Ajouter à chaque résultat l’ID du premier sample initial trouvé pour son biosample.
+        queryset = queryset.annotate(initial_sample_id=Subquery(initial_sample.values("id")[:1]))
+
+        # Conserver uniquement le sample dont l’ID correspond au sample initial sélectionné.
+        queryset = queryset.filter(id=F("initial_sample_id"))
+ 
 
         #champs/annotations nécessaires pour préparer la structure de réponse frontend.
-       queryset = queryset.annotate(
+        queryset = queryset.annotate(
             external_id=F("derived_by_samples__project__external_id"),
             project_id=F("derived_by_samples__project_id"),
             project_name=F("derived_by_samples__project__name"),
-            container_barcode=F("container__barcode"),)
-       
-       queryset = queryset.annotate(
-            alias=ArrayAgg(
-                "derived_samples__biosample__alias",
-                distinct=True,
-            ),
-            individual=ArrayAgg(
-                "derived_samples__biosample__individual__name",
-                distinct=True,
-            ),
-            collection_site=ArrayAgg(
-                "derived_samples__biosample__collection_site",
-                distinct=True,
-            ),
-            experimental_group=ArrayAgg(
-                "derived_samples__experimental_group",
-                distinct=True,
-            ),)
-       last_process = ProcessMeasurement.objects.filter(source_sample=OuterRef("pk")).order_by("-execution_date", "-id")
+            container_barcode=F("container__barcode"),
+           alias = F("derived_samples__biosample__alias"),
+           individual = F("derived_samples__biosample__individual__name"),
+           collection_site = F("derived_samples__biosample__collection_site"),
+           experimental_group=F("derived_samples__experimental_group"))
+        
+        last_process = ProcessMeasurement.objects.filter(source_sample=OuterRef("pk")).order_by("-execution_date", "-id")
 
-       queryset = queryset.annotate(
+        queryset = queryset.annotate(
             last_process_id=Subquery(last_process.values("process_id")[:1]),
             last_process_name=Subquery(last_process.values("process__protocol__name")[:1]),
             last_process_execution_date=Subquery(last_process.values("execution_date")[:1]),)
 
-       return queryset
+        return queryset
 
 
 
@@ -334,6 +348,7 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet,FetchLibraryData):
         self.project_samples_external_id = external_id
         queryset = self.get_project_samples_queryset(external_id)
         data = queryset.values(
+            "biosample_id",
             "id",
             "external_id",
             "project_id",

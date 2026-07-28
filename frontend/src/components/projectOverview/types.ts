@@ -1,16 +1,17 @@
 import { FMSProject } from '../../models/fms_api_models'
 
 export type ExternalIDProjectSample = {
+	biosample_id: number
 	id: number
 	external_id: string
 	project_id: number
 	project_name: string
 	name: string
-	alias: string[]
+	alias: string | null
 	container?: string | null
-	individual: string[]
+	individual: string | null
 	creation_date?: string | null
-	collection_site: string[]
+	collection_site: string | null
 	comment?: string | null
 	experimental_group: string[]
 	volume?: number | null

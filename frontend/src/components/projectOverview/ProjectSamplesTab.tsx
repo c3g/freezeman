@@ -35,7 +35,12 @@ const formatDate = (date?: string | null) =>
 
 const sampleColumns = [
 	{
-		title: 'Id',
+    title: 'Biosample ID',
+    dataIndex: 'biosample_id',
+    key: 'biosample_id',
+	},
+	{
+		title: 'Sample Id',
 		dataIndex: 'id',
 		key: 'id',
 		render: (id: number) => <Link to={`/samples/${id}`}>{id}</Link>,
@@ -66,18 +71,18 @@ const sampleColumns = [
 		title: 'Alias',
 		dataIndex: 'alias',
 		key: 'alias',
-		render: (alias: string[]) => alias?.join(', ') ?? '',
+		render: (alias?: string | null) => alias ?? '',
 	},
 	{
-		title: 'Container',
-		dataIndex: 'container',
-		key: 'container',
-	},
+    title: 'Container',
+    dataIndex: 'container_barcode',
+    key: 'container_barcode',
+},
 	{
 		title: 'Individual',
 		dataIndex: 'individual',
 		key: 'individual',
-		render: (individual: string[]) => individual?.join(', ') ?? '',
+		render: (individual?: string | null) => individual ?? '',
 	},
 	{
 		title: 'Creation Date',
@@ -89,7 +94,7 @@ const sampleColumns = [
 		title: 'Collection Site',
 		dataIndex: 'collection_site',
 		key: 'collection_site',
-		render: (sites: string[]) => sites?.join(', ') ?? '',
+		render: (site?: string | null) => site ?? '',
 	},
 	{
 		title: 'Comment',
@@ -201,10 +206,20 @@ const generateCsvContent = useCreateCsvExportFunction(samples)
 	const samplesWithReads = samples.filter((sample) => sample.number_of_reads != null)
 	const totalReads =
 	samplesWithReads.length === 0 ? null : samplesWithReads.reduce((sum, sample) => sum + (sample.number_of_reads ?? 0), 0)
-	
-
 	const avgReadsPerSample =
 	totalReads === null ? null : totalReads / samplesWithReads.length
+
+
+	const samplesWithConcentration = samples.filter(
+    (sample) => sample.concentration != null)
+
+	const avgConcentration =
+    samplesWithConcentration.length === 0
+        ? null
+        : samplesWithConcentration.reduce(
+              (sum, sample) => sum + sample.concentration!,
+              0,
+          ) / samplesWithConcentration.length
 
 
 
@@ -223,7 +238,7 @@ const generateCsvContent = useCreateCsvExportFunction(samples)
 							const quantity = s.volume != null && s.concentration != null ? s.volume * s.concentration : 0
 							return sum + quantity
 						}, 0),
-		avg_concentration: samples.reduce((sum, s) => sum + (s.concentration ?? 0), 0) / samples.length,
+		avg_concentration: avgConcentration,
 		total_reads: totalReads,
 		avg_reads_per_sample: avgReadsPerSample,
 		
