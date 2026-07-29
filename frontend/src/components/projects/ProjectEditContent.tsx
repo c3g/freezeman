@@ -44,17 +44,17 @@ const ProjectEditContent = () => {
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState(deserialize(form, isAdding ? EMPTY_PROJECT : project))
+  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT : project))
   const [formErrors, setFormErrors] = useState<any>({})
 
   if (!isAdding && formData === undefined && project !== undefined) {
-    const newData = deserialize(form, project)
+    const newData = deserialize(project)
     setFormData(newData)
   }
 
   const projectValue = project || EMPTY_PROJECT
   useEffect(() => {
-    const newData = deserialize(form, projectValue)
+    const newData = deserialize(projectValue)
   }, [projectValue])
 
   /*
@@ -67,7 +67,7 @@ const ProjectEditContent = () => {
   const onFocusExternalId = ev => { onSearchExternalId(ev.target.value) }
   const onChangeExternalId = useCallback((input) => {
       if (!input){
-        form.setFieldsValue({"external_name": ""})
+        form.setFieldsValue({"external_name": null})
       }
       else {
         listParentProjects(input).then(response => {
@@ -83,23 +83,30 @@ const ProjectEditContent = () => {
   }, [])
 
   const onValuesChange = (values) => {
-    if (!values.external_id) {
-      const newData = { ...formData, ...values, external_id: "", external_name: "" }
-      setFormData(deserialize(form, newData))
+    if (isAdding) {
+      setFormData(deserialize({...values}))
     }
-    else{
-      listParentProjects(values.external_id).then(response => {
-          const currentExternalName = response.data.results[0]?.name
-          const newData = { ...formData, ...values, external_id: values.external_id, external_name: currentExternalName }
-          setFormData(deserialize(form, newData))
-      })
+    else {
+      if (!values.external_id) {
+        const newData = { ...formData, ...values, external_id: "", external_name: "" }
+        setFormData(deserialize(newData))
+      }
+      else{
+        listParentProjects(values.external_id).then(response => {
+            const currentExternalName = response.data.results[0]?.name
+            const newData = { ...formData, ...values, external_id: values.external_id, external_name: currentExternalName }
+            setFormData(deserialize(newData))
+        })
+      }
     }
   }
 
   
 
   const onSubmit = () => {
-    const data = serialize(formData)
+    const data = serialize(form)
+    if (!isAdding)
+      data.id = Number(id)
     const action =
       isAdding ?
         dispatch(add(data)).then(project => { history(`/projects/${project.id}`) }) :
@@ -233,7 +240,7 @@ const ProjectEditContent = () => {
   );
 }
 
-function deserialize(form, values) {
+function deserialize(values) {
   if (!values)
     return undefined
   const newValues = { ...values }
@@ -243,29 +250,46 @@ function deserialize(form, values) {
   else
     newValues.status = true
 
-  if (!newValues.external_id)
-    form.setFieldsValue({"external_name": null})
-
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = dayjs(newValues.targeted_end_date)
   return newValues
 }
 
-function serialize(values) {
-  const newValues = { ...values }
+function serialize(form) {
+  const newValues = { ...EMPTY_PROJECT }
 
-  if (newValues.status === false)
+  if (form.getFieldValue("name"))
+    newValues.name = form.getFieldValue("name")
+
+  if (!form.getFieldValue("external_id") || form.getFieldValue("external_id").length == 0)
+    newValues.external_id = null
+  else
+    newValues.external_id = form.getFieldValue("external_id")
+
+  if (form.getFieldValue("external_name"))
+    newValues.external_name = form.getFieldValue("external_name")
+
+  if (form.getFieldValue("principal_investigator"))
+    newValues.principal_investigator = form.getFieldValue("principal_investigator")
+
+  if (form.getFieldValue("requestor_name"))
+    newValues.requestor_name = form.getFieldValue("requestor_name")
+
+  if (form.getFieldValue("requestor_email"))
+    newValues.requestor_email = form.getFieldValue("requestor_email")
+
+  if (form.getFieldValue("status") === false)
     newValues.status = "Closed"
   else
     newValues.status = "Open"
 
-  if (newValues.targeted_end_date)
-    newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
+  if (form.getFieldValue("targeted_end_date"))
+    newValues.targeted_end_date = form.getFieldValue("targeted_end_date").format('YYYY-MM-DD')
   else
     newValues.targeted_end_date = null
 
-  if (!newValues.external_id || newValues.external_id.length == 0)
-    newValues.external_id = null
+  if (form.getFieldValue("comment"))
+    newValues.comment = form.getFieldValue("comment")
 
   return newValues
 }
