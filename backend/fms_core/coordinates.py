@@ -21,6 +21,8 @@ __all__ = [
 
     "validate_and_normalize_coordinates",
     "check_coordinate_overlap",
+    "ROW",
+    "COLUMN",
 ]
 
 
@@ -139,7 +141,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
 
     return alpha_offset + digit_offset
 
-def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str:
+def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec, axis: str = ROW) -> str:
     """
     Convert a lane number (ordinal) to the alpha/digit style (eg. A01).
     The coordinate spec must support this style of coordinate.
@@ -154,9 +156,12 @@ def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str
             raise CoordinateError(f'Cannot convert lane {lane} to requested coordinate style.')
         spec_letters = spec[0]
         spec_digits = spec[1]
-        letter_index, digit_index = divmod(lane - 1, len(spec_digits))
-        letters = spec_letters[letter_index]
-        digits = spec_digits[digit_index]
+        if axis == ROW:
+            primary_index, secondary_index = divmod(lane - 1, len(spec_digits))
+        else:
+            secondary_index, primary_index = divmod(lane - 1, len(spec_letters))
+        letters = spec_letters[primary_index]
+        digits = spec_digits[secondary_index]
     except Exception as err:
         raise CoordinateError(f"Failed to convert lane {lane} to alpha numerical coordinates for given container spec {spec}.")
     return letters + digits

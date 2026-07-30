@@ -10,7 +10,8 @@ from django.db import models
 from django.db.models import Max, Sum, Subquery, Q
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
-from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
+from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord, ROW, COLUMN
+from fms_core.containers import CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY
 
 from .models import (
     Biosample,
@@ -735,12 +736,16 @@ class ReadsetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None and container_spec.container_kind_id == CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY.container_kind_id:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, COLUMN)
+            else:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, ROW)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -763,12 +768,16 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None and container_spec.container_kind_id == CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY.container_kind_id:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, COLUMN)
+            else:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, ROW)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
