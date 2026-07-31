@@ -21,11 +21,24 @@ import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { selectProjectsByID } from "../../selectors"
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 import api from "../../utils/api"
 import * as Options from "../../utils/options";
+import { FMSProject } from "../../models/fms_api_models";
+import { FormInstance } from "antd/lib/form";
 
+interface FormData {
+    name?: string
+    external_id?: string
+    external_name: string | null
+    principal_investigator?: string
+    requestor_name?: string
+    requestor_email?: string
+    status: boolean
+    targeted_end_date?: Dayjs
+    comment?: string
+}
 
 const ProjectEditContent = () => {
   const dispatch = useAppDispatch()
@@ -38,13 +51,13 @@ const ProjectEditContent = () => {
   const project = id ? projectsByID[id] : undefined
   const user = useCurrentUser()
   const isAdmin = user ? user.is_staff : false
-  const [form] = Form.useForm()
+  const [form] = Form.useForm<FormData>()
 
   /*
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT : project))
+  const [formData, setFormData] = useState<FormData | undefined>(deserialize(isAdding ? EMPTY_PROJECT : project))
   const [formErrors, setFormErrors] = useState<any>({})
 
   if (!isAdding && formData === undefined && project !== undefined) {
@@ -53,9 +66,6 @@ const ProjectEditContent = () => {
   }
 
   const projectValue = project || EMPTY_PROJECT
-  useEffect(() => {
-    const newData = deserialize(projectValue)
-  }, [projectValue])
 
   /*
    * External id autocomplete
@@ -63,7 +73,11 @@ const ProjectEditContent = () => {
   const listParentProjects = useCallback((input) => {
       return dispatch(api.parentProjects.list({ external_id__startswith: input, limit: 100 }))
     }, [dispatch])
-  const [externalIdOptions, setExternalIdOptions] = useState(projectValue.count > 0 ? [projectValue.external_id].map(Options.renderParentProject) : [])
+  const [externalIdOptions, setExternalIdOptions] = useState(
+    'external_id' in projectValue && projectValue.external_id
+        ? [projectValue.external_id].map(Options.renderParentProject)
+        : []
+  )
   const onFocusExternalId = ev => { onSearchExternalId(ev.target.value) }
   const onChangeExternalId = useCallback((input) => {
       if (!input){
@@ -101,7 +115,7 @@ const ProjectEditContent = () => {
     }
   }
 
-  
+
 
   const onSubmit = () => {
     const data = serialize(form)
@@ -140,7 +154,7 @@ const ProjectEditContent = () => {
     hasFeedback?: boolean
     validateStatus?: 'error',
     help?: string
-  }  
+  }
 
   function props(name: string): ValidationProps {
     return !formErrors[name]
@@ -240,10 +254,10 @@ const ProjectEditContent = () => {
   );
 }
 
-function deserialize(values) {
+function deserialize(values: Partial<FMSProject> | undefined): FormData | undefined {
   if (!values)
     return undefined
-  const newValues = { ...values }
+  const newValues: FormData = { ...values }
 
   if (!newValues.status || newValues.status === "Closed")
     newValues.status = false
@@ -252,11 +266,12 @@ function deserialize(values) {
 
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = dayjs(newValues.targeted_end_date)
+
   return newValues
 }
 
-function serialize(form) {
-  const newValues = { ...EMPTY_PROJECT }
+function serialize(form: FormInstance<FormData>): FMSProject {
+  const newValues: FMSProject = { ...EMPTY_PROJECT }
 
   if (form.getFieldValue("name"))
     newValues.name = form.getFieldValue("name")
