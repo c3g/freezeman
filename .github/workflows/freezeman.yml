@@ -1,0 +1,81 @@
+name: Freezeman Workflows
+on:
+  pull_request:
+permissions: {}
+jobs:
+  caches:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_files: ${{ steps.changed.outputs.frontend_files }}
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+      - name: Get changed files
+        id: changed
+        run: |
+          git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+          FRONTEND_CHANGED_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD -- ./frontend/ | sed 's/^frontend/./g' | tr '\n' ' ')
+          echo "frontend_files=$FRONTEND_CHANGED_FILES" >> $GITHUB_OUTPUT
+      - name: Caching with setup-node
+        if: steps.changed.outputs.frontend_files != ''
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      - name: npm ci
+        if: steps.changed.outputs.frontend_files != ''
+        working-directory: ./frontend/
+        run: npm ci
+  Prettier:
+    needs: caches
+    if: needs.caches.outputs.frontend_files != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      - name: npm ci
+        working-directory: ./frontend/
+        run: npm ci
+      - name: Run Prettier
+        working-directory: ./frontend/
+        run: npx prettier --check ${{ needs.caches.outputs.frontend_files }}
+  ESLint:
+    needs: caches
+    if: needs.caches.outputs.frontend_files != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      - name: npm ci
+        working-directory: ./frontend/
+        run: npm ci
+      - name: Run ESLint
+        working-directory: ./frontend/
+        run: npx eslint --quiet ${{ needs.caches.outputs.frontend_files }}
+  Webpack:
+    needs: caches
+    if: needs.caches.outputs.frontend_files != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      - name: npm ci
+        working-directory: ./frontend/
+        run: npm ci
+      - name: Run Webpack
+        working-directory: ./frontend/
+        run: npx webpack --mode production

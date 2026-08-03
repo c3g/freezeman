@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
+    "module": "node16",
     "allowJs": true,
     "noEmit": true,
     "strict": true,
@@ -11,12 +12,6 @@
     "jsx": "preserve",
     "noImplicitAny": false
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx"],
+  "exclude": ["node_modules", "dist"]
 }
