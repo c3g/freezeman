@@ -10,6 +10,7 @@ __all__ = [
     "CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL",
     "CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_5B_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL",
@@ -210,6 +211,14 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL = ContainerSpec(
      is_run_container=True,
 )
 
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_5B_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-x-5b flowcell",
+     coordinate_spec=(alphas(1), ints(8, pad_to=2)), #8 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL = ContainerSpec(
      container_kind_id="illumina-novaseq-x-10b flowcell",
      coordinate_spec=(alphas(1), ints(8, pad_to=2)), #8 lanes
@@ -333,6 +342,7 @@ RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
     CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_5B_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL,
