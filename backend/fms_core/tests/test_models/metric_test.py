@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from fms_core.services.project import create_full_project
 from fms_core.models import (
     RunType,
     Container,
@@ -45,8 +46,7 @@ class MetricTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
-        self.project = Project.objects.create(name="test", parent_project=parent_project_obj)
+        self.project, _, _ = create_full_project(name="test", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
@@ -81,7 +81,7 @@ class MetricTest(TestCase):
         self.assertEqual(metric.value_string, "Hippopodonculus Rex")
         self.assertIsNone(metric.value_numeric)
 
-    def test_metric_string(self):
+    def test_metric_string_and_numeric(self):
         with self.assertRaises(ValidationError):
             try:
                 metric = Metric.objects.create(name="ErroneousMetricus",

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 
+from fms_core.services.project import create_full_project
 from fms_core.models import (
     RunType,
     Container,
@@ -44,8 +45,7 @@ class DatasetTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
-        self.my_project = Project.objects.create(name="test", parent_project=parent_project_obj)
+        self.my_project, _, _ = create_full_project(name="test", external_id="P031553", external_name="ClientProject")
 
         self.my_experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                               run_type=self.run_type,

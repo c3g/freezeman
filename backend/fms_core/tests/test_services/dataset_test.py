@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from fms_core.services.project import create_full_project
 from fms_core.services.dataset import (create_dataset,
                                        create_dataset_file,
                                        reset_dataset_content,
@@ -55,8 +56,7 @@ class DatasetServicesTestCase(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", parent_project=parent_project_obj)
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", external_id="P031553", external_name="ClientProject")
         self.project_without_external = Project.objects.create(name="MY_PROJECT_NO_EXTERNAL")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,

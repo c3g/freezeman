@@ -20,6 +20,59 @@ def get_project(name=None):
 
     return (project, errors, warnings)
 
+def create_full_project(name=None, principal_investigator=None, requestor_name=None, requestor_email=None,
+                        external_id=None, external_name=None, status=None, targeted_end_date=None, comment=None):
+    """
+    Creates a project including both the parent project creation and the project creation itself. It assumes both need to be created.
+    For a partial creation use the service create_project.
+        
+    Args:
+        `name`: Name of the Freezeman project.
+        `principal_investigator`: Name of the principal investigator for the project.
+        `requestor_name`: Name of the person creating the project request.
+        `requestor_email`: Contact email for the requestor.
+        `external_id`: ID of the parent project in the external system.
+        `external_name`: Name of the parent project name in the external system.
+        `status`: Status of the project.
+        `targeted_end_date`: Date of the expected project end.
+        `comment`: Comment to be tied to the project.
+        
+    Returns:
+        Tuple with the following content:
+        `project`: Project object created otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
+    project = None
+    parent_project = None
+    errors = []
+    warnings = []
+
+    if external_id is not None and external_name is not None:
+        try:
+            parent_project = ParentProject.objects.create(external_id=external_id, name=external_name)
+        except ValidationError as e:
+            errors.append(str(e))
+    
+    project_data = dict(
+        name=name,
+        # Optional attributes
+        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
+        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
+        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
+        **(dict(parent_project=parent_project) if parent_project is not None else dict()),
+        **(dict(status=status) if status is not None else dict()),
+        **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
+        **(dict(comment=comment) if comment is not None else dict())
+    )
+
+    try:
+        project = Project.objects.create(**project_data)
+    except ValidationError as e:
+        errors.append(str(e))
+
+    return (project, errors, warnings)
+
 def create_project(name=None, principal_investigator=None, requestor_name=None,
                    requestor_email=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
     project = None

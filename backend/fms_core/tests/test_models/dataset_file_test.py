@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from fms_core.services.project import create_full_project
 from fms_core.models import Dataset, DatasetFile, Readset
 from fms_core.models import (
     RunType,
@@ -43,9 +44,8 @@ class DatasetFileTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        parent_project_obj = ParentProject.objects.create(external_id="P000311", name="ClientProject")
-        my_project = Project.objects.create(name="MyProject", parent_project=parent_project_obj)
-
+        my_project, _, _ = create_full_project(name="MyProject", external_id="P000311", external_name="ClientProject")
+        
         my_experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                          run_type=self.run_type,
                                                          container=self.container,

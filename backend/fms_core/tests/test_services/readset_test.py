@@ -3,6 +3,7 @@ from django.test import TestCase
 from fms_core.models import Readset
 from fms_core.services.dataset import create_dataset
 from fms_core.services.readset import create_readset
+from fms_core.services.project import create_full_project
 from fms_core.models._constants import ReleaseStatus, ValidationStatus, INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_core.models import (
     RunType,
@@ -13,8 +14,6 @@ from fms_core.models import (
     Process,
     Protocol,
     ExperimentRun,
-    Project,
-    ParentProject,
     Readset
 )
 from fms_core.tests.constants import create_container
@@ -43,8 +42,7 @@ class ReadsetServicesTestCase(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        parent_project_obj = ParentProject.objects.create(external_id="P031553", name="ClientProject")
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", parent_project=parent_project_obj)
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
