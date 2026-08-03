@@ -1,30 +1,31 @@
 import {
   Biosample,
-	Container,
-	Coordinate,
-	Dataset,
-	DatasetFile,
-	ExperimentRun,
-	Index,
-	Instrument,
-	InstrumentType,
-	ItemsByID,
-	Library,
-	Process,
-	ProcessMeasurement,
-	Project,
-	PropertyValue,
-	Protocol,
-	Readset,
-	ReferenceGenome,
-	RunType,
-	Sample,
-	SampleKind,
-	Sequence,
-	Study,
-	Taxon,
-	User,
-	Workflow,
+  Container,
+  Coordinate,
+  Dataset,
+  DatasetFile,
+  ExperimentRun,
+  Index,
+  Instrument,
+  InstrumentType,
+  ItemsByID,
+  Library,
+  ParentProject,
+  Process,
+  ProcessMeasurement,
+  Project,
+  PropertyValue,
+  Protocol,
+  Readset,
+  ReferenceGenome,
+  RunType,
+  Sample,
+  SampleKind,
+  Sequence,
+  Study,
+  Taxon,
+  User,
+  Workflow,
 } from './models/frontend_models'
 import { PagedItems } from './models/paged_items'
 import { IndividualDetailsById } from './modules/individualDetails/models'
@@ -96,6 +97,7 @@ export const selectLibrariesTable = (state: RootState) => state.librariesTable
 export const selectLibraryPrefillTemplates = (state: RootState) => state.libraryPrefillTemplates
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
 export const selectPageSize = (state: RootState) => state.pagination.pageSize
+export const selectParentProjectsByID = (state: RootState) => state.parentProjects.itemsByID as ItemsByID<ParentProject>
 export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>
 export const selectProcessMeasurementsByID = (state: RootState) => state.processMeasurements.itemsByID as ItemsByID<ProcessMeasurement>
 export const selectProcessMeasurementTemplateActions = (state: RootState) => state.processMeasurementTemplateActions

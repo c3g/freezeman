@@ -2,7 +2,8 @@ from django.test import TestCase
 
 from django.utils import timezone
 
-from fms_core.models import Readset, Dataset, Container, Platform, Instrument, InstrumentType, Protocol, Process, RunType, ExperimentRun, SampleKind, Project
+from fms_core.services.project import create_full_project
+from fms_core.models import Readset, Dataset, Container, Platform, Instrument, InstrumentType, Protocol, Process, RunType, ExperimentRun, SampleKind, Project, ParentProject
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_report.models import ProductionData
 
@@ -45,7 +46,7 @@ class ProductionDataTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553", principal_investigator="MrPotato")
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", principal_investigator="MrPotato", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
@@ -96,7 +97,7 @@ class ProductionDataTest(TestCase):
         self.assertEqual(data.library_type, "PCR-free")
         self.assertIsNone(data.library_selection)
         self.assertEqual(data.project.name, self.project.name)
-        self.assertEqual(data.project.external_id, self.project.external_id)
+        self.assertEqual(data.project.parent_project.external_id, self.project.parent_project.external_id)
         self.assertEqual(data.project.principal_investigator, self.project.principal_investigator)
         self.assertEqual(data.taxon, "E.T.")
         self.assertEqual(data.technology, "SeqEnhancer")

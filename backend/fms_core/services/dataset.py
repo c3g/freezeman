@@ -220,7 +220,7 @@ def set_dataset_validation_status(dataset_obj: Dataset, validation_status: Valid
     warnings = []
     timestamp = timezone.now()
 
-    if not dataset_obj.project.external_id:
+    if dataset_obj.project.parent_project is None:
         errors.append(f"Cannot set validation status for Lane {dataset_obj.lane} of Experiment Run {dataset_obj.experiment_run.name} because project {dataset_obj.project.name} is missing an external project id.")
         return count_status, errors, warnings
 
@@ -306,7 +306,7 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
             errors.append(f"Failed to get Dataset {dataset_id}.")
             return None, errors, warnings # no good outcome to be expected.
 
-        if not dataset_obj.project.external_id:
+        if dataset_obj.project.parent_project is None:
             errors.append(f"Cannot set release status for Dataset {dataset_id} because project {dataset_obj.project.name} is missing an external project id.")
             return None, errors, warnings
 
@@ -387,7 +387,7 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
         return None, errors, warnings
 
 
-    external_project_id = dataset_obj.project.external_id
+    external_project_id = dataset_obj.project.parent_project and dataset_obj.project.parent_project.external_id
     if not external_project_id:
         errors.append(f"Cannot create validation info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
         return None, errors, warnings
@@ -451,7 +451,7 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
         warnings.append(f"No dataset files listed.")
         return None, errors, warnings
 
-    external_project_id = dataset_obj.project.external_id
+    external_project_id = dataset_obj.project.parent_project and dataset_obj.project.parent_project.external_id
     if not external_project_id:
         errors.append(f"Cannot create release info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
         return None, errors, warnings

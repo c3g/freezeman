@@ -12,6 +12,10 @@ export function renderGroup(g) {
   return { value: g.id, label: g.name }
 }
 
+export function renderParentProject(p) {
+  return { value: p.external_id, label: p.name}
+}
+
 export function renderTaxon(t) {
   return {
     value: t.id,

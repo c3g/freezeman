@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from django.utils import timezone
 
+from fms_core.services.project import create_full_project
 from fms_report.models import ProductionTracking
 from fms_core.models import Readset, Dataset
 from fms_core.models import (
@@ -16,10 +17,9 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
+    ParentProject,
     Dataset,
-    DatasetFile,
-    Readset,
-    Metric
+    Readset
 )
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 
@@ -49,7 +49,7 @@ class ProductionTrackingTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553")
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,

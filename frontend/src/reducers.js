@@ -46,6 +46,7 @@ import {
 } from "./modules/libraryTypes/reducers";
 import { notifications } from './modules/notification/reducers';
 import { reducer as pagination } from "./modules/pagination";
+import { parentProjects } from "./modules/parentProjects/reducers";
 import {
     platforms,
 } from "./modules/platforms/reducers";
@@ -146,6 +147,7 @@ const allReducers = combineReducers({
     processes,
     processMeasurementTemplateActions,
     processMeasurements,
+    parentProjects,
     projects,
     projectsOfSamples,
     projectsTable,

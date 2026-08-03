@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
+from fms_core.services.project import create_full_project
 from fms_core.models._constants import ValidationStatus, ReleaseStatus
 from fms_core.tests.constants import create_sample, create_sample_container, create_container
 
@@ -16,6 +17,7 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
+    ParentProject,
     Dataset,
     Readset,
     Sample
@@ -46,7 +48,7 @@ class ReadsetTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="test", external_id="P031553")
+        self.project, _, _ = create_full_project(name="test", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
