@@ -21,16 +21,16 @@ __all__ = [
 
     "validate_and_normalize_coordinates",
     "check_coordinate_overlap",
-    "ROW",
-    "COLUMN",
+    "ROW_ORDINAL_COORDINATE_ALLOCATION",
+    "COLUMN_ORDINAL_COORDINATE_ALLOCATION",
 ]
 
 
 CoordinateAxis = Tuple[str, ...]
 CoordinateSpec = Union[Tuple[()], Tuple[CoordinateAxis], Tuple[CoordinateAxis, CoordinateAxis]]
 
-ROW = "row"
-COLUMN = "column"
+COLUMN_ORDINAL_COORDINATE_ALLOCATION = "column"
+ROW_ORDINAL_COORDINATE_ALLOCATION = "row"
 
 
 class CoordinateError(Exception):
@@ -75,12 +75,12 @@ def is_alpha_digit_spec(spec: CoordinateSpec) -> bool:
 
     return False
 
-def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis: str = ROW) -> int:
+def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis: str = ROW_ORDINAL_COORDINATE_ALLOCATION) -> int:
     '''
     Convert a coordinate with the alpha/digit style (eg. A01) to an integer value, starting at 1.
     The coordinate spec must support this style of coordinate.
     The coordinate is expected to be valid.
-    The axis parameter will decide if the value increase follows first the alphabetical part (column) or the numerical part (row).
+    The specThe axis parameter will decide if the value increase follows first the alphabetical part (column) or the numerical part (row).
     '''
 
     # Coordinate must be at least two chars long (eg "A1")
@@ -112,7 +112,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
 
     alpha_offset = 0
     digit_offset = 0
-    if axis == ROW:
+    if axis == ROW_ORDINAL_COORDINATE_ALLOCATION:
         try:
             # Find the index of the letter (or letters) in the spec
             letter_index = spec_letters.index(letters)
@@ -141,7 +141,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
 
     return alpha_offset + digit_offset
 
-def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec, axis: str = ROW) -> str:
+def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec, axis: str = ROW_ORDINAL_COORDINATE_ALLOCATION) -> str:
     """
     Convert a lane number (ordinal) to the alpha/digit style (eg. A01).
     The coordinate spec must support this style of coordinate.
@@ -156,7 +156,7 @@ def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec, axis: 
             raise CoordinateError(f'Cannot convert lane {lane} to requested coordinate style.')
         spec_letters = spec[0]
         spec_digits = spec[1]
-        if axis == ROW:
+        if axis == ROW_ORDINAL_COORDINATE_ALLOCATION:
             primary_index, secondary_index = divmod(lane - 1, len(spec_digits))
         else:
             secondary_index, primary_index = divmod(lane - 1, len(spec_letters))

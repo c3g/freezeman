@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_coordinates
+from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_coordinates, COLUMN_ORDINAL_COORDINATE_ALLOCATION, ROW_ORDINAL_COORDINATE_ALLOCATION
 
 
 __all__ = [
@@ -78,11 +78,12 @@ class ContainerSpec:
     container_specs: List["ContainerSpec"] = []
 
     def __init__(self, container_kind_id: str, coordinate_spec: CoordinateSpec, coordinate_overlap_allowed: bool,
-                 children: Tuple["ContainerSpec", ...], is_run_container: bool):
+                 children: Tuple["ContainerSpec", ...], is_run_container: bool, ordinal_coordinate_allocation: str):
         self._container_kind_id = container_kind_id
         self._coordinate_spec = coordinate_spec
         self._coordinate_overlap_allowed = coordinate_overlap_allowed
         self._is_run_container = is_run_container
+        self._ordinal_coordinate_allocation = ordinal_coordinate_allocation
         self._children = children
         for c in children:
             c.register_parent(self)
@@ -126,6 +127,10 @@ class ContainerSpec:
         return self._is_run_container
 
     @property
+    def ordinal_coordinates_allocation_axis(self) -> str:
+        return self._ordinal_coordinate_allocation
+
+    @property
     def sample_holding(self) -> bool:
         return len(self._children) == 0
 
@@ -143,6 +148,7 @@ class ContainerSpec:
             "children_ids": [c.container_kind_id for c in self._children],
             "is_source": self.is_source,
             "is_run_container": self._is_run_container,
+            "ordinal_coordinate_allocation": self._ordinal_coordinate_allocation,
         }
 
     def __eq__(self, other):
@@ -160,6 +166,7 @@ CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
@@ -168,6 +175,7 @@ CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP = ContainerSpec(
@@ -176,6 +184,7 @@ CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
@@ -184,6 +193,7 @@ CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL = ContainerSpec(
@@ -192,6 +202,7 @@ CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
@@ -200,6 +211,7 @@ CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL = ContainerSpec(
@@ -208,6 +220,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL = ContainerSpec(
@@ -216,6 +229,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL = ContainerSpec(
@@ -224,6 +238,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL = ContainerSpec(
@@ -232,6 +247,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL = ContainerSpec(
@@ -240,6 +256,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL = ContainerSpec(
@@ -248,6 +265,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_S4_FLOWCELL = ContainerSpec(
@@ -256,6 +274,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_S4_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_MISEQ_V2_FLOWCELL = ContainerSpec(
@@ -264,6 +283,7 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_V2_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL = ContainerSpec(
@@ -272,6 +292,7 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL = ContainerSpec(
@@ -280,6 +301,7 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL = ContainerSpec(
@@ -288,6 +310,7 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_MISEQ_I100_FLOWCELLS = [
@@ -297,6 +320,7 @@ CONTAINER_SPEC_ILLUMINA_MISEQ_I100_FLOWCELLS = [
         coordinate_overlap_allowed=False,
         children=(),  # Leaf node; sample-holding
         is_run_container=True,
+        ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
     )
     for m in [5, 25, 50, 100]
 ]
@@ -307,6 +331,7 @@ CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY = ContainerSpec(
@@ -315,6 +340,7 @@ CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
     is_run_container=True,
+    ordinal_coordinate_allocation=COLUMN_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ULTIMA_WAFER = ContainerSpec(
@@ -323,6 +349,7 @@ CONTAINER_SPEC_ULTIMA_WAFER = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 RUN_CONTAINER_SPECS = (
@@ -356,6 +383,7 @@ CONTAINER_SPEC_TUBE = ContainerSpec(
     coordinate_overlap_allowed=False,  # Only one sample can be in the tube at a time
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_2X1 = ContainerSpec(
@@ -364,6 +392,7 @@ CONTAINER_SPEC_TUBE_STRIP_2X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_3X1 = ContainerSpec(
@@ -372,6 +401,7 @@ CONTAINER_SPEC_TUBE_STRIP_3X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_4X1 = ContainerSpec(
@@ -380,6 +410,7 @@ CONTAINER_SPEC_TUBE_STRIP_4X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_5X1 = ContainerSpec(
@@ -388,6 +419,7 @@ CONTAINER_SPEC_TUBE_STRIP_5X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_6X1 = ContainerSpec(
@@ -396,6 +428,7 @@ CONTAINER_SPEC_TUBE_STRIP_6X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_7X1 = ContainerSpec(
@@ -404,6 +437,7 @@ CONTAINER_SPEC_TUBE_STRIP_7X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_STRIP_8X1 = ContainerSpec(
@@ -412,6 +446,7 @@ CONTAINER_SPEC_TUBE_STRIP_8X1 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 TUBE_STRIP_SPECS = (
@@ -430,6 +465,7 @@ CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_384_WELL_PLATE = ContainerSpec(
@@ -438,6 +474,7 @@ CONTAINER_SPEC_384_WELL_PLATE = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_3X3 = ContainerSpec(
@@ -446,6 +483,7 @@ CONTAINER_SPEC_TUBE_BOX_3X3 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_6X6 = ContainerSpec(
@@ -454,6 +492,7 @@ CONTAINER_SPEC_TUBE_BOX_6X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_7X7 = ContainerSpec(
@@ -462,6 +501,7 @@ CONTAINER_SPEC_TUBE_BOX_7X7 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_8X8 = ContainerSpec(
@@ -470,6 +510,7 @@ CONTAINER_SPEC_TUBE_BOX_8X8 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_9X9 = ContainerSpec(
@@ -478,6 +519,7 @@ CONTAINER_SPEC_TUBE_BOX_9X9 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_10X10 = ContainerSpec(
@@ -486,6 +528,7 @@ CONTAINER_SPEC_TUBE_BOX_10X10 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_BOX_21X10 = ContainerSpec(
@@ -494,6 +537,7 @@ CONTAINER_SPEC_TUBE_BOX_21X10 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_RACK_4X6 = ContainerSpec(
@@ -502,6 +546,7 @@ CONTAINER_SPEC_TUBE_RACK_4X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
@@ -510,6 +555,7 @@ CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 COMMON_CHILDREN = (
@@ -532,6 +578,7 @@ CONTAINER_SPEC_BOX = ContainerSpec(
     coordinate_overlap_allowed=True,
     children=(*COMMON_CHILDREN, *TUBE_STRIP_SPECS, *RUN_CONTAINER_SPECS, CONTAINER_SPEC_TUBE),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_DRAWER = ContainerSpec(
@@ -540,6 +587,7 @@ CONTAINER_SPEC_DRAWER = ContainerSpec(
     coordinate_overlap_allowed=True,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_2X4 = ContainerSpec(
@@ -548,6 +596,7 @@ CONTAINER_SPEC_FREEZER_RACK_2X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_3X4 = ContainerSpec(
@@ -556,6 +605,7 @@ CONTAINER_SPEC_FREEZER_RACK_3X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_4X4 = ContainerSpec(
@@ -564,6 +614,7 @@ CONTAINER_SPEC_FREEZER_RACK_4X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_4X6 = ContainerSpec(
@@ -572,6 +623,7 @@ CONTAINER_SPEC_FREEZER_RACK_4X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_5X4 = ContainerSpec(
@@ -580,6 +632,7 @@ CONTAINER_SPEC_FREEZER_RACK_5X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_6X4 = ContainerSpec(
@@ -588,6 +641,7 @@ CONTAINER_SPEC_FREEZER_RACK_6X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_7X4 = ContainerSpec(
@@ -596,6 +650,7 @@ CONTAINER_SPEC_FREEZER_RACK_7X4 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_10X5 = ContainerSpec(
@@ -604,6 +659,7 @@ CONTAINER_SPEC_FREEZER_RACK_10X5 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_8X6 = ContainerSpec(
@@ -612,6 +668,7 @@ CONTAINER_SPEC_FREEZER_RACK_8X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
@@ -620,6 +677,7 @@ CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_16X6 = ContainerSpec(
@@ -628,6 +686,7 @@ CONTAINER_SPEC_FREEZER_RACK_16X6 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_RACK_11X7 = ContainerSpec(
@@ -636,6 +695,7 @@ CONTAINER_SPEC_FREEZER_RACK_11X7 = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 FREEZER_RACK_SPECS = (
@@ -664,6 +724,7 @@ CONTAINER_SPEC_FREEZER_3_SHELVES = ContainerSpec(
     coordinate_overlap_allowed=True,
     children=FREEZER_CHILDREN,
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_4_SHELVES = ContainerSpec(
@@ -672,6 +733,7 @@ CONTAINER_SPEC_FREEZER_4_SHELVES = ContainerSpec(
     coordinate_overlap_allowed=True,
     children=FREEZER_CHILDREN,
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_FREEZER_5_SHELVES = ContainerSpec(
@@ -680,6 +742,7 @@ CONTAINER_SPEC_FREEZER_5_SHELVES = ContainerSpec(
     coordinate_overlap_allowed=True,
     children=FREEZER_CHILDREN,
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ROOM = ContainerSpec(
@@ -698,6 +761,7 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
         CONTAINER_SPEC_BOX,
     ),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_SITE = ContainerSpec(
@@ -717,6 +781,7 @@ CONTAINER_SPEC_SITE = ContainerSpec(
         CONTAINER_SPEC_ROOM,
     ),
     is_run_container=False,
+    ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 # Allow rooms to be nested

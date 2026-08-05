@@ -10,8 +10,7 @@ from django.db import models
 from django.db.models import Max, Sum, Subquery, Q
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
-from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord, ROW, COLUMN
-from fms_core.containers import CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY
+from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
 
 from .models import (
     Biosample,
@@ -742,10 +741,8 @@ class ReadsetSerializer(serializers.ModelSerializer):
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            if container_spec is not None and container_spec.container_kind_id == CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY.container_kind_id:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, COLUMN)
-            else:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, ROW)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -774,10 +771,8 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            if container_spec is not None and container_spec.container_kind_id == CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY.container_kind_id:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, COLUMN)
-            else:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, ROW)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
