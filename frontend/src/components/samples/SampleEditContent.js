@@ -18,7 +18,7 @@ const { Item } = Form
 const { TextArea } = Input
 
 import { nameWithoutDotRules, requiredRules } from "../../constants";
-import { sample as EMPTY_SAMPLE, pool_sample_kind as POOL_KIND } from "../../models/empty_models";
+import { sample as EMPTY_SAMPLE, pool_sample_kind as POOL_KIND, INVALID_FMS_ID } from "../../models/empty_models";
 import { add, update } from "../../modules/samples/actions";
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import { selectAppInitialized, selectAuthTokenAccess, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
@@ -166,7 +166,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
   const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
   const onSearchSampleKind = useCallback(input => {
-    const sampleKindOptions = sample.is_pool ? [POOL_KIND] : input ?  [sampleKinds.itemsByID[input]] : [...sampleKindsSorted]
+    const sampleKindOptions = sample.is_pool ? [POOL_KIND] : (input ? [sampleKinds.itemsByID[input]] : [...sampleKindsSorted])
     setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
   }, [sampleKinds])
 
@@ -530,7 +530,7 @@ function serializeFormData(form) {
     newValues.container = Number(form.getFieldValue("container"))
   }
 
-  if (form.getFieldValue("sample_kind") === 0){
+  if (form.getFieldValue("sample_kind") === INVALID_FMS_ID){
     newValues.sample_kind = null // remove fake pool sample kind from request
   }
   else if (form.getFieldValue("sample_kind")) {

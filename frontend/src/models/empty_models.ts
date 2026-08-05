@@ -4,6 +4,8 @@
 
 import { FMSSample, FMSSampleKind } from "./fms_api_models"
 
+export const INVALID_FMS_ID = 0
+
 export const container = {
     kind: null,
     name: "",
@@ -37,7 +39,7 @@ export const sample = {
 } as const
 
 export const pool_sample_kind : FMSSampleKind = {
-  id: 0,
+  id: INVALID_FMS_ID,
   name: "POOL",
 } as const
 
