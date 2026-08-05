@@ -39,7 +39,7 @@ import ProcessesPage from "../processes/ProcessesPage";
 import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "../profile/ProfilePage";
 import ProjectsPage from "../projects/ProjectsPage";
-import ProjectOverviewPage from "../projectOverview/ProjectOverviewPage";
+import ProjectsByExternalIDPage from "../projectOverview/ProjectsByExternalIDPage";
 import SamplesPage from "../samples/SamplesPage";
 import UsersPage from "../users/UsersPage";
 
@@ -416,7 +416,7 @@ const App = ({userID, usersByID, logOut }) => {
             } />
             <Route path="/project-overview/*" element={
               <PrivateNavigate>
-                <ProjectOverviewPage />
+                <ProjectsByExternalIDPage />
               </PrivateNavigate>
             } />
             <Route path="/projects/*" element={
