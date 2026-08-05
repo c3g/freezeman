@@ -16,6 +16,8 @@ import {
   TableOutlined,
   TeamOutlined,
   UserOutlined,
+  GlobalOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
 import React, { useEffect, useMemo } from "react";
@@ -37,6 +39,7 @@ import ProcessesPage from "../processes/ProcessesPage";
 import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "../profile/ProfilePage";
 import ProjectsPage from "../projects/ProjectsPage";
+import ProjectOverviewPage from "../projectOverview/ProjectOverviewPage";
 import SamplesPage from "../samples/SamplesPage";
 import UsersPage from "../users/UsersPage";
 
@@ -175,10 +178,23 @@ const App = ({userID, usersByID, logOut }) => {
         key: "lab-work",
       },
       {
-        url: "/projects",
         icon: <ProjectOutlined />,
         text: "Projects",
         key: "projects",
+        children: [
+            {
+              icon: <GlobalOutlined />,              
+              url: "/project-overview",
+              text: "External Overview",
+              key: "external-project-overview",
+            },
+            {
+              icon: <ApartmentOutlined />,
+              url: "/projects",
+              text: "Internal Project",
+              key: "internal-project",
+            },
+        ]
       },
       {
         icon: <CarryOutOutlined />,
@@ -396,6 +412,11 @@ const App = ({userID, usersByID, logOut }) => {
             <Route path="/experiment-runs/*" element={
               <PrivateNavigate>
                 <ExperimentRunsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/project-overview/*" element={
+              <PrivateNavigate>
+                <ProjectOverviewPage />
               </PrivateNavigate>
             } />
             <Route path="/projects/*" element={
