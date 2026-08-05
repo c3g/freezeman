@@ -191,7 +191,7 @@ const App = ({userID, usersByID, logOut }) => {
             {
               icon: <ApartmentOutlined />,
               url: "/projects",
-              text: "Internal Project",
+              text: "Internal Projects",
               key: "internal-project",
             },
         ]
