@@ -4,7 +4,7 @@ import React from 'react'
 import AppPageHeader from '../AppPageHeader'
 
 
-const ProjectsByExternalIDPage = () => {
+const ExternalProjectsPage = () => {
 	
 
 	return (
@@ -16,4 +16,4 @@ const ProjectsByExternalIDPage = () => {
 	)
 }
 
-export default ProjectsByExternalIDPage
+export default ExternalProjectsPage
