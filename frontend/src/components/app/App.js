@@ -184,7 +184,7 @@ const App = ({userID, usersByID, logOut }) => {
         children: [
             {
               icon: <GlobalOutlined />,              
-              url: "/External-projects-overview",
+              url: "/external-projects-overview",
               text: "External Overview",
               key: "external-project-overview",
             },
@@ -414,7 +414,7 @@ const App = ({userID, usersByID, logOut }) => {
                 <ExperimentRunsPage />
               </PrivateNavigate>
             } />
-            <Route path="/External-projects-overview/*" element={
+            <Route path="/external-projects-overview/*" element={
               <PrivateNavigate>
                 <ExternalProjectsPage />
               </PrivateNavigate>
