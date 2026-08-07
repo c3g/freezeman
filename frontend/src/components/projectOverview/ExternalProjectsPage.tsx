@@ -62,6 +62,25 @@ const internalProjectColumns: ColumnsType<FMSProject> = [
 	},
 ]
 
+// Organise les projets internes dans un objet afin de pouvoir retrouver rapidement chaque projet à partir de son ID.
+const indexProjectsByID = (projects: FMSProject[]): Partial<Record<number, FMSProject>> => 
+	projects.reduce<Partial<Record<number, FMSProject>>>((projectsByID, project) => {
+        projectsByID[project.id] = project
+        return projectsByID
+    }, {})
+
+
+// Récupère les IDs uniques des projets internes associés aux projets externes.
+const getUniqueInternalProjectIDs = (parentProjects: FMSParentProject[]): number[] => [
+    ...new Set(
+        parentProjects.flatMap(
+            (parentProject) =>
+                parentProject.projects ?? []
+        )
+    ),
+]
+
+
 
 const ExternalProjectsPage = () => {
 	const [parentProjects, setParentProjects] = useState<FMSParentProject[]>([])
@@ -154,48 +173,52 @@ const ExternalProjectsPage = () => {
 
 	const dispatch = useAppDispatch()
 
-	const fetchProjectsByExternalID = useCallback(async () => {
+
+	// Charge depuis l’API la liste des projets parents, triés par identifiant externe.
+	const fetchParentProjects = useCallback(
+        async (): Promise<FMSParentProject[]> => {
+            const response = await dispatch(
+				api.parentProjects.list(
+				{
+					limit: 100000,
+					ordering: 'external_id',
+				},true,),)
+            return response.data.results
+        },[dispatch],)
+
+
+	// Charge depuis l’API les projets internes correspondant aux IDs reçus, 
+	// ou retourne une liste vide si aucun ID n’est fourni.
+	const fetchInternalProjectsByIDs = useCallback(
+		async (projectIDs: number[],): Promise<FMSProject[]> => {
+        if (projectIDs.length === 0) {return []}
+
+        const response = await dispatch(
+			api.projects.list(
+				{
+					id__in: projectIDs.join(','),
+					limit: 100000,
+				}
+				,true,),
+        )
+
+        return response.data.results
+    },[dispatch],)
+
+
+
+	const fetchParentProjectsWithInternalProjects = useCallback(async () => {
 		try {
 			setIsLoading(true)
 			setError(null)
 
-			const response = await dispatch(
-				api.parentProjects.list({limit: 100000,ordering: 'external_id',},true,),
-			)
-			
-			const fetchedParentProjects = response.data.results
+			const fetchedParentProjects = await fetchParentProjects()
 			setParentProjects(fetchedParentProjects)
 
-			const internalProjectIDs = [
-                ...new Set(fetchedParentProjects.flatMap((parentProject) => parentProject.projects ?? [])),
-			]
-			
-
-			if (internalProjectIDs.length > 0) {
-    			const internalProjectsResponse = await dispatch(
-        		api.projects.list(
-            		{
-                		id__in: internalProjectIDs.join(','),
-                		limit: 100000,
-            		},
-            	true,
-        			),
-    			)
-
-    		const fetchedInternalProjects = internalProjectsResponse.data.results
-			
-			const fetchedInternalProjectsByID = fetchedInternalProjects.reduce<Partial<Record<number, FMSProject>>>(
-				(projectsByID, project) => {
-					projectsByID[project.id] = project
-					return projectsByID
-				}, {})
-
+			const internalProjectIDs = getUniqueInternalProjectIDs(fetchedParentProjects)
+			const fetchedInternalProjects = await fetchInternalProjectsByIDs(internalProjectIDs)
+			const fetchedInternalProjectsByID = indexProjectsByID(fetchedInternalProjects)
 			setInternalProjectsByID(fetchedInternalProjectsByID)
-			} 
-			else 
-			{
-    		    setInternalProjectsByID({})
-			}
 		} 
 		catch (error) {
 
@@ -208,11 +231,11 @@ const ExternalProjectsPage = () => {
 		finally {
 			setIsLoading(false)
 		}
-	}, [dispatch])
+	}, [fetchParentProjects,fetchInternalProjectsByIDs])
 
 	useEffect(() => {
-		fetchProjectsByExternalID()
-	}, [fetchProjectsByExternalID])
+		fetchParentProjectsWithInternalProjects()
+	}, [fetchParentProjectsWithInternalProjects])
 
 	
 	return (
