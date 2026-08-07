@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table'
 import React, { useCallback, useEffect, useState } from 'react'
 import AppPageHeader from '../AppPageHeader'
 import { Link } from 'react-router-dom'
-import { FMSProject } from '../../models/fms_api_models'
+import { FMSProject,FMSParentProject } from '../../models/fms_api_models'
 import api from '../../utils/api'
 
 import PageContent from '../PageContent'
@@ -14,7 +14,7 @@ import { SearchOutlined } from '@ant-design/icons'
 
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { FilterSet } from '../../models/paged_items'
-import {FMSParentProject} from '../../models/fms_api_models'
+
 
 
 const EXTERNAL_PROJECT_NAME_FILTER_KEY = 'external_project_name'
@@ -215,12 +215,11 @@ const ExternalProjectsPage = () => {
 	}, [fetchProjectsByExternalID])
 
 	
-
 	return (
 		<>
 			<AppPageHeader title="Projects by External ID" />
 
-			{ <PageContent>
+			 <PageContent>
 				{error && (<Alert type="error" title={error} style={{ marginBottom: 16 }} />)}
 				<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
 					<FiltersBar filters={filters} clearFilters={clearFilters} />
@@ -228,7 +227,7 @@ const ExternalProjectsPage = () => {
 				<Table
 					size="small"
 					bordered
-					rowKey={(parentProject) => parentProject.external_id || 'no-external-id'}
+					rowKey="id"
 					dataSource={parentProjects}
 					columns={parentProjectColumns}
 					loading={isLoading}
@@ -255,7 +254,7 @@ const ExternalProjectsPage = () => {
 						showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} external IDs`,
 					}}
 				/>
-			</PageContent> }
+			</PageContent> 
 		</>
 	)
 }
