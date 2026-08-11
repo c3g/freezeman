@@ -57,7 +57,7 @@ export type ProjectOverviewReadset = {
 	external_id: string
 	run_name: string
 	run_start_date: string // YYYY-MM-DD
-	validation_status: number
+	validation_status: number | null
 
 	alias: string | null
 	cohort: string | null
@@ -70,6 +70,13 @@ export type ProjectOverviewReadset = {
 	average_quality: string | null
 	pf_reads_aligned: string | null
 	duplicate_aligned: string | null
+
+	lane: number
+	reference_genome_id: number | null
+	sequencing_index_name: string | null
+
+	readset_file_paths?: string[]
+	readset_file_sizes?: number[]
 }
 
 export interface ProjectOverviewExportButtonData {
