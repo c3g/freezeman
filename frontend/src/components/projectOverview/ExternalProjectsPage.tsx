@@ -1,7 +1,7 @@
 
 import { Alert, Button, Input, Table, Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import AppPageHeader from '../AppPageHeader'
 import { Link } from 'react-router-dom'
 import { FMSProject,FMSParentProject } from '../../models/fms_api_models'
@@ -92,7 +92,7 @@ const ExternalProjectsPage = () => {
 
 	const clearFilters = useCallback(() => {setFilters({})}, [])
 
-	const parentProjectColumns: ColumnsType<FMSParentProject> = [
+	const parentProjectColumns =useMemo<ColumnsType<FMSParentProject>>(()=> [
 		{
 			title: 'External Project ID',
 			dataIndex: 'external_id',
@@ -169,7 +169,7 @@ const ExternalProjectsPage = () => {
 				)
 			},
 		},
-	]
+	], [filters, setFilters])
 
 	const dispatch = useAppDispatch()
 
@@ -256,9 +256,16 @@ const ExternalProjectsPage = () => {
 					loading={isLoading}
 					
 					expandable={{
-    					expandedRowRender: (parentProject) => {const internalProjects = (parentProject.projects ?? [])
-            				.map((projectID) => internalProjectsByID[projectID])
-							.filter((project): project is FMSProject =>project !== undefined)
+    					expandedRowRender: (parentProject) => {
+							const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
+								(projects, projectID) => {
+									const project = internalProjectsByID[projectID]
+									if (project) {
+										projects.push(project)
+									}
+									return projects
+								},[]
+							)
 							return (
 								<Table
 									size="small"
@@ -268,7 +275,7 @@ const ExternalProjectsPage = () => {
 									pagination={false}
 								/>
 							)
-                           },
+                        },
                     }}
 					pagination={{
 						pageSize: 20,
