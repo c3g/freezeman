@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2025",
     "moduleResolution": "node16",
     "module": "node16",
     "allowJs": true,
