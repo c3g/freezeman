@@ -1,0 +1,55 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Service containers to run alongside the host runner
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: fms
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+        # Set health checks to wait until postgres has fully started
+        options: >-
+          --health-cmd "pg_isready -U admin"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14'
+        cache: 'pip' # automatically caches your dependencies
+        cache-dependency-path: 'backend/requirements.txt'
+
+    - name: Install dependencies
+      working-directory: backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Django Tests
+      working-directory: backend
+      env:
+        PG_DATABASE: fms
+        PG_USER: admin
+        PG_PASSWORD: admin
+        PG_HOST: localhost
+        PG_PORT: 5432
+        FMS_DEBUG: 'False'
+      run: |
+        python manage.py test

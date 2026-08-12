@@ -1,4 +1,4 @@
-name: Freezeman Workflows
+name: Frontend CI
 on:
   pull_request:
 permissions: {}
