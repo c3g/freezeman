@@ -60,4 +60,4 @@ jobs:
         # fms_core/tests/test_template_importers/sample_pooling_planning_test.py:103
         python manage.py collectstatic
 
-        python manage.py test
+        pytest --exclude-warning-annotations
