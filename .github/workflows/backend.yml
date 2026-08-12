@@ -2,7 +2,9 @@ name: Backend CI
 
 on:
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "master" ]
+    paths:
+      - 'backend/**'
 
 jobs:
   test:
@@ -18,7 +20,7 @@ jobs:
           POSTGRES_PASSWORD: admin
         # Set health checks to wait until postgres has fully started
         options: >-
-          --health-cmd "pg_isready -U admin"
+          --health-cmd "pg_isready -U admin -d fms"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -41,6 +43,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest-github-actions-annotate-failures
 
     - name: Run Django Tests
       working-directory: backend
@@ -51,5 +54,10 @@ jobs:
         PG_HOST: localhost
         PG_PORT: 5432
         FMS_DEBUG: 'False'
+        PYTEST_RUN_PATH: 'backend' # pytest-github-actions-annotate-failures
       run: |
+        # fms_core/tests/test_template_importers/normalization_planning_test.py:121
+        # fms_core/tests/test_template_importers/sample_pooling_planning_test.py:103
+        python manage.py collectstatic
+
         python manage.py test
