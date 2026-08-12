@@ -104,6 +104,7 @@ __all__ = [
     "GroupSerializer",
     "ProjectSerializer",
     "ParentProjectSerializer",
+    "ParentProjectSampleSerializer",
     "ParentProjectReadsetSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
@@ -616,6 +617,35 @@ class ParentProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentProject
         fields = '__all__'
+
+class ParentProjectSampleSerializer(serializers.Serializer):
+    biosample_id = serializers.IntegerField()
+    id = serializers.IntegerField()
+
+    project_ids = serializers.ListField(child=serializers.IntegerField(),allow_empty=True,)
+    project_names = serializers.ListField(child=serializers.CharField(),allow_empty=True,)
+
+    name = serializers.CharField()
+    alias = serializers.CharField()
+    container_barcode = serializers.CharField()
+    individual = serializers.CharField(allow_null=True)
+    creation_date = serializers.DateField()
+    collection_site = serializers.CharField(allow_blank=True,allow_null=True,)
+    comment = serializers.CharField(allow_blank=True)
+
+    experimental_groups = serializers.ListField(child=serializers.CharField(),allow_empty=True,)
+
+    volume = serializers.DecimalField(max_digits=20,decimal_places=3,)
+    concentration = serializers.DecimalField(max_digits=20,decimal_places=3,allow_null=True,)
+
+    quality_flag = serializers.BooleanField(allow_null=True)
+    quantity_flag = serializers.BooleanField(allow_null=True)
+    identity_flag = serializers.BooleanField(allow_null=True)
+
+    last_process_id = serializers.IntegerField(allow_null=True)
+    last_process_name = serializers.CharField(allow_null=True)
+    last_process_execution_date = serializers.DateField(allow_null=True)
+
 
 
 class ParentProjectReadsetSerializer(serializers.Serializer):

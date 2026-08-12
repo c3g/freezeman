@@ -4,10 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from fms_core.models import ParentProject
-from fms_core.queries.parent_project.readsets import (
-    get_parent_project_readsets_queryset,
-)
-from fms_core.serializers import ParentProjectReadsetSerializer, ParentProjectSerializer
+from fms_core.queries.parent_project.readsets import (get_parent_project_readsets_queryset,)
+from fms_core.queries.parent_project.samples import (get_parent_project_samples_queryset,)
+from fms_core.serializers import ParentProjectReadsetSerializer, ParentProjectSerializer, ParentProjectSampleSerializer
 
 from ._utils import _list_keys
 from ._constants import _parent_project_filterset_fields
@@ -27,6 +26,24 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
     }
 
     ordering = ["external_id"]
+
+
+
+    @action(detail=True, methods=["get"])
+    def samples(self, request, pk=None):
+        parent_project = self.get_object()
+
+        queryset = get_parent_project_samples_queryset(parent_project,)
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = ParentProjectSampleSerializer(page,many=True,)
+            return self.get_paginated_response(serializer.data,)
+        else :
+            serializer = ParentProjectSampleSerializer(queryset,many=True,)
+            return Response(serializer.data)
+
+
 
 
     @action(detail=True, methods=["get"])
