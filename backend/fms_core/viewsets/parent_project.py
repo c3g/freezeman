@@ -58,7 +58,6 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         else:
-
             serializer = ParentProjectReadsetSerializer(queryset,many=True,)
             return Response(serializer.data)
 

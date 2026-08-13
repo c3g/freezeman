@@ -1,10 +1,17 @@
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Count, Exists, F, OuterRef, Q, Subquery
+from django.contrib.postgres.expressions import ArraySubquery
+from django.db.models import Exists, F, OuterRef, Q, Subquery
 
-from fms_core.models import ParentProject, ProcessMeasurement, Sample, SampleLineage
+from fms_core.models import (
+    Biosample,
+    DerivedBySample,
+    ParentProject,
+    ProcessMeasurement,
+    Sample,
+    SampleLineage,
+)
 
 
-# Individual : Patient-001
+# Individual : Patient-001 : Un Individual, c’est la personne, l’animal ou l’organisme dont vient l’échantillon.
 # Biosample : prélèvement sanguin du Patient-001
 # DerivedSample : ADN extrait de ce prélèvement
 # Sample : tube physique contenant cet ADN
@@ -34,151 +41,211 @@ PARENT_PROJECT_SAMPLE_VALUE_FIELDS = [
 
 PARENT_PROJECT_SAMPLE_ORDERING = [
     "biosample_id",
+    "creation_date",
     "id",
 ]
-
-ACTIVE_PARENT_PROJECT_RELATION_FILTERS = {
-    "derived_by_samples__project__deleted": False,
-    "derived_by_samples__project__parent_project__deleted": False,
-}
-
-ACTIVE_SAMPLE_FILTERS = {
-    "deleted": False,
-    "derived_by_samples__deleted": False,
-    "derived_samples__deleted": False,
-    "derived_samples__biosample__deleted": False,
-    "container__deleted": False,
-}
-
-
-ACTIVE_OR_MISSING_INDIVIDUAL_FILTER = (
-    Q(derived_samples__biosample__individual__isnull=True)
-    | Q(derived_samples__biosample__individual__deleted=False)
-)
 
 PARENT_SAME_BIOSAMPLE = SampleLineage.objects.filter(
     deleted=False,
     child=OuterRef("pk"),
     parent__deleted=False,
     parent__derived_by_samples__deleted=False,
-    parent__derived_samples__deleted=False,
-    parent__derived_samples__biosample__deleted=False,
-    parent__derived_samples__biosample_id=OuterRef(
-        "derived_samples__biosample_id",
+    parent__derived_by_samples__derived_sample__deleted=False,
+    parent__derived_by_samples__derived_sample__biosample__deleted=False,
+    parent__derived_by_samples__derived_sample__biosample_id=OuterRef(
+        "biosample_id",
     ),
 )
 
+
 # Exclut les pools et les libraries.
 def exclude_pools_and_libraries(queryset):
+    active_links = DerivedBySample.objects.filter(
+        sample_id=OuterRef("pk"),
+        deleted=False,
+        derived_sample__deleted=False,
+    )
+    library_link = active_links.filter(derived_sample__library__isnull=False,)
     return queryset.annotate(
-        active_derived_sample_count=Count(
-            "derived_by_samples",
-            filter=Q(derived_by_samples__deleted=False),
-            distinct=True,
+        has_multiple_active_links=Exists(
+            active_links.order_by("id")[1:2],
+        ),
+        has_active_library=Exists(
+            library_link,
         ),
     ).filter(
-        active_derived_sample_count__lte=1,
-        derived_samples__library__isnull=True,
+        has_multiple_active_links=False,
+        has_active_library=False,
     )
 
-# Retourne les Samples actifs qui ne sont ni des pools ni des libraries.
-def get_active_non_pool_non_library_samples():
-    queryset = exclude_pools_and_libraries(Sample.objects.all(),)
-
-    return queryset.filter(
-        **ACTIVE_SAMPLE_FILTERS,
-    ).filter(
-        ACTIVE_OR_MISSING_INDIVIDUAL_FILTER,
+# Retourne les biosamples associés au Parent Project.
+def get_parent_project_biosample_ids(parent_project):
+    return (
+        DerivedBySample.objects.filter(
+            deleted=False,
+            derived_sample__deleted=False,
+            derived_sample__biosample__deleted=False,
+            project__isnull=False,
+            project__deleted=False,
+            project__parent_project=parent_project,
+            project__parent_project__deleted=False,
+        )
+        .order_by()
+        .values_list(
+            "derived_sample__biosample_id",
+            flat=True,
+            )
+        .distinct()
     )
 
+# Retourne les IDs des Samples associés aux biosamples demandés.
+def get_biosample_sample_ids(biosample_ids):
+    return (
+        DerivedBySample.objects.filter(
+            deleted=False,
+            derived_sample__deleted=False,
+            derived_sample__biosample__deleted=False,
+            derived_sample__biosample_id__in=biosample_ids,)
+        .order_by()
+        .values_list(
+            "sample_id",
+            flat=True,
+            )
+        .distinct()
+    )
+
+
+# Retourne les Samples actifs correspondant aux IDs demandés.
+def get_active_non_pool_non_library_samples(sample_ids):
+    queryset = Sample.objects.filter(
+        id__in=sample_ids,
+        deleted=False,
+        container__deleted=False,
+    )
+    return exclude_pools_and_libraries(queryset)
 
 
 # Ajoute le biosample associé à chaque Sample.
 def add_biosample_id(queryset):
+    sample_link = (
+        DerivedBySample.objects.filter(
+            sample_id=OuterRef("pk"),
+            deleted=False,
+            derived_sample__deleted=False,
+            derived_sample__biosample__deleted=False,
+        )
+        .order_by("id")
+    )
+
     return queryset.annotate(
-        biosample_id=F("derived_samples__biosample_id"),
+        biosample_id=Subquery(
+            sample_link.values(
+                "derived_sample__biosample_id",
+            )[:1],
+        ),
     )
 
 
-# Conserve le premier Sample sans parent pour chaque biosample.
+# Conserve uniquement les Samples sans parent du même biosample.
 def keep_initial_sample_per_biosample(queryset):
-    initial_sample = (
-        get_active_non_pool_non_library_samples()
-        .filter(
-            derived_samples__biosample_id=OuterRef("biosample_id"),
-        )
-        .annotate(
-            has_parent_same_biosample=Exists(
-                PARENT_SAME_BIOSAMPLE,
-            ),
-        )
-        .filter(
-            has_parent_same_biosample=False,
-        )
-        .order_by(
-            "creation_date",
-            "id",
-        )
-    )
-
     return queryset.annotate(
-        initial_sample_id=Subquery(
-            initial_sample.values("id")[:1],
+        has_parent_same_biosample=Exists(
+            PARENT_SAME_BIOSAMPLE,
         ),
     ).filter(
-        id=F("initial_sample_id"),
+        has_parent_same_biosample=False,
     )
-
 
 
 # Ajoute les projets internes associés au biosample.
 def add_internal_projects(queryset, parent_project):
-    project_path = (
-        "derived_samples__biosample__"
-        "derived_samples__derived_by_samples__project"
+    project_links = (
+        DerivedBySample.objects.filter(
+            derived_sample__biosample_id=OuterRef(
+                "biosample_id",
+            ),
+            deleted=False,
+            derived_sample__deleted=False,
+            derived_sample__biosample__deleted=False,
+            project__isnull=False,
+            project__deleted=False,
+            project__parent_project=parent_project,
+            project__parent_project__deleted=False,
+        )
     )
 
-    project_filter = Q(
-        derived_samples__biosample__derived_samples__deleted=False,
-        derived_samples__biosample__derived_samples__derived_by_samples__deleted=False,
-        derived_samples__biosample__derived_samples__derived_by_samples__project__deleted=False,
-        derived_samples__biosample__derived_samples__derived_by_samples__project__parent_project=parent_project,
+    project_ids = (
+        project_links
+        .order_by("project_id")
+        .values("project_id")
+        .distinct()
+    )
+
+    project_names = (
+        project_links
+        .order_by("project__name")
+        .values("project__name")
+        .distinct()
     )
 
     return queryset.annotate(
-        project_ids=ArrayAgg(
-            f"{project_path}_id",
-            filter=project_filter,
-            distinct=True,
-            order_by=f"{project_path}_id",
+        project_ids=ArraySubquery(
+            project_ids,
         ),
-        project_names=ArrayAgg(
-            f"{project_path}__name",
-            filter=project_filter,
-            distinct=True,
-            order_by=f"{project_path}__name",
+        project_names=ArraySubquery(
+            project_names,
         ),
     )
-
 
 # Ajoute les informations du Sample et du biosample.
 def add_sample_information(queryset):
-    return queryset.annotate(
-        alias=F("derived_samples__biosample__alias",),
-        container_barcode=F("container__barcode",),
-        individual=F("derived_samples__biosample__individual__name",),
-        collection_site=F("derived_samples__biosample__collection_site",),
+    biosample = Biosample.objects.filter(
+        id=OuterRef("biosample_id"),
+        deleted=False,
     )
 
+    active_or_missing_individual = (
+        Q(individual__isnull=True)
+        | Q(individual__deleted=False)
+    )
 
-# Ajoute les groupes expérimentaux du Sample.
-def add_experimental_groups(queryset):
+    biosample = biosample.filter(
+        active_or_missing_individual,
+    )
+
     return queryset.annotate(
-        experimental_groups=F(
-            "derived_samples__experimental_group",
+        alias=Subquery(biosample.values("alias")[:1],),
+        container_barcode=F("container__barcode",),
+        individual=Subquery(
+            biosample.values(
+                "individual__name",
+            )[:1],
+        ),
+        collection_site=Subquery(
+            biosample.values(
+                "collection_site",
+            )[:1],
         ),
     )
 
+# Ajoute les groupes expérimentaux du Sample.
+def add_experimental_groups(queryset):
+    sample_link = (
+        DerivedBySample.objects.filter(
+            sample_id=OuterRef("pk"),
+            deleted=False,
+            derived_sample__deleted=False,
+        )
+        .order_by("id")
+    )
+
+    return queryset.annotate(
+        experimental_groups=Subquery(
+            sample_link.values(
+                "derived_sample__experimental_group",
+            )[:1],
+        ),
+    )
 
 
 # Ajoute le dernier processus appliqué au Sample.
@@ -197,9 +264,7 @@ def add_last_process_information(queryset):
     )
 
     return queryset.annotate(
-        last_process_id=Subquery(
-            last_process.values("process_id")[:1],
-        ),
+        last_process_id=Subquery(last_process.values("process_id")[:1],),
         last_process_name=Subquery(
             last_process.values(
                 "process__protocol__name",
@@ -213,30 +278,37 @@ def add_last_process_information(queryset):
     )
 
 
-# Sélectionne et ordonne les champs retournés par l’API.
+# Conserve une seule ligne par biosample et sélectionne les champs de l’API.
 def format_parent_project_samples(queryset):
-    return queryset.order_by(
-        *PARENT_PROJECT_SAMPLE_ORDERING,
-    ).values(
-        *PARENT_PROJECT_SAMPLE_VALUE_FIELDS,
+    return (
+        queryset
+        .order_by(
+            *PARENT_PROJECT_SAMPLE_ORDERING,
+        )
+        .distinct(
+            "biosample_id",
+        )
+        .values(
+            *PARENT_PROJECT_SAMPLE_VALUE_FIELDS,
+        )
     )
 
-
-
-def get_parent_project_samples_queryset(
-    parent_project: ParentProject,
-):
-    queryset = get_active_non_pool_non_library_samples()
-
-    queryset = queryset.filter(
-        derived_by_samples__project__parent_project=parent_project,
-        **ACTIVE_PARENT_PROJECT_RELATION_FILTERS,
+def get_parent_project_samples_queryset(parent_project: ParentProject,):
+    biosample_ids = list(
+        get_parent_project_biosample_ids(parent_project,),
     )
+
+    sample_ids = list(
+        get_biosample_sample_ids(biosample_ids,),
+    )
+
+    queryset = get_active_non_pool_non_library_samples(sample_ids,)
 
     queryset = add_biosample_id(queryset)
     queryset = keep_initial_sample_per_biosample(queryset)
-    queryset = add_internal_projects(queryset,parent_project,)
+    queryset = add_internal_projects(queryset,parent_project,) # We also need the list of the project in which the sample is 
     queryset = add_sample_information(queryset)
     queryset = add_experimental_groups(queryset)
     queryset = add_last_process_information(queryset)
+
     return format_parent_project_samples(queryset)
