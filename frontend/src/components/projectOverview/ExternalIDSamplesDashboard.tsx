@@ -1,0 +1,128 @@
+import React from 'react'
+
+import { Card, Col, Progress, Row, Space, Statistic, Tag } from 'antd'
+import { CheckCircleOutlined, DatabaseOutlined, ExperimentOutlined, FileSearchOutlined, WarningOutlined } from '@ant-design/icons'
+import { ExternalIDProjectSamplesSummary } from './types'
+
+const CARD_BODY_STYLE = { padding: 12 }
+const CARD_HEAD_STYLE = { minHeight: 36, padding: '0 12px' }
+
+const KpiCard = ({
+    title,
+    value,
+    suffix,
+    precision,
+    icon,
+    color,
+}: {
+    title: string
+    value: number
+    suffix?: string
+    precision?: number
+    icon?: React.ReactNode
+    color?: string
+}) => (
+    <Card size="small" styles={{ body: CARD_BODY_STYLE }}>
+        <Statistic
+            title={title}
+            value={value}
+            suffix={suffix}
+            precision={precision}
+            prefix={icon}
+            styles={{content: {fontSize: 20,color,},}}
+        />
+    </Card>
+)
+
+const ExternalIDSamplesDashboard = ({ summary }: { summary: ExternalIDProjectSamplesSummary }) => {
+    return (
+    <Space  orientation="vertical"size={8} style={{ width: '100%', margin: 12 }}>
+            <Row gutter={[8, 8]}>
+                <Col xs={12} md={6}>
+                    <KpiCard title="Total Samples" value={summary.total_samples} icon={<ExperimentOutlined />} />
+                </Col>
+
+                <Col xs={12} md={6}>
+                    <KpiCard title="QC Passed" value={summary.qc_passed_count} icon={<CheckCircleOutlined />} color="#3f8600" />
+                </Col>
+
+                <Col xs={12} md={6}>
+                    <KpiCard title="QC Review" value={summary.qc_review_count} icon={<WarningOutlined />} color="#cf1322" />
+                </Col>
+
+                <Col xs={12} md={6}>
+                    <KpiCard title="Missing QC" value={summary.missing_qc_count} icon={<FileSearchOutlined />} color="#faad14" />
+                </Col>
+            </Row>
+
+            <Row gutter={[8, 8]}>
+                <Col xs={24} lg={8}>
+                    <Card
+                        size="small"
+                        title="Samples Assigned to a Process (%)"
+                        styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}
+                    >
+                        <Progress percent={Number(summary.samples_assigned_to_a_process_rate.toFixed(1))} size="small" />
+                        <Space wrap size={4} style={{ paddingBottom: 8 }}>
+                            <Tag color="green">Samples with assigned Process: {summary.samples_with_assigned_process_count}</Tag>
+                            <Tag color="orange">Samples without assigned Process: {summary.samples_without_assigned_process_count}</Tag>
+                        </Space>
+                    </Card>
+                </Col>
+
+                <Col xs={24} lg={8}>
+                    <Card size="small" title="Quantity & Concentration" styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}>
+                        <Row gutter={[8, 8]}>
+                            <Col span={12}>
+                                <Statistic
+                                    title="Total Quantity"
+                                    value={summary.total_quantity}
+                                    precision={1}
+                                    suffix="ng"
+                                    prefix={<DatabaseOutlined />}
+                                    styles={{content: {fontSize: 18,},}}
+                                />
+                            </Col>
+
+                            <Col span={12}>
+                                <Statistic
+                                    title="Avg Concentration"
+                                    value={
+                                    summary.avg_concentration === null ? '---' : summary.avg_concentration}
+                                    precision={2}
+                                    suffix="ng/uL"
+                                    styles={{content: {fontSize: 18,},}}
+                                />
+                            </Col>
+                        </Row>
+                    </Card>
+                </Col>
+
+                <Col xs={24} lg={8}>
+                    <Card size="small" title="Scope" styles={{ header: CARD_HEAD_STYLE, body: CARD_BODY_STYLE }}>
+                        <Row gutter={[8, 8]}>
+                            <Col span={12}>
+                                <Statistic
+                                    title="Internal Projects"
+                                    value={summary.internal_projects_count === 0 ? '---' : summary.internal_projects_count}
+                                    styles={{ content: { fontSize: 18 } }}
+                                />
+                                                                                            </Col>
+
+                            <Col span={12}>
+                                <Statistic
+                                    title="Experimental Groups"
+                                    value={summary.experimental_groups_count === 0 ? '---' : summary.experimental_groups_count}
+                                    precision={0}
+                                    styles={{content: {fontSize: 18,},}}
+                                />
+                            </Col>
+                        </Row>
+                    </Card>
+                </Col>
+            </Row>
+        </Space>
+    )
+}
+
+export default ExternalIDSamplesDashboard

@@ -8,7 +8,7 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
 import ProjectSubmissionsTab from './ProjectSubmissionsTab'
-// import ProjectSamplesTab from './ProjectSamplesTab'
+import ProjectSamplesTab from './ProjectSamplesTab'
 // import ProjectLibrariesTab from './ProjectLibrariesTab'
 import ProjectReadSetsTab from './ProjectReadSetsTab'
 
@@ -144,18 +144,17 @@ const ExternalProjectDetailsPage = () => {
                                 />
                             ),
                         },
-                        // {
-                        //     label: 'Samples',
-                        //     key: 'samples',
-                        //     children: (
-                        //         <ProjectSamplesTab
-                        //            parentProjectId={parentProjectId}
-                        //            externalID={externalID}   
-                        //             hasSearched={hasSearched}
-                        //             isActive={activeKey === 'samples'}
-                        //             />
-                        //     ),
-                        // },
+                        {
+                            label: 'Samples',
+                            key: 'samples',
+                            children: (
+                                <ProjectSamplesTab
+                                   parentProjectId={parentProjectId}
+                                   externalID={externalID}   
+                                    isActive={activeKey === 'samples'}
+                                    />
+                            ),
+                        },
                         // {
                         //     label: 'Libraries',
                         //     key: 'libraries',

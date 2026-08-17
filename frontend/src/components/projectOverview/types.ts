@@ -3,26 +3,29 @@ import { FMSProject } from '../../models/fms_api_models'
 export type ExternalIDProjectSample = {
 	biosample_id: number
 	id: number
-	external_id: string
-	project_id: number
-	project_name: string
+
+	project_ids: number[]
+	project_names: string[]
+
 	name: string
-	alias: string | null
-	container?: string | null
+	alias: string
+	container_barcode: string
 	individual: string | null
-	creation_date?: string | null
+	creation_date: string
 	collection_site: string | null
-	comment?: string | null
-	experimental_group: string[]
-	volume?: number | null
-	concentration?: number | null
-	quality_flag?: boolean | null
-	quantity_flag?: boolean | null
-	identity_flag?: boolean | null
-	number_of_reads: number
-	last_process_id?: number | null
-	last_process_name?: string | null
-	last_process_execution_date?: string | null
+	comment: string
+	experimental_groups: string[]
+
+	volume: string
+	concentration: string | null
+
+	quality_flag: boolean | null
+	quantity_flag: boolean | null
+	identity_flag: boolean | null
+
+	last_process_id: number | null
+	last_process_name: string | null
+	last_process_execution_date: string | null
 }
 
 export type ExternalIDProjectSamplesSummary = {
@@ -39,8 +42,8 @@ export type ExternalIDProjectSamplesSummary = {
 	total_quantity: number
 	avg_concentration: number | null
 
-	total_reads: number | null
-	avg_reads_per_sample: number | null
+	internal_projects_count : number
+	experimental_groups_count : number
 }
 
 export type ExternalIDProjectSamplesResponse = {
