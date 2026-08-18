@@ -1,5 +1,5 @@
 
-import { Alert, Table, Tag } from 'antd'
+import { Table, Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import AppPageHeader from '../AppPageHeader'
@@ -103,7 +103,6 @@ const ExternalProjectsPage = () => {
 	const [internalProjectsByID, setInternalProjectsByID] = useState<Partial<Record<number, FMSProject>>>({})
 
 	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
 	const [filters, setFilters] = useState<FilterSet>({})
 
 	const setFilter = useCallback<SetFilterFunc>(
@@ -202,7 +201,7 @@ const ExternalProjectsPage = () => {
 	const fetchParentProjectsWithInternalProjects = useCallback(async () => {
 		try {
 			setIsLoading(true)
-			setError(null)
+		
 
 			const fetchedParentProjects = await fetchParentProjects()
 			setParentProjects(fetchedParentProjects)
@@ -217,7 +216,7 @@ const ExternalProjectsPage = () => {
 			if (error instanceof Error && error.name !== 'AbortError') {
 				setParentProjects([])
 				setInternalProjectsByID({})
-				setError('Unable to fetch projects by External ID')
+			
 			}
 		} 
 		finally {
@@ -235,7 +234,6 @@ const ExternalProjectsPage = () => {
 			<AppPageHeader title="Projects by External ID" />
 
 			 <PageContent>
-				{error && (<Alert type="error" title={error} style={{ marginBottom: 16 }} />)}
 				<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
 					<FiltersBar filters={filters} clearFilters={clearFilters} />
 				</div>
