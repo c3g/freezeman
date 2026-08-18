@@ -20,10 +20,18 @@ import { setFilterValue } from '../../models/filter_set_reducers'
 
 
 const EXTERNAL_PROJECT_NAME_FILTER_KEY = 'external_project_name'
+const EXTERNAL_PROJECT_ID_FILTER_KEY = 'external_project_id'
+
 const EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION: FilterDescription = {
 	type: 'INPUT',
 	key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
 	label: 'External Project Name',
+	width: 260,
+}
+const EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION: FilterDescription = {
+	type: 'INPUT',
+	key: EXTERNAL_PROJECT_ID_FILTER_KEY,
+	label: 'External Project ID',
 	width: 260,
 }
 
@@ -114,6 +122,16 @@ const ExternalProjectsPage = () => {
 			dataIndex: 'external_id',
 			key: 'external_id',
 			width: 120,
+			filteredValue: filters[EXTERNAL_PROJECT_ID_FILTER_KEY]?.value ? [String(filters[EXTERNAL_PROJECT_ID_FILTER_KEY].value)] : null,
+			...getFilterPropsForDescription(
+				EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION,
+				filters[EXTERNAL_PROJECT_ID_FILTER_KEY],
+				setFilter,
+			),
+			onFilter: (value, record) =>
+				(record.external_id || '')
+					.toLowerCase()
+					.includes(String(value).toLowerCase()),
 			render: (externalID: string, parentProject: FMSParentProject) => (<Link to={`/external-projects-overview/${parentProject.id}#submissions`}>{externalID}</Link>)
 		},
 		{
