@@ -1,5 +1,5 @@
 
-import { Alert, Button, Input, Table, Tag } from 'antd'
+import { Alert, Table, Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import AppPageHeader from '../AppPageHeader'
@@ -10,14 +10,22 @@ import api from '../../utils/api'
 import PageContent from '../PageContent'
 
 import { useAppDispatch } from '../../hooks'
-import { SearchOutlined } from '@ant-design/icons'
 
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import { FilterSet } from '../../models/paged_items'
+import {FilterDescription,FilterSet,SetFilterFunc,} from '../../models/paged_items'
+
+import { getFilterPropsForDescription } from '../filters/getFilterPropsTS'
+import { setFilterValue } from '../../models/filter_set_reducers'
 
 
 
 const EXTERNAL_PROJECT_NAME_FILTER_KEY = 'external_project_name'
+const EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION: FilterDescription = {
+	type: 'INPUT',
+	key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
+	label: 'External Project Name',
+	width: 260,
+}
 
 const internalProjectColumns: ColumnsType<FMSProject> = [
 	{
@@ -90,6 +98,14 @@ const ExternalProjectsPage = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [filters, setFilters] = useState<FilterSet>({})
 
+	const setFilter = useCallback<SetFilterFunc>(
+	(filterKey, value, description) => {
+		setFilters((currentFilters) =>
+			setFilterValue(currentFilters, description, value)
+		)
+	},[],
+	)
+
 	const clearFilters = useCallback(() => {setFilters({})}, [])
 
 	const parentProjectColumns =useMemo<ColumnsType<FMSParentProject>>(()=> [
@@ -105,53 +121,11 @@ const ExternalProjectsPage = () => {
 			dataIndex: 'name',
 			key: 'external_project_name',
 			filteredValue: filters[EXTERNAL_PROJECT_NAME_FILTER_KEY]?.value ? [String(filters[EXTERNAL_PROJECT_NAME_FILTER_KEY].value)] : null,
-			filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
-			filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-				<div style={{ padding: 8 }}>
-					<Input
-						placeholder="Search External project name"
-						value={selectedKeys[0]}
-						onChange={(event) => setSelectedKeys(event.target.value ? [event.target.value] : [])}
-						onPressEnter={() => confirm()}
-						style={{ marginBottom: 8, display: 'block', width: 260 }}
-					/>
-					<Button
-						type="primary"
-						size="small"
-						onClick={() => {
-							const value = String(selectedKeys[0] || '')
-							setFilters( value ? {
-											[EXTERNAL_PROJECT_NAME_FILTER_KEY]: {
-												value,
-												description: {
-													type: 'INPUT',
-													key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
-													label: 'External Project Name',
-												},
-											}  ,
-										}
-									: {},
-							)
-
-							confirm()
-						}}
-						style={{ width: 90, marginRight: 8 }}
-					>
-						Search
-					</Button>
-					<Button
-						size="small"
-						onClick={() => {
-							clearFilters?.()
-							setFilters({})
-							confirm()
-						}}
-						style={{ width: 90 }}
-					>
-						Reset
-					</Button>
-				</div>
-			),
+			...getFilterPropsForDescription(
+				EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION,
+				filters[EXTERNAL_PROJECT_NAME_FILTER_KEY],
+				setFilter,
+			),					
 			onFilter: (value, record) => (record.name || '').toLowerCase().includes(String(value).toLowerCase()),
 			render: (externalProjectName: string | null) => externalProjectName || '',
 		},
@@ -169,7 +143,7 @@ const ExternalProjectsPage = () => {
 				)
 			},
 		},
-	], [filters, setFilters])
+	], [filters, setFilter])
 
 	const dispatch = useAppDispatch()
 
