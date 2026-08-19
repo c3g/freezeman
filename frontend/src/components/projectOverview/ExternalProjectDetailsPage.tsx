@@ -8,9 +8,6 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
 import ProjectSubmissionsTab from './ProjectSubmissionsTab'
-// import ProjectSamplesTab from './ProjectSamplesTab'
-// import ProjectLibrariesTab from './ProjectLibrariesTab'
-// import ProjectReadSetsTab from './ProjectReadSetsTab'
 
 import api from '../../utils/api'
 
@@ -113,9 +110,7 @@ const ExternalProjectDetailsPage = () => {
 
     const [activeKey, setActiveKey] = useHashURL('submissions')
     const externalID = parentProject?.external_id ?? ''
-    // const projectIds = parentProject?.projects ?? []
-    // const hasSearched =	parentProject !== null
-    // const searchedExternalID = externalID
+    
         
     return (
         <>
@@ -147,40 +142,7 @@ const ExternalProjectDetailsPage = () => {
                                 />
                             ),
                         },
-                        // {
-                        //     label: 'Samples',
-                        //     key: 'samples',
-                        //     children: (
-                        //         <ProjectSamplesTab
-                        //             externalID={searchedExternalID}
-                        //             projectIds={projectIds}
-                        //             hasSearched={hasSearched}
-                        //             isActive={activeKey === 'samples'}
-                        //             />
-                        //     ),
-                        // },
-                        // {
-                        //     label: 'Libraries',
-                        //     key: 'libraries',
-                        //     children: (
-                        //         <ProjectLibrariesTab
-                        //             externalID={searchedExternalID}
-                        //             hasSearched={hasSearched}
-                        //             isActive={activeKey === 'libraries'}
-                        //         />
-                        //     ),
-                        // },
-                        // {
-                        //     label: 'Read Sets',
-                        //     key: 'readsets',
-                        //     children: (
-                        //         <ProjectReadSetsTab
-                        //             // externalID={searchedExternalID}
-                        //             // hasSearched={hasSearched}
-                        //             // isActive={activeKey === 'readsets'}
-                        //         />
-                        //     ),
-                        // },
+                      
                     ]}
                 />
             </PageContent>
