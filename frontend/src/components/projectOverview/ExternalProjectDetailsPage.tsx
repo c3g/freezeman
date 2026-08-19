@@ -13,7 +13,7 @@ import api from '../../utils/api'
 
 
 import { useAppDispatch} from '../../hooks'
-import { useParams } from 'react-router-dom'
+import { useParams,useNavigate } from 'react-router-dom'
 import { FMSParentProject, FMSProject } from '../../models/fms_api_models'
 
 
@@ -26,6 +26,7 @@ const parseParentProjectID = (parentProjectID: string,): number => {
 const ExternalProjectDetailsPage = () => {
 
     const { parentProjectId: paramParentProjectId } = useParams()
+    const navigate = useNavigate()
     const parentProjectId = paramParentProjectId ? parseParentProjectID(paramParentProjectId) : null
 
     const [parentProject, setParentProject] = useState<FMSParentProject | null>(null)
@@ -97,15 +98,15 @@ const ExternalProjectDetailsPage = () => {
 
     useEffect(() => {
         if (parentProjectId === null) {
-            setParentProject(null)
-            setInternalProjects([])
-            setError('Invalid parent project ID')
-            return
+          	navigate('/external-projects-overview', {
+		        replace: true,
+	        })
+	    return
         }
 
 	    fetchParentProjectWithInternalProjects(parentProjectId)
 
-    }, [parentProjectId,fetchParentProjectWithInternalProjects,])
+    }, [parentProjectId,fetchParentProjectWithInternalProjects,navigate])
 
 
     const [activeKey, setActiveKey] = useHashURL('submissions')
