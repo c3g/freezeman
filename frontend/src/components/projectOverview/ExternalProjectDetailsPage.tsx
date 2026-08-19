@@ -1,5 +1,4 @@
-import { Alert, Tabs, Typography } from 'antd'
-import FlexBar from '../shared/Flexbar'
+import { Alert, Tabs,} from 'antd'
 
 import React, { useCallback, useState, useEffect} from 'react'
 
@@ -16,12 +15,12 @@ import { useAppDispatch} from '../../hooks'
 import { useParams,useNavigate } from 'react-router-dom'
 import { FMSParentProject, FMSProject } from '../../models/fms_api_models'
 
+const MAX_PROJECT_NAME_LENGTH = 60
 
 // Convertit en nombre l’ID du projet parent reçu dans l’URL.
 const parseParentProjectID = (parentProjectID: string,): number => {
     return Number(parentProjectID)
 }
-
 
 const ExternalProjectDetailsPage = () => {
 
@@ -111,20 +110,23 @@ const ExternalProjectDetailsPage = () => {
 
     const [activeKey, setActiveKey] = useHashURL('projects')
     const externalID = parentProject?.external_id ?? ''
+
+    const projectName = parentProject?.name ?? ''
+
+    const displayedProjectName =
+        projectName.length > MAX_PROJECT_NAME_LENGTH
+            ? `${projectName.slice(0, MAX_PROJECT_NAME_LENGTH)}…`
+            : projectName
     
         
     return (
         <>
-            <AppPageHeader title={parentProject ? `Project Overview : (External ID ${externalID})`: 'Project Overview'}/>
+            <AppPageHeader title={parentProject  ? `Project Overview: ${displayedProjectName} (External ID: ${externalID})`: 'Project Overview'}/>
 
             <PageContent tabs>
 
                 {error && (	<Alert type="error"	title={error}	style={{ marginBottom: 16 }} />)}
 
-                <FlexBar style={{ alignItems: 'center', justifyContent: 'flex-start', gap: 8, marginBottom: 16 }}>
-                    <Typography.Text strong style={{ fontSize: 18 }}>{parentProject?.name}</Typography.Text>
-                  
-                </FlexBar>
 
                 <Tabs
                     activeKey={activeKey}
