@@ -109,7 +109,7 @@ const ExternalProjectDetailsPage = () => {
     }, [parentProjectId,fetchParentProjectWithInternalProjects,navigate])
 
 
-    const [activeKey, setActiveKey] = useHashURL('submissions')
+    const [activeKey, setActiveKey] = useHashURL('projects')
     const externalID = parentProject?.external_id ?? ''
     
         
@@ -134,7 +134,7 @@ const ExternalProjectDetailsPage = () => {
                     items={[
                         {
                             label: 'Associated Freezeman Projects',
-                            key: 'submissions',
+                            key: 'projects',
                             children: (
                                <ProjectSubmissionsTab
                                     internalProjects={internalProjects}

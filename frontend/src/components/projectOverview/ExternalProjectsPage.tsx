@@ -98,7 +98,7 @@ const ExternalProjectsPage = () => {
 			dataIndex: 'external_id',
 			key: 'external_id',
 			width: 120,
-			render: (externalID: string, parentProject: FMSParentProject) => (<Link to={`/external-projects-overview/${parentProject.id}#submissions`}>{externalID}</Link>)
+			render: (externalID: string, parentProject: FMSParentProject) => (<Link to={`/external-projects-overview/${parentProject.id}#projects`}>{externalID}</Link>)
 		},
 		{
 			title: 'External Project Name',
