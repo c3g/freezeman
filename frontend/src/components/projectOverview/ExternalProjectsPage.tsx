@@ -132,6 +132,7 @@ const ExternalProjectsPage = () => {
 					.toLowerCase()
 					.includes(String(value).toLowerCase()),
 			
+			render: (externalID: string, parentProject: FMSParentProject) => (<Link to={`/external-projects-overview/${parentProject.id}#projects`}>{externalID}</Link>)
 		},
 		{
 			title: 'External Project Name',
