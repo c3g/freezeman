@@ -2,23 +2,6 @@ from django.db.models import F, Max, Q, Value
 from fms_core.models import ParentProject, Readset
 from django.contrib.postgres.aggregates import ArrayAgg
 
-ACTIVE_PARENT_PROJECT_READSET_FILTERS = {
-    "deleted": False,
-    "dataset__deleted": False,
-    "dataset__project__deleted": False,
-    "dataset__project__parent_project__deleted": False,
-    "dataset__experiment_run__deleted": False,
-    "dataset__experiment_run__run_type__deleted": False,
-    "dataset__experiment_run__run_type__platform__deleted": False,
-    "derived_sample__deleted": False,
-    "derived_sample__biosample__deleted": False,
-    "derived_sample__biosample__individual__deleted": False,
-    "derived_sample__library__deleted": False,
-    "derived_sample__library__library_type__deleted": False,
-    "derived_sample__derived_by_samples__deleted": False,
-    "derived_sample__derived_by_samples__sample__deleted": False,
-    "derived_sample__derived_by_samples__sample__container__deleted": False,
-}
 
 PARENT_PROJECT_READSET_ORDERING = [
     "dataset__experiment_run__start_date",
@@ -58,28 +41,27 @@ def get_parent_project_readsets_queryset(parent_project: ParentProject,):
     return (
         Readset.objects.filter(
             dataset__project__parent_project=parent_project,
-            **ACTIVE_PARENT_PROJECT_READSET_FILTERS,
         )
         .annotate(
             average_quality=Max(
                 "metrics__value_numeric",
-                filter=Q(metrics__name="avg_qual",metrics__deleted=False,),
+                filter=Q(metrics__name="avg_qual"),
             ),
             pf_reads_aligned=Max(
                 "metrics__value_numeric",
-                filter=Q(metrics__name="pf_read_alignment_rate",metrics__deleted=False,),
+                filter=Q(metrics__name="pf_read_alignment_rate"),
             ),
             duplicate_aligned=Max(
                 "metrics__value_numeric",
-                filter=Q(metrics__name="duplicate_rate",metrics__deleted=False,),
+                filter=Q(metrics__name="duplicate_rate"),
             ),
             readset_file_paths=ArrayAgg(
                 "files__file_path",
-                filter=Q(files__deleted=False),distinct=True,default=Value([]),
+                filter=Q(files__isnull=False),distinct=True,default=Value([]),
             ),
             readset_file_sizes=ArrayAgg(
                 "files__size",
-                filter=Q(files__deleted=False),distinct=True,default=Value([]),
+                filter=Q(files__isnull=False),distinct=True,default=Value([]),
             ),
             barcodes=ArrayAgg(
                 "derived_sample__derived_by_samples__sample__container__barcode",
