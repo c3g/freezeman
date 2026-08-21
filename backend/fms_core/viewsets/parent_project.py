@@ -46,7 +46,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "duplicate_aligned",
             "readset_files",
             "container_barcodes",
-            "validation_status",
+            "run_validation_status",
         ]
 
         PARENT_PROJECT_READSET_VALUE_ALIASES = {
@@ -57,6 +57,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "lane": F("dataset__lane"),
             "reference_genome_id": F("derived_sample__biosample__individual__reference_genome_id"),
             "sequencing_index_name": F("derived_sample__library__index__name"),
+            "run_validation_status": F("validation_status"),
             "run_start_date": F("dataset__experiment_run__start_date"),
             "alias": F("derived_sample__biosample__alias"),
             "cohort": F("derived_sample__biosample__individual__cohort"),
@@ -81,7 +82,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
                     "metrics__value_numeric",
                     filter=Q(metrics__name="duplicate_rate"),
                 ),
-              readset_files=ArrayAgg(
+                readset_files=ArrayAgg(
                     JSONObject(
                         file_path=F("files__file_path"),
                         size=F("files__size"),

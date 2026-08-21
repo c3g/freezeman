@@ -655,7 +655,7 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
         child=serializers.DictField(),
         required=False,
     )
-    validation_status = serializers.IntegerField(allow_null=True,)
+    run_validation_status = serializers.IntegerField(allow_null=True,)
 
 
 

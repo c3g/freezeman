@@ -162,8 +162,8 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 	},
 	{
 		title: 'Validation Status',
-		dataIndex: 'validation_status',
-		key: 'validation_status',
+		dataIndex: 'run_validation_status',
+		key: 'run_validation_status',
 		width: 170,
 		onHeaderCell: compactHeaderCell,
 		render: (validationStatus: ValidationStatus | null) => validationStatus === null ? (
