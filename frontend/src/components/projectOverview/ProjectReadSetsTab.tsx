@@ -361,6 +361,9 @@ function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectRe
 					pagination={{
 						pageSize: 5,
 						showSizeChanger: true,
+						showTotal: (total, range) =>
+							`${range[0]}-${range[1]} of ${total} readsets`,
+						
 					}}
 				/>
 			) : (
