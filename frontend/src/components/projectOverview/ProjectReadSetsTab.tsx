@@ -170,7 +170,7 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 			<Text type="secondary">N/A</Text>) : (<LaneValidationStatus	validationStatus={validationStatus} isValidationInProgress={false} />),
 	},
 	// {
-	// 	title: 'Barcodes',
+	// 	title: 'Container Barcodes',
 	// 	dataIndex: 'barcodes',
 	// 	key: 'barcodes',
 	// 	width: 280,
@@ -224,32 +224,23 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 	},
 	{
 		title: 'Readset Files',
-		dataIndex: 'readset_file_paths',
-		key: 'readset_file_paths',
+		dataIndex: 'readset_files',
+		key: 'readset_files',
 		onHeaderCell: compactHeaderCell,
-		render: (files?: string[] | null) =>
+		render: (files?: ProjectOverviewReadset['readset_files'] | null)  =>
 			files?.length ? (
-				<div style={{ whiteSpace: 'nowrap' }}>
-					{files.map((file, index) => (file ? <CopyableReadsetFilePath key={`${file}-${index}`} file={file} /> : null))}
-				</div>
-			) : (
-				<Text type="secondary">N/A</Text>
-			),
-	},
-	{
-		title: 'Readset File Sizes (MB)',
-		dataIndex: 'readset_file_sizes',
-		key: 'readset_file_sizes',
-		align: 'right',
-		width: 120,
-		onHeaderCell: compactHeaderCell,
-		render: (sizes?: number[] | null) =>
-			sizes?.length ? (
-				<div style={{ whiteSpace: 'nowrap' }}>
-					{sizes.map((size, index) => (
-						<div key={`${size}-${index}`}>{(Number(size) / 1024 / 1024).toFixed(2)}</div>
-					))}
-				</div>
+			<div style={{ whiteSpace: 'nowrap' }}>
+				{files.map((file, index) =>
+					file.file_path ? (
+						<div key={`${file.file_path}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+							<CopyableReadsetFilePath file={file.file_path} />
+							<Text type="secondary">
+								{file.size !== null && file.size !== undefined ? `${(Number(file.size) / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
+							</Text>
+						</div>
+					) : null,
+				)}
+			</div>
 			) : (
 				<Text type="secondary">N/A</Text>
 			),

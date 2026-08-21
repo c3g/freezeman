@@ -1,4 +1,5 @@
 from django.db.models import F, Max, Q, Value
+from django.db.models.functions import JSONObject
 from django.contrib.postgres.aggregates import ArrayAgg
 
 from rest_framework import viewsets
@@ -43,9 +44,8 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "average_quality",
             "pf_reads_aligned",
             "duplicate_aligned",
-            "readset_file_paths",
-            "readset_file_sizes",
-            "barcodes",
+            "readset_files",
+            "container_barcodes",
             "validation_status",
         ]
 
@@ -81,15 +81,16 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
                     "metrics__value_numeric",
                     filter=Q(metrics__name="duplicate_rate"),
                 ),
-                readset_file_paths=ArrayAgg(
-                    "files__file_path",
-                    filter=Q(files__isnull=False), distinct=True, default=Value([]),
+              readset_files=ArrayAgg(
+                    JSONObject(
+                        file_path=F("files__file_path"),
+                        size=F("files__size"),
+                    ),
+                    filter=Q(files__isnull=False),
+                    distinct=True,
+                    default=Value([]),
                 ),
-                readset_file_sizes=ArrayAgg(
-                    "files__size",
-                    filter=Q(files__isnull=False), distinct=True, default=Value([]),
-                ),
-                barcodes=ArrayAgg(
+                container_barcodes=ArrayAgg(
                     "derived_sample__derived_by_samples__sample__container__barcode",
                     distinct=True,
                 ),

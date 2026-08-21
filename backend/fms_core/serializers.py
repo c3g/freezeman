@@ -632,7 +632,7 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
     alias = serializers.CharField(allow_null=True)
     cohort = serializers.CharField(allow_blank=True,allow_null=True,)
     library_type = serializers.CharField(allow_null=True,)
-    barcodes = serializers.ListField(child=serializers.CharField(allow_null=True),allow_empty=True,)
+    container_barcodes = serializers.ListField(child=serializers.CharField(allow_null=True),allow_empty=True,)
     number_of_reads = serializers.IntegerField(allow_null=True,)
     average_quality = serializers.DecimalField(
         max_digits=40,
@@ -651,8 +651,10 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
         decimal_places=20,
         allow_null=True,
     )
-    readset_file_paths = serializers.ListField(required=False)
-    readset_file_sizes = serializers.ListField(required=False)
+    readset_files = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+    )
     validation_status = serializers.IntegerField(allow_null=True,)
 
 

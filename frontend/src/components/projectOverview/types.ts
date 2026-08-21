@@ -50,6 +50,11 @@ export type ExternalIDProjectSamplesResponse = {
 	samples: ExternalIDProjectSample[]
 }
 
+export type ProjectOverviewReadsetFile = {
+	file_path: string | null
+	size: number | null
+}
+
 export type ProjectOverviewReadset = {
 	id: number
 	name: string
@@ -76,8 +81,7 @@ export type ProjectOverviewReadset = {
 	reference_genome_id: number | null
 	sequencing_index_name: string | null
 
-	readset_file_paths?: string[]
-	readset_file_sizes?: number[]
+	readset_files?: ProjectOverviewReadsetFile[]
 }
 
 export interface ProjectOverviewExportButtonData {
