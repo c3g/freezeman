@@ -86,6 +86,58 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 		key: 'readset_sample_name',
 		width: 450,
 		onHeaderCell: compactHeaderCell,
+		filterIcon: (filtered) => (
+			<SearchOutlined
+				style={{ color: filtered ? '#1677ff' : undefined }}
+			/>
+		),
+		filterDropdown: ({setSelectedKeys,selectedKeys,confirm,clearFilters,}: FilterDropdownProps) => (
+			<div style={{ padding: 8 }}>
+				<Input
+					placeholder="Search sample"
+					value={selectedKeys[0]}
+					onChange={(event) => {
+						setSelectedKeys(
+							event.target.value
+								? [event.target.value]
+								: [],
+						)
+					}}
+					onPressEnter={() => confirm()}
+					style={{
+						marginBottom: 8,
+						display: 'block',
+					}}
+				/>
+
+				<Button
+					type="primary"
+					size="small"
+					onClick={() => confirm()}
+					style={{
+						width: 90,
+						marginRight: 8,
+					}}
+				>
+					Search
+				</Button>
+
+				<Button
+					size="small"
+					onClick={() => {
+						clearFilters?.()
+						confirm()
+					}}
+					style={{ width: 90 }}
+				>
+					Reset
+				</Button>
+			</div>
+		),
+		onFilter: (value, record) =>
+			String(record.readset_sample_name ?? '')
+				.toLowerCase()
+				.includes(String(value).toLowerCase()),	
 	},
 	{
 		title: 'Alias',
