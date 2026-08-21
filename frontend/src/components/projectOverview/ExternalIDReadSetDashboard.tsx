@@ -111,7 +111,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Cohortes" value={metrics.totalCohorts} />
+                        <Statistic title="Cohorts" value={metrics.totalCohorts} />
                     </Card>
                 </Col>
 
