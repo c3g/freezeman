@@ -44,6 +44,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "average_quality",
             "pf_reads_aligned",
             "duplicate_aligned",
+            "number_of_reads",
             "readset_files",
             "container_barcodes",
             "run_validation_status",
@@ -62,7 +63,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "alias": F("derived_sample__biosample__alias"),
             "cohort": F("derived_sample__biosample__individual__cohort"),
             "library_type": F("derived_sample__library__library_type__name"),
-            "number_of_reads": F("production_data__reads"),
+        
         }
 
         return (
@@ -81,6 +82,10 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
                 duplicate_aligned=Max(
                     "metrics__value_numeric",
                     filter=Q(metrics__name="duplicate_rate"),
+                ),
+                number_of_reads=Max(
+                    "metrics__value_numeric",
+                    filter=Q(metrics__name="nb_reads"),
                 ),
                 readset_files=ArrayAgg(
                     JSONObject(
