@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ProjectOverviewExportButtonData, ProjectOverviewReadset } from './types'
 import ExternalIDReadSetDashboard from './ExternalIDReadSetDashboard'
 import api from '../../utils/api'
@@ -329,7 +329,10 @@ function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectRe
 		value: libraryType,
 	}))
 
-	const projectOverviewReadsetColumns = getProjectOverviewReadsetColumns(libraryTypeFilters)
+	const projectOverviewReadsetColumns = useMemo(
+    () => getProjectOverviewReadsetColumns(libraryTypeFilters),
+    [libraryTypeFilters]
+	)
 
 	if (isLoading) {
 		return <Spin />

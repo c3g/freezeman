@@ -622,6 +622,7 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     readset_sample_name = serializers.CharField()
+    biosample_id = serializers.IntegerField(allow_null=True)
     external_id = serializers.CharField()
     run_name = serializers.CharField()
     lane = serializers.IntegerField()

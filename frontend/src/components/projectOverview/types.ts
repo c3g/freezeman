@@ -54,6 +54,7 @@ export type ProjectOverviewReadset = {
 	id: number
 	name: string
 	readset_sample_name: string
+	biosample_id: number | null
 	external_id: string
 	run_name: string
 	run_start_date: string // YYYY-MM-DD

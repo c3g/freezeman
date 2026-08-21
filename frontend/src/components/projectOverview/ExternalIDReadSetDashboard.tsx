@@ -50,7 +50,11 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             totalReadsets: readsets.length,
             totalReads: readsets.reduce((sum, x) => sum + Number(x.number_of_reads || 0), 0),
             totalRuns: new Set(readsets.map((x) => x.run_name)).size,
-            totalSamples: new Set(readsets.map((x) => x.readset_sample_name)).size,
+            totalSamples: new Set(
+                readsets
+                    .map((x) => x.biosample_id)
+                    .filter((id) => id !== null && id !== undefined)
+            ).size,
             totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
             avgQuality: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.average_quality || 0), 0) / total,
             avgAlignment: validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,

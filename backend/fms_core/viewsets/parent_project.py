@@ -51,6 +51,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
 
         PARENT_PROJECT_READSET_VALUE_ALIASES = {
             "readset_sample_name": F("sample_name"),
+            "biosample_id": F("derived_sample__biosample_id"),
             "external_id": F("dataset__project__parent_project__external_id"),
             "run_name": F("dataset__experiment_run__name"),
             "lane": F("dataset__lane"),
