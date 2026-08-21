@@ -68,7 +68,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
         const grouped = new Map<string, number>()
 
         readsets.forEach((item) => {
-            const libraryType = item.library_type?.trim() || 'Non renseigné'
+            const libraryType = item.library_type?.trim() || 'Unknown'
 
             grouped.set(libraryType, (grouped.get(libraryType) || 0) + 1)
         })
