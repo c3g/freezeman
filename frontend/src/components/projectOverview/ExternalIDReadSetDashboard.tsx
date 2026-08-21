@@ -14,7 +14,7 @@ import { ProjectOverviewReadset } from './types'
 const { Text } = Typography
 
 const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
-    const total = items.length || 1
+    const total = items.length
 
     const complete = items.filter((item) => {
         return (
@@ -30,8 +30,8 @@ const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
     const incomplete = items.length - complete
 
     return {
-        complete: Math.round((complete / total) * 100),
-        incomplete: Math.round((incomplete / total) * 100),
+        complete: total === 0 ? 0 : Math.round((complete / total) * 100),
+        incomplete: total === 0 ? 0 : Math.round((incomplete / total) * 100),
         completeCount: complete,
         incompleteCount: incomplete,
     }
@@ -39,7 +39,7 @@ const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
 
 function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewReadset[] }) {
     const metrics = useMemo(() => {
-        const total = readsets.length || 1
+        const total = readsets.length
 
         const validAlignments = readsets
             .map((x) => x.pf_reads_aligned)
@@ -52,10 +52,9 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             totalRuns: new Set(readsets.map((x) => x.run_name)).size,
             totalSamples: new Set(readsets.map((x) => x.readset_sample_name)).size,
             totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
-            avgQuality: readsets.reduce((sum, x) => sum + Number(x.average_quality), 0) / total,
-            avgAlignment:
-                validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,
-            avgDuplication: readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned), 0) / total,
+            avgQuality: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.average_quality || 0), 0) / total,
+            avgAlignment: validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,
+            avgDuplication: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned || 0), 0) / total,
         }
     }, [readsets])
 
