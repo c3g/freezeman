@@ -7,9 +7,9 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
 import ProjectSubmissionsTab from './ProjectSubmissionsTab'
+import ProjectReadSetsTab from './ProjectReadSetsTab'
 
 import api from '../../utils/api'
-
 
 import { useAppDispatch} from '../../hooks'
 import { useParams,useNavigate } from 'react-router-dom'
@@ -145,7 +145,18 @@ const ExternalProjectDetailsPage = () => {
                                 />
                             ),
                         },
-                      
+                        { 
+                            label: 'Read Sets',
+                            key: 'readsets',
+                            children: (
+                                <ProjectReadSetsTab
+                                    parentProjectId={parentProjectId}
+                                    externalID={externalID}                                   
+                                    isActive={activeKey === 'readsets'}
+                                />
+                            ),
+                        },
+
                     ]}
                 />
             </PageContent>

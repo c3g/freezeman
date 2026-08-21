@@ -4,6 +4,7 @@ import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSParentProject, FMSProject
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
+import { ProjectOverviewReadset } from "../components/projectOverview/types";
 
 const api = {
   auth: {
@@ -152,6 +153,7 @@ const api = {
   parentProjects: {
     get: (parentProjectId: FMSId) => get<JsonResponse<FMSParentProject>>(`/parent-projects/${parentProjectId}/`),
     list: (options: object, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, { abort, requestID }),
+    readsets: (parentProjectId: FMSId,options: QueryParams,abort?: boolean,) =>get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(`/parent-projects/${parentProjectId}/readsets/`,options,{ abort },),
   },
 
   platforms: {

@@ -50,14 +50,20 @@ export type ExternalIDProjectSamplesResponse = {
 	samples: ExternalIDProjectSample[]
 }
 
+export type ProjectOverviewReadsetFile = {
+	file_path: string | null
+	size: number | null
+}
+
 export type ProjectOverviewReadset = {
 	id: number
 	name: string
 	readset_sample_name: string
+	biosample_id: number | null
 	external_id: string
 	run_name: string
 	run_start_date: string // YYYY-MM-DD
-	validation_status: number
+	run_validation_status: number | null
 
 	alias: string | null
 	cohort: string | null
@@ -70,6 +76,12 @@ export type ProjectOverviewReadset = {
 	average_quality: string | null
 	pf_reads_aligned: string | null
 	duplicate_aligned: string | null
+
+	lane: number
+	reference_genome_id: number | null
+	sequencing_index_name: string | null
+
+	readset_files?: ProjectOverviewReadsetFile[]
 }
 
 export interface ProjectOverviewExportButtonData {
