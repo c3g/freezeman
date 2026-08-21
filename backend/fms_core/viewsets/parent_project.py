@@ -104,8 +104,8 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
         )
 
 
-    @action(detail=True, methods=["get"])
-    def readsets(self, request, pk=None):
+    @action(detail=True, methods=["get"],url_path="readsets")
+    def overview_readsets(self, request, pk=None):
         parent_project = self.get_object()
 
         queryset = self._get_readsets_queryset(parent_project)
