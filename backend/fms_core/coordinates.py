@@ -80,7 +80,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
     Convert a coordinate with the alpha/digit style (eg. A01) to an integer value, starting at 1.
     The coordinate spec must support this style of coordinate.
     The coordinate is expected to be valid.
-    The specThe axis parameter will decide if the value increase follows first the alphabetical part (column) or the numerical part (row).
+    The axis parameter will decide if the value increase follows first the alphabetical part (column) or the numerical part (row).
     '''
 
     # Coordinate must be at least two chars long (eg "A1")
