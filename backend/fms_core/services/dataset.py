@@ -36,6 +36,7 @@ from fms_core.services.archived_comment import (create_archived_comment_for_mode
 def create_dataset(project_id: int,
                    experiment_run_id: int,
                    lane: int,
+                   user_obj: User,
                    metric_report_url: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
@@ -48,6 +49,7 @@ def create_dataset(project_id: int,
         `project_id`: Project id from Freezeman.
         `experiment_run_id`: Experiment run ID.
         `lane`: Lane (coordinate) on the experiment container.
+        `user_obj`: User that launched the action leading to the dataset creation.
         `metric_report_url`: Run processing report URL.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
@@ -70,7 +72,7 @@ def create_dataset(project_id: int,
         )
         dataset, created = Dataset.objects.get_or_create(**kwargs, defaults={"metric_report_url": metric_report_url})
         if not created and replace:  # There is already a dataset with this signature but we replace it's content.
-            reset_error, _ = reset_dataset_content(dataset)
+            reset_error, _ = reset_dataset_content(dataset=dataset, user_obj=user_obj)
             errors.extend(reset_error)
             # update optional content
             dataset.metric_report_url = metric_report_url
@@ -87,14 +89,16 @@ def create_dataset(project_id: int,
 
     return dataset, errors, warnings
 
-def reset_dataset_content(dataset: Dataset):
+def reset_dataset_content(dataset: Dataset, user_obj: User):
     """
     When a new run processing json is submitted that match the signature of an existing dataset, the related objects
     to that dataset need to be deleted to be recreated afterward. It means the dataset was regenerated. The function
     deletes all existing metrics, all dataset_files and all readsets.
 
     Args:
-        dataset: Dataset object that need to be reset.
+        `dataset`: Dataset object that need to be reset.
+        `user_obj`: User that launched the action.
+
     Returns:
         Tuple with errors and warnings.
     """
@@ -102,7 +106,9 @@ def reset_dataset_content(dataset: Dataset):
     warnings = []
     try:
         # reset validation to generate trigger file if needed.
-        _, errors, warnings = set_dataset_validation_status(dataset_obj=dataset, validation_status=ValidationStatus.AVAILABLE)
+        _, errors, warnings = set_dataset_validation_status(dataset_obj=dataset,
+                                                            validation_status=ValidationStatus.AVAILABLE,
+                                                            validated_by=user_obj)
         for data in ProductionData.objects.filter(readset__dataset=dataset).all():
             data.delete()
         for tracking in ProductionTracking.objects.filter(extracted_readset__dataset=dataset).all():
@@ -203,7 +209,7 @@ def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int,
 
     return count_status, errors, warnings
 
-def set_dataset_validation_status(dataset_obj: Dataset, validation_status: ValidationStatus, validated_by: User = None):
+def set_dataset_validation_status(dataset_obj: Dataset, validation_status: ValidationStatus, validated_by: User):
     """
     Set validation_status for readsets of the given dataset.
 
@@ -238,7 +244,9 @@ def set_dataset_validation_status(dataset_obj: Dataset, validation_status: Valid
     create_archived_comment_for_model(Dataset, dataset_obj.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
     is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus.PASSED # identifies dataset that get a passed status invalidation
     if validation_status == ValidationStatus.PASSED or is_status_revocation:
-        _, errors_file, warnings_file = create_validation_info_file(dataset_obj, is_status_revocation)
+        _, errors_file, warnings_file = create_validation_info_file(dataset_obj=dataset_obj,
+                                                                    validator_obj=validated_by,
+                                                                    is_validation_revocation=is_status_revocation)
         errors.extend(errors_file)
         warnings.extend(warnings_file)
     
@@ -498,7 +506,7 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
 
     return file_path, errors, warnings    
     
-def ingest_run_validation_report(report_json):
+def ingest_run_validation_report(report_json, submitter_obj: User):
     """
     Ingest information from a json formated report submitted at the end of the run processing.
     The information provided pertaining to the data delivery (FASTQ and BAM file path)
@@ -506,6 +514,7 @@ def ingest_run_validation_report(report_json):
     
     Args:
         `report_json`: Content of the report in a valid json format.
+        `submitter_obj`: User that is submitting the report_json.
 
     Returns:
         Tuple with the following content:
@@ -562,6 +571,7 @@ def ingest_run_validation_report(report_json):
                 dataset, errors, warnings = create_dataset(project_id=project_id,
                                                            experiment_run_id=experiment_run_id,
                                                            lane=lane,
+                                                           user_obj=submitter_obj,
                                                            metric_report_url=metric_report_url,
                                                            replace=True)
                 if errors:
