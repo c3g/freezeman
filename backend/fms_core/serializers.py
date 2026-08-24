@@ -742,7 +742,7 @@ class ReadsetSerializer(serializers.ModelSerializer):
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
             if container_spec is not None:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, container_spec.ordinal_coordinates_allocation_axis)
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -772,7 +772,7 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
             if container_spec is not None:
-                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None, container_spec.ordinal_coordinates_allocation_axis)
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
