@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterable, List, Optional
 from dataclasses import asdict, dataclass
 from django.contrib.contenttypes.models import ContentType
 
-from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal, ROW, COLUMN
+from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal, ROW_ORDINAL_COORDINATE_ALLOCATION, COLUMN_ORDINAL_COORDINATE_ALLOCATION
 from fms_core.containers import CONTAINER_KIND_SPECS, CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY
 from fms_core.models import (
     Biosample,
@@ -247,10 +247,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     if container_spec is None:
         raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{sample.container.kind}".')
 
-    if container_spec.container_kind_id == CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY.container_kind_id:
-        row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec, axis=COLUMN)
-    else:
-        row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec, axis=ROW)
+    row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec, axis=container_spec.ordinal_coordinates_allocation_axis)
 
     try:
         experiment_run_process_measurement = ProcessMeasurement.objects.get(lineage__child_id=sample.pk)
