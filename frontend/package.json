@@ -9,6 +9,7 @@
     "build": "webpack --mode production",
     "build-dev": "webpack --mode development",
     "lint": "eslint --quiet .",
+    "format": "prettier .",
     "start": "webpack-dev-server --mode development",
     "dev": "npm run lint --quiet && npm run check && npm run start",
     "check": "npx tsc"
