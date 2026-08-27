@@ -46,6 +46,42 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             .filter((value) => value !== null && value !== undefined)
             .map(Number)
 
+        const readsetsWithQuality = readsets.filter(
+            (readset) => readset.average_quality !== null
+        )
+
+        const allHaveNumberOfBases = readsetsWithQuality.every(
+            (readset) =>
+                readset.number_of_bases !== null &&
+                Number(readset.number_of_bases) > 0
+        )
+
+        const simpleAverageQuality =
+            readsetsWithQuality.length === 0
+                ? null
+                : readsetsWithQuality.reduce(
+                    (sum, readset) => sum + Number(readset.average_quality),0
+                ) / readsetsWithQuality.length
+
+        const totalNumberOfBases = readsetsWithQuality.reduce(
+            (sum, readset) => sum + Number(readset.number_of_bases),0
+        )
+
+        const weightedQualitySum = readsetsWithQuality.reduce(
+            (sum, readset) =>
+                sum +
+                Number(readset.average_quality) *
+                    Number(readset.number_of_bases),
+            0
+        )
+
+        const averageQuality =
+            readsetsWithQuality.length === 0
+                ? null
+                : allHaveNumberOfBases
+                ? weightedQualitySum / totalNumberOfBases
+                : simpleAverageQuality
+
         return {
             totalReadsets: readsets.length,
             totalReads: readsets.reduce((sum, x) => sum + Number(x.number_of_reads || 0), 0),
@@ -56,7 +92,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                     .filter((id) => id !== null && id !== undefined)
             ).size,
             totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
-            avgQuality: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.average_quality || 0), 0) / total,
+            avgQuality: averageQuality,
             avgAlignment: validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,
             avgDuplication: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned || 0), 0) / total,
         }
@@ -127,7 +163,12 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Avg Quality" value={metrics.avgQuality} precision={1} prefix={<CheckCircleOutlined style={iconStyle('#2f54eb', '#f0f5ff')} />} />
+                       <Statistic
+                            title="Avg Quality"
+                            value={metrics.avgQuality === null ? '—' : metrics.avgQuality}
+                            precision={metrics.avgQuality === null ? undefined : 1}
+                            prefix={<CheckCircleOutlined style={iconStyle('#2f54eb', '#f0f5ff')} />}
+                        />
                     </Card>
                 </Col>
 

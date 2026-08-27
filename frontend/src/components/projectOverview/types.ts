@@ -72,6 +72,7 @@ export type ProjectOverviewReadset = {
 	barcodes: string[]
 
 	number_of_reads: number | null
+	number_of_bases: number | null
 
 	average_quality: string | null
 	pf_reads_aligned: string | null

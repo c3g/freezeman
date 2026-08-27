@@ -45,6 +45,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "pf_reads_aligned",
             "duplicate_aligned",
             "number_of_reads",
+            "number_of_bases",
             "readset_files",
             "container_barcodes",
             "run_validation_status",
@@ -86,6 +87,10 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
                 number_of_reads=Max(
                     "metrics__value_numeric",
                     filter=Q(metrics__name="nb_reads"),
+                ),
+                number_of_bases=Max(
+                    "metrics__value_numeric",
+                    filter=Q(metrics__name="yield"),
                 ),
                 readset_files=ArrayAgg(
                     JSONObject(

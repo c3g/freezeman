@@ -634,6 +634,7 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
     library_type = serializers.CharField(allow_null=True,)
     container_barcodes = serializers.ListField(child=serializers.CharField(allow_null=True),allow_empty=True,)
     number_of_reads = serializers.IntegerField(allow_null=True,)
+    number_of_bases = serializers.IntegerField(allow_null=True,)
     average_quality = serializers.DecimalField(
         max_digits=40,
         decimal_places=20,
