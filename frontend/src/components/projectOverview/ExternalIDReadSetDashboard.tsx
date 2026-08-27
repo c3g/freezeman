@@ -39,8 +39,7 @@ const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
 
 function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewReadset[] }) {
     const metrics = useMemo(() => {
-        const total = readsets.length
-
+        // Avg. Alignment Calculation
         const readsetsWithAlignment = readsets.filter(
             (readset) => readset.pf_reads_aligned !== null
         )
@@ -61,16 +60,14 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                 ) / readsetsWithAlignment.length
 
         const totalNumberOfReadsForAlignment = readsetsWithAlignment.reduce(
-            (sum, readset) => sum + Number(readset.number_of_reads),
-            0
+            (sum, readset) => sum + Number(readset.number_of_reads), 0
         )
 
         const weightedAlignmentSum = readsetsWithAlignment.reduce(
             (sum, readset) =>
                 sum +
                 Number(readset.pf_reads_aligned) *
-                    Number(readset.number_of_reads),
-            0
+                    Number(readset.number_of_reads), 0
         )
 
         const averageAlignment =
@@ -81,7 +78,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                 : simpleAverageAlignment
 
         
-
+        // Avg. Quality Calculation
         const readsetsWithQuality = readsets.filter(
             (readset) => readset.average_quality !== null
         )
@@ -96,11 +93,11 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             readsetsWithQuality.length === 0
                 ? null
                 : readsetsWithQuality.reduce(
-                    (sum, readset) => sum + Number(readset.average_quality),0
+                    (sum, readset) => sum + Number(readset.average_quality), 0
                 ) / readsetsWithQuality.length
 
         const totalNumberOfBases = readsetsWithQuality.reduce(
-            (sum, readset) => sum + Number(readset.number_of_bases),0
+            (sum, readset) => sum + Number(readset.number_of_bases), 0
         )
 
         const weightedQualitySum = readsetsWithQuality.reduce(
@@ -118,6 +115,48 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                 ? weightedQualitySum / totalNumberOfBases
                 : simpleAverageQuality
 
+        // Avg. Duplication Calculation
+        const readsetsWithDuplication = readsets.filter(
+            (readset) => readset.duplicate_aligned !== null
+        )
+
+        const allDuplicationsHaveNumberOfReads = readsetsWithDuplication.every(
+            (readset) =>
+                readset.number_of_reads !== null &&
+                Number(readset.number_of_reads) > 0
+        )
+
+        const simpleAverageDuplication =
+            readsetsWithDuplication.length === 0
+                ? null
+                : readsetsWithDuplication.reduce(
+                    (sum, readset) =>
+                        sum + Number(readset.duplicate_aligned),
+                    0
+                ) / readsetsWithDuplication.length
+
+        const totalNumberOfReadsForDuplication = readsetsWithDuplication.reduce(
+            (sum, readset) => sum + Number(readset.number_of_reads),
+            0
+        )
+
+        const weightedDuplicationSum = readsetsWithDuplication.reduce(
+            (sum, readset) =>
+                sum +
+                Number(readset.duplicate_aligned) *
+                    Number(readset.number_of_reads),
+            0
+        )
+
+        const averageDuplication =
+            readsetsWithDuplication.length === 0
+                ? null
+                : allDuplicationsHaveNumberOfReads
+                ? weightedDuplicationSum / totalNumberOfReadsForDuplication
+                : simpleAverageDuplication
+
+
+
         return {
             totalReadsets: readsets.length,
             totalReads: readsets.reduce((sum, x) => sum + Number(x.number_of_reads || 0), 0),
@@ -130,7 +169,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
             avgQuality: averageQuality,
             avgAlignment: averageAlignment,
-            avgDuplication: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned || 0), 0) / total,
+            avgDuplication: averageDuplication,
         }
     }, [readsets])
 
@@ -221,7 +260,16 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Avg Duplication" value={metrics.avgDuplication * 100} precision={2} suffix="%" />
+                        <Statistic
+                            title="Avg Duplication"
+                            value={
+                                metrics.avgDuplication === null
+                                    ? '—'
+                                    : metrics.avgDuplication * 100
+                            }
+                            precision={metrics.avgDuplication === null ? undefined : 2}
+                            suffix={metrics.avgDuplication === null ? undefined : '%'}
+                        />
                     </Card>
                 </Col>
             </Row>
@@ -331,14 +379,22 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                             <Col xs={24} lg={12}>
                                 <Card size="small" type="inner" title="Duplication rate">
                                     <Statistic
-                                        value={metrics.avgDuplication * 100}
-                                        precision={2}
-                                        suffix="%"
+                                        value={
+                                            metrics.avgDuplication === null
+                                                ? '—'
+                                                : metrics.avgDuplication * 100
+                                        }
+                                        precision={metrics.avgDuplication === null ? undefined : 2}
+                                        suffix={metrics.avgDuplication === null ? undefined : '%'}
                                         styles={{ content: { color: '#1677ff' }}}
                                     />
                                     <Progress
                                         size="small"
-                                        percent={Number((metrics.avgDuplication * 100).toFixed(2))}
+                                        percent={
+                                            metrics.avgDuplication === null
+                                                ? 0
+                                                : Number((metrics.avgDuplication * 100).toFixed(2))
+                                        }
                                         strokeColor={{ color: '#1677ff' }}
                                         style={{ marginBottom: 52 }}
                                     />
