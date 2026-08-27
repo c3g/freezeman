@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import dayjs, { Dayjs } from 'dayjs'
 import { ProjectOverviewExportButtonData, ProjectOverviewReadset } from './types'
 import ExternalIDReadSetDashboard from './ExternalIDReadSetDashboard'
 import api from '../../utils/api'
@@ -6,7 +7,7 @@ import { useAppDispatch } from '../../hooks'
 
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
-import { Alert, Button, Empty, Input, Spin, Table, Tag, Typography } from 'antd'
+import { Alert, Button, DatePicker, Empty, Input, Spin, Table, Tag, Typography } from 'antd'
 import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, FilterOutlined } from '@ant-design/icons'
 import ProjectOverviewExportButton from './ProjectOverviewExportButton'
 import { useCreateCsvExportFunction } from './useCsvExport'
@@ -211,6 +212,80 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 		key: 'run_start_date',
 		width: 120,
 		onHeaderCell: compactHeaderCell,
+		filterIcon: (filtered) => (
+			<FilterOutlined
+				style={{ color: filtered ? '#1677ff' : undefined }}
+			/>
+		),
+		filterDropdown: ({
+			setSelectedKeys,
+			selectedKeys,
+			confirm,
+			clearFilters,
+		}: FilterDropdownProps) => (
+			<div style={{ padding: 8 }}>
+				<DatePicker.RangePicker
+					style={{ marginBottom: 8, display: 'block' }}
+					value={
+						selectedKeys.length === 1
+							? (() => {
+								const [startDate, endDate] = String(
+									selectedKeys[0]
+								).split('|')
+
+								return startDate && endDate
+									? [
+											dayjs(startDate),
+											dayjs(endDate),
+										] as [Dayjs, Dayjs]
+									: null
+							})()
+							: null
+					}
+					onChange={(dates) => {
+						if (!dates || !dates[0] || !dates[1]) {
+							setSelectedKeys([])
+							return
+						}
+
+						setSelectedKeys([
+							`${dates[0].format('YYYY-MM-DD')}|${dates[1].format('YYYY-MM-DD')}`,
+						])
+					}}
+				/>
+				<Button
+					type="primary"
+					size="small"
+					onClick={() => confirm()}
+					style={{ width: 90, marginRight: 8 }}
+				>
+					Filter
+				</Button>
+				<Button
+					size="small"
+					onClick={() => {
+						clearFilters?.()
+						confirm()
+					}}
+					style={{ width: 90 }}
+				>
+					Reset
+				</Button>
+			</div>
+		),
+
+		onFilter: (value, record) => {
+			const [startDate, endDate] = String(value).split('|')
+
+			if (!startDate || !endDate) {
+				return true
+			}
+
+			return (
+				record.run_start_date >= startDate &&
+				record.run_start_date <= endDate
+			)
+		},
 	},
 	{
 		title: 'Validation Status',
