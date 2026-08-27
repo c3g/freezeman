@@ -395,13 +395,12 @@ function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectRe
 
 	return (
 		<>
-			{!isLoading && projectOverviewReadsets.length > 0 && (
+			{!isLoading && isActive && <ExternalIDReadSetDashboard readsets={projectOverviewReadsets} />}
+			{!isLoading && projectOverviewReadsets.length > 0 && (			
 				<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
 					<ProjectOverviewExportButton data={exportButtonData} />
 				</div>
-			)}
-			{!isLoading && isActive && <ExternalIDReadSetDashboard readsets={projectOverviewReadsets} />}
-
+			)}			
 			{projectOverviewReadsets.length > 0 ? (
 				<Table
 					dataSource={projectOverviewReadsets}
