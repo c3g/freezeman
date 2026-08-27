@@ -41,10 +41,46 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
     const metrics = useMemo(() => {
         const total = readsets.length
 
-        const validAlignments = readsets
-            .map((x) => x.pf_reads_aligned)
-            .filter((value) => value !== null && value !== undefined)
-            .map(Number)
+        const readsetsWithAlignment = readsets.filter(
+            (readset) => readset.pf_reads_aligned !== null
+        )
+
+        const allAlignmentsHaveNumberOfReads = readsetsWithAlignment.every(
+            (readset) =>
+                readset.number_of_reads !== null &&
+                Number(readset.number_of_reads) > 0
+        )
+
+        const simpleAverageAlignment =
+            readsetsWithAlignment.length === 0
+                ? null
+                : readsetsWithAlignment.reduce(
+                    (sum, readset) =>
+                        sum + Number(readset.pf_reads_aligned),
+                    0
+                ) / readsetsWithAlignment.length
+
+        const totalNumberOfReadsForAlignment = readsetsWithAlignment.reduce(
+            (sum, readset) => sum + Number(readset.number_of_reads),
+            0
+        )
+
+        const weightedAlignmentSum = readsetsWithAlignment.reduce(
+            (sum, readset) =>
+                sum +
+                Number(readset.pf_reads_aligned) *
+                    Number(readset.number_of_reads),
+            0
+        )
+
+        const averageAlignment =
+            readsetsWithAlignment.length === 0
+                ? null
+                : allAlignmentsHaveNumberOfReads
+                ? weightedAlignmentSum / totalNumberOfReadsForAlignment
+                : simpleAverageAlignment
+
+        
 
         const readsetsWithQuality = readsets.filter(
             (readset) => readset.average_quality !== null
@@ -93,7 +129,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             ).size,
             totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
             avgQuality: averageQuality,
-            avgAlignment: validAlignments.length > 0 ? validAlignments.reduce((sum, value) => sum + value, 0) / validAlignments.length : null,
+            avgAlignment: averageAlignment,
             avgDuplication: total === 0 ? 0 : readsets.reduce((sum, x) => sum + Number(x.duplicate_aligned || 0), 0) / total,
         }
     }, [readsets])
