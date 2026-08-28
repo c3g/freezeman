@@ -520,7 +520,6 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
-  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation();
     const navigate = useNavigate();
