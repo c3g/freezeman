@@ -457,7 +457,7 @@ function deserialize(values) {
     newValues.coordinate = Number(newValues.coordinate)
 
   if (newValues.sample_kind === null){
-    newValues.sample_kind = 0 // Fake Pool sample kind
+    newValues.sample_kind = INVALID_FMS_ID // Fake Pool sample kind
   }
   else if (newValues.sample_kind) {
     newValues.sample_kind = Number(newValues.sample_kind)
