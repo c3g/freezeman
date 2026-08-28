@@ -204,25 +204,25 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             <Row gutter={[16, 16]} style={{ margin: 8, borderRadius: 4 }}>
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Readsets" value={metrics.totalReadsets} prefix={<ExperimentOutlined style={iconStyle('#1677ff', '#e6f4ff')}/>} />
+                        <Statistic groupSeparator=" " title="Readsets" value={metrics.totalReadsets} prefix={<ExperimentOutlined style={iconStyle('#1677ff', '#e6f4ff')}/>} />
                     </Card>
                 </Col>
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Runs" value={metrics.totalRuns} prefix={<ClusterOutlined style={iconStyle('#722ed1', '#f9f0ff')} />} />
+                        <Statistic groupSeparator=" " title="Runs" value={metrics.totalRuns} prefix={<ClusterOutlined style={iconStyle('#722ed1', '#f9f0ff')} />} />
                     </Card>
                 </Col>
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Samples" value={metrics.totalSamples} prefix={<TeamOutlined style={iconStyle('#13c2c2', '#e6fffb')} />} />
+                        <Statistic groupSeparator=" " title="Samples" value={metrics.totalSamples} prefix={<TeamOutlined style={iconStyle('#13c2c2', '#e6fffb')} />} />
                     </Card>
                 </Col>
 
                 <Col xs={24} sm={12} lg={6} xl={3}>
                     <Card size="small" styles={{ body: { padding: '8px 12px' } }}>
-                        <Statistic title="Cohorts" value={metrics.totalCohorts} />
+                        <Statistic groupSeparator=" " title="Cohorts" value={metrics.totalCohorts} />
                     </Card>
                 </Col>
 

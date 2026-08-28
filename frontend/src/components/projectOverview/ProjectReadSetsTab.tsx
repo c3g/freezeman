@@ -320,7 +320,7 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 		align: 'right',
 		width: 180,
 		onHeaderCell: compactHeaderCell,
-		render: (reads: number | null) => (reads !== null ? reads.toLocaleString() : <Text type="secondary">N/A</Text>),
+		render: (reads: number | null) => (reads !== null ? reads.toLocaleString('fr-CA') : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: 'Avg Quality',
