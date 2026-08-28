@@ -67,7 +67,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             for sample_id in sample_ids:
                 try:
                     sample_next_step_by_study = queryset.get(sample_next_step__sample__id=sample_id, study=study_id, step_order__order=stepOrder)
-                    sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+                    _, sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
                     if not sample_errors and not sample_warnings:
                         skipped.add(sample_id)
                     errors.update(sample_errors)
