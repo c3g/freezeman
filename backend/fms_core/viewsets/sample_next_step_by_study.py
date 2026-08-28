@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.decorators import action
 from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
@@ -12,8 +13,8 @@ from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core._constants import WorkflowAction
-from fms_core.models import SampleNextStepByStudy, Sample, Study, StepHistory
-from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history
+from fms_core.models import SampleNextStep, SampleNextStepByStudy, Sample, Study, StepHistory
+from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, skip_by_sample_next_step_by_study
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
 
@@ -43,6 +44,45 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     ordering = ["id"]
 
     filterset_class = SampleNextStepByStudyFilter
+
+    @action(detail=False, methods=['post'])
+    def skip(self, request: Request):
+        sample_ids = request.data.get("sample_ids", [])
+        study_id = request.data.get("study", None)
+        stepOrder = request.data.get("step_order", None)
+        if sample_ids == []:
+            return HttpResponseBadRequest("No sample IDs provided.")
+        if study_id is None:
+            return HttpResponseBadRequest("No study ID provided.")
+        if stepOrder is None:
+            return HttpResponseBadRequest("No step order provided.")
+
+        errors = []
+        warnings = []
+
+        queryset = SampleNextStepByStudy.objects.select_related("step_order").select_related("sample_next_step")
+
+        with transaction.atomic():
+            skipped = set[int]()
+            for sample_id in sample_ids:
+                try:
+                    sample_next_step_by_study = queryset.get(sample_next_step__sample__id=sample_id, study=study_id, step_order__order=stepOrder)
+                    sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+                    if not sample_errors and not sample_warnings:
+                        skipped.add(sample_id)
+                    errors.extend(sample_errors)
+                    warnings.update(sample_warnings)
+                except SampleNextStepByStudy.DoesNotExist:
+                    study = Study.objects.get(pk=study_id)
+                    step = study.workflow.steps_order.get(order=stepOrder).step
+                    errors.append(f"{Sample.objects.get(pk=sample_id)} is not queued on step {step.name} in study {study.letter}.")
+            if not skipped:
+                errors.extend(warnings)
+
+        if errors:
+            return HttpResponseBadRequest(" ".join(errors))
+        else:
+            return Response(data=list(skipped), status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
         removed = False
@@ -100,14 +140,14 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return ValidationError(err)
         return Response(data=[int(k) for k in removed], status=status.HTTP_200_OK)
 
-   
-    @action(detail=False, methods=["get"])    
+
+    @action(detail=False, methods=["get"])
     def summary_by_study(self, request):
         """
         Returns the number of samples queued at each step for either a single study or for all
         studies. Pass a comma-separated list of study id's in a 'study__id__in' query parameter
         to specify specific studies.
-        
+
         The endpoint returns an array of objects. Each object contains a study ID and a list
         of steps, where each step includes a count of the number of samples queued.
 
@@ -121,13 +161,13 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         Returns:
         Dictionary of step order ID / sample count pairs, one for each step in the study workflow.
         """
-       
+
         study_id = request.GET.get('study__id__in')
-    
+
         samples_in_study = SampleNextStepByStudy.objects.all()
         if study_id is not None:
             samples_in_study = samples_in_study.filter(study__id=study_id)
-       
+
         counted = samples_in_study.values('study__id', 'step_order', 'step_order__order', 'step_order__step__name').annotate(count=Count('step_order')).order_by('study__id', 'step_order__order')
 
         studies = dict()
