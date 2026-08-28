@@ -124,22 +124,23 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             errors.append(err)
     return dequeued, errors, warnings
 
-def skip_by_sample_next_step_by_study(sample_next_step_by_study: SampleNextStepByStudy):
-    errors = []
-    warnings = []
+def skip_by_sample_next_step_by_study(sample_next_step_by_study: SampleNextStepByStudy) -> tuple[SampleNextStep, list[str], list[str]]:
+    errors = list[str]()
+    warnings = list[str]()
 
     try:
         if sample_next_step_by_study.step_order.mandatory:
             errors.append(f"Step '{sample_next_step_by_study.step_order.step.name}' cannot be skipped in workflow '{sample_next_step_by_study.study.workflow.name}'.")
         else:
-            _, errors, warnings = _move_sample_to_next_step_by_study_step(
+            sample_next_step, errors, warnings = _move_sample_to_next_step_by_study_step(
                 sample_next_step_by_study,
                 workflow_action=WorkflowAction.SKIP_STEP
             )
+            return sample_next_step, errors, warnings
     except Exception as err:
         errors.append(err)
     
-    return errors, warnings
+    return sample_next_step_by_study.sample_next_step, errors, warnings
 
 
 def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
@@ -356,7 +357,7 @@ def _move_sample_to_next_step_by_study_step(
     process_measurement: ProcessMeasurement | None = None,
     next_sample: Sample | None = None,
     keep_current: bool = False,
-):
+) -> tuple[SampleNextStep, list[str], list[str]]:
     new_sample_next_step: SampleNextStep | None = None
     errors = list[str]()
     warnings = list[str]()
