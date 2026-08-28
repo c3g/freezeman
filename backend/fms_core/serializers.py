@@ -627,6 +627,7 @@ class ParentProjectReadsetSerializer(serializers.Serializer):
     run_name = serializers.CharField()
     lane = serializers.IntegerField()
     reference_genome_id = serializers.IntegerField(allow_null=True,)
+    reference_genome_assembly_name = serializers.CharField(allow_null=True,)
     sequencing_index_name = serializers.CharField(allow_null=True)
     run_start_date = serializers.DateField()
     alias = serializers.CharField(allow_null=True)

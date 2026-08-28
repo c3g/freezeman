@@ -80,6 +80,7 @@ export type ProjectOverviewReadset = {
 
 	lane: number
 	reference_genome_id: number | null
+	reference_genome_assembly_name: string | null
 	sequencing_index_name: string | null
 
 	readset_files?: ProjectOverviewReadsetFile[]
