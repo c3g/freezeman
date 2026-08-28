@@ -8,10 +8,11 @@
     "watch": "webpack --watch --mode development",
     "build": "webpack --mode production",
     "build-dev": "webpack --mode development",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint --quiet .",
+    "format": "prettier .",
     "start": "webpack-dev-server --mode development",
     "dev": "npm run lint --quiet && npm run check && npm run start",
-    "check": "npx tsc -p ./.tsconfig"
+    "check": "npx tsc"
   },
   "repository": {
     "type": "git",
@@ -23,11 +24,19 @@
     "url": "https://github.com/c3g/freezeman/issues"
   },
   "homepage": "https://github.com/c3g/freezeman/frontend#readme",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "onFail": "error"
+    }
+  },
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@types/redux-logger": "^3.0.9",
-    "@typescript-eslint/eslint-plugin": "^5.53.0",
-    "@typescript-eslint/parser": "^5.53.0",
     "antd": "^6.3.2",
     "bowser": "^2.11.0",
     "cheerio": "^1.0.0-rc.9",
@@ -67,6 +76,9 @@
     "@babel/preset-env": "^7.19.1",
     "@babel/preset-react": "^7.10.4",
     "@babel/preset-typescript": "^7.18.6",
+    "@eslint-react/eslint-plugin": "^5.18.4",
+    "@eslint/css": "^1.4.0",
+    "@eslint/js": "^10.0.1",
     "@reduxjs/toolkit": "^1.9.1",
     "@types/cytoscape-dagre": "^2.3.4",
     "@types/react": "^18.2.0",
@@ -74,13 +86,14 @@
     "babel-plugin-import": "^1.13.3",
     "babel-polyfill": "^6.26.0",
     "css-loader": "^5.2.6",
-    "eslint": "^8.24.0",
-    "eslint-plugin-react": "^7.31.8",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint": "^10.8.1",
     "git-revision-webpack-plugin": "^3.0.6",
+    "globals": "^17.11.0",
     "html-webpack-plugin": "^5.3.1",
     "immer": "^9.0.21",
+    "prettier": "^3.9.6",
     "style-loader": "^1.1.3",
+    "typescript-eslint": "^8.67.0",
     "webpack": "^5.38.1",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.2"

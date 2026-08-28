@@ -5,12 +5,13 @@
     "@babel/preset-typescript"
   ],
   "plugins": [
-    ["import",
-        {
-          "libraryName": "antd",
-          "libraryDirectory": "lib"
-        },
-        "antd"
+    [
+      "import",
+      {
+        "libraryName": "antd",
+        "libraryDirectory": "lib"
+      },
+      "antd"
     ],
     "@babel/proposal-class-properties",
     "@babel/proposal-object-rest-spread"

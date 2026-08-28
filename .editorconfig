@@ -10,10 +10,16 @@ insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
 
-# 4 space indentation by default
-[*.{js,ts,jsx,tsx,html,css,scss,json,py}]
+[*.{js,ts,jsx,tsx,html,css,scss}]
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+[*.py]
 indent_style = space
 indent_size = 4
+max_line_length = 100
 
-[package.json]
+[*.{json,yml,yaml}]
+indent_style = space
 indent_size = 2
