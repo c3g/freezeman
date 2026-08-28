@@ -124,7 +124,6 @@ export const mapStateToProps = state => ({
 export const actionCreators = { logOut };
 
 const App = ({userID, usersByID, logOut }) => {
-  /* global FMS_ENV */
   const env = FMS_ENV
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
