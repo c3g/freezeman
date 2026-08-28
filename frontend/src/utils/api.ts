@@ -35,6 +35,7 @@ import {
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
 import { notifyError } from "../modules/notification/actions"
+import { ProjectOverviewReadset } from "../components/projectOverview/types";
 
 const api = {
   auth: {
@@ -216,6 +217,10 @@ const api = {
       get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, {
         abort,
         requestID,
+      }),
+    readsets: (parentProjectId: FMSId,options: QueryParams,abort?: boolean,) =>
+      get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(`/parent-projects/${parentProjectId}/readsets/`, options, { 
+        abort
       }),
   },
 
