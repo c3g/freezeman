@@ -230,6 +230,7 @@ CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_5B_FLOWCELL = ContainerSpec(
      coordinate_overlap_allowed=False,
      children=(),  # Leaf node; sample-holding
      is_run_container=True,
+     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL = ContainerSpec(
