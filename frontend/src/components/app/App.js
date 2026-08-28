@@ -16,6 +16,8 @@ import {
   TableOutlined,
   TeamOutlined,
   UserOutlined,
+  GlobalOutlined,
+  ApartmentOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
 import React, { useEffect, useMemo } from "react";
@@ -37,6 +39,8 @@ import ProcessesPage from "../processes/ProcessesPage";
 import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "../profile/ProfilePage";
 import ProjectsPage from "../projects/ProjectsPage";
+import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage";
+import ExternalProjectDetailsPage from '../projectOverview/ExternalProjectDetailsPage';
 import SamplesPage from "../samples/SamplesPage";
 import UsersPage from "../users/UsersPage";
 
@@ -175,10 +179,23 @@ const App = ({userID, usersByID, logOut }) => {
         key: "lab-work",
       },
       {
-        url: "/projects",
         icon: <ProjectOutlined />,
         text: "Projects",
         key: "projects",
+        children: [
+            {
+              icon: <GlobalOutlined />,              
+              url: "/external-projects-overview",
+              text: "External Overview",
+              key: "external-project-overview",
+            },
+            {
+              icon: <ApartmentOutlined />,
+              url: "/projects",
+              text: "Internal Projects",
+              key: "internal-project",
+            },
+        ]
       },
       {
         icon: <CarryOutOutlined />,
@@ -398,6 +415,16 @@ const App = ({userID, usersByID, logOut }) => {
                 <ExperimentRunsPage />
               </PrivateNavigate>
             } />
+            <Route path="/external-projects-overview/*" element={
+               <PrivateNavigate>
+                 <ExternalProjectsPage />               
+               </PrivateNavigate>
+            }/>
+            <Route path="/external-projects-overview/:parentProjectId" element={
+              <PrivateNavigate>
+                <ExternalProjectDetailsPage />
+              </PrivateNavigate>
+            }/>
             <Route path="/projects/*" element={
               <PrivateNavigate>
                 <ProjectsPage />
