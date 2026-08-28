@@ -185,19 +185,19 @@ const App = ({ userID, usersByID, logOut }) => {
         text: "Projects",
         key: "projects",
         children: [
-            {
-              icon: <GlobalOutlined />,              
-              url: "/external-projects-overview",
-              text: "External Overview",
-              key: "external-project-overview",
-            },
-            {
-              icon: <ApartmentOutlined />,
-              url: "/projects",
-              text: "Internal Projects",
-              key: "internal-project",
-            },
-        ]
+          {
+            icon: <GlobalOutlined />,
+            url: "/external-projects-overview",
+            text: "External Overview",
+            key: "external-project-overview",
+          },
+          {
+            icon: <ApartmentOutlined />,
+            url: "/projects",
+            text: "Internal Projects",
+            key: "internal-project",
+          },
+        ],
       },
       {
         icon: <CarryOutOutlined />,
@@ -466,16 +466,22 @@ const App = ({ userID, usersByID, logOut }) => {
                 </PrivateNavigate>
               }
             />
-            <Route path="/external-projects-overview/*" element={
-               <PrivateNavigate>
-                 <ExternalProjectsPage />               
-               </PrivateNavigate>
-            }/>
-            <Route path="/external-projects-overview/:parentProjectId" element={
-              <PrivateNavigate>
-                <ExternalProjectDetailsPage />
-              </PrivateNavigate>
-            }/>
+            <Route
+              path="/external-projects-overview/*"
+              element={
+                <PrivateNavigate>
+                  <ExternalProjectsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/external-projects-overview/:parentProjectId"
+              element={
+                <PrivateNavigate>
+                  <ExternalProjectDetailsPage />
+                </PrivateNavigate>
+              }
+            />
             <Route
               path="/projects/*"
               element={
