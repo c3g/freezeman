@@ -129,6 +129,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.NA_QUANTITY,
 		title: 'NA Qty (ng)',
 		dataIndex: ['library', 'quantity_ng'],
+		width: '10em',
 		render: (qty) => qty && <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(qty).toFixed(3)}</Typography>,
 		sorter: { multiple: 1 }
 	},

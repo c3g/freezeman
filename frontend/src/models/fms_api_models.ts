@@ -607,6 +607,7 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     step_id: FMSId                      // Step ID
     step_name: string                   // Step name
     protocol_id: FMSId               // ID of protocol associated with step
+    mandatory: boolean
 }
 
 export interface SampleLocator {

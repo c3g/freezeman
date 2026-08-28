@@ -186,6 +186,7 @@ const App = ({userID, usersByID, logOut }) => {
         key: "management",
         children: [
           {
+            url: "/management/workflow-assignment",
             onClick: () => navigateToWorkflowAssignment(),
             icon: <RetweetOutlined />,
             text: "Assign Workflow",

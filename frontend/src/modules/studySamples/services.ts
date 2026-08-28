@@ -74,6 +74,7 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 		stepOrderID: stepOrder.id,
 		stepOrder: stepOrder.order,
 		protocolID: stepOrder.protocol_id,
+		mandatory: stepOrder.mandatory,
 		...(await loadStudySamplesInStepByStudy(studyID, stepOrder.id, limit))
 	}
 }

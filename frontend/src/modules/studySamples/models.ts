@@ -21,6 +21,7 @@ export interface StudySampleStep {
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
 	readonly protocolID: FMSId					// protocol ID
+	readonly mandatory: boolean
 	readonly ready: {
 		readonly count: number,
 		readonly samples: SampleAndLibraryAndIdentity[]

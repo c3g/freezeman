@@ -150,3 +150,7 @@ export function fms_env() {
         return undefined
     }
 }
+
+export function toTitleCase(s: string) {
+    return `${s.slice(0, 1).toUpperCase()}${s.slice(1)}`
+}
