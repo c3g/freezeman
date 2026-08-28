@@ -21,14 +21,16 @@ __all__ = [
 
     "validate_and_normalize_coordinates",
     "check_coordinate_overlap",
+    "ROW_ORDINAL_COORDINATE_ALLOCATION",
+    "COLUMN_ORDINAL_COORDINATE_ALLOCATION",
 ]
 
 
 CoordinateAxis = Tuple[str, ...]
 CoordinateSpec = Union[Tuple[()], Tuple[CoordinateAxis], Tuple[CoordinateAxis, CoordinateAxis]]
 
-ROW = "row"
-COLUMN = "column"
+COLUMN_ORDINAL_COORDINATE_ALLOCATION = "column"
+ROW_ORDINAL_COORDINATE_ALLOCATION = "row"
 
 
 class CoordinateError(Exception):
@@ -73,7 +75,7 @@ def is_alpha_digit_spec(spec: CoordinateSpec) -> bool:
 
     return False
 
-def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis: str = ROW) -> int:
+def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis: str = ROW_ORDINAL_COORDINATE_ALLOCATION) -> int:
     '''
     Convert a coordinate with the alpha/digit style (eg. A01) to an integer value, starting at 1.
     The coordinate spec must support this style of coordinate.
@@ -110,7 +112,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
 
     alpha_offset = 0
     digit_offset = 0
-    if axis == ROW:
+    if axis == ROW_ORDINAL_COORDINATE_ALLOCATION:
         try:
             # Find the index of the letter (or letters) in the spec
             letter_index = spec_letters.index(letters)
@@ -139,7 +141,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
 
     return alpha_offset + digit_offset
 
-def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str:
+def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec, axis: str = ROW_ORDINAL_COORDINATE_ALLOCATION) -> str:
     """
     Convert a lane number (ordinal) to the alpha/digit style (eg. A01).
     The coordinate spec must support this style of coordinate.
@@ -154,9 +156,12 @@ def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str
             raise CoordinateError(f'Cannot convert lane {lane} to requested coordinate style.')
         spec_letters = spec[0]
         spec_digits = spec[1]
-        letter_index, digit_index = divmod(lane - 1, len(spec_digits))
-        letters = spec_letters[letter_index]
-        digits = spec_digits[digit_index]
+        if axis == ROW_ORDINAL_COORDINATE_ALLOCATION:
+            primary_index, secondary_index = divmod(lane - 1, len(spec_digits))
+        else:
+            secondary_index, primary_index = divmod(lane - 1, len(spec_letters))
+        letters = spec_letters[primary_index]
+        digits = spec_digits[secondary_index]
     except Exception as err:
         raise CoordinateError(f"Failed to convert lane {lane} to alpha numerical coordinates for given container spec {spec}.")
     return letters + digits

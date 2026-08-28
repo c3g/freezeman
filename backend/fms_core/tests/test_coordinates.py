@@ -1,5 +1,14 @@
 from django.test import TestCase
-from ..coordinates import CoordinateSpec, CoordinateError, alphas, convert_alpha_digit_coord_to_ordinal, convert_ordinal_to_alpha_digit_coord, ints, validate_and_normalize_coordinates
+from ..coordinates import (CoordinateSpec,
+                           CoordinateError,
+                           alphas,
+                           convert_alpha_digit_coord_to_ordinal,
+                           convert_ordinal_to_alpha_digit_coord,
+                           ints,
+                           validate_and_normalize_coordinates,
+                           COLUMN_ORDINAL_COORDINATE_ALLOCATION,
+                           ROW_ORDINAL_COORDINATE_ALLOCATION
+                           )
 
 
 class CoordinateTestCase(TestCase):
@@ -71,15 +80,19 @@ class CoordinateTestCase(TestCase):
                 validate_and_normalize_coordinates(iv, cs)
 
     def test_alpha_digit_ordinal(self):
-        cs = (alphas(2), ints(10))
+        cs = (alphas(2), ints(10, pad_to=2))
 
         self.assertEqual(convert_alpha_digit_coord_to_ordinal("A01", cs), 1)
         self.assertEqual(convert_alpha_digit_coord_to_ordinal("A02", cs), 2)
-        self.assertEqual(convert_alpha_digit_coord_to_ordinal("A10", cs), 10)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("A10", cs, ROW_ORDINAL_COORDINATE_ALLOCATION), 10)
 
         self.assertEqual(convert_alpha_digit_coord_to_ordinal("B01", cs), 11)
-        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B02", cs), 12)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B02", cs, ROW_ORDINAL_COORDINATE_ALLOCATION), 12)
         self.assertEqual(convert_alpha_digit_coord_to_ordinal("B10", cs), 20)
+
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B01", cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), 2)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B02", cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), 4)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B10", cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), 20)
 
         for invalid in ("", "A", "0", "AA", "00", "A9B"):
             with self.assertRaises(CoordinateError):
@@ -88,9 +101,13 @@ class CoordinateTestCase(TestCase):
     def test_ordinal_alpha_digit(self):
         cs = (alphas(1), ints(8, pad_to=2))
 
-        self.assertEqual(convert_ordinal_to_alpha_digit_coord(1, cs), "A01")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(1, cs, ROW_ORDINAL_COORDINATE_ALLOCATION), "A01")
         self.assertEqual(convert_ordinal_to_alpha_digit_coord(2, cs), "A02")
-        self.assertEqual(convert_ordinal_to_alpha_digit_coord(8, cs), "A08")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(8, cs, ROW_ORDINAL_COORDINATE_ALLOCATION), "A08")
+
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(1, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "A01")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(2, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "A02")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(8, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "A08")
 
         for invalid in (0, 9, 20):
             with self.assertRaises(CoordinateError):
@@ -99,9 +116,19 @@ class CoordinateTestCase(TestCase):
         cs = (alphas(8), ints(12, pad_to=2))
         
         self.assertEqual(convert_ordinal_to_alpha_digit_coord(5, cs), "A05")
-        self.assertEqual(convert_ordinal_to_alpha_digit_coord(20, cs), "B08")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(20, cs, ROW_ORDINAL_COORDINATE_ALLOCATION), "B08")
         self.assertEqual(convert_ordinal_to_alpha_digit_coord(96, cs), "H12")
+
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(5, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "E01")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(20, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "D03")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(96, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "H12")
 
         for invalid in (0, 97):
             with self.assertRaises(CoordinateError):
                 convert_ordinal_to_alpha_digit_coord(invalid, cs)
+
+        cs = (alphas(2), ints(10, pad_to=2))
+
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(2, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "B01")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(4, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "B02")
+        self.assertEqual(convert_ordinal_to_alpha_digit_coord(20, cs, COLUMN_ORDINAL_COORDINATE_ALLOCATION), "B10")
