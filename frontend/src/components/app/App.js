@@ -5,7 +5,7 @@ import {
   DashboardOutlined,
   ExperimentOutlined,
   FileZipOutlined,
-  FlagOutlined,  
+  FlagOutlined,
   HddOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
@@ -18,65 +18,67 @@ import {
   UserOutlined,
   GlobalOutlined,
   ApartmentOutlined,
-} from "@ant-design/icons";
-import { Layout, Menu, Spin, Typography } from "antd";
-import React, { useEffect, useMemo } from "react";
-import { connect } from "react-redux";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+} from "@ant-design/icons"
+import { Layout, Menu, Spin, Typography } from "antd"
+import React, { useEffect, useMemo } from "react"
+import { connect } from "react-redux"
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 
-import About from "../About";
-import ContainersPage from "../containers/ContainersPage";
-import DashboardPage from "../DashboardPage";
-import ExperimentRunsPage from "../experimentRuns/ExperimentRunsPage";
-import { IndexCurationPage } from "../management/IndexCurationPage";
-import { SampleRenamePage } from "../management/SampleRename/SampleRenamePage";
-import IndicesPage from "../indices/IndicesPage";
-import IndividualsPage from "../individuals/IndividualsPage";
-import JumpBar from "../JumpBar";
-import LibrariesPage from "../libraries/LibrariesPage";
-import LoginPage from "../login/LoginPage";
-import ProcessesPage from "../processes/ProcessesPage";
-import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage";
-import ProfilePage from "../profile/ProfilePage";
-import ProjectsPage from "../projects/ProjectsPage";
-import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage";
-import ExternalProjectDetailsPage from '../projectOverview/ExternalProjectDetailsPage';
-import SamplesPage from "../samples/SamplesPage";
-import UsersPage from "../users/UsersPage";
+import About from "../About"
+import ContainersPage from "../containers/ContainersPage"
+import DashboardPage from "../DashboardPage"
+import ExperimentRunsPage from "../experimentRuns/ExperimentRunsPage"
+import { IndexCurationPage } from "../management/IndexCurationPage"
+import { SampleRenamePage } from "../management/SampleRename/SampleRenamePage"
+import IndicesPage from "../indices/IndicesPage"
+import IndividualsPage from "../individuals/IndividualsPage"
+import JumpBar from "../JumpBar"
+import LibrariesPage from "../libraries/LibrariesPage"
+import LoginPage from "../login/LoginPage"
+import ProcessesPage from "../processes/ProcessesPage"
+import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage"
+import ProfilePage from "../profile/ProfilePage"
+import ProjectsPage from "../projects/ProjectsPage"
+import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage"
+import ExternalProjectDetailsPage from "../projectOverview/ExternalProjectDetailsPage"
+import SamplesPage from "../samples/SamplesPage"
+import UsersPage from "../users/UsersPage"
 
-import PrivateNavigate from "../PrivateNavigate";
+import PrivateNavigate from "../PrivateNavigate"
 
-import { matchingMenuKeys, resolveBadMenuItem } from "../../utils/menus";
-import { hour } from "../../utils/time";
-import useUserInputExpiration from "../../utils/useUserInputExpiration";
+import { matchingMenuKeys, resolveBadMenuItem } from "../../utils/menus"
+import { hour } from "../../utils/time"
+import useUserInputExpiration from "../../utils/useUserInputExpiration"
 
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { setAppInitialized } from "../../modules/app/actions";
-import { logOut } from "../../modules/auth/actions";
-import { fetchStaticData } from "../../modules/shared/actions";
-import { get } from "../../modules/users/actions";
-import { selectAppInitialized } from "../../selectors";
-import DatasetsPage from "../datasets/DatasetsPage";
-import LabworkPage from "../labwork/LabworkPage";
-import ReferenceGenomesRoute from "../referenceGenomes/ReferenceGenomesRoute";
-import TaxonsRoute from "../taxons/TaxonsRoute";
-import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
-import { useAuthInit } from "./useAuthInit";
-import { useRefreshHook } from "./useRefreshHook";
-import InstrumentsRoute from "../instruments/InstrumentsRoute";
-import { Reports } from "../reports/Reports";
-import { useNavigateToWorkflowAssignment, WorkflowAssignmentPage } from "../management/WorkflowAssignmentPage";
-import { getProfile } from "../../modules/profiles";
-import api from "../../utils/api";
-import store from "../../store";
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { setAppInitialized } from "../../modules/app/actions"
+import { logOut } from "../../modules/auth/actions"
+import { fetchStaticData } from "../../modules/shared/actions"
+import { get } from "../../modules/users/actions"
+import { selectAppInitialized } from "../../selectors"
+import DatasetsPage from "../datasets/DatasetsPage"
+import LabworkPage from "../labwork/LabworkPage"
+import ReferenceGenomesRoute from "../referenceGenomes/ReferenceGenomesRoute"
+import TaxonsRoute from "../taxons/TaxonsRoute"
+import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute"
+import { useAuthInit } from "./useAuthInit"
+import { useRefreshHook } from "./useRefreshHook"
+import InstrumentsRoute from "../instruments/InstrumentsRoute"
+import { Reports } from "../reports/Reports"
+import {
+  useNavigateToWorkflowAssignment,
+  WorkflowAssignmentPage,
+} from "../management/WorkflowAssignmentPage"
+import { getProfile } from "../../modules/profiles"
+import api from "../../utils/api"
+import store from "../../store"
 
-
-const { Title } = Typography;
+const { Title } = Typography
 
 /**
- * 
- * @param {import("../../models/frontend_models").User | undefined} user 
- * @param {() => void} logOut 
+ *
+ * @param {import("../../models/frontend_models").User | undefined} user
+ * @param {() => void} logOut
  * @returns {BadMenuItem[]}
  */
 const getMenuItems = (user, logOut) => [
@@ -97,11 +99,12 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
-    style: { marginBottom: '50px' }
+    style: { marginBottom: "50px" },
   },
 ]
 
-const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)";
+const DEV_QC_BACKGROUND =
+  "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)"
 
 const colorStyle = {
   color: "white",
@@ -114,16 +117,16 @@ const titleStyle = {
   lineHeight: "unset",
   padding: 0,
   margin: 0,
-};
+}
 
-export const mapStateToProps = state => ({
+export const mapStateToProps = (state) => ({
   userID: state.auth.currentUserID,
   usersByID: state.users.itemsByID,
-});
+})
 
-export const actionCreators = { logOut };
+export const actionCreators = { logOut }
 
-const App = ({userID, usersByID, logOut }) => {
+const App = ({ userID, usersByID, logOut }) => {
   const env = FMS_ENV
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
@@ -144,27 +147,28 @@ const App = ({userID, usersByID, logOut }) => {
     if (isLoggedIn) {
       loadInitialData()
     }
-  }, [userID, isLoggedIn, dispatch]);
+  }, [userID, isLoggedIn, dispatch])
 
   useRefreshHook(isLoggedIn)
 
-  const user = usersByID[userID];
+  const user = usersByID[userID]
 
-  const menuItems = getMenuItems(user, logOut);
+  const menuItems = getMenuItems(user, logOut)
 
-  useEffect(onDidMount, []);
+  useEffect(onDidMount, [])
 
   // Logout the user after 12 hours in all cases where the tab stays open
-  useUserInputExpiration(logOut, 12 * hour);
+  useUserInputExpiration(logOut, 12 * hour)
 
-  const loadingIcon = <SyncOutlined style={{ fontSize: '22px', color: 'white' }} spin />
+  const loadingIcon = <SyncOutlined style={{ fontSize: "22px", color: "white" }} spin />
 
   const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
 
   /**
    * @type {import("../../utils/menus").BadMenuItem[]}
    */
-  const MENU_ITEMS = useMemo(() => [
+  const MENU_ITEMS = useMemo(
+    () => [
       {
         url: "/dashboard",
         icon: <DashboardOutlined />,
@@ -182,19 +186,19 @@ const App = ({userID, usersByID, logOut }) => {
         text: "Projects",
         key: "projects",
         children: [
-            {
-              icon: <GlobalOutlined />,              
-              url: "/external-projects-overview",
-              text: "External Overview",
-              key: "external-project-overview",
-            },
-            {
-              icon: <ApartmentOutlined />,
-              url: "/projects",
-              text: "Internal Projects",
-              key: "internal-project",
-            },
-        ]
+          {
+            icon: <GlobalOutlined />,
+            url: "/external-projects-overview",
+            text: "External Overview",
+            key: "external-project-overview",
+          },
+          {
+            icon: <ApartmentOutlined />,
+            url: "/projects",
+            text: "Internal Projects",
+            key: "internal-project",
+          },
+        ],
       },
       {
         icon: <CarryOutOutlined />,
@@ -219,7 +223,7 @@ const App = ({userID, usersByID, logOut }) => {
             text: "Rename Sample",
             key: "sample-rename",
           },
-        ]
+        ],
       },
       {
         url: "/containers",
@@ -292,7 +296,7 @@ const App = ({userID, usersByID, logOut }) => {
             text: "Workflows",
             key: "workflows",
           },
-        ]
+        ],
       },
       {
         url: "/individuals",
@@ -312,13 +316,14 @@ const App = ({userID, usersByID, logOut }) => {
         text: "Users",
         key: "users",
       },
-    ]
-  , [navigateToWorkflowAssignment])
+    ],
+    [navigateToWorkflowAssignment],
+  )
 
   return (
     <Layout style={{ height: "100vh" }}>
       <Layout>
-        {isLoggedIn &&
+        {isLoggedIn && (
           <Layout.Sider
             collapsible
             theme="dark"
@@ -327,30 +332,53 @@ const App = ({userID, usersByID, logOut }) => {
             collapsedWidth={80}
             // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
             // the sidebar width changes whenever a submenu is expanded or collapsed.
-            width={'17em'}
-            style={{ overflow: 'auto' }}
+            width={"17em"}
+            style={{ overflow: "auto" }}
           >
-            <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
-              <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+            <div
+              style={{
+                background: env !== "PROD" ? DEV_QC_BACKGROUND : undefined,
+                padding: 0,
+                margin: 0,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignContent: "baseline",
+                  justifyContent: "left",
+                  textAlign: "center",
+                }}
+              >
                 <Title style={titleStyle} className="App__title">
-                  <div style={{marginRight: '0.25rem', paddingRight: '0.25rem'}}>
-                    <b>F</b><span>reeze</span><b>M</b><span>an</span>
-                    {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
+                  <div style={{ marginRight: "0.25rem", paddingRight: "0.25rem" }}>
+                    <b>F</b>
+                    <span>reeze</span>
+                    <b>M</b>
+                    <span>an</span>
+                    {env !== "PROD" && (
+                      <span style={{ color: "red", fontSize: "14px" }}>&nbsp;{env}</span>
+                    )}
                   </div>
                 </Title>
-                { // Display a spinner while the initial data is being fetched at startup
-                  !isInitialized &&
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
-                      <Spin size="small" indicator={loadingIcon}/>
+                {
+                  // Display a spinner while the initial data is being fetched at startup
+                  !isInitialized && (
+                    <div
+                      style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}
+                      className="App__spin"
+                    >
+                      <Spin size="small" indicator={loadingIcon} />
                     </div>
+                  )
                 }
               </div>
             </div>
-            {isLoggedIn &&
-              <div className='App__jumpBar'>
+            {isLoggedIn && (
+              <div className="App__jumpBar">
                 <JumpBar />
               </div>
-            }
+            )}
 
             <Menu
               theme="dark"
@@ -360,7 +388,7 @@ const App = ({userID, usersByID, logOut }) => {
               defaultOpenKeys={MENU_ITEMS.filter((i) => i.children).map((i) => i.key)} // Submenus should be open by default
               items={MENU_ITEMS.map(resolveBadMenuItem)}
             />
-            {isLoggedIn &&
+            {isLoggedIn && (
               <Menu
                 theme="dark"
                 mode="inline"
@@ -368,161 +396,236 @@ const App = ({userID, usersByID, logOut }) => {
                 style={{ flex: 1 }}
                 items={menuItems.map(resolveBadMenuItem)}
               />
-            }
+            )}
           </Layout.Sider>
-        }
+        )}
         <Layout.Content style={{ position: "relative" }}>
           <Routes>
             <Route path="/login/*" element={<LoginPage />} />
-            <Route path="/dashboard/*" element={
-              <PrivateNavigate>
-                <DashboardPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/containers/*" element={
-              <PrivateNavigate>
-                <ContainersPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/samples/*" element={
-              <PrivateNavigate>
-                <SamplesPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/libraries/*" element={
-              <PrivateNavigate>
-                <LibrariesPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/individuals/*" element={
-              <PrivateNavigate>
-                <IndividualsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/process-measurements/*" element={
-              <PrivateNavigate>
-                <ProcessMeasurementsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/processes/*" element={
-              <PrivateNavigate>
-                <ProcessesPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/experiment-runs/*" element={
-              <PrivateNavigate>
-                <ExperimentRunsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/external-projects-overview/*" element={
-               <PrivateNavigate>
-                 <ExternalProjectsPage />               
-               </PrivateNavigate>
-            }/>
-            <Route path="/external-projects-overview/:parentProjectId" element={
-              <PrivateNavigate>
-                <ExternalProjectDetailsPage />
-              </PrivateNavigate>
-            }/>
-            <Route path="/projects/*" element={
-              <PrivateNavigate>
-                <ProjectsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/lab-work/*" element={
-              <PrivateNavigate>
-                <LabworkPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/management/workflow-assignment" element={
-              <PrivateNavigate>
-                <WorkflowAssignmentPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/management/index-curations/*" element={
-              <PrivateNavigate>
-                <IndexCurationPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/management/sample-rename/*" element={
-              <PrivateNavigate>
-                <SampleRenamePage />
-              </PrivateNavigate>
-            } />
-            <Route path="/indices/*" element={
-              <PrivateNavigate>
-                <IndicesPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/users/*" element={
-              <PrivateNavigate>
-                <UsersPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/profile/*" element={
-              <PrivateNavigate>
-                <ProfilePage />
-              </PrivateNavigate>
-            } />
-            <Route path="/about/*" element={
-              <PrivateNavigate>
-                <About />
-              </PrivateNavigate>
-            } />
-            <Route path="/datasets/*" element={
-              <PrivateNavigate>
-                <DatasetsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/workflows/*" element={
-              <PrivateNavigate>
-                <WorkflowDefinitionsRoute />
-              </PrivateNavigate>
-            } />
-            <Route path="/taxons/*" element={
-              <PrivateNavigate>
-                <TaxonsRoute />
-              </PrivateNavigate>
-            } />
-            <Route path="/genomes/*" element={
-              <PrivateNavigate>
-                <ReferenceGenomesRoute />
-              </PrivateNavigate>
-            } />
-            <Route path="/instruments/*" element={
-              <PrivateNavigate>
-                <InstrumentsRoute />
-              </PrivateNavigate>
-            }/>
-            <Route path="/reports/*" element={
-              <PrivateNavigate>
-                <Reports />
-              </PrivateNavigate>
-            } />
+            <Route
+              path="/dashboard/*"
+              element={
+                <PrivateNavigate>
+                  <DashboardPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/containers/*"
+              element={
+                <PrivateNavigate>
+                  <ContainersPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/samples/*"
+              element={
+                <PrivateNavigate>
+                  <SamplesPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/libraries/*"
+              element={
+                <PrivateNavigate>
+                  <LibrariesPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/individuals/*"
+              element={
+                <PrivateNavigate>
+                  <IndividualsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/process-measurements/*"
+              element={
+                <PrivateNavigate>
+                  <ProcessMeasurementsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/processes/*"
+              element={
+                <PrivateNavigate>
+                  <ProcessesPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/experiment-runs/*"
+              element={
+                <PrivateNavigate>
+                  <ExperimentRunsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/external-projects-overview/*"
+              element={
+                <PrivateNavigate>
+                  <ExternalProjectsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/external-projects-overview/:parentProjectId"
+              element={
+                <PrivateNavigate>
+                  <ExternalProjectDetailsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/projects/*"
+              element={
+                <PrivateNavigate>
+                  <ProjectsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/lab-work/*"
+              element={
+                <PrivateNavigate>
+                  <LabworkPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/management/workflow-assignment"
+              element={
+                <PrivateNavigate>
+                  <WorkflowAssignmentPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/management/index-curations/*"
+              element={
+                <PrivateNavigate>
+                  <IndexCurationPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/management/sample-rename/*"
+              element={
+                <PrivateNavigate>
+                  <SampleRenamePage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/indices/*"
+              element={
+                <PrivateNavigate>
+                  <IndicesPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/users/*"
+              element={
+                <PrivateNavigate>
+                  <UsersPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/profile/*"
+              element={
+                <PrivateNavigate>
+                  <ProfilePage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/about/*"
+              element={
+                <PrivateNavigate>
+                  <About />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/datasets/*"
+              element={
+                <PrivateNavigate>
+                  <DatasetsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/workflows/*"
+              element={
+                <PrivateNavigate>
+                  <WorkflowDefinitionsRoute />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/taxons/*"
+              element={
+                <PrivateNavigate>
+                  <TaxonsRoute />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/genomes/*"
+              element={
+                <PrivateNavigate>
+                  <ReferenceGenomesRoute />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/instruments/*"
+              element={
+                <PrivateNavigate>
+                  <InstrumentsRoute />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/reports/*"
+              element={
+                <PrivateNavigate>
+                  <Reports />
+                </PrivateNavigate>
+              }
+            />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout.Content>
       </Layout>
     </Layout>
-  );
-};
+  )
+}
 
-export default withRouter(connect(mapStateToProps, actionCreators)(App));
+export default withRouter(connect(mapStateToProps, actionCreators)(App))
 
 // Helpers
 
 function onDidMount() {
-  const title = document.querySelector('.App__title')
+  const title = document.querySelector(".App__title")
   if (title) {
-    const span = title.querySelectorAll('span')[0]
-    span.style.width = span.getBoundingClientRect().width + 'px'
+    const span = title.querySelectorAll("span")[0]
+    span.style.width = span.getBoundingClientRect().width + "px"
   }
 }
 
 function withRouter(Child) {
   return (props) => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    return <Child {...props} navigate={navigate} location={location} />;
+    const location = useLocation()
+    const navigate = useNavigate()
+    return <Child {...props} navigate={navigate} location={location} />
   }
 }
