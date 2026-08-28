@@ -47,7 +47,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def skip(self, request: Request):
-        sample_ids = request.data.get("sample_ids", [])
+        sample_ids = request.data.get("sample_ids", list[int]())
         study_id = request.data.get("study", None)
         stepOrder = request.data.get("step_order", None)
         if sample_ids == []:
@@ -57,8 +57,8 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         if stepOrder is None:
             return HttpResponseBadRequest("No step order provided.")
 
-        errors = []
-        warnings = []
+        errors = set[str]()
+        warnings = set[str]()
 
         queryset = SampleNextStepByStudy.objects.select_related("step_order").select_related("sample_next_step")
 
@@ -70,14 +70,12 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
                     if not sample_errors and not sample_warnings:
                         skipped.add(sample_id)
-                    errors.extend(sample_errors)
+                    errors.update(sample_errors)
                     warnings.update(sample_warnings)
                 except SampleNextStepByStudy.DoesNotExist:
                     study = Study.objects.get(pk=study_id)
                     step = study.workflow.steps_order.get(order=stepOrder).step
-                    errors.append(f"{Sample.objects.get(pk=sample_id)} is not queued on step {step.name} in study {study.letter}.")
-            if not skipped:
-                errors.extend(warnings)
+                    errors.add(f"{Sample.objects.get(pk=sample_id)} is not queued on step {step.name} in study {study.letter}.")
 
         if errors:
             return HttpResponseBadRequest(" ".join(errors))
