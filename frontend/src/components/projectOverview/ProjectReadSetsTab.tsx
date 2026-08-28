@@ -375,7 +375,26 @@ const getProjectOverviewReadsetColumns = (libraryTypeFilters: { text: string; va
 ]
 
 
+const formatReadsetFilesForCsv = (files: ProjectOverviewReadset['readset_files']): string => {
+	if (!files?.length) {
+		return ''
+	}
 
+	return files
+		.flatMap((file) => {
+			if (!file.file_path) {
+				return []
+			}
+
+			if (file.size === null || file.size === undefined) {
+				return [file.file_path]
+			}
+
+			const sizeInMb = (Number(file.size) / 1024 / 1024).toFixed(2)
+			return [`${file.file_path} (${sizeInMb} MB)`]
+		})
+		.join('; ')
+}
 
 function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectReadSetsTabProps) {
 	const [projectOverviewReadsets, setProjectOverviewReadsets] = useState<ProjectOverviewReadset[]>([])
@@ -434,7 +453,18 @@ function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectRe
 		loadParentProjectReadsets(parentProjectId)
 	}, [isActive,parentProjectId,loadParentProjectReadsets,])
 
-	const generateCsvContent = useCreateCsvExportFunction(projectOverviewReadsets)
+	const exportReadsets = useMemo(
+    () =>
+        projectOverviewReadsets.map((readset) => ({
+            ...readset,
+            readset_files: formatReadsetFilesForCsv(
+                readset.readset_files
+            ),
+        })),
+    [projectOverviewReadsets]
+)
+
+const generateCsvContent = useCreateCsvExportFunction(exportReadsets)
 
 	const libraryTypeFilters = Array.from(
 		new Set(
