@@ -414,7 +414,7 @@ def _move_sample_to_next_step_by_study_step(
         if not keep_current:
             sample_next_step = sample_next_step_by_study.sample_next_step
             sample_next_step_by_study.delete()
-            if not SampleNextStepByStudy.objects(sample_next_step=sample_next_step).exists():
+            if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step).exists():
                 sample_next_step.delete()
     except Exception as err:
         errors.append(f"Failed to remove old sample next step.")
