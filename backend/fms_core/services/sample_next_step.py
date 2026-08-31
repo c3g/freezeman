@@ -124,7 +124,7 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             errors.append(err)
     return dequeued, errors, warnings
 
-def skip_by_sample_next_step_by_study(sample_next_step_by_study: SampleNextStepByStudy) -> tuple[SampleNextStep, list[str], list[str]]:
+def skip_by_sample_next_step_by_study(sample_next_step_by_study: SampleNextStepByStudy) -> tuple[SampleNextStep | None, list[str], list[str]]:
     errors = list[str]()
     warnings = list[str]()
 
@@ -357,7 +357,7 @@ def _move_sample_to_next_step_by_study_step(
     process_measurement: ProcessMeasurement | None = None,
     next_sample: Sample | None = None,
     keep_current: bool = False,
-) -> tuple[SampleNextStep, list[str], list[str]]:
+) -> tuple[SampleNextStep | None, list[str], list[str]]:
     new_sample_next_step: SampleNextStep | None = None
     errors = list[str]()
     warnings = list[str]()

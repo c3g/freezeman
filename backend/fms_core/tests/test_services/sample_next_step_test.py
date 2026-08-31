@@ -813,7 +813,11 @@ class SampleNextStepServicesTestCase(TestCase):
         sample_next_step, *_ = queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libqc_steporder.order)
 
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, study=study, step_order__order=libqc_steporder.order)
-        errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        sample_next_step2, errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        self.assertEqual(
+            sample_next_step.pk,
+            sample_next_step2.pk,
+        )
         self.assertEqual(
             errors,
             [f"Step '{libqc_steporder.step.name}' cannot be skipped in workflow '{workflow.name}'."]
@@ -827,7 +831,8 @@ class SampleNextStepServicesTestCase(TestCase):
         sample_next_step, *_ = queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_steporder.order)
 
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, study=study, step_order__order=libnorm_steporder.order)
-        errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        sample_next_step2, errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        self.assertEqual(sample_next_step.pk + 1, sample_next_step2.pk)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
@@ -852,7 +857,8 @@ class SampleNextStepServicesTestCase(TestCase):
         )
         sample_next_step, *_ = queue_sample_to_study_workflow(sample_obj=sample, study_obj=study, order=libnorm_steporder.order)
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, study=study, step_order__order=libnorm_steporder.order)
-        errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        sample_next_step2, errors, warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
+        self.assertIsNone(sample_next_step2)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
