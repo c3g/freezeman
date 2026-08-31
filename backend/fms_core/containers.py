@@ -676,7 +676,7 @@ CONTAINER_SPEC_FREEZER_RACK_10X5 = ContainerSpec(
 CONTAINER_SPEC_FREEZER_RACK_8X6 = ContainerSpec(
     container_kind_id="freezer rack 8x6",
     coordinate_spec=(alphas(8), ints(6, pad_to=2)),
-    coordinate_overlap_allowed=False,
+    coordinate_overlap_allowed=True,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
     ordinal_coordinate_allocation=ROW_ORDINAL_COORDINATE_ALLOCATION,
