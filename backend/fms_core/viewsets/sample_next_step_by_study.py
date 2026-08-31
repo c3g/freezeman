@@ -47,10 +47,10 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def skip(self, request: Request):
-        sample_ids = request.data.get("sample_ids", list[int]())
+        sample_ids = request.data.get("sample_ids", list[int])
         study_id = request.data.get("study", None)
         stepOrder = request.data.get("step_order", None)
-        if sample_ids == []:
+        if not sample_ids:
             return HttpResponseBadRequest("No sample IDs provided.")
         if study_id is None:
             return HttpResponseBadRequest("No study ID provided.")
@@ -68,7 +68,12 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             skip_count = 0
-            for sample_next_step_by_study in list(queryset.filter(sample_next_step__sample__id__in=sample_ids, study=study_id, step_order__order=stepOrder)):
+            study = Study.objects.get(pk=study_id)
+            step = study.workflow.steps_order.get(order=stepOrder).step
+
+            sample_next_step_by_studies = list(queryset.filter(sample_next_step__sample__id__in=sample_ids, study=study_id, step_order__order=stepOrder))
+
+            for sample_next_step_by_study in sample_next_step_by_studies:
                 try:
                     _, sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
                     if not sample_errors and not sample_warnings:
@@ -77,9 +82,10 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     warnings.update(sample_warnings)
                 except SampleNextStepByStudy.DoesNotExist:
                     sample = sample_next_step_by_study.sample_next_step.sample.pk
-                    study = Study.objects.get(pk=study_id)
-                    step = study.workflow.steps_order.get(order=stepOrder).step
                     errors.add(f"{sample} is not queued on step {step.name} in study {study.letter}.")
+
+        if not sample_next_step_by_studies:
+            errors.add(f"Could not find any samples selected for step {step.name} in study {study.letter}.")
 
         if errors:
             return HttpResponseBadRequest(" ".join(errors))
