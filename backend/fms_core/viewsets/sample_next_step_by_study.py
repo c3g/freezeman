@@ -68,7 +68,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             skip_count = 0
-            for sample_next_step_by_study in queryset.filter(sample_next_step__sample__id__in=sample_ids, study=study_id, step_order__order=stepOrder):
+            for sample_next_step_by_study in list(queryset.filter(sample_next_step__sample__id__in=sample_ids, study=study_id, step_order__order=stepOrder)):
                 try:
                     _, sample_errors, sample_warnings = skip_by_sample_next_step_by_study(sample_next_step_by_study)
                     if not sample_errors and not sample_warnings:
