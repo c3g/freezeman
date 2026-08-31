@@ -13,6 +13,7 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
         valid_status = "Open"
         valid_target_end_date = "2030-12-21"
         sk_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True)
+        sk_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
         workflow = Workflow.objects.get(name="PCR-free Illumina")
 
         self.qc_step = 2
@@ -21,19 +22,29 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
 
         # project 1 models
         container1 = Container.objects.create(barcode="TESTBARCODE1",
-                                                  name="TestName1",
-                                                  kind="tube")
+                                              name="TestName1",
+                                              kind="tube")
+        container2 = Container.objects.create(barcode="TESTBARCODE2",
+                                              name="TestName2",
+                                              kind="tube")
         self.sample_project1, _, _ = create_full_sample(name="Sample1",
-                                            volume=20,
-                                            collection_site="TestCollectionSite",
-                                            container=container1,
-                                            sample_kind=sk_DNA,
-                                            creation_date="2022-01-01")
+                                                        volume=20,
+                                                        collection_site="TestCollectionSite",
+                                                        container=container1,
+                                                        sample_kind=sk_DNA,
+                                                        creation_date="2022-01-01")
+        self.blood_project1, _, _ = create_full_sample(name="Blood1",
+                                                       volume=20,
+                                                       collection_site="TestCollectionSite",
+                                                       container=container2,
+                                                       sample_kind=sk_BLOOD,
+                                                       creation_date="2022-01-01")
         self.project1, _, _ = create_project(name="Project1",
-                                         principal_investigator=principal_investigator,
-                                         status=valid_status,
-                                         targeted_end_date=valid_target_end_date)
+                                             principal_investigator=principal_investigator,
+                                             status=valid_status,
+                                             targeted_end_date=valid_target_end_date)
         create_link(self.sample_project1, self.project1)
+        create_link(self.blood_project1, self.project1)
         self.study_project1_A = Study.objects.create(letter='A',
                                           project=self.project1,
                                           workflow=workflow,
@@ -106,9 +117,9 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
         self.assertEqual(dict(warnings), {})
 
     def test_cannot_queue_to_invalid_step(self):
-        errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_A.letter, self.experiment_run_illumina_step)
+        errors, warnings = add_sample_to_study(self.blood_project1, self.project1, self.study_project1_A.letter, self.experiment_run_illumina_step)
         self.assertEqual(errors.get("queue_sample_to_study_workflow"), [
-            f"Step Experiment Run Illumina of study {self.study_project1_A.letter} expected Library but Sample {self.sample_project1.name} does not match that sample type."
+            f"Step Experiment Run Illumina of study {self.study_project1_A.letter} expected Extracted sample but Sample {self.blood_project1.name} does not match that sample type."
         ])
         self.assertEqual(dict(warnings), {})
 
