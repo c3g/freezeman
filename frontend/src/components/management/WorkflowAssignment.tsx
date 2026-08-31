@@ -349,11 +349,11 @@ function WorkflowOptions({ actionName, defaultSelection, exceptedSampleIDs, filt
                                     exceptedSampleIDs,
                                     serializeFilterParamsWithDescriptions(filters)
                                 ))).map(sample => sample.id)
-                                const skippedSamples = (await dispatch(api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order))).data
+                                const skipCount = (await dispatch(api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order))).data
                                 dispatch(notifySuccess({
                                     id: NOTIFICATION_KEY,
                                     title: "Samples dequeued from workflow",
-                                    description: `Successfully skipped ${skippedSamples.length} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`
+                                    description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`
                                 }))
                                 refresh()
                             } catch (error) {
