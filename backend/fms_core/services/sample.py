@@ -237,6 +237,7 @@ def transfer_sample(process: Process,
         try:
             if source_depleted is not None:
                 sample_source.depleted = sample_source.depleted or source_depleted
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
@@ -347,6 +348,7 @@ def extract_sample(process: Process,
         try:
             if source_depleted is not None:
                 sample_source.depleted = sample_source.depleted or source_depleted
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
@@ -729,6 +731,7 @@ def prepare_library(process: Process,
 
     if not errors:
         try:
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
