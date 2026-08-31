@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import migrations, models
 import django.db.models.deletion
 
+from fms_core.models._constants import SampleType
 
 ADMIN_USERNAME = 'biobankadmin'
 
@@ -59,6 +60,53 @@ def populate_foreign_key_to_parent_project(apps, schema_editor):
                 project_obj.parent_project = parent_project_obj
                 project_obj.save()
                 reversion.add_to_revision(project_obj)
+
+def allow_extracted_sample_for_illumina_experiment_run(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment(f"Allow Experiment Run Illumina step to take extracted samples instead of only libraries.")
+        reversion.set_user(admin_user)
+
+        step = Step.objects.get(name="Experiment Run Illumina")
+        step.expected_sample_type = SampleType.EXTRACTED_SAMPLE # This will result in samples being accepted during experiment run along libraries
+        step.save()
+        reversion.add_to_revision(step)
+
+
+def create_illumina_libraryless_workflow(apps, schema_editor):
+    Workflow = apps.get_model("fms_core", "Workflow")
+    Step = apps.get_model("fms_core", "Step")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    LIBRARYLESS_WORKFLOW_STEPS = ["Extraction (DNA)", "Sample QC (DNA)", "Experiment Run Illumina"]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Create libraryless workflow for Illumina.")
+        reversion.set_user(admin_user)
+
+        workflow = Workflow.objects.create(
+            name="Libraryless Illumina",
+            structure="Libraryless Illumina",
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
+        )
+        reversion.add_to_revision(workflow)
+
+        next_step_order = None # Last step does not have a next step
+        for i, step_name in enumerate(reversed(LIBRARYLESS_WORKFLOW_STEPS)):
+            current_step = Step.objects.get(name=step_name)
+
+            next_step_order = StepOrder.objects.create(
+                step=current_step,
+                next_step_order=next_step_order,
+                order=len(LIBRARYLESS_WORKFLOW_STEPS)-i,
+                workflow=workflow,
+                created_by_id=admin_user.id, updated_by_id=admin_user.id
+            )
+            reversion.add_to_revision(next_step_order)
 
 
 class Migration(migrations.Migration):
@@ -118,4 +166,6 @@ class Migration(migrations.Migration):
             name='container',
             field=models.ForeignKey(help_text='Container in which the sample is placed.', limit_choices_to={'kind__in': ('axiom 96-format array pmra', 'axiom 96-format array ukbb', 'infinium epic 8 beadchip', 'infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'illumina-novaseq-x-1.5b flowcell', 'illumina-novaseq-x-5b flowcell', 'illumina-novaseq-x-10b flowcell', 'illumina-novaseq-x-25b flowcell', 'illumina-novaseq-sp flowcell', 'illumina-novaseq-s1 flowcell', 'illumina-novaseq-s2 flowcell', 'illumina-novaseq-s4 flowcell', 'illumina-miseq-v2 flowcell', 'illumina-miseq-v3 flowcell', 'illumina-miseq-micro flowcell', 'illumina-miseq-nano flowcell', 'illumina-miseq-i100-5m flowcell', 'illumina-miseq-i100-25m flowcell', 'illumina-miseq-i100-50m flowcell', 'illumina-miseq-i100-100m flowcell', 'illumina-iseq-100 flowcell', 'pacbio-revio smrt cell tray', 'ultima wafer', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate', '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.container'),
         ),
+        migrations.RunPython(allow_extracted_sample_for_illumina_experiment_run, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_illumina_libraryless_workflow, reverse_code=migrations.RunPython.noop)
     ]
