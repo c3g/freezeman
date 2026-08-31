@@ -12,7 +12,7 @@ import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { flushIndividualDetails, listTable } from "../../modules/individualDetails/actions";
 import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/models";
 import { Sample } from "../../models/frontend_models";
-import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
+import { SampleAndLibraryAndIdentity } from "../WorkflowSamplesTable/ColumnSets";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();
@@ -50,7 +50,7 @@ const IndividualsDetailContent = () => {
             acc.push({ sample: sample as Sample })
         }
         return acc
-    }, [] as SampleAndLibrary[])
+    }, [] as SampleAndLibraryAndIdentity[])
 
     const title =
         `Individual ${[id, (individual && individual.individual) ? individual.individual.name : undefined].filter(Boolean).join(' - ')}`;

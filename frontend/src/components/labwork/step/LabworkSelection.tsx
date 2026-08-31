@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from "../../.
 import { Protocol, Step } from "../../../models/frontend_models"
 import { updateSelectedSamplesAtStep, showSelectionChangedMessage, setSelectedSamples, unselectSamples } from "../../../modules/labworkSteps/actions"
 import { LabworkStepSamples } from "../../../modules/labworkSteps/models"
-import { SampleAndLibrary, getColumnsForStep } from "../../WorkflowSamplesTable/ColumnSets"
+import { SampleAndLibraryAndIdentity, getColumnsForStep } from "../../WorkflowSamplesTable/ColumnSets"
 import WorkflowSamplesTable, { WorkflowSamplesTableProps } from "../../WorkflowSamplesTable/WorkflowSamplesTable"
 import { SampleColumnID } from "../../samples/SampleTableColumns"
 import { FMSId } from "../../../models/fms_api_models"
@@ -21,7 +21,7 @@ export interface LabworkSelectionProps {
 	setSortByList: WorkflowSamplesTableProps['setSortByList']
 }
 
-function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibrary[]) {
+function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibraryAndIdentity[]) {
 	return sampleAndLibraries.reduce((sampleIDs, sampleAndLibrary) => {
 		if (sampleAndLibrary.sample) {
 			sampleIDs.push(sampleAndLibrary.sample.id)

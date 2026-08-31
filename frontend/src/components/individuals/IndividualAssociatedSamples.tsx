@@ -4,11 +4,11 @@ import { clearFilters, setFilter, setSortBy } from '../../modules/individualDeta
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items";
 import { useAppDispatch } from "../../hooks";
 import { IndividualDetails } from "../../modules/individualDetails/models";
-import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
+import { SampleAndLibraryAndIdentity } from "../WorkflowSamplesTable/ColumnSets";
 import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 interface IndividualAssociatedSamplesProps {
-    samples: SampleAndLibrary[],
+    samples: SampleAndLibraryAndIdentity[],
     individual: IndividualDetails
 }
 

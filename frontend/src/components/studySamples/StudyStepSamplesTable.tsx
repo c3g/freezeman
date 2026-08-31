@@ -5,7 +5,7 @@ import { Protocol } from '../../models/frontend_models'
 import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepPageNumber, setStudyStepPageSize, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyStepSamplesTableState, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectProtocolsByID, selectStepsByID } from '../../selectors'
-import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
+import { SampleAndLibraryAndIdentity, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
 import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
@@ -60,7 +60,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
     title: 'Action',
     dataIndex: ['sample', 'id'],
     width: 100,
-    render: (_: any, { sample }: SampleAndLibrary) => {
+    render: (_: any, { sample }: SampleAndLibraryAndIdentity) => {
       return <Popconfirm
         title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
         onConfirm={async () => {
@@ -82,7 +82,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
     }
   }), [dispatch, step.ready.sampleNextStepByID, step.stepID, step.stepName, studyID])
 
-  const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
+  const columns: IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[] = useMemo(() => {
     if (stepDefinition) { // missing protocol leads to default columns
       // Same columns as labwork, but we don't want the Project column, since the user
       // is already in the project details page.
