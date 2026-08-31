@@ -349,12 +349,20 @@ function WorkflowOptions({ actionName, defaultSelection, exceptedSampleIDs, filt
                                     exceptedSampleIDs,
                                     serializeFilterParamsWithDescriptions(filters)
                                 ))).map(sample => sample.id)
-                                const skipCount = (await dispatch(api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order))).data
-                                dispatch(notifySuccess({
-                                    id: NOTIFICATION_KEY,
-                                    title: "Samples dequeued from workflow",
-                                    description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`
-                                }))
+                                if (sampleIDs.length == 0) {
+                                    dispatch(notifyError({
+                                        id: NOTIFICATION_KEY,
+                                        title: "Samples skip failed",
+                                        description: "Sample selection is outdated. Please close this panel and try again."
+                                    }))
+                                } else {
+                                    const skipCount = (await dispatch(api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order))).data
+                                    dispatch(notifySuccess({
+                                        id: NOTIFICATION_KEY,
+                                        title: "Samples skipped in workflow",
+                                        description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`
+                                    }))
+                                }
                                 refresh()
                             } catch (error) {
                                 dispatch(notifyError({
