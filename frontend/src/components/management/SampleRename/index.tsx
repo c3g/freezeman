@@ -3,6 +3,7 @@ import PooledSamples, { PooledSampleColumnID } from "../PooledSamples"
 import { FMSTemplateAction, FMSTemplatePrefillOption } from "../../../models/fms_api_models"
 import { useAppDispatch } from "../../../hooks"
 import api from "../../../utils/api"
+import { Alert } from "antd"
 
 const columns = [
     PooledSampleColumnID.ALIAS,
@@ -43,6 +44,7 @@ export function SampleRename() {
         templateAction={templateAction}
         templatePrefill={templatePrefill}
         parentComponentID={"SampleRename"}
+        beforeTable={<Alert title="Pools cannot be renamed using this tool. Only individual and pooled samples." type="warning" />}
     />
 }
 export default SampleRename

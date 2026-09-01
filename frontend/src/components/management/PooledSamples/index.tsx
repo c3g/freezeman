@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react"
+import React, { ReactNode, useCallback, useEffect, useMemo } from "react"
 import { useAppDispatch, useAppSelector } from "../../../hooks"
 import { selectCurrentPreference } from "../../../modules/profiles/selectors"
 import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../../utils/tableHooks"
@@ -118,6 +118,7 @@ export interface PooledSamplesProps {
     templatePrefill?: FMSTemplatePrefillOption
     filterOptions?: { derived_sample__library__isnull?: boolean }
     parentComponentID: string
+    beforeTable?: ReactNode
 }
 
 export function PooledSamples({
@@ -129,6 +130,7 @@ export function PooledSamples({
     templatePrefill,
     filterOptions = EMPTY_OBJECT,
     parentComponentID,
+    beforeTable,
 }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
@@ -273,6 +275,7 @@ export function PooledSamples({
                 extra = {appPageHeaderExtra}
 			/>
             <PageContent>
+                {beforeTable}
                 <Space orientation={"vertical"} style={{ width: '100%' }}>
                     <Flex orientation={"horizontal"} justify={"space-between"} align={"center"}>
                         <Typography.Text style={{ fontSize: '1.2em' }}>Selected: {totalSelectionCount}</Typography.Text>
