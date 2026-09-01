@@ -383,7 +383,7 @@ def _move_sample_to_next_step_by_study_step(
     if next_step_order is not None:
         try:
             if SampleNextStep.objects.filter(step=next_step_order.step, sample=new_sample).exists():
-                next_sample_next_step = SampleNextStep.objects.get(step=next_step_order.step, sample=new_sample)
+                resulting_sample_next_step = next_sample_next_step = SampleNextStep.objects.get(step=next_step_order.step, sample=new_sample)
                 if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order).exists():
                     SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
                 elif new_sample.is_pool:
