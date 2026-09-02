@@ -346,6 +346,9 @@ export interface FMSProcessMeasurement extends FMSTrackedModel {
 export interface FMSParentProject extends FMSTrackedModel {
     name: string                        // The name of the project on external system
     external_id: string                 // Identifier to connect to an external system (eg. Hercules)
+    principal_investigator: string      // The principal investigator of the project
+    requestor_name: string              // Name of requestor
+    requestor_email: string             // The email of the requestor of the project
     projects?: FMSId[]                  // IDs of related Freezeman projects
 }
 
