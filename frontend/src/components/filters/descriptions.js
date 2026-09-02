@@ -364,7 +364,7 @@ export const PROJECT_FILTERS = {
   },
   principal_investigator: {
     type: FILTER_TYPE.INPUT,
-    key: "principal_investigator",
+    key: "parent_project__principal_investigator",
     label: "Principal Investigator",
   },
   status: {
@@ -377,7 +377,7 @@ export const PROJECT_FILTERS = {
   },
   requestor_name: {
     type: FILTER_TYPE.INPUT,
-    key: "requestor_name",
+    key: "parent_project__requestor_name",
     label: "Requestor Name",
   },
   targeted_end_date: {
