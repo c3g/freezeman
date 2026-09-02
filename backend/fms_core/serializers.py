@@ -599,12 +599,18 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     external_id = serializers.CharField(read_only=True, source="parent_project.external_id")
     external_name = serializers.CharField(read_only=True, source="parent_project.name")
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = '__all__'
 
 
 class ProjectExportSerializer(serializers.ModelSerializer):
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")

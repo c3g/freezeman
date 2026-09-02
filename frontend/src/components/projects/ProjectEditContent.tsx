@@ -86,7 +86,13 @@ const ProjectEditContent = () => {
       else {
         listParentProjects(input).then(response => {
           const currentExternalName = response.data.results[0]?.name
+          const currentPrincipalInvestigator = response.data.results[0]?.principal_investigator
+          const currentRequestorName = response.data.results[0]?.requestor_name
+          const currentRequestorEmail = response.data.results[0]?.requestor_email
           form.setFieldsValue({"external_name": currentExternalName})
+          form.setFieldsValue({"principal_investigator": currentPrincipalInvestigator})
+          form.setFieldsValue({"requestor_name": currentRequestorName})
+          form.setFieldsValue({"requestor_email": currentRequestorEmail})
         })
       }
     }, [])

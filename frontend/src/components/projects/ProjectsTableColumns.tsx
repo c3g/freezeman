@@ -106,12 +106,12 @@ export const PROJECT_FILTERS: { [key in ProjectColumnID]: FilterDescription } = 
 	},
     	[ProjectColumnID.EXTERNAL_ID]: {
 		type: FILTER_TYPE.INPUT,
-		key: 'external_id',
+		key: 'parent_project__external_id',
 		label: 'External ID',
 	},
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
 		type: FILTER_TYPE.INPUT,
-		key: 'principal_investigator',
+		key: 'parent_project__principal_investigator',
 		label: 'Principal Investigator',
 	},
 	[ProjectColumnID.STATUS]: {
@@ -124,12 +124,12 @@ export const PROJECT_FILTERS: { [key in ProjectColumnID]: FilterDescription } = 
 	},
 	[ProjectColumnID.REQUESTOR_NAME]: {
 		type: FILTER_TYPE.INPUT,
-		key: 'requestor_name',
+		key: 'parent_project__requestor_name',
 		label: 'Requestor Name',
 	},
 	[ProjectColumnID.REQUESTOR_EMAIL]: {
 		type: FILTER_TYPE.INPUT,
-		key: UNDEFINED_FILTER_KEY,
+		key: 'parent_project__requestor_email',
 		label: 'Requestor Email'
 	},
 	[ProjectColumnID.TARGETED_END_DATE]: {
@@ -142,10 +142,10 @@ export const PROJECT_FILTERS: { [key in ProjectColumnID]: FilterDescription } = 
 export const PROJECT_FILTER_KEYS: { [key in ProjectColumnID]: string } = {
 	[ProjectColumnID.ID]: 'id',
 	[ProjectColumnID.NAME]: 'name',
-    [ProjectColumnID.EXTERNAL_ID]: 'external_id',
-	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: 'principal_investigator',
-	[ProjectColumnID.REQUESTOR_NAME]: 'requestor_name',
-	[ProjectColumnID.REQUESTOR_EMAIL]: 'requestor_email',
+    [ProjectColumnID.EXTERNAL_ID]: 'parent_project__external_id',
+	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: 'parent_project__principal_investigator',
+	[ProjectColumnID.REQUESTOR_NAME]: 'parent_project__requestor_name',
+	[ProjectColumnID.REQUESTOR_EMAIL]: 'parent_project__requestor_email',
 	[ProjectColumnID.STATUS]: 'status',
 	[ProjectColumnID.TARGETED_END_DATE]: 'targeted_end_date',
 }
