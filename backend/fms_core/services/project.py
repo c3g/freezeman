@@ -49,17 +49,19 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
     warnings = []
 
     if external_id is not None and external_name is not None:
+        parent_project_data = dict(
+            **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
+            **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
+            **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
+        )
         try:
-            parent_project = ParentProject.objects.create(external_id=external_id, name=external_name)
+            parent_project = ParentProject.objects.create(external_id=external_id, name=external_name, **parent_project_data)
         except ValidationError as e:
             errors.append(str(e))
     
     project_data = dict(
         name=name,
         # Optional attributes
-        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
-        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
-        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
         **(dict(parent_project=parent_project) if parent_project is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
         **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
@@ -73,8 +75,7 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
 
     return (project, errors, warnings)
 
-def create_project(name=None, principal_investigator=None, requestor_name=None,
-                   requestor_email=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
+def create_project(name=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
     project = None
     errors = []
     warnings = []
@@ -82,9 +83,6 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
     project_data = dict(
         name=name,
         # Optional attributes
-        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
-        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
-        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
         **(dict(parent_project=parent_project) if parent_project is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
         **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
@@ -98,13 +96,18 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
 
     return (project, errors, warnings)
 
-def create_parent_project(external_id, name):
+def create_parent_project(external_id, name, principal_investigator=None, requestor_name=None, requestor_email=None):
     parent_project = None
     errors = []
     warnings = []
 
+    parent_project_data = dict(
+        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
+        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
+        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
+    )
     try:
-        parent_project = ParentProject.objects.create(external_id=external_id, name=name)
+        parent_project = ParentProject.objects.create(external_id=external_id, name=name, **parent_project_data)
     except ValidationError as e:
         errors.append(str(e))
 

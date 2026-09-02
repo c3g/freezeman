@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .tracked_model import TrackedModel
-
+from ._validators import email_validator
 from ._utils import add_error as _add_error
 
 __all__ = ["ParentProject"]
@@ -13,6 +13,9 @@ __all__ = ["ParentProject"]
 class ParentProject(TrackedModel):
     external_id = models.CharField(max_length=200, unique=True, help_text="Identifier to connect to an external system.")
     name = models.CharField(max_length=200, help_text="Parent project name used by external client.")
+    principal_investigator = models.CharField(blank=True, max_length=200, help_text="The principal investigator of the project.")
+    requestor_name = models.CharField(blank=True, max_length=200, help_text="The name of the requestor of the project.")
+    requestor_email = models.CharField(blank=True, max_length=200, validators=[email_validator], help_text="The email of the requestor of the project.")
 
     class Meta:
         indexes = [
