@@ -28,15 +28,9 @@ class ProjectTest(TestCase):
 
     def test_project(self):
         my_project = Project.objects.create(name=self.name,
-                                            principal_investigator=self.principal_investigator,
-                                            requestor_name=self.requestor_name,
-                                            requestor_email=self.requestor_email,
                                             targeted_end_date=self.targeted_end_date,
                                             comment=self.comment)
         self.assertEqual(my_project.name, self.name)
-        self.assertEqual(my_project.principal_investigator, self.principal_investigator)
-        self.assertEqual(my_project.requestor_name, self.requestor_name)
-        self.assertEqual(my_project.requestor_email, self.requestor_email)
         self.assertEqual(my_project.status, self.status)
         self.assertEqual(my_project.comment, self.comment)
         self.assertEqual(my_project.targeted_end_date, datetime.strptime(self.targeted_end_date, "%Y-%m-%d").date())
@@ -44,10 +38,7 @@ class ProjectTest(TestCase):
     def test_missing_name(self):
         with self.assertRaises(ValidationError):
             try:
-                er_without_et = Project.objects.create(principal_investigator=self.principal_investigator,
-                                                       requestor_name=self.requestor_name,
-                                                       requestor_email=self.requestor_email,
-                                                       status=self.status)
+                er_without_et = Project.objects.create(status=self.status)
             except ValidationError as e:
                 self.assertTrue("name" in e.message_dict)
                 raise e
@@ -56,16 +47,12 @@ class ProjectTest(TestCase):
         with self.assertRaises(ValidationError):
             # First Project is valid
             Project.objects.create(name=self.duplicate_name,
-                                   principal_investigator=self.principal_investigator,
                                    status=self.status,
                                    targeted_end_date=self.targeted_end_date)
 
             try:
                 # Second Project has the same name, should be invalid
                 Project.objects.create(name=self.duplicate_name,
-                                       principal_investigator=self.principal_investigator,
-                                       requestor_name=self.requestor_name,
-                                       requestor_email=self.requestor_email,
                                        status=self.status,
                                        targeted_end_date=self.targeted_end_date)
             except ValidationError as e:
@@ -76,16 +63,12 @@ class ProjectTest(TestCase):
         with self.assertRaises(ValidationError):
             # First Project is valid
             Project.objects.create(name=self.name,
-                                   principal_investigator=self.principal_investigator,
                                    status=self.status,
                                    targeted_end_date=self.targeted_end_date)
 
             try:
                 # Second Project has a similar name, but different upper/lower cases, should be invalid
                 Project.objects.create(name=self.similar_name,
-                                       principal_investigator=self.principal_investigator,
-                                       requestor_name=self.requestor_name,
-                                       requestor_email=self.requestor_email,
                                        status=self.status,
                                        targeted_end_date=self.targeted_end_date)
             except ValidationError as e:
@@ -94,21 +77,22 @@ class ProjectTest(TestCase):
 
     def test_empty_parent_project(self):
         my_project = Project.objects.create(name=self.name,
-                                            principal_investigator=self.principal_investigator,
-                                            requestor_name=self.requestor_name,
-                                            requestor_email=self.requestor_email,
                                             targeted_end_date=self.targeted_end_date,
                                             comment=self.comment)
         self.assertEqual(my_project.parent_project, None)
 
     def test_not_empty_parent_project(self):
-        parent_project_obj = ParentProject.objects.create(external_id="P000010", name="TESTS")
+        parent_project_obj = ParentProject.objects.create(external_id="P000010",
+                                                          name="TESTS",
+                                                          principal_investigator=self.principal_investigator,
+                                                          requestor_name=self.requestor_name,
+                                                          requestor_email=self.requestor_email)
         my_project = Project.objects.create(name=self.name,
-                                            principal_investigator=self.principal_investigator,
-                                            requestor_name=self.requestor_name,
-                                            requestor_email=self.requestor_email,
                                             targeted_end_date=self.targeted_end_date,
                                             parent_project=parent_project_obj,
                                             comment=self.comment)
         self.assertEqual(my_project.parent_project.external_id, "P000010")
         self.assertEqual(my_project.parent_project.name, "TESTS")
+        self.assertEqual(my_project.parent_project.principal_investigator, self.principal_investigator)
+        self.assertEqual(my_project.parent_project.requestor_name, self.requestor_name)
+        self.assertEqual(my_project.parent_project.requestor_email, self.requestor_email)

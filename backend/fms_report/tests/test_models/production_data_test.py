@@ -98,7 +98,7 @@ class ProductionDataTest(TestCase):
         self.assertIsNone(data.library_selection)
         self.assertEqual(data.project.name, self.project.name)
         self.assertEqual(data.project.parent_project.external_id, self.project.parent_project.external_id)
-        self.assertEqual(data.project.principal_investigator, self.project.principal_investigator)
+        self.assertEqual(data.project.parent_project.principal_investigator, self.project.parent_project.principal_investigator)
         self.assertEqual(data.taxon, "E.T.")
         self.assertEqual(data.technology, "SeqEnhancer")
         self.assertEqual(data.reads, 10)
