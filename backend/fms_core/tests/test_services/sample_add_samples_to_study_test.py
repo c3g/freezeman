@@ -30,7 +30,6 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
                                             sample_kind=sk_DNA,
                                             creation_date="2022-01-01")
         self.project1, _, _ = create_project(name="Project1",
-                                         principal_investigator=principal_investigator,
                                          status=valid_status,
                                          targeted_end_date=valid_target_end_date)
         create_link(self.sample_project1, self.project1)
@@ -47,7 +46,6 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
 
         # project 2 models
         self.project2, _, _ = create_project(name="Project2",
-                                         principal_investigator=principal_investigator,
                                          status=valid_status,
                                          targeted_end_date=valid_target_end_date)
         self.study_project2_A = Study.objects.create(letter='A',
