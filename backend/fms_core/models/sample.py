@@ -206,6 +206,8 @@ class Sample(TrackedModel):
             return not self.is_kind_extracted
         elif sample_type == SampleType.EXTRACTED_SAMPLE:
             return self.is_kind_extracted and not self.is_library
+        elif sample_type == SampleType.EXTRACTED_SAMPLE_OR_LIBRARY:
+            return self.is_kind_extracted
         elif sample_type == SampleType.SAMPLE:
             return not self.is_library
         elif sample_type == SampleType.LIBRARY:
