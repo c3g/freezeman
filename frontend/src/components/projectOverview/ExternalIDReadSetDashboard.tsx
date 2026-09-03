@@ -37,6 +37,15 @@ const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
   }
 }
 
+  const iconStyle = (color: string, backgroundColor: string): React.CSSProperties => ({
+    color,
+    backgroundColor,
+    fontSize: 18,
+    padding: 6,
+    borderRadius: 8,
+    marginRight: 4,
+  })
+
 function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewReadset[] }) {
   const metrics = useMemo(() => {
     // Avg. Alignment Calculation
@@ -164,14 +173,6 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
     }))
   }, [readsets])
 
-  const iconStyle = (color: string, backgroundColor: string): React.CSSProperties => ({
-    color,
-    backgroundColor,
-    fontSize: 18,
-    padding: 6,
-    borderRadius: 8,
-    marginRight: 4,
-  })
 
   return (
     <div style={{ background: "#f5f7fb", padding: 0 }}>
