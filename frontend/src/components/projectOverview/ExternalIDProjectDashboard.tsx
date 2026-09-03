@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import {
   CheckCircleOutlined,
   FolderOpenOutlined,
@@ -30,13 +30,11 @@ const iconStyle = (color: string): React.CSSProperties => ({
 const ExternalIDProjectsDashboard = ({ data }: ExternalIDProjectsDashboardProps) => {
   const total = data.length
 
-  const openCount = data.filter((project) => project.status === "Open").length
+  const openCount = useMemo(() => data.filter((project) => project.status === "Open").length, [data])
 
-  const uniquePIs = new Set(data.map((project) => project.principal_investigator).filter(Boolean))
-    .size
+  const uniquePIs = useMemo(() => new Set(data.map((project) => project.principal_investigator).filter(Boolean)).size, [data])
 
-  const uniqueRequestors = new Set(data.map((project) => project.requestor_name).filter(Boolean))
-    .size
+  const uniqueRequestors = useMemo(() => new Set(data.map((project) => project.requestor_name).filter(Boolean)).size, [data])
 
   return (
     <Row gutter={[16, 16]} justify="center" style={{ margin: "12px 0" }}>
