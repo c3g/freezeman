@@ -70,7 +70,7 @@ def allow_extracted_sample_for_illumina_experiment_run(apps, schema_editor):
         reversion.set_user(admin_user)
 
         step = Step.objects.get(name="Experiment Run Illumina")
-        step.expected_sample_type = SampleType.EXTRACTED_SAMPLE # This will result in samples being accepted during experiment run along libraries
+        step.expected_sample_type = SampleType.EXTRACTED_SAMPLE_OR_LIBRARY # This will result in samples being accepted during experiment run along libraries
         step.save()
         reversion.add_to_revision(step)
 
