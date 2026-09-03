@@ -29,7 +29,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
 
     ordering = ["external_id"]
 
-    def _get_readsets_queryset(self, parent_project):
+    def _get_readsets_queryset(self, parent_project : ParentProject):
 
         PARENT_PROJECT_READSET_ORDERING = [
             "dataset__experiment_run__start_date",
@@ -116,7 +116,7 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
         )
 
 
-    @action(detail=True, methods=["get"],url_path="readsets")
+    @action(detail=True, methods=["get"], url_path="readsets")
     def overview_readsets(self, request, pk=None):
         parent_project = self.get_object()
 
