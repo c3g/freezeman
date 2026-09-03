@@ -30,11 +30,20 @@ const iconStyle = (color: string): React.CSSProperties => ({
 const ExternalIDProjectsDashboard = ({ data }: ExternalIDProjectsDashboardProps) => {
   const total = data.length
 
-  const openCount = useMemo(() => data.filter((project) => project.status === "Open").length, [data])
+  const openCount = useMemo(
+    () => data.filter((project) => project.status === "Open").length,
+    [data],
+  )
 
-  const uniquePIs = useMemo(() => new Set(data.map((project) => project.principal_investigator).filter(Boolean)).size, [data])
+  const uniquePIs = useMemo(
+    () => new Set(data.map((project) => project.principal_investigator).filter(Boolean)).size,
+    [data],
+  )
 
-  const uniqueRequestors = useMemo(() => new Set(data.map((project) => project.requestor_name).filter(Boolean)).size, [data])
+  const uniqueRequestors = useMemo(
+    () => new Set(data.map((project) => project.requestor_name).filter(Boolean)).size,
+    [data],
+  )
 
   return (
     <Row gutter={[16, 16]} justify="center" style={{ margin: "12px 0" }}>
