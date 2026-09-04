@@ -48,12 +48,13 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             if full_project_data.get("external_id") is not None:
                 parent_project_obj = ParentProject.objects.filter(external_id=full_project_data["external_id"]).first()
                 if parent_project_obj is None and full_project_data.get("external_name") is not None:
-                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"], name=full_project_data["external_name"])
+                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"],
+                                                                      name=full_project_data["external_name"],
+                                                                      principal_investigator=full_project_data['principal_investigator'],
+                                                                      requestor_name=full_project_data['requestor_name'],
+                                                                      requestor_email=full_project_data['requestor_email'])
         
             project_obj = Project.objects.create(name=full_project_data['name'],
-                                                 principal_investigator=full_project_data['principal_investigator'],
-                                                 requestor_name=full_project_data['requestor_name'],
-                                                 requestor_email=full_project_data['requestor_email'],
                                                  targeted_end_date=full_project_data['targeted_end_date'],
                                                  status=full_project_data['status'],
                                                  comment=full_project_data['comment'],
@@ -86,13 +87,14 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 parent_project_obj = ParentProject.objects.filter(external_id=full_project_data["external_id"]).first()
                 # Case project is associated to a new Parent Project
                 if parent_project_obj is None and full_project_data.get("external_name") is not None:
-                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"], name=full_project_data["external_name"])
+                    parent_project_obj = ParentProject.objects.create(external_id=full_project_data["external_id"],
+                                                                      name=full_project_data["external_name"],
+                                                                      principal_investigator=full_project_data['principal_investigator'],
+                                                                      requestor_name=full_project_data['requestor_name'],
+                                                                      requestor_email=full_project_data['requestor_email'])
 
             project_data = dict(
                 name=full_project_data['name'],
-                **(dict(principal_investigator=full_project_data['principal_investigator']) if full_project_data['principal_investigator'] is not None else dict()),
-                **(dict(requestor_name=full_project_data['requestor_name']) if full_project_data['requestor_name'] is not None else dict()),
-                **(dict(requestor_email=full_project_data['requestor_email']) if full_project_data['requestor_email'] is not None else dict()),
                 **(dict(targeted_end_date=full_project_data['targeted_end_date']) if full_project_data['targeted_end_date'] is not None else dict()),
                 **(dict(status=full_project_data['status']) if full_project_data['status'] is not None else dict()),
                 **(dict(comment=full_project_data['comment']) if full_project_data['comment'] is not None else dict()),

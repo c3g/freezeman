@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import migrations, models
 import django.db.models.deletion
+import django.core.validators
 
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -39,6 +40,9 @@ def populate_parent_project(apps, schema_editor):
                 parent_project_name = project_obj.external_name or project_obj.name # use project external name in priority and defaults to the project name
                 parent_project_obj = ParentProject.objects.create(external_id=project_obj.external_id,
                                                                   name=parent_project_name,
+                                                                  principal_investigator=project_obj.principal_investigator,
+                                                                  requestor_name=project_obj.requestor_name,
+                                                                  requestor_email=project_obj.requestor_email,
                                                                   created_by_id=admin_user.id,
                                                                   updated_by_id=admin_user.id)
             reversion.add_to_revision(parent_project_obj)
@@ -76,6 +80,9 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('external_id', models.CharField(help_text='Identifier to connect to an external system.', max_length=200, unique=True)),
                 ('name', models.CharField(help_text='Parent project name used by external client.', max_length=200)),
+                ('principal_investigator', models.CharField(blank=True, help_text='The principal investigator of the project.', max_length=200, validators=[django.core.validators.EmailValidator()])),
+                ('requestor_name', models.CharField(blank=True, help_text='The name of the requestor of the project.', max_length=200)),
+                ('requestor_email', models.CharField(blank=True, help_text='The email of the requestor of the project.', max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
             ],
@@ -102,6 +109,18 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='project',
             name='external_name',
+        ),
+        migrations.RemoveField(
+            model_name='project',
+            name='principal_investigator',
+        ),
+        migrations.RemoveField(
+            model_name='project',
+            name='requestor_email',
+        ),
+        migrations.RemoveField(
+            model_name='project',
+            name='requestor_name',
         ),
         migrations.AlterField(
             model_name='container',

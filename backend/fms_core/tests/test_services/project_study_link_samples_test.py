@@ -13,7 +13,6 @@ class ProjectStudyLinkSamplesServicesTestCase(TestCase):
         self.valid_sample_name = "SampleTest"
         self.valid_project_name = "MyValidProject"
         self.invalid_project_name = "MyInvalidProject"
-        self.principal_investigator = "PepitoPerez"
         self.valid_status = "Open"
         self.invalid_status = "Ongoing"
         self.valid_target_end_date = "2030-12-21"
@@ -26,7 +25,6 @@ class ProjectStudyLinkSamplesServicesTestCase(TestCase):
                                                   )
 
         self.project, errors, warnings = create_project(name=self.valid_project_name,
-                                                        principal_investigator=self.principal_investigator,
                                                         status=self.valid_status,
                                                         targeted_end_date=self.valid_target_end_date)
 

@@ -199,23 +199,22 @@ _run_type_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_project_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
-    "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
-    "requestor_name": CATEGORICAL_FILTERS_LOOSE,
-    "requestor_email": CATEGORICAL_FILTERS_LOOSE,
-    "status": CATEGORICAL_FILTERS,
-    "parent_project__external_id": CATEGORICAL_FILTERS_LOOSE,
-    "parent_project__name": CATEGORICAL_FILTERS_LOOSE,
-    "targeted_end_date": DATE_FILTERS,
-    **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
-}
-
 _parent_project_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "external_id": CATEGORICAL_FILTERS_LOOSE,
     "name": CATEGORICAL_FILTERS_LOOSE,
+    "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
+    "requestor_name": CATEGORICAL_FILTERS_LOOSE,
+    "requestor_email": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_project_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "status": CATEGORICAL_FILTERS,
+    "targeted_end_date": DATE_FILTERS,
+    **_prefix_keys("parent_project__", _parent_project_filterset_fields),
+    **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
 
 _index_filterset_fields: FiltersetFields = {
