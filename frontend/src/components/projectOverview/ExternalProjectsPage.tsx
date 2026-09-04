@@ -1,0 +1,276 @@
+import { Table, Tag } from "antd"
+import type { ColumnsType } from "antd/es/table"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import AppPageHeader from "../AppPageHeader"
+import { Link } from "react-router-dom"
+import { FMSProject, FMSParentProject } from "../../models/fms_api_models"
+import api from "../../utils/api"
+
+import PageContent from "../PageContent"
+
+import { useAppDispatch } from "../../hooks"
+
+import FiltersBar from "../filters/filtersBar/FiltersBar"
+import { FilterDescription, FilterSet, SetFilterFunc } from "../../models/paged_items"
+
+import { getFilterPropsForDescription } from "../filters/getFilterPropsTS"
+import { setFilterValue } from "../../models/filter_set_reducers"
+
+const EXTERNAL_PROJECT_NAME_FILTER_KEY = "external_project_name"
+const EXTERNAL_PROJECT_ID_FILTER_KEY = "external_project_id"
+
+const EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION: FilterDescription = {
+  type: "INPUT",
+  key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
+  label: "External Project Name",
+  width: 260,
+}
+const EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION: FilterDescription = {
+  type: "INPUT",
+  key: EXTERNAL_PROJECT_ID_FILTER_KEY,
+  label: "External Project ID",
+  width: 260,
+}
+
+const internalProjectColumns: ColumnsType<FMSProject> = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    render: (id: number) => <Link to={`/projects/${id}#overview`}>{id}</Link>,
+  },
+  {
+    title: "Project Name",
+    dataIndex: "name",
+    key: "name",
+    render: (name: string, project: FMSProject) => (
+      <Link to={`/projects/${project.id}#overview`}>{name}</Link>
+    ),
+  },
+  {
+    title: "Principal Investigator",
+    dataIndex: "principal_investigator",
+    key: "principal_investigator",
+  },
+  {
+    title: "Requestor Name",
+    dataIndex: "requestor_name",
+    key: "requestor_name",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+  },
+  {
+    title: "Created At",
+    dataIndex: "created_at",
+    key: "created_at",
+    render: (createdAt: string) =>
+      createdAt
+        ? new Date(createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "",
+  },
+]
+
+// Organise les projets internes dans un objet afin de pouvoir retrouver rapidement chaque projet à partir de son ID.
+const indexProjectsByID = (projects: FMSProject[]): Partial<Record<number, FMSProject>> =>
+  projects.reduce<Partial<Record<number, FMSProject>>>((projectsByID, project) => {
+    projectsByID[project.id] = project
+    return projectsByID
+  }, {})
+
+// Récupère les IDs uniques des projets internes associés aux projets externes.
+const getUniqueInternalProjectIDs = (parentProjects: FMSParentProject[]): number[] => [
+  ...new Set(parentProjects.flatMap((parentProject) => parentProject.projects ?? [])),
+]
+
+const ExternalProjectsPage = () => {
+  const [parentProjects, setParentProjects] = useState<FMSParentProject[]>([])
+  const [internalProjectsByID, setInternalProjectsByID] = useState<
+    Partial<Record<number, FMSProject>>
+  >({})
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [filters, setFilters] = useState<FilterSet>({})
+
+  const setFilter = useCallback<SetFilterFunc>((filterKey, value, description) => {
+    setFilters((currentFilters) => setFilterValue(currentFilters, description, value))
+  }, [])
+
+  const clearFilters = useCallback(() => {
+    setFilters({})
+  }, [])
+
+  const parentProjectColumns = useMemo<ColumnsType<FMSParentProject>>(
+    () => [
+      {
+        title: "External Project ID",
+        dataIndex: "external_id",
+        key: "external_id",
+        width: 120,
+        filteredValue: filters[EXTERNAL_PROJECT_ID_FILTER_KEY]?.value
+          ? [String(filters[EXTERNAL_PROJECT_ID_FILTER_KEY].value)]
+          : null,
+        ...getFilterPropsForDescription(
+          EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION,
+          filters[EXTERNAL_PROJECT_ID_FILTER_KEY],
+          setFilter,
+        ),
+        onFilter: (value, record) =>
+          (record.external_id || "").toLowerCase().includes(String(value).toLowerCase()),
+
+        render: (externalID: string, parentProject: FMSParentProject) => (
+          <Link to={`/external-projects-overview/${parentProject.id}#projects`}>{externalID}</Link>
+        ),
+      },
+      {
+        title: "External Project Name",
+        dataIndex: "name",
+        key: "external_project_name",
+        filteredValue: filters[EXTERNAL_PROJECT_NAME_FILTER_KEY]?.value
+          ? [String(filters[EXTERNAL_PROJECT_NAME_FILTER_KEY].value)]
+          : null,
+        ...getFilterPropsForDescription(
+          EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION,
+          filters[EXTERNAL_PROJECT_NAME_FILTER_KEY],
+          setFilter,
+        ),
+        onFilter: (value, record) =>
+          (record.name || "").toLowerCase().includes(String(value).toLowerCase()),
+        render: (externalProjectName: string | null) => externalProjectName || "",
+      },
+      {
+        title: "Freezeman Projects",
+        dataIndex: "projects",
+        key: "projects",
+        width: 20,
+        render: (projects: FMSParentProject["projects"]) => {
+          const projectCount = projects?.length ?? 0
+          return <Tag color={projectCount > 1 ? "blue" : "default"}>{projectCount}</Tag>
+        },
+      },
+    ],
+    [filters, setFilter],
+  )
+
+  const dispatch = useAppDispatch()
+
+  // Charge depuis l’API la liste des projets parents, triés par identifiant externe.
+  const fetchParentProjects = useCallback(async (): Promise<FMSParentProject[]> => {
+    const response = await dispatch(
+      api.parentProjects.list(
+        {
+          limit: 100000,
+          ordering: "external_id",
+        },
+        true,
+      ),
+    )
+    return response.data.results
+  }, [dispatch])
+
+  // Charge depuis l’API les projets internes correspondant aux IDs reçus,
+  // ou retourne une liste vide si aucun ID n’est fourni.
+  const fetchInternalProjectsByIDs = useCallback(
+    async (projectIDs: number[]): Promise<FMSProject[]> => {
+      if (projectIDs.length === 0) {
+        return []
+      }
+
+      const response = await dispatch(
+        api.projects.list(
+          {
+            id__in: projectIDs.join(","),
+            limit: 100000,
+          },
+          true,
+        ),
+      )
+
+      return response.data.results
+    },
+    [dispatch],
+  )
+
+  const fetchParentProjectsWithInternalProjects = useCallback(async () => {
+    try {
+      setIsLoading(true)
+
+      const fetchedParentProjects = await fetchParentProjects()
+      setParentProjects(fetchedParentProjects)
+
+      const internalProjectIDs = getUniqueInternalProjectIDs(fetchedParentProjects)
+      const fetchedInternalProjects = await fetchInternalProjectsByIDs(internalProjectIDs)
+      const fetchedInternalProjectsByID = indexProjectsByID(fetchedInternalProjects)
+      setInternalProjectsByID(fetchedInternalProjectsByID)
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        setParentProjects([])
+        setInternalProjectsByID({})
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [fetchParentProjects, fetchInternalProjectsByIDs])
+
+  useEffect(() => {
+    fetchParentProjectsWithInternalProjects()
+  }, [fetchParentProjectsWithInternalProjects])
+
+  return (
+    <>
+      <AppPageHeader title="Projects by External ID" />
+
+      <PageContent>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <FiltersBar filters={filters} clearFilters={clearFilters} />
+        </div>
+        <Table
+          size="small"
+          bordered
+          rowKey="id"
+          dataSource={parentProjects}
+          columns={parentProjectColumns}
+          loading={isLoading}
+
+          expandable={{
+            expandedRowRender: (parentProject) => {
+              const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
+                (projects, projectID) => {
+                  const project = internalProjectsByID[projectID]
+                  if (project) {
+                    projects.push(project)
+                  }
+                  return projects
+                },
+                [],
+              )
+              return (
+                <Table
+                  size="small"
+                  rowKey="id"
+                  dataSource={internalProjects}
+                  columns={internalProjectColumns}
+                  pagination={false}
+                />
+              )
+            },
+          }}
+          pagination={{
+            pageSize: 20,
+            showSizeChanger: true,
+            pageSizeOptions: ["20", "50", "100"],
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} external IDs`,
+          }}
+        />
+      </PageContent>
+    </>
+  )
+}
+
+export default ExternalProjectsPage

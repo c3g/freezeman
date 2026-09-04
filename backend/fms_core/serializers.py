@@ -103,6 +103,8 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ParentProjectSerializer",
+    "ParentProjectReadsetSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -123,7 +125,7 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
-    "DerivedSampleSerializer"
+    "DerivedSampleSerializer",
     "FreezemanPermissionSerializer",
 ]
 
@@ -614,6 +616,49 @@ class ParentProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParentProject
         fields = '__all__'
+
+
+class ParentProjectReadsetSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    readset_sample_name = serializers.CharField()
+    biosample_id = serializers.IntegerField(allow_null=True)
+    external_id = serializers.CharField()
+    run_name = serializers.CharField()
+    lane = serializers.IntegerField()
+    reference_genome_id = serializers.IntegerField(allow_null=True,)
+    reference_genome_assembly_name = serializers.CharField(allow_null=True,)
+    sequencing_index_name = serializers.CharField(allow_null=True)
+    run_start_date = serializers.DateField()
+    alias = serializers.CharField(allow_null=True)
+    cohort = serializers.CharField(allow_blank=True,allow_null=True,)
+    library_type = serializers.CharField(allow_null=True,)
+    container_barcodes = serializers.ListField(child=serializers.CharField(allow_null=True),allow_empty=True,)
+    number_of_reads = serializers.IntegerField(allow_null=True,)
+    number_of_bases = serializers.IntegerField(allow_null=True,)
+    average_quality = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+
+    pf_reads_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+
+    duplicate_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    readset_files = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+    )
+    run_validation_status = serializers.IntegerField(allow_null=True,)
+
 
 
 class IndexSetSerializer(serializers.ModelSerializer):
