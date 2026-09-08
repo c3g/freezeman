@@ -1,23 +1,9 @@
-from typing import TypedDict
-
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.models import DerivedSample, Index, Sample
+from fms_core.models import DerivedSample, Index
 from fms_core.services.library import update_library_index
 
-IndexUpdateRowObject = TypedDict(
-    "IndexUpdateRowObject",
-    {
-        "Library Name": str,
-        "Library Container Barcode": str,
-        "Library Container Coord": str,
-        "Old Index": str,
-        "New Index": str,
-        "Samples Impacted": list[Sample]
-    }
-)
-
-class IndexUpdateRowHandler(GenericRowHandler[IndexUpdateRowObject]):
+class IndexUpdateRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
@@ -63,5 +49,3 @@ class IndexUpdateRowHandler(GenericRowHandler[IndexUpdateRowObject]):
                 "New Index": index["new_index"],
                 "Samples Impacted": samples_impacted or []
             }
-
-    

@@ -4,7 +4,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.index_update import IndexUpdateRowHandler
 from fms_core.templates import INDEX_UPDATE_TEMPLATE
 
-from fms_core.models import Index, Sample
+from fms_core.models import Index
 from fms_core.utils import str_cast_and_normalize
 from fms_core.services.index import validate_indices, validate_distance_matrix
 
@@ -16,9 +16,9 @@ class IndexUpdateImporter(GenericImporter):
 
     def import_template_inner(self):
         index_update_sheet = self.sheets['Library']
-        samples_affected_by_row = defaultdict[int, set[Sample]](set)
-        samples_affected = set[Sample]()
-        mapping_index_to_rows = defaultdict[str, list[int]](list)
+        samples_affected_by_row = defaultdict(set)
+        samples_affected = set()
+        mapping_index_to_rows = defaultdict(list)
         for row_id, row_data in enumerate(index_update_sheet.rows):
             library = {
                 'alias': str_cast_and_normalize(row_data['Library Name']),
@@ -42,14 +42,13 @@ class IndexUpdateImporter(GenericImporter):
                 **index_update_kwargs,
             )
             mapping_index_to_rows[index['new_index']].append(row_id)
-
-            if row_object:
-                samples_affected_by_row[row_id].update(row_object["Samples Impacted"])
-                samples_affected.update(row_object["Samples Impacted"])
-        
+            
+            row_object = row_object if row_object is not None else {}
+            samples_affected_by_row[row_id].update(row_object.get("Samples Impacted", []))
+            samples_affected.update(row_object.get("Samples Impacted", []))
         
         # Once all updates are done validate collisions for all affected samples
-        warnings_by_row = defaultdict[int, list[tuple[str, list[str]]]](list)
+        warnings_by_row = defaultdict(list)
         for sample in samples_affected:
             indices = Index.objects.filter(libraries__derived_sample__samples__id=sample.id)
             if len(indices) > 1:
