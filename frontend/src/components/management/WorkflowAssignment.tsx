@@ -171,7 +171,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
       [initialExceptedSampleIDs],
     )
 
-  const [openForAction, setOpenFor] = useState<WorkflowAction | null>(null)
+  const [openForAction, setOpenForAction] = useState<WorkflowAction | null>(null)
   const maybeExpandRightPanel = useCallback(
     (actionName: WorkflowAction) => {
       if (sampleSelectionCount > MAX_SELECTION) {
@@ -180,13 +180,13 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
           content: `You cannot ${WORKFLOW_ACTIONS.join("/")} more than ${MAX_SELECTION} samples.`,
         })
       } else {
-        setOpenFor(actionName)
+        setOpenForAction(actionName)
       }
     },
     [sampleSelectionCount],
   )
   const collapseRightPanel = useCallback(() => {
-    setOpenFor(null)
+    setOpenForAction(null)
   }, [])
 
   const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
@@ -405,7 +405,7 @@ function WorkflowOptions({
                   }),
                 )
                 refresh()
-              } catch (error) {
+              } catch {
                 dispatch(
                   notifyError({
                     id: NOTIFICATION_KEY,

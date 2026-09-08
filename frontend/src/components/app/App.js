@@ -67,7 +67,6 @@ import {
 } from "../management/WorkflowAssignmentPage"
 import { getProfile } from "../../modules/profiles"
 import api from "../../utils/api"
-import store from "../../store"
 
 const { Title } = Typography
 
