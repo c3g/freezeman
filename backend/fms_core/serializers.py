@@ -985,7 +985,7 @@ class StepOrderSerializer(serializers.ModelSerializer):
     step_name = serializers.CharField(read_only=True, source='step.name')
     class Meta:
         model = StepOrder
-        fields = ["id", "step_id", "step_name", "protocol_id", "order"]
+        fields = ["id", "step_id", "step_name", "protocol_id", "order", "mandatory"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps_order = serializers.SerializerMethodField(read_only=True)

@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { FMSId } from "../../models/fms_api_models"
-import { Protocol } from "../../models/frontend_models"
+import { Protocol, Sample } from "../../models/frontend_models"
 import {
   clearFilters,
   refreshStudySamples,
@@ -31,10 +31,11 @@ import {
 } from "../samples/SampleTableColumns"
 import WorkflowSamplesTable from "../WorkflowSamplesTable/WorkflowSamplesTable"
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items"
-import { Popconfirm, Button, notification } from "antd"
+import { Button, notification, Dropdown } from "antd"
 import api from "../../utils/api"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { DEFAULT_SMALL_PAGINATION_LIMIT } from "../../config"
+import { FastForwardOutlined, StopOutlined } from "@ant-design/icons"
 
 interface StudyStepSamplesTableProps {
   studyID: FMSId
@@ -102,35 +103,12 @@ function StudyStepSamplesTable({
       columnID: "Action",
       title: "Action",
       dataIndex: ["sample", "id"],
-      width: 100,
+      width: 150,
       render: (_: any, { sample }: SampleAndLibraryAndIdentity) => {
-        return (
-          <Popconfirm
-            title={`Are you sure you want to remove sample '${sample?.name ?? "Loading..."}' from step '${step.stepName}'?`}
-            onConfirm={async () => {
-              if (!sample) return
-              const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
-              notification.info({
-                message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
-                key: REMOVE_NOTIFICATION_KEY,
-              })
-              await dispatch(
-                api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]),
-              )
-              await dispatch(refreshStudySamples(studyID))
-              notification.destroy(REMOVE_NOTIFICATION_KEY)
-            }}
-            disabled={!sample}
-            placement={"topLeft"}
-          >
-            <Button color="danger" variant="link">
-              Remove
-            </Button>
-          </Popconfirm>
-        )
+        return sample && <ActionButton sample={sample} step={step} studyID={studyID} />
       },
     }),
-    [dispatch, step.ready.sampleNextStepByID, step.stepID, step.stepName, studyID],
+    [step, studyID],
   )
 
   const columns: IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[] = useMemo(() => {
@@ -172,6 +150,80 @@ function StudyStepSamplesTable({
       }}
       loading={tableState?.isFetching ?? true}
     />
+  )
+}
+
+interface ActionButtonProps {
+  sample: Sample
+  step: StudySampleStep
+  studyID: FMSId
+}
+export function ActionButton({ sample, step, studyID }: ActionButtonProps) {
+  const dispatch = useAppDispatch()
+  const DEFAULT_LABEL = "Select Action"
+  const [buttonLabel, setButtonLabel] = useState<string>(DEFAULT_LABEL)
+
+  return (
+    <Dropdown
+      menu={{
+        items: [
+          {
+            label: "Remove",
+            key: "Remove",
+            icon: <StopOutlined />,
+            disabled: !sample,
+          },
+          {
+            label: "Skip",
+            key: "Skip",
+            icon: <FastForwardOutlined />,
+            disabled: !sample || step.mandatory,
+          },
+        ],
+        onClick: async (info) => {
+          if (!sample) return
+          if (info.key === "Remove") {
+            try {
+              const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
+              notification.info({
+                message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
+                key: REMOVE_NOTIFICATION_KEY,
+              })
+              setButtonLabel("Removing...")
+              await dispatch(
+                api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]),
+              )
+              await dispatch(refreshStudySamples(studyID))
+              notification.destroy(REMOVE_NOTIFICATION_KEY)
+            } finally {
+              setButtonLabel(DEFAULT_LABEL)
+            }
+          } else if (info.key === "Skip") {
+            const SKIPPING_KEY = `StudyStepSamplesTable.skip-${studyID}-${step.stepID}-${sample.id}`
+            notification.info({
+              message: `Skipping step '${step.stepName}' for sample '${sample?.name}'`,
+              key: SKIPPING_KEY,
+            })
+            try {
+              setButtonLabel("Skipping...")
+              await dispatch(api.sampleNextStepByStudy.skip([sample.id], studyID, step.stepOrder))
+              await dispatch(refreshStudySamples(studyID))
+            } catch (e) {
+              const ERROR_KEY = `StudyStepSamplesTable.skip_error-${studyID}-${step.stepID}-${sample.id}`
+              notification.error({
+                message: e.data,
+                key: ERROR_KEY,
+              })
+            } finally {
+              setButtonLabel(DEFAULT_LABEL)
+              notification.destroy(SKIPPING_KEY)
+            }
+          }
+        },
+      }}
+    >
+      <Button>{buttonLabel}</Button>
+    </Dropdown>
   )
 }
 

@@ -1,9 +1,5 @@
 name: Frontend CI
 on:
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - 'frontend/**'
   merge_group:
     types: [checks_requested]
 

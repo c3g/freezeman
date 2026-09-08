@@ -8,10 +8,26 @@ import django.db.models.deletion
 
 ADMIN_USERNAME = 'biobankadmin'
 
+def make_library_normalization_step_optional(apps, schema_editor):
+    StepOrder = apps.get_model('fms_core', 'StepOrder')
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment('Make Normalization (Library) step optional for Ultima workflow.')
+        reversion.set_user(admin_user)
+
+        step_order = StepOrder.objects.get(
+            step__name="Normalization (Library)",
+            workflow__name="Ready-to-Sequence Ultima"
+        )
+
+        step_order.mandatory = False
+        step_order.save()
+        reversion.add_to_revision(step_order)
+
 def populate_parent_project(apps, schema_editor):
     Project = apps.get_model("fms_core", "Project")
     ParentProject = apps.get_model("fms_core", "ParentProject")
-    
+
     with reversion.create_revision(manage_manually=True):
         admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
 
@@ -46,7 +62,7 @@ def populate_parent_project(apps, schema_editor):
 def populate_foreign_key_to_parent_project(apps, schema_editor):
     Project = apps.get_model("fms_core", "Project")
     ParentProject = apps.get_model("fms_core", "ParentProject")
-    
+
     with reversion.create_revision(manage_manually=True):
         admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
 
@@ -118,4 +134,16 @@ class Migration(migrations.Migration):
             name='container',
             field=models.ForeignKey(help_text='Container in which the sample is placed.', limit_choices_to={'kind__in': ('axiom 96-format array pmra', 'axiom 96-format array ukbb', 'infinium epic 8 beadchip', 'infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'illumina-novaseq-x-1.5b flowcell', 'illumina-novaseq-x-5b flowcell', 'illumina-novaseq-x-10b flowcell', 'illumina-novaseq-x-25b flowcell', 'illumina-novaseq-sp flowcell', 'illumina-novaseq-s1 flowcell', 'illumina-novaseq-s2 flowcell', 'illumina-novaseq-s4 flowcell', 'illumina-miseq-v2 flowcell', 'illumina-miseq-v3 flowcell', 'illumina-miseq-micro flowcell', 'illumina-miseq-nano flowcell', 'illumina-miseq-i100-5m flowcell', 'illumina-miseq-i100-25m flowcell', 'illumina-miseq-i100-50m flowcell', 'illumina-miseq-i100-100m flowcell', 'illumina-iseq-100 flowcell', 'pacbio-revio smrt cell tray', 'ultima wafer', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate', '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.container'),
         ),
+
+        migrations.AddField(
+            model_name='steporder',
+            name='mandatory',
+            field=models.BooleanField(default=True, help_text='Samples cannot skip this step in this workflow.'),
+        ),
+        migrations.AlterField(
+            model_name='stephistory',
+            name='workflow_action',
+            field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('REPEAT_STEP', 'Repeat step - Move to next step and repeat current step'), ('REPEAT_QC_STEP', 'Repeat QC step - Repeat current QC step'), ('SKIP_STEP', 'Step skipped - Move to next step'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
+        ),
+        migrations.RunPython(make_library_normalization_step_optional, reverse_code=migrations.RunPython.noop),
     ]
