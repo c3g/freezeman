@@ -16,6 +16,7 @@ from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
 from fms_core.models import ImportedFile
 from fms_core.templates import SheetInfo
+from fms_core.template_importer.row_handlers._generic import GenericRowHandler, RowObject, RowResult
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -29,7 +30,7 @@ class GenericImporter():
         self.file = None
         self.format = None
         self.imported_file = None
-        self.sheets = {}
+        self.sheets: dict[str, SheetData] = {}
         self.previews_info = []
         self.dry_run = None
         self.output_file = None
@@ -157,10 +158,10 @@ class GenericImporter():
         """
         pass
 
-    def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
+    def handle_row(self, row_handler_class: type[GenericRowHandler[RowObject]], sheet: SheetData, row_i: int, **kwargs):
         row_handler_obj = row_handler_class()
         if self.errors_count >= self.ERRORS_CUTOFF:
-            result = {'errors': [], 'validation_error': ValidationError({}), 'warnings': []} # Skip row handling, report no error
+            result: RowResult = {'errors': [], 'validation_error': ValidationError({}), 'warnings': []} # Skip row handling, report no error
         else:
             is_empty_row = not any(sheet.rows[row_i])
             result = row_handler_obj.process_row(is_empty_row=is_empty_row, **kwargs)

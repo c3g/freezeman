@@ -1,7 +1,9 @@
+from typing import Any, Mapping, TypeVar, TypedDict, cast
+
 from django.core.exceptions import ValidationError
 from collections import defaultdict
 
-from fms_core.utils import Warnings, serialize_warnings
+from fms_core.utils import SerializedWarnings, Warnings, serialize_warnings
 
 '''
     RowHandler objects
@@ -16,13 +18,14 @@ from fms_core.utils import Warnings, serialize_warnings
         A row result dictionary containing errors, validation error, warnings, and row data 
 '''
 
+RowObject = TypeVar("RowObject", bound=Mapping[str, Any])
 
-class GenericRowHandler():
+class GenericRowHandler[RowObject]():
     def __init__(self):
         self.errors = defaultdict(list)
         self.warnings: Warnings = defaultdict(list)
         # optional - in case the Importer needs the current row main object from the RowHandler
-        self.row_object = None
+        self.row_object = cast(RowObject | None, None)
 
     def validate_row_input(self, **kwargs):
         pass # no validation is done by default
@@ -46,6 +49,11 @@ class GenericRowHandler():
     def process_row_inner(self, *args, **kwargs):
         raise NotImplementedError("process_row_inner() must be implemented in the subclass")
 
-    def get_result(self):
+    def get_result(self) -> RowResult:
         warnings = serialize_warnings(self.warnings)
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}
+
+class RowResult(TypedDict):
+    errors: list[Any]
+    validation_error: ValidationError
+    warnings: SerializedWarnings
