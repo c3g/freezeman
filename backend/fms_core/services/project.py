@@ -54,7 +54,7 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
                                                                                principal_investigator=principal_investigator,
                                                                                requestor_name=requestor_name,
                                                                                requestor_email=requestor_email)
-        errors.extent(parent_errors)
+        errors.extend(parent_errors)
         warnings.extend(parent_warnings)
         
     project_data = dict(
