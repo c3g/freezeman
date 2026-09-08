@@ -1,6 +1,10 @@
 name: Backend CI
 
 on:
+  pull_request:
+    branches: [ "master", "qc" ]
+    paths:
+      - 'backend/**'
   merge_group:
     types: [checks_requested]
 
