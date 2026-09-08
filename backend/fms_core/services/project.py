@@ -49,16 +49,14 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
     warnings = []
 
     if external_id is not None and external_name is not None:
-        parent_project_data = dict(
-            **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
-            **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
-            **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
-        )
-        try:
-            parent_project = ParentProject.objects.create(external_id=external_id, name=external_name, **parent_project_data)
-        except ValidationError as e:
-            errors.append(str(e))
-    
+        parent_project, parent_errors, parent_warnings = create_parent_project(external_id=external_id,
+                                                                               name=external_name,
+                                                                               principal_investigator=principal_investigator,
+                                                                               requestor_name=requestor_name,
+                                                                               requestor_email=requestor_email)
+        errors.extent(parent_errors)
+        warnings.extend(parent_warnings)
+        
     project_data = dict(
         name=name,
         # Optional attributes
@@ -75,7 +73,23 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
 
     return (project, errors, warnings)
 
-def create_project(name=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
+def create_project(name: str=None, parent_project: ParentProject=None, status: str=None, targeted_end_date: str=None, comment: str=None):
+    """
+    Creates an internal project using an existing parent_project if one is provided.
+        
+    Args:
+        `name`: Name of the Freezeman project.
+        `parent_project`: Parent Project object (optional).
+        `status`: Status of the project.
+        `targeted_end_date`: Date of the expected project end.
+        `comment`: Comment to be tied to the project.
+        
+    Returns:
+        Tuple with the following content:
+        `project`: Project object created otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
     project = None
     errors = []
     warnings = []
@@ -96,7 +110,23 @@ def create_project(name=None, parent_project=None, status=None, targeted_end_dat
 
     return (project, errors, warnings)
 
-def create_parent_project(external_id, name, principal_investigator=None, requestor_name=None, requestor_email=None):
+def create_parent_project(external_id: str, name: str, principal_investigator: str=None, requestor_name: str=None, requestor_email: str=None):
+    """
+    Creates a parent project that can be assigned to internal projects for reference.
+        
+    Args:
+        `external_id`: ID of the parent project in the external system.
+        `name`: Name of the parent project name in the external system (external name).
+        `principal_investigator`: Name of the principal investigator for the project.
+        `requestor_name`: Name of the person creating the project request.
+        `requestor_email`: Contact email for the requestor.
+        
+    Returns:
+        Tuple with the following content:
+        `parent_project`: Parent Project object created otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
     parent_project = None
     errors = []
     warnings = []
