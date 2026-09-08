@@ -516,13 +516,9 @@ function WorkflowOptions({
     workflowByStudy,
   ])
 
-  try {
-    return (
-      <Flex vertical gap={"middle"}>
-        {result}
-      </Flex>
-    )
-  } catch (error) {
-    return <div>{`Error: ${error}`}</div>
-  }
+  return (
+    <Flex vertical gap={"middle"}>
+      {result}
+    </Flex>
+  )
 }

@@ -123,7 +123,7 @@ export const mapStateToProps = (state) => ({
 export const actionCreators = { logOut }
 
 const App = ({ userID, usersByID, logOut }) => {
-  /* global FMS_ENV */
+  // FMS_ENV is global
   const env = FMS_ENV
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
@@ -592,7 +592,6 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
-  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation()
     const navigate = useNavigate()
