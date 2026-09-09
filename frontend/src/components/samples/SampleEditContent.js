@@ -186,11 +186,14 @@ const SampleEditContent = ({ sample, isAdding}) => {
    */
 
   const [containerOptions, setContainerOptions] = useState([]);
-  const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
   const onSearchContainer = useCallback((input, options) => {
-    searchContainers(token, input, options).then(containers => {
-      setContainerOptions(containers.map(Options.renderContainer));
-    })
+    if (!input) {
+      setContainerOptions([])
+    } else {
+      searchContainers(token, input, options).then(containers => {
+        setContainerOptions(containers.map(Options.renderContainer));
+      })
+    }
   }, [token])
 
   /*
@@ -322,7 +325,6 @@ const SampleEditContent = ({ sample, isAdding}) => {
               filterOption={false}
               options={containerOptions}
               onSearch={onSearchContainer}
-              onFocus={onFocusContainer}
             />
           </Item>
           <Item label="Coordinates" {...props("coordinate")}

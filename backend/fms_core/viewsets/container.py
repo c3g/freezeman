@@ -1,6 +1,7 @@
 from collections import defaultdict
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
+from django.db.models.lookups import StartsWith, IStartsWith, Contains, IContains, Exact
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -161,26 +162,50 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         qs_except_kinds = _request.GET.get("except_kinds")
         except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
+        queryset = Container.objects.all()
+        queryset = queryset.annotate(priority=Value(100))
+
         if search_input is not None:
             if is_exact_match:
-                query = Q(barcode=search_input)
-                query.add(Q(name=search_input), Q.OR)
-                query.add(Q(id=search_input), Q.OR)
+                queryset = queryset.filter(
+                    Q(barcode=search_input) |
+                    Q(name=search_input) |
+                    Q(id=search_input)
+                )
             else:
-                query = Q(barcode__icontains=search_input)
-                query.add(Q(name__icontains=search_input), Q.OR)
-                query.add(Q(id__icontains=search_input), Q.OR)
+                queryset = queryset.filter(
+                    Q(barcode__icontains=search_input) |
+                    Q(name__icontains=search_input) |
+                    Q(id__icontains=search_input)
+                )
+
+                cases = [
+                    When(Exact(search_input, F("barcode")), Value(0)),
+                    When(Exact(search_input, F("name")), Value(0)),
+                ]
+                if search_input.isdigit():
+                    cases.append(When(Exact(search_input, F("pk")), Value(0)))
+                cases.extend([
+                    When(StartsWith(search_input, F("barcode")), Value(1)),
+                    When(StartsWith(search_input, F("name")), Value(1)),
+                    When(IStartsWith(search_input, F("barcode")), Value(2)),
+                    When(IStartsWith(search_input, F("name")), Value(2)),
+                    When(Contains(search_input, F("barcode")), Value(4)),
+                    When(Contains(search_input, F("name")), Value(4)),
+                ])
+                queryset = queryset.annotate(priority=Case(
+                    *cases,
+                    default=Value(100)
+                ))
             if is_parent:
                 kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
+                queryset = queryset.filter(Q(kind__in=kinds))
             if is_sample_holding:
                 kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            containers_data = Container.objects.filter(query)
-        else:
-            containers_data = Container.objects.all()
+                queryset = queryset.filter(Q(kind__in=kinds))
 
-        page = self.paginate_queryset(containers_data)
+        queryset = queryset.order_by("priority")
+        page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
