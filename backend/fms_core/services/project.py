@@ -73,7 +73,7 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
 
     return (project, errors, warnings)
 
-def create_project(name=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
+def create_project(name: str | None = None, parent_project: ParentProject | None = None, status: str | None = None, targeted_end_date: str | None = None, comment: str | None = None):
     """
     Creates an internal project using an existing parent_project if one is provided.
         
@@ -110,7 +110,7 @@ def create_project(name=None, parent_project=None, status=None, targeted_end_dat
 
     return (project, errors, warnings)
 
-def create_parent_project(external_id, name, principal_investigator=None, requestor_name=None, requestor_email=None):
+def create_parent_project(external_id: str, name: str, principal_investigator: str | None = None, requestor_name: str | None = None, requestor_email: str | None = None):
     """
     Creates a parent project that can be assigned to internal projects for reference.
         
