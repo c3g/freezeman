@@ -4,6 +4,7 @@ from fms_core.services.sample_next_step import is_sample_queued_in_study, queue_
 from fms_core.services.study import get_study
 from fms_core.models import Project, Sample, ParentProject
 from django.core.exceptions import ValidationError
+from typing import Optional
 
 def get_project(name=None):
     project = None
@@ -73,7 +74,7 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
 
     return (project, errors, warnings)
 
-def create_project(name: str | None = None, parent_project: ParentProject | None = None, status: str | None = None, targeted_end_date: str | None = None, comment: str | None = None):
+def create_project(name: str, parent_project: Optional[ParentProject] = None, status: Optional[str] = None, targeted_end_date: Optional[str] = None, comment: Optional[str] = None):
     """
     Creates an internal project using an existing parent_project if one is provided.
         
@@ -110,7 +111,7 @@ def create_project(name: str | None = None, parent_project: ParentProject | None
 
     return (project, errors, warnings)
 
-def create_parent_project(external_id: str, name: str, principal_investigator: str | None = None, requestor_name: str | None = None, requestor_email: str | None = None):
+def create_parent_project(external_id: str, name: str, principal_investigator: Optional[str] = None, requestor_name: Optional[str] = None, requestor_email: Optional[str] = None):
     """
     Creates a parent project that can be assigned to internal projects for reference.
         
