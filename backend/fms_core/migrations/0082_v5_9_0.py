@@ -94,8 +94,7 @@ def allow_extracted_sample_for_illumina_experiment_run(apps, schema_editor):
         step.save()
         reversion.add_to_revision(step)
 
-
-def create_illumina_libraryless_workflow(apps, schema_editor):
+def create_illumina_trupath_workflow(apps, schema_editor):
     Workflow = apps.get_model("fms_core", "Workflow")
     Step = apps.get_model("fms_core", "Step")
     StepOrder = apps.get_model("fms_core", "StepOrder")
@@ -105,11 +104,11 @@ def create_illumina_libraryless_workflow(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment(f"Create libraryless workflow for Illumina.")
+        reversion.set_comment(f"Create trupath workflow for Illumina.")
         reversion.set_user(admin_user)
 
         workflow = Workflow.objects.create(
-            name="Libraryless Illumina",
+            name="TruPath Illumina",
             structure="Libraryless Illumina",
             created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
@@ -127,6 +126,23 @@ def create_illumina_libraryless_workflow(apps, schema_editor):
                 created_by_id=admin_user.id, updated_by_id=admin_user.id
             )
             reversion.add_to_revision(next_step_order)
+
+def add_trupath_library_type(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+
+    TRUPATH_LIBRARY_TYPE = "TruPath"
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create TruPath library type.")
+        reversion.set_user(admin_user)
+    
+        library_type = LibraryType.objects.create(name=TRUPATH_LIBRARY_TYPE,
+                                                  created_by_id=admin_user_id,
+                                                  updated_by_id=admin_user_id)
+        reversion.add_to_revision(library_type)
 
 
 class Migration(migrations.Migration):
@@ -213,5 +229,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(make_library_normalization_step_optional, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(allow_extracted_sample_for_illumina_experiment_run, reverse_code=migrations.RunPython.noop),
-        migrations.RunPython(create_illumina_libraryless_workflow, reverse_code=migrations.RunPython.noop)
+        migrations.RunPython(create_illumina_trupath_workflow, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(add_trupath_library_type, reverse_code=migrations.RunPython.noop)
     ]

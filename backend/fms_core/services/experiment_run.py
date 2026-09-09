@@ -9,9 +9,13 @@ from fms_core.utils import make_timestamped_filename
 from fms_core.services.experiment_run_info import generate_run_info
 from ..models import ExperimentRun, ProcessMeasurement
 
+from fms_core._constants import DOUBLE_STRANDED
 from .process import create_process
 from .property_value import create_process_properties, create_process_measurement_properties
-from .sample import transfer_sample
+from .sample import transfer_sample, prepare_library
+from .library import create_library, get_library_type
+from .index import get_index
+from .platform import get_platform
 
 class LAUNCH_MODES():
     DEFAULT="DEFAULT"
@@ -102,15 +106,51 @@ def create_experiment_run(experiment_run_name,
             workflow = sample_info.get('workflow', None)
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
-            sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
-                                                                                     sample_source=source_sample,
-                                                                                     container_destination=container_obj,
-                                                                                     volume_used=volume_used,
-                                                                                     execution_date=start_date,
-                                                                                     coordinates_destination=container_coordinates,
-                                                                                     volume_destination=volume_destination,
-                                                                                     comment=comment,
-                                                                                     workflow=workflow)
+            if workflow.name != "TruPath Illumina":
+                sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
+                                                                                        sample_source=source_sample,
+                                                                                        container_destination=container_obj,
+                                                                                        volume_used=volume_used,
+                                                                                        execution_date=start_date,
+                                                                                        coordinates_destination=container_coordinates,
+                                                                                        volume_destination=volume_destination,
+                                                                                        comment=comment,
+                                                                                        workflow=workflow)
+                errors += transfer_errors
+                warnings += transfer_warnings
+            else:
+                TRUPATH_LIBRARY_TYPE = "TruPath"
+                NO_INDEX = "No_Index"
+                ILLUMINA_PLATFORM = "ILLUMINA"
+                library_type_obj, library_type_errors, library_type_warnings = get_library_type(name=TRUPATH_LIBRARY_TYPE)
+                index_obj, index_errors, index_warnings = get_index(name=NO_INDEX)
+                platform_obj, platform_errors, platform_warnings = get_platform(name=ILLUMINA_PLATFORM)
+                errors += library_type_errors + index_errors + platform_errors
+                warnings += library_type_warnings + index_warnings + platform_warnings
+                
+                libraries_by_derived_sample = {}
+                for derived_sample_source in source_sample.derived_samples.all():
+                    library_obj, library_errors, library_warnings = create_library(library_type=library_type_obj,
+                                                                                   index=index_obj,
+                                                                                   platform=platform_obj,
+                                                                                   strandedness=DOUBLE_STRANDED)
+                    libraries_by_derived_sample[derived_sample_source.id] = library_obj
+                errors += library_errors
+                warnings += library_warnings
+
+                sample_destination, library_prep_errors, library_prep_warnings = prepare_library(process=experiment_run.process,
+                                                                                                 sample_source=source_sample,
+                                                                                                 container_destination=container_obj,
+                                                                                                 libraries_by_derived_sample=libraries_by_derived_sample,
+                                                                                                 volume_used=volume_used,
+                                                                                                 execution_date=start_date,
+                                                                                                 coordinates_destination=container_coordinates,
+                                                                                                 volume_destination=0, # Experiment container forced to zero
+                                                                                                 comment=comment,
+                                                                                                 workflow=workflow)
+                errors += library_prep_errors
+                warnings += library_prep_warnings
+
 
             if sample_destination:
                 sample_destination.depleted = True # deplete destination sample
@@ -123,9 +163,6 @@ def create_experiment_run(experiment_run_name,
                     warnings += pm_properties_warnings
                 except ProcessMeasurement.DoesNotExist as e:
                     errors.append(f"Failed to get process measurement for experiment run.")
-
-            errors += transfer_errors
-            warnings += transfer_warnings
 
     if errors:
       experiment_run = None
