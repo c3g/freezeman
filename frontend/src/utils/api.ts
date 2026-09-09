@@ -479,6 +479,12 @@ const api = {
         study,
         step_order: stepOrder,
       }),
+    skip: (sampleIDs: FMSId[], study: FMSStudy["id"], stepOrder: number) =>
+      post<JsonResponse<number>>(`/sample-next-step-by-study/skip/`, {
+        sample_ids: sampleIDs,
+        study,
+        step_order: stepOrder,
+      }),
     list: (options, abort?: boolean) =>
       get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
@@ -518,7 +524,8 @@ const api = {
     update: (study) => patch(`/studies/${study.id}/`, study),
     list: (options, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>("/studies/", options, { abort }),
-    listProjectStudies: (projectId) => get("/studies/", { project_id: projectId }),
+    listProjectStudies: (projectId: FMSId) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>("/studies/", { project_id: projectId }),
     remove: (studyId) => remove(`/studies/${studyId}/`),
   },
 
@@ -548,7 +555,7 @@ const api = {
   workflows: {
     get: (workflowId: FMSWorkflow["id"]) =>
       get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
-    list: (options, abort?: boolean) =>
+    list: (options: any, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSWorkflow>>>("/workflows/", options, { abort }),
   },
 

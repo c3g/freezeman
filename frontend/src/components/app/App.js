@@ -71,7 +71,6 @@ import {
 } from "../management/WorkflowAssignmentPage"
 import { getProfile } from "../../modules/profiles"
 import api from "../../utils/api"
-import store from "../../store"
 
 const { Title } = Typography
 
@@ -127,6 +126,7 @@ export const mapStateToProps = (state) => ({
 export const actionCreators = { logOut }
 
 const App = ({ userID, usersByID, logOut }) => {
+  // FMS_ENV is global
   const env = FMS_ENV
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
@@ -206,6 +206,7 @@ const App = ({ userID, usersByID, logOut }) => {
         key: "management",
         children: [
           {
+            url: "/management/workflow-assignment",
             onClick: () => navigateToWorkflowAssignment(),
             icon: <RetweetOutlined />,
             text: "Assign Workflow",
