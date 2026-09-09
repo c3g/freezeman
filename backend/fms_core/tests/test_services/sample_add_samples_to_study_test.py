@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from fms_core.models import Container, SampleKind, Workflow, Project, Study
+from fms_core.models import Container, SampleKind, Workflow, Study
 
 from fms_core.services.project import add_sample_to_study, create_project
 from fms_core.services.project_link_samples import create_link, remove_link
@@ -116,7 +116,7 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
     def test_cannot_queue_to_invalid_step(self):
         errors, warnings = add_sample_to_study(self.blood_project1, self.project1, self.study_project1_A.letter, self.experiment_run_illumina_step)
         self.assertEqual(errors.get("queue_sample_to_study_workflow"), [
-            f"Step Experiment Run Illumina of study {self.study_project1_A.letter} expected Extracted sample but Sample {self.blood_project1.name} does not match that sample type."
+            f"Step Experiment Run Illumina of study {self.study_project1_A.letter} expected Extracted sample or library but Sample {self.blood_project1.name} does not match that sample type."
         ])
         self.assertEqual(dict(warnings), {})
 

@@ -7,9 +7,9 @@ from django.conf import settings
 
 from fms_core.utils import make_timestamped_filename
 from fms_core.services.experiment_run_info import generate_run_info
-from ..models import ExperimentRun, ProcessMeasurement
+from ..models import ExperimentRun, ProcessMeasurement, Study
 
-from fms_core._constants import DOUBLE_STRANDED
+from fms_core.models._constants import DOUBLE_STRANDED
 from .process import create_process
 from .property_value import create_process_properties, create_process_measurement_properties
 from .sample import transfer_sample, prepare_library
@@ -106,19 +106,19 @@ def create_experiment_run(experiment_run_name,
             workflow = sample_info.get('workflow', None)
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
-            if workflow.name != "TruPath Illumina":
-                sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
-                                                                                        sample_source=source_sample,
-                                                                                        container_destination=container_obj,
-                                                                                        volume_used=volume_used,
-                                                                                        execution_date=start_date,
-                                                                                        coordinates_destination=container_coordinates,
-                                                                                        volume_destination=volume_destination,
-                                                                                        comment=comment,
-                                                                                        workflow=workflow)
-                errors += transfer_errors
-                warnings += transfer_warnings
-            else:
+            study_obj = None
+            if workflow is not None:
+                try:
+                    study_obj = Study.objects.get(sample_next_step_by_study__sample_next_step__sample=source_sample,
+                                                  sample_next_step_by_study__sample_next_step__step=workflow["step"])
+                except Exception as err:
+                    pass
+
+            # To deal with libraryless processing.
+            if study_obj is not None and study_obj.workflow.name == "TruPath Illumina":
+                # Currently only serving a single libraryless library type.
+                # Eventually with other workflows, we would need to extract the workflow from sample and step to establish the library to create.
+
                 TRUPATH_LIBRARY_TYPE = "TruPath"
                 NO_INDEX = "No_Index"
                 ILLUMINA_PLATFORM = "ILLUMINA"
@@ -150,7 +150,18 @@ def create_experiment_run(experiment_run_name,
                                                                                                  workflow=workflow)
                 errors += library_prep_errors
                 warnings += library_prep_warnings
-
+            else: # generic processing
+                sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
+                                                                                         sample_source=source_sample,
+                                                                                         container_destination=container_obj,
+                                                                                         volume_used=volume_used,
+                                                                                         execution_date=start_date,
+                                                                                         coordinates_destination=container_coordinates,
+                                                                                         volume_destination=volume_destination,
+                                                                                         comment=comment,
+                                                                                         workflow=workflow)
+                errors += transfer_errors
+                warnings += transfer_warnings                
 
             if sample_destination:
                 sample_destination.depleted = True # deplete destination sample
