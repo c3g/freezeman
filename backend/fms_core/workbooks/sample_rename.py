@@ -33,7 +33,7 @@ class SampleRenameWorkbook(TemplateWorkbook):
                     CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
                 [
-                    CD(value="Version : 5.6.0"),
+                    CD(value="Version : 5.10.0"),
                 ],
                 [],
                 [
@@ -41,6 +41,9 @@ class SampleRenameWorkbook(TemplateWorkbook):
                 ],
                 [
                     CD("- Run Processing uses the alias of a sample to identify the sample, not the name.")
+                ],
+                [
+                    CD("- Pools cannot be renamed with this template, but you can rename pooled samples.")
                 ],
                 [],
                 [

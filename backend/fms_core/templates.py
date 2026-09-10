@@ -318,7 +318,7 @@ class SampleRenameHeaders:
     CONTAINER_BARCODE = "Container Barcode"
     CONTAINER_COORDINATES = "Container Coordinates"
     INDEX_NAME = "Index Name"
-    OLD_SAMPLE_NAME = "Old Sample Name"
+    OLD_SAMPLE_NAME = "Old Sample Name or Pool Name"
     OLD_SAMPLE_ALIAS = "Old Sample Alias"
     NEW_SAMPLE_NAME = "New Sample Name"
     NEW_SAMPLE_ALIAS = "New Sample Alias"
