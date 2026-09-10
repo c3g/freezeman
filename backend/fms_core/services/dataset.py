@@ -402,7 +402,8 @@ def create_validation_info_file(dataset_obj: Dataset, validator_obj: User, is_va
         return None, errors, warnings
 
     dataset_id = str(dataset_obj.id)
-    project_requestor_email = dataset_obj.project.requestor_email
+    project_principal_investigator = dataset_obj.project.parent_project and dataset_obj.project.parent_project.principal_investigator
+    project_requestor_email = dataset_obj.project.parent_project and dataset_obj.project.parent_project.requestor_email
     lane = str(dataset_obj.lane)
 
     filename, timestamp = make_timestamped_filename(file_prefix[is_validation_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
@@ -411,7 +412,7 @@ def create_validation_info_file(dataset_obj: Dataset, validator_obj: User, is_va
                       "timestamp": timestamp,
                       "external_project_id": external_project_id,
                       "project_name": dataset_obj.project.name,
-                      "project_principal_investigator": dataset_obj.project.principal_investigator,
+                      "project_principal_investigator": project_principal_investigator,
                       "project_requestor_email": project_requestor_email,
                       "run_id": dataset_obj.experiment_run.id,
                       "run_name": dataset_obj.experiment_run.name,
@@ -471,7 +472,8 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
         return None, errors, warnings
 
     dataset_id = str(dataset_obj.id)
-    project_requestor_email = dataset_obj.project.requestor_email
+    project_principal_investigator = dataset_obj.project.parent_project and dataset_obj.project.parent_project.principal_investigator
+    project_requestor_email = dataset_obj.project.parent_project and dataset_obj.project.parent_project.requestor_email
     lane = str(dataset_obj.lane)
 
     filename, timestamp = make_timestamped_filename(file_prefix[is_release_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
@@ -480,7 +482,7 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
                      "timestamp": timestamp,
                      "external_project_id": external_project_id,
                      "project_name": dataset_obj.project.name,
-                     "project_principal_investigator": dataset_obj.project.principal_investigator,
+                     "project_principal_investigator": project_principal_investigator,
                      "project_requestor_email": project_requestor_email,
                      "run_id": dataset_obj.experiment_run.id,
                      "run_name": dataset_obj.experiment_run.name,

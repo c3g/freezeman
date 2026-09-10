@@ -4,6 +4,7 @@ from fms_core.services.sample_next_step import is_sample_queued_in_study, queue_
 from fms_core.services.study import get_study
 from fms_core.models import Project, Sample, ParentProject
 from django.core.exceptions import ValidationError
+from typing import Optional
 
 def get_project(name=None):
     project = None
@@ -49,17 +50,17 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
     warnings = []
 
     if external_id is not None and external_name is not None:
-        try:
-            parent_project = ParentProject.objects.create(external_id=external_id, name=external_name)
-        except ValidationError as e:
-            errors.append(str(e))
-    
+        parent_project, parent_errors, parent_warnings = create_parent_project(external_id=external_id,
+                                                                               name=external_name,
+                                                                               principal_investigator=principal_investigator,
+                                                                               requestor_name=requestor_name,
+                                                                               requestor_email=requestor_email)
+        errors.extend(parent_errors)
+        warnings.extend(parent_warnings)
+        
     project_data = dict(
         name=name,
         # Optional attributes
-        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
-        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
-        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
         **(dict(parent_project=parent_project) if parent_project is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
         **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
@@ -73,8 +74,23 @@ def create_full_project(name=None, principal_investigator=None, requestor_name=N
 
     return (project, errors, warnings)
 
-def create_project(name=None, principal_investigator=None, requestor_name=None,
-                   requestor_email=None, parent_project=None, status=None, targeted_end_date=None, comment=None):
+def create_project(name: str, parent_project: Optional[ParentProject] = None, status: Optional[str] = None, targeted_end_date: Optional[str] = None, comment: Optional[str] = None):
+    """
+    Creates an internal project using an existing parent_project if one is provided.
+        
+    Args:
+        `name`: Name of the Freezeman project.
+        `parent_project`: Parent Project object (optional).
+        `status`: Status of the project.
+        `targeted_end_date`: Date of the expected project end.
+        `comment`: Comment to be tied to the project.
+        
+    Returns:
+        Tuple with the following content:
+        `project`: Project object created otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
     project = None
     errors = []
     warnings = []
@@ -82,9 +98,6 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
     project_data = dict(
         name=name,
         # Optional attributes
-        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
-        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
-        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
         **(dict(parent_project=parent_project) if parent_project is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
         **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
@@ -98,13 +111,34 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
 
     return (project, errors, warnings)
 
-def create_parent_project(external_id, name):
+def create_parent_project(external_id: str, name: str, principal_investigator: Optional[str] = None, requestor_name: Optional[str] = None, requestor_email: Optional[str] = None):
+    """
+    Creates a parent project that can be assigned to internal projects for reference.
+        
+    Args:
+        `external_id`: ID of the parent project in the external system.
+        `name`: Name of the parent project name in the external system (external name).
+        `principal_investigator`: Name of the principal investigator for the project.
+        `requestor_name`: Name of the person creating the project request.
+        `requestor_email`: Contact email for the requestor.
+        
+    Returns:
+        Tuple with the following content:
+        `parent_project`: Parent Project object created otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
     parent_project = None
     errors = []
     warnings = []
 
+    parent_project_data = dict(
+        **(dict(principal_investigator=principal_investigator) if principal_investigator is not None else dict()),
+        **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
+        **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
+    )
     try:
-        parent_project = ParentProject.objects.create(external_id=external_id, name=name)
+        parent_project = ParentProject.objects.create(external_id=external_id, name=name, **parent_project_data)
     except ValidationError as e:
         errors.append(str(e))
 
