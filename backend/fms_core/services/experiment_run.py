@@ -98,6 +98,24 @@ def create_experiment_run(experiment_run_name,
                 errors.append(f'{field}: {message[0]}')
 
     if experiment_run:
+        TRUPATH_LIBRARY_TYPE = "TruPath"
+        # we need to decide before completing worflows which sample need to be converted to libraries.
+        for sample_info in samples_info:
+            study_obj = None
+            workflow = sample_info.get('workflow', None)
+            if workflow is not None:
+                try:
+                    study_obj = Study.objects.get(sample_next_step_by_study__sample_next_step__sample=sample_info['sample_obj'],
+                                                    sample_next_step_by_study__sample_next_step__step=workflow["step"])
+                except Exception:
+                    pass
+
+            # To deal with libraryless processing.
+            if study_obj is not None and study_obj.workflow.name == "TruPath Illumina":
+                sample_info["abstract_library_type"] = TRUPATH_LIBRARY_TYPE # store the abstract library type beforehand
+            else:
+                sample_info["abstract_library_type"] = None
+
         for sample_info in samples_info:
             source_sample = sample_info['sample_obj']
             volume_used = sample_info['volume_used']
@@ -106,20 +124,10 @@ def create_experiment_run(experiment_run_name,
             workflow = sample_info.get('workflow', None)
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
-            study_obj = None
-            if workflow is not None:
-                try:
-                    study_obj = Study.objects.get(sample_next_step_by_study__sample_next_step__sample=source_sample,
-                                                  sample_next_step_by_study__sample_next_step__step=workflow["step"])
-                except Exception as err:
-                    pass
-
             # To deal with libraryless processing.
-            if study_obj is not None and study_obj.workflow.name == "TruPath Illumina":
+            if sample_info["abstract_library_type"] == TRUPATH_LIBRARY_TYPE:
                 # Currently only serving a single libraryless library type.
                 # Eventually with other workflows, we would need to extract the workflow from sample and step to establish the library to create.
-
-                TRUPATH_LIBRARY_TYPE = "TruPath"
                 NO_INDEX = "No_Index"
                 ILLUMINA_PLATFORM = "ILLUMINA"
                 library_type_obj, library_type_errors, library_type_warnings = get_library_type(name=TRUPATH_LIBRARY_TYPE)
