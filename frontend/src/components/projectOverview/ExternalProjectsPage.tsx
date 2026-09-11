@@ -18,6 +18,7 @@ import { setFilterValue } from "../../models/filter_set_reducers"
 
 const EXTERNAL_PROJECT_NAME_FILTER_KEY = "external_project_name"
 const EXTERNAL_PROJECT_ID_FILTER_KEY = "external_project_id"
+const PRINCIPAL_INVESTIGATOR_FILTER_KEY = "principal_investigator"
 
 const EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION: FilterDescription = {
   type: "INPUT",
@@ -29,6 +30,12 @@ const EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION: FilterDescription = {
   type: "INPUT",
   key: EXTERNAL_PROJECT_ID_FILTER_KEY,
   label: "External Project ID",
+  width: 260,
+}
+const PRINCIPAL_INVESTIGATOR_FILTER_DESCRIPTION: FilterDescription = {
+  type: "INPUT",
+  key: PRINCIPAL_INVESTIGATOR_FILTER_KEY,
+  label: "Principal Investigator",
   width: 260,
 }
 
@@ -143,6 +150,23 @@ const ExternalProjectsPage = () => {
         onFilter: (value, record) =>
           (record.name || "").toLowerCase().includes(String(value).toLowerCase()),
         render: (externalProjectName: string | null) => externalProjectName || "",
+      },
+      {
+        title: "Principal Investigator",
+        dataIndex: "principal_investigator",
+        key: "principal_investigator",
+        width: 220,
+        filteredValue: filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY]?.value
+          ? [String(filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY].value)]
+          : null,
+        ...getFilterPropsForDescription(
+          PRINCIPAL_INVESTIGATOR_FILTER_DESCRIPTION,
+          filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY],
+          setFilter,
+        ),
+        onFilter: (value, record) =>
+          (record.principal_investigator || "").toLowerCase().includes(String(value).toLowerCase()),
+        render: (principalInvestigator: string | null) => principalInvestigator || "",
       },
       {
         title: "Freezeman Projects",
