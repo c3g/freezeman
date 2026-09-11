@@ -401,13 +401,7 @@ const formatReadsetFilesForCsv = (files: ProjectOverviewReadset["readset_files"]
       if (!file.file_path) {
         return []
       }
-
-      if (file.size === null || file.size === undefined) {
-        return [file.file_path]
-      }
-
-      const sizeInMb = (Number(file.size) / 1024 / 1024).toFixed(2)
-      return [`${file.file_path} (${sizeInMb} MB)`]
+      return [file.file_path]
     })
     .join("; ")
 }
