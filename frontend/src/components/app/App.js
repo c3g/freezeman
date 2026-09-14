@@ -39,8 +39,7 @@ import ProcessesPage from "../processes/ProcessesPage"
 import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage"
 import ProfilePage from "../profile/ProfilePage"
 import ProjectsPage from "../projects/ProjectsPage"
-import ExternalProjectsListContent from "../projectOverview/ExternalProjectsListContent"
-import ExternalProjectDetailsPage from "../projectOverview/ExternalProjectDetailsPage"
+import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage"
 import SamplesPage from "../samples/SamplesPage"
 import UsersPage from "../users/UsersPage"
 
@@ -471,15 +470,7 @@ const App = ({ userID, usersByID, logOut }) => {
               path="/external-projects-overview/*"
               element={
                 <PrivateNavigate>
-                  <ExternalProjectsListContent />
-                </PrivateNavigate>
-              }
-            />
-            <Route
-              path="/external-projects-overview/:parentProjectId"
-              element={
-                <PrivateNavigate>
-                  <ExternalProjectDetailsPage />
+                  <ExternalProjectsPage />
                 </PrivateNavigate>
               }
             />
