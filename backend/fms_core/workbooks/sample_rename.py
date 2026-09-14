@@ -33,7 +33,7 @@ class SampleRenameWorkbook(TemplateWorkbook):
                     CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
                 [
-                    CD(value="Version : 5.9.0"),
+                    CD(value="Version : 5.6.0"),
                 ],
                 [],
                 [
@@ -104,4 +104,4 @@ class SampleRenameWorkbook(TemplateWorkbook):
             self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
     def headers_row_number(self, sheet_name: str | None = None) -> int:
-        return 8
+        return 9
