@@ -213,11 +213,8 @@ const api = {
   parentProjects: {
     get: (parentProjectId: FMSId) =>
       get<JsonResponse<FMSParentProject>>(`/parent-projects/${parentProjectId}/`),
-    list: (options: object, abort?: boolean, requestID?: string) =>
-      get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, {
-        abort,
-        requestID,
-      }),
+    list: (options: any, apiOptions?: APIFetchOptions) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSParentProject>>>("/parent-projects/", options, apiOptions),
     readsets: (parentProjectId: FMSId, options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(
         `/parent-projects/${parentProjectId}/readsets/`,

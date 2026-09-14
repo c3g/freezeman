@@ -1,43 +1,92 @@
-import { Table, Tag } from "antd"
+import { Pagination, Table, Tag } from "antd"
 import type { ColumnsType } from "antd/es/table"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import AppPageHeader from "../AppPageHeader"
 import { Link } from "react-router-dom"
 import { FMSProject, FMSParentProject } from "../../models/fms_api_models"
-import api from "../../utils/api"
 
 import PageContent from "../PageContent"
 
-import { useAppDispatch } from "../../hooks"
 
 import FiltersBar from "../filters/filtersBar/FiltersBar"
-import { FilterDescription, FilterSet, SetFilterFunc } from "../../models/paged_items"
 
-import { getFilterPropsForDescription } from "../filters/getFilterPropsTS"
-import { setFilterValue } from "../../models/filter_set_reducers"
 import { ROUTE } from "./ExternalProjectsPage"
+import { ColumnDefinitions, createQueryParamsFromFilters, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, useFilters, usePaginatedDataProps, useTableColumnsProps } from "../../utils/tableHooks"
+import { FILTER_TYPE } from "../../constants"
+import { useAppDispatch } from "../../hooks"
+import api from "../../utils/api"
 
-const EXTERNAL_PROJECT_NAME_FILTER_KEY = "external_project_name"
-const EXTERNAL_PROJECT_ID_FILTER_KEY = "external_project_id"
-const PRINCIPAL_INVESTIGATOR_FILTER_KEY = "principal_investigator"
+enum ParentProjectColumnID {
+  EXTERNAL_ID = "EXTERNAL_ID",
+  FREEZEMAN_PROJECT_COUNT = "FREEZEMAN_PROJECT_COUNT",
+  ID = "ID",
+  NAME = "NAME",
+  PRINCIPAL_INVESTIGATOR = "PRINCIPAL_INVESTIGATOR",
+}
 
-const EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION: FilterDescription = {
-  type: "INPUT",
-  key: EXTERNAL_PROJECT_NAME_FILTER_KEY,
-  label: "External Project Name",
-  width: 260,
+const FILTER_KEYS: FilterKeys<ParentProjectColumnID> = {
+  [ParentProjectColumnID.EXTERNAL_ID]: "external_id",
+  [ParentProjectColumnID.NAME]: "name",
+  [ParentProjectColumnID.PRINCIPAL_INVESTIGATOR]: "principal_investigator",
 }
-const EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION: FilterDescription = {
-  type: "INPUT",
-  key: EXTERNAL_PROJECT_ID_FILTER_KEY,
-  label: "External Project ID",
-  width: 260,
+
+const FILTER_DESCRIPTIONS: FilterDescriptions<ParentProjectColumnID> = {
+  [ParentProjectColumnID.EXTERNAL_ID]: {
+    type: FILTER_TYPE.INPUT,
+    exactMatch: true,
+    startsWith: false,
+  },
+  [ParentProjectColumnID.NAME]: {
+    type: FILTER_TYPE.INPUT,
+    exactMatch: false,
+    startsWith: false,
+  },
+  [ParentProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
+    type: FILTER_TYPE.INPUT,
+    exactMatch: false,
+    startsWith: false,
+  },
 }
-const PRINCIPAL_INVESTIGATOR_FILTER_DESCRIPTION: FilterDescription = {
-  type: "INPUT",
-  key: PRINCIPAL_INVESTIGATOR_FILTER_KEY,
-  label: "Principal Investigator",
-  width: 260,
+
+const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ParentProjectColumnID> = {
+  [ParentProjectColumnID.EXTERNAL_ID]: { placeholder: "External Project ID" },
+  [ParentProjectColumnID.NAME]: { placeholder: "External Project Name" },
+  [ParentProjectColumnID.PRINCIPAL_INVESTIGATOR]: { placeholder: "Principal Investigator" },
+}
+
+const ROW_KEY = "external_id"
+
+const COLUMN_DEFINITIONS: ColumnDefinitions<ParentProjectColumnID, FMSParentProject> = {
+  [ParentProjectColumnID.EXTERNAL_ID]: {
+    title: "External Project ID",
+    dataIndex: "external_id",
+    key: "external_id",
+    width: 120,
+    render: (externalID: string, parentProject: FMSParentProject) => (
+      <Link to={`${ROUTE}/${parentProject.id}#projects`}>{externalID}</Link>
+    ),
+  },
+  [ParentProjectColumnID.NAME]: {
+    title: "External Project Name",
+    dataIndex: "name",
+    key: "name",
+  },
+  [ParentProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
+    title: "Principal Investigator",
+    dataIndex: "principal_investigator",
+    key: "principal_investigator",
+    width: 220,
+  },
+  [ParentProjectColumnID.FREEZEMAN_PROJECT_COUNT]: {
+    title: "Freezeman Projects",
+    dataIndex: "projects",
+    key: "projects",
+    width: 120,
+    render: (projects: FMSParentProject["projects"]) => {
+      const projectCount = projects?.length ?? 0
+      return <Tag color={projectCount > 1 ? "blue" : "default"}>{projectCount}</Tag>
+    }
+  },
 }
 
 const internalProjectColumns: ColumnsType<FMSProject> = [
@@ -85,167 +134,83 @@ const internalProjectColumns: ColumnsType<FMSProject> = [
   },
 ]
 
-// Organise les projets internes dans un objet afin de pouvoir retrouver rapidement chaque projet à partir de son ID.
-const indexProjectsByID = (projects: FMSProject[]): Partial<Record<number, FMSProject>> =>
-  projects.reduce<Partial<Record<number, FMSProject>>>((projectsByID, project) => {
-    projectsByID[project.id] = project
-    return projectsByID
-  }, {})
-
-// Récupère les IDs uniques des projets internes associés aux projets externes.
-const getUniqueInternalProjectIDs = (parentProjects: FMSParentProject[]): number[] => [
-  ...new Set(parentProjects.flatMap((parentProject) => parentProject.projects ?? [])),
-]
-
 const ExternalProjectsListContent = () => {
-  const [parentProjects, setParentProjects] = useState<FMSParentProject[]>([])
-  const [internalProjectsByID, setInternalProjectsByID] = useState<
-    Partial<Record<number, FMSProject>>
-  >({})
-
-  const [isLoading, setIsLoading] = useState(false)
-  const [filters, setFilters] = useState<FilterSet>({})
-
-  const setFilter = useCallback<SetFilterFunc>((filterKey, value, description) => {
-    setFilters((currentFilters) => setFilterValue(currentFilters, description, value))
-  }, [])
-
-  const clearFilters = useCallback(() => {
-    setFilters({})
-  }, [])
-
-  const parentProjectColumns = useMemo<ColumnsType<FMSParentProject>>(
-    () => [
-      {
-        title: "External Project ID",
-        dataIndex: "external_id",
-        key: "external_id",
-        width: 120,
-        filteredValue: filters[EXTERNAL_PROJECT_ID_FILTER_KEY]?.value
-          ? [String(filters[EXTERNAL_PROJECT_ID_FILTER_KEY].value)]
-          : null,
-        ...getFilterPropsForDescription(
-          EXTERNAL_PROJECT_ID_FILTER_DESCRIPTION,
-          filters[EXTERNAL_PROJECT_ID_FILTER_KEY],
-          setFilter,
-        ),
-        onFilter: (value, record) =>
-          (record.external_id || "").toLowerCase().includes(String(value).toLowerCase()),
-
-        render: (externalID: string, parentProject: FMSParentProject) => (
-          <Link to={`${ROUTE}/${parentProject.id}#projects`}>{externalID}</Link>
-        ),
-      },
-      {
-        title: "External Project Name",
-        dataIndex: "name",
-        key: "external_project_name",
-        filteredValue: filters[EXTERNAL_PROJECT_NAME_FILTER_KEY]?.value
-          ? [String(filters[EXTERNAL_PROJECT_NAME_FILTER_KEY].value)]
-          : null,
-        ...getFilterPropsForDescription(
-          EXTERNAL_PROJECT_NAME_FILTER_DESCRIPTION,
-          filters[EXTERNAL_PROJECT_NAME_FILTER_KEY],
-          setFilter,
-        ),
-        onFilter: (value, record) =>
-          (record.name || "").toLowerCase().includes(String(value).toLowerCase()),
-        render: (externalProjectName: string | null) => externalProjectName || "",
-      },
-      {
-        title: "Principal Investigator",
-        dataIndex: "principal_investigator",
-        key: "principal_investigator",
-        width: 220,
-        filteredValue: filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY]?.value
-          ? [String(filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY].value)]
-          : null,
-        ...getFilterPropsForDescription(
-          PRINCIPAL_INVESTIGATOR_FILTER_DESCRIPTION,
-          filters[PRINCIPAL_INVESTIGATOR_FILTER_KEY],
-          setFilter,
-        ),
-        onFilter: (value, record) =>
-          (record.principal_investigator || "").toLowerCase().includes(String(value).toLowerCase()),
-        render: (principalInvestigator: string | null) => principalInvestigator || "",
-      },
-      {
-        title: "Freezeman Projects",
-        dataIndex: "projects",
-        key: "projects",
-        width: 20,
-        render: (projects: FMSParentProject["projects"]) => {
-          const projectCount = projects?.length ?? 0
-          return <Tag color={projectCount > 1 ? "blue" : "default"}>{projectCount}</Tag>
-        },
-      },
-    ],
-    [filters, setFilter],
-  )
-
   const dispatch = useAppDispatch()
 
-  // Charge depuis l’API la liste des projets parents, triés par identifiant externe.
-  const fetchParentProjects = useCallback(async (): Promise<FMSParentProject[]> => {
-    const response = await dispatch(
-      api.parentProjects.list(
-        {
-          limit: 100000,
-          ordering: "external_id",
-        },
-        true,
-      ),
-    )
-    return response.data.results
-  }, [dispatch])
-
-  // Charge depuis l’API les projets internes correspondant aux IDs reçus,
-  // ou retourne une liste vide si aucun ID n’est fourni.
-  const fetchInternalProjectsByIDs = useCallback(
-    async (projectIDs: number[]): Promise<FMSProject[]> => {
-      if (projectIDs.length === 0) {
-        return []
-      }
-
+  const fetchParentProjects = useCallback<FetchRowData<ParentProjectColumnID, FMSParentProject>>(
+    async ({ pageNumber, pageSize, filters }) => {
       const response = await dispatch(
-        api.projects.list(
+        api.parentProjects.list(
           {
-            id__in: projectIDs.join(","),
-            limit: 100000,
+            ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+            offset: (pageNumber - 1) * pageSize,
+            limit: pageSize,
           },
-          true,
+          {
+            abort: true,
+            requestID: "ExternalProjectsListContent.fetchParentProjects",
+          },
         ),
       )
-
-      return response.data.results
+      return {
+        total: response.data.count,
+        data: response.data.results,
+      }
     },
     [dispatch],
   )
 
-  const fetchParentProjectsWithInternalProjects = useCallback(async () => {
-    try {
-      setIsLoading(true)
+  const tableHeight = "60vh"
 
-      const fetchedParentProjects = await fetchParentProjects()
-      setParentProjects(fetchedParentProjects)
+  const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
+    defaultPageSize: 20,
+    fetchRowData: fetchParentProjects,
+    bodySpinStyle: useMemo(() => ({ height: tableHeight, alignContent: "center" }), [tableHeight]),
+  })
 
-      const internalProjectIDs = getUniqueInternalProjectIDs(fetchedParentProjects)
-      const fetchedInternalProjects = await fetchInternalProjectsByIDs(internalProjectIDs)
-      const fetchedInternalProjectsByID = indexProjectsByID(fetchedInternalProjects)
-      setInternalProjectsByID(fetchedInternalProjectsByID)
-    } catch (error) {
-      if (error instanceof Error && error.name !== "AbortError") {
-        setParentProjects([])
-        setInternalProjectsByID({})
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [fetchParentProjects, fetchInternalProjectsByIDs])
+  const DEBOUNCE_DELAY = 500
+  const debouncedOnFilter = useCallback(
+    (newFilters: Filters<ParentProjectColumnID>) => {
+      fetchRowData({ filters: newFilters, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [filters, setFilters] = useFilters<ParentProjectColumnID>({}, debouncedOnFilter)
+
+  const tableColumnsProps = useTableColumnsProps<ParentProjectColumnID, FMSParentProject>({
+    filters,
+    setFilters,
+    filterDescriptions: FILTER_DESCRIPTIONS,
+    columnDefinitions: COLUMN_DEFINITIONS,
+    searchPropertyDefinitions: SEARCH_DEFINITIONS,
+  })
+
+  const filterSet = useMemo(
+    () =>
+      Object.entries(filters).reduce(
+        (acc, [columnID, filterValue]) => {
+          const filterDescription = FILTER_DESCRIPTIONS[columnID as PooledSampleColumnID]
+          if (!filterDescription) {
+            return acc
+          }
+          return {
+            ...acc,
+            ...newFilterDefinitionsToFilterSet(
+              columnID as ParentProjectColumnID,
+              filterValue,
+              filterDescription,
+              SEARCH_DEFINITIONS[columnID as ParentProjectColumnID],
+            ),
+          }
+        },
+        {} as ReturnType<typeof newFilterDefinitionsToFilterSet>,
+      ),
+    [filters],
+  )
 
   useEffect(() => {
-    fetchParentProjectsWithInternalProjects()
-  }, [fetchParentProjectsWithInternalProjects])
+    fetchRowData({ pageNumber: 1, pageSize: 20 })
+  }, [fetchRowData])
 
   return (
     <>
@@ -253,45 +218,15 @@ const ExternalProjectsListContent = () => {
 
       <PageContent>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <FiltersBar filters={filters} clearFilters={clearFilters} />
+          <FiltersBar filters={filterSet} clearFilters={() => setFilters({})} />
         </div>
-        <Table
-          size="small"
+        <Table<FMSParentProject>
+          {...tableDataProps}
+          {...tableColumnsProps}
+          rowKey={ROW_KEY}
+          scroll={{ y: tableHeight }}
           bordered
-          rowKey="id"
-          dataSource={parentProjects}
-          columns={parentProjectColumns}
-          loading={isLoading}
-
-          expandable={{
-            expandedRowRender: (parentProject) => {
-              const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
-                (projects, projectID) => {
-                  const project = internalProjectsByID[projectID]
-                  if (project) {
-                    projects.push(project)
-                  }
-                  return projects
-                },
-                [],
-              )
-              return (
-                <Table
-                  size="small"
-                  rowKey="id"
-                  dataSource={internalProjects}
-                  columns={internalProjectColumns}
-                  pagination={false}
-                />
-              )
-            },
-          }}
-          pagination={{
-            pageSize: 20,
-            showSizeChanger: true,
-            pageSizeOptions: ["20", "50", "100"],
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} external IDs`,
-          }}
+          pagination={paginationProps}
         />
       </PageContent>
     </>
