@@ -9,7 +9,7 @@ const ExternalProjectsPage = () => {
   return (
     <PageContainer>
       <Routes>
-        <Route path="/" element={<ExternalProjectsListContent />} />
+        <Route index element={<ExternalProjectsListContent />} />
         <Route path="/:parentProjectId" element={<ExternalProjectDetailsPage />} />
         <Route path="*" element={<Navigate to={`${ROUTE}/`} replace />}/>
       </Routes>
