@@ -96,7 +96,7 @@ const getUniqueInternalProjectIDs = (parentProjects: FMSParentProject[]): number
   ...new Set(parentProjects.flatMap((parentProject) => parentProject.projects ?? [])),
 ]
 
-const ExternalProjectsPage = () => {
+const ExternalProjectsListContent = () => {
   const [parentProjects, setParentProjects] = useState<FMSParentProject[]>([])
   const [internalProjectsByID, setInternalProjectsByID] = useState<
     Partial<Record<number, FMSProject>>
@@ -297,4 +297,4 @@ const ExternalProjectsPage = () => {
   )
 }
 
-export default ExternalProjectsPage
+export default ExternalProjectsListContent
