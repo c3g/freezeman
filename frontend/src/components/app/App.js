@@ -39,7 +39,7 @@ import ProcessesPage from "../processes/ProcessesPage"
 import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage"
 import ProfilePage from "../profile/ProfilePage"
 import ProjectsPage from "../projects/ProjectsPage"
-import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage"
+import ExternalProjectsPage, { ROUTE as EXTERNAL_PROJECTS_ROUTE } from "../projectOverview/ExternalProjectsPage"
 import SamplesPage from "../samples/SamplesPage"
 import UsersPage from "../users/UsersPage"
 
@@ -187,9 +187,9 @@ const App = ({ userID, usersByID, logOut }) => {
         children: [
           {
             icon: <GlobalOutlined />,
-            url: "/external-projects-overview",
+            url: `${EXTERNAL_PROJECTS_ROUTE}/`,
             text: "External Overview",
-            key: "external-project-overview",
+            key: "external-projects",
           },
           {
             icon: <ApartmentOutlined />,
@@ -467,7 +467,7 @@ const App = ({ userID, usersByID, logOut }) => {
               }
             />
             <Route
-              path="/external-projects-overview/*"
+              path={`${EXTERNAL_PROJECTS_ROUTE}/*`}
               element={
                 <PrivateNavigate>
                   <ExternalProjectsPage />

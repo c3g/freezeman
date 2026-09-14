@@ -14,6 +14,7 @@ import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
 import { useParams, useNavigate } from "react-router-dom"
 import { FMSParentProject, FMSProject } from "../../models/fms_api_models"
+import { ROUTE } from "./ExternalProjectsPage"
 
 const MAX_PROJECT_NAME_LENGTH = 60
 
@@ -93,7 +94,7 @@ const ExternalProjectDetailsPage = () => {
 
   useEffect(() => {
     if (parentProjectId === null) {
-      navigate("/external-projects-overview", {
+      navigate(`${ROUTE}/list`, {
         replace: true,
       })
       return

@@ -15,6 +15,7 @@ import { FilterDescription, FilterSet, SetFilterFunc } from "../../models/paged_
 
 import { getFilterPropsForDescription } from "../filters/getFilterPropsTS"
 import { setFilterValue } from "../../models/filter_set_reducers"
+import { ROUTE } from "./ExternalProjectsPage"
 
 const EXTERNAL_PROJECT_NAME_FILTER_KEY = "external_project_name"
 const EXTERNAL_PROJECT_ID_FILTER_KEY = "external_project_id"
@@ -132,7 +133,7 @@ const ExternalProjectsListContent = () => {
           (record.external_id || "").toLowerCase().includes(String(value).toLowerCase()),
 
         render: (externalID: string, parentProject: FMSParentProject) => (
-          <Link to={`/external-projects-overview/${parentProject.id}#projects`}>{externalID}</Link>
+          <Link to={`${ROUTE}/${parentProject.id}#projects`}>{externalID}</Link>
         ),
       },
       {
