@@ -243,7 +243,7 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
                 ))
             }
 
-            column.sortOrder = sortBy[columnID] ?? null
+            column.sortOrder = sortBy?.[columnID] ?? null
 
             columns.push(column)
         }
@@ -608,5 +608,5 @@ interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends
     filterDescriptions: FilterDescriptions<ColumnID>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
-    sortBy: SortBy<ColumnID>,
+    sortBy?: SortBy<ColumnID>,
 }
