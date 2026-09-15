@@ -40,7 +40,7 @@ def test_double_sample_rename():
 
     result = load_template(importer=SampleRenameImporter(), file=APP_DATA_ROOT / "Sample_Rename_v5_6_0_double_rename.xlsx")
 
-    assert result['valid'] is True
+    assert result['valid'] is True, "Invalid: " + " ".join(base_error["error"] for base_error in result.get('base_errors', []))
     assert not DerivedBySample.objects.filter(sample__name="SampleNewName", derived_sample__biosample__alias="SampleNewAlias").exists()
     assert DerivedBySample.objects.filter(sample__name="SampleNewNewName", derived_sample__biosample__alias="SampleNewNewAlias").exists()
 

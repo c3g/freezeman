@@ -318,7 +318,7 @@ class SampleRenameHeaders:
     CONTAINER_BARCODE = "Container Barcode"
     CONTAINER_COORDINATES = "Container Coordinates"
     INDEX_NAME = "Index Name"
-    OLD_SAMPLE_NAME = "Old Sample Name"
+    OLD_SAMPLE_NAME = "Old Sample Name or Pool Name"
     OLD_SAMPLE_ALIAS = "Old Sample Alias"
     NEW_SAMPLE_NAME = "New Sample Name"
     NEW_SAMPLE_ALIAS = "New Sample Alias"
@@ -326,7 +326,7 @@ class SampleRenameHeaders:
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
     "identity": {
         "description": "Template to rename sample (and its alias)",
-        "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
+        "file": static("submission_templates/Sample_Rename_v5_9_0.xlsx"),
         "workbook": "SampleRenameWorkbook",
     },
     "sheets info": [
