@@ -1,3 +1,5 @@
+from typing import cast
+
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
@@ -5,7 +7,7 @@ from fms_core.filters import ReadsetFilter
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Subquery, OuterRef, Q
+from django.db.models import Avg, Count, QuerySet, Subquery, OuterRef, Q, Sum
 from fms_core.models import Metric, Readset
 from fms_core.serializers import ReadsetSerializer, ReadsetWithMetricsSerializer
 from fms_core.models._constants import ValidationStatus
@@ -40,3 +42,34 @@ class ReadsetViewSet(viewsets.ModelViewSet):
             return ReadsetWithMetricsSerializer
         return ReadsetSerializer
 
+    @action(detail=False, methods=["get"])
+    def summary(self, request, *args, **kwargs):
+        qs = cast(QuerySet[Readset], self.filter_queryset(Readset.objects.all()))
+
+        total_readsets = qs.count()
+        total_runs: int = qs.annotate(run_count=Count("dataset__experiment_run", distinct=True)).aggregate(Sum("run_count"))["run_count__sum"]
+        total_samples: int = qs.annotate(sample_count=Count("derived_sample__biosample", distinct=True)).aggregate(Sum("sample_count"))["sample_count__sum"]
+
+        qs = qs.select_related("metrics")
+
+        total_reads: int = qs.annotate(
+            nb_reads=Subquery(
+                Metric.objects.filter(readset=OuterRef("pk"), name="nb_reads").values('value_numeric')[:1]
+            ),
+        ).aggregate(Sum("nb_reads"))["nb_reads__sum"]
+
+        AVERAGED_METRIC_NAMES = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
+        for metric_name in AVERAGED_METRIC_NAMES:
+            qs = qs.annotate(**{
+                metric_name: Subquery(
+                    Metric.objects.filter(readset=OuterRef("pk"), name=metric_name).values('value_numeric')[:1]
+                ),
+            })
+        averaged_metrics = {}
+        for metric_name in AVERAGED_METRIC_NAMES:
+            averaged_metrics[metric_name] = qs.filter(**{f"{metric_name}__isnull": False}).aggregate(Avg(metric_name))[f"{metric_name}__avg"]
+
+        complete_count = qs.filter(**{
+            f"{metric_name}__isnull": False
+            for metric_name in AVERAGED_METRIC_NAMES
+        }).count()

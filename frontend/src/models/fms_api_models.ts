@@ -146,6 +146,10 @@ export interface FMSReadset extends FMSTrackedModel {
   metrics?: FMSMetric[] | { [key: string]: FMSMetric }
 }
 
+export interface FMSReadsetWithMetrics extends FMSReadset {
+  metrics: FMSMetric[]
+}
+
 export interface FMSDatasetFile extends FMSTrackedModel {
   dataset: FMSId // The dataset that owns this file
   file_path: string // The path to the dataset file (on Abacus?)
