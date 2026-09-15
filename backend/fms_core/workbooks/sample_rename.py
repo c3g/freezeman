@@ -33,7 +33,7 @@ class SampleRenameWorkbook(TemplateWorkbook):
                     CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
                 [
-                    CD(value="Version : 5.6.0"),
+                    CD(value="Version : 5.9.0"),
                 ],
                 [],
                 [
