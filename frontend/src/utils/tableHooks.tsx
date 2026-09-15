@@ -28,32 +28,32 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
 
     const [paginationProps, { setPagination, setOnChange }] = usePaginationProps(defaultPageSize)
 
-    const timeoutHandler = useRef<ReturnType<typeof setTimeout>>()
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
     useEffect(() => {
         return () => {
-            clearTimeout(timeoutHandler.current)
+            clearTimeout(timeoutRef.current)
         }
     }, [])
 
     // useRefs to keep track of the latest values between calls
     // and help reduce the number of dependencies for calling wrappedFetchRowData
-    const oldPageNumber = useRef<number>(1)
-    const oldPageSize = useRef<number>(defaultPageSize)
-    const oldFilters = useRef<Filters<ColumnID>>()
-    const oldSortBy = useRef<Partial<Record<ColumnID, 'ascend' | 'descend'>>>()
-    const oldTotal = useRef<number>(0)
+    const pageNumberRef = useRef<number>(1)
+    const pageSizeRef = useRef<number>(defaultPageSize)
+    const filtersRef = useRef<Filters<ColumnID>>({})
+    const sortByRef = useRef<Partial<Record<ColumnID, 'ascend' | 'descend'>>>({})
+    const totalRef = useRef<number>(0)
     const wrappedFetchRowData = useCallback(({
-        pageNumber = oldPageNumber.current,
-        pageSize = oldPageSize.current,
-        filters = oldFilters.current,
-        sortBy = oldSortBy.current
+        pageNumber,
+        pageSize,
+        filters,
+        sortBy,
     }: Partial<FetchRowDataArguments<ColumnID>>,
         debounceTime?: number
     ) => {
-        oldPageNumber.current = pageNumber
-        oldPageSize.current = pageSize
-        oldFilters.current = filters
-        oldSortBy.current = sortBy
+        pageNumberRef.current = pageNumber ?? pageNumberRef.current
+        pageSizeRef.current = pageSize ?? pageSizeRef.current
+        filtersRef.current = filters ?? filtersRef.current
+        sortByRef.current = sortBy ?? sortByRef.current
 
         if (bodySpinStyle) {
             // If using bodySpinStyle, we want to show the spinner in the body immediately
@@ -61,17 +61,17 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
             setLoading(true)
         }
 
-        clearTimeout(timeoutHandler.current)
-        timeoutHandler.current = setTimeout(async () => {
-            setPagination(pageNumber, pageSize, oldTotal.current)
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = setTimeout(async () => {
+            setPagination(pageNumberRef.current, pageSizeRef.current, totalRef.current)
             setLoading(true)
             try {
                 const { total: newTotal, data } = await fetchRowData({
-                    pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
+                    pageNumber: pageNumberRef.current, pageSize: pageSizeRef.current, filters: filtersRef.current, sortBy: sortByRef.current
                 })
                 setDataSource(data)
-                oldTotal.current = newTotal
-                setPagination(pageNumber, pageSize, newTotal)
+                totalRef.current = newTotal
+                setPagination(pageNumberRef.current, pageSizeRef.current, totalRef.current)
                 setLoading(false)
                 return data
             } catch (e) {
@@ -123,28 +123,28 @@ export function usePaginationProps(defaultPageSize: number): [
         _setOnChange(() => newOnChange)
     }, [])
 
-    const oldPageSize = useRef<number>(pageSize)
+    const oldPageSizeRef = useRef<number>(pageSize)
     const setPagination = useCallback((newPageNumber: number, newPageSize: number, newTotalCount: number) => {
         if ((newPageNumber - 1) * newPageSize >= newTotalCount) {
             newPageNumber = newPageSize > 0 ? Math.max(Math.ceil(newTotalCount / newPageSize), 1) : 1
         }
-        if (newPageSize !== oldPageSize.current) {
+        if (newPageSize !== oldPageSizeRef.current) {
             newPageNumber = 1
         }
 
         setPageNumber(newPageNumber)
         setPageSize(newPageSize)
-        oldPageSize.current = newPageSize
+        oldPageSizeRef.current = newPageSize
         setTotalCount(newTotalCount)
     }, [])
 
     // Reset page size and current page if defaultPageSize changes
-    const pastDefaultPageSize = useRef<number>(0)
+    const oldDefaultPageSizeRef = useRef<number>(0)
     useEffect(() => {
-        if (pastDefaultPageSize.current === defaultPageSize) {
+        if (oldDefaultPageSizeRef.current === defaultPageSize) {
             return
         }
-        pastDefaultPageSize.current = defaultPageSize
+        oldDefaultPageSizeRef.current = defaultPageSize
         setPageNumber(1)
         setPageSize(defaultPageSize)
     }, [defaultPageSize])
@@ -222,7 +222,7 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
     searchPropertyDefinitions,
     sortBy,
 }: UseTableColumnsPropsArguments<ColumnID, RowData>): Required<Pick<TableProps<RowData>, 'columns'>> {
-    const searchInput = useRef<InputRef>(null)
+    const searchInputRef = useRef<InputRef>(null)
     return useMemo(() => {
         const columns: ColumnsType<RowData> = []
         for (const columnID in columnDefinitions) {
@@ -236,7 +236,7 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
                     setFilters,
                     columnID,
                     filters[columnID],
-                    searchInput,
+                    searchInputRef,
                     searchPropsArgs,
                     filterDescription,
                     setFilterDescriptions,
@@ -362,7 +362,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 	}, [allIsSelected, setDefaultSelectionAndExceptedItems])
 	const onSelectSingle = useCallback<SelectionSelectFn<RowData>>((record: RowData) => {
 		const key = getKey(rowKey, record)
-		let newExceptedItems = exceptedItems
+		let newExceptedItems: React.Key[]
 		if (exceptedItems.includes(key)) {
 			newExceptedItems = exceptedItems.filter((id) => id !== key)
 		} else {
@@ -395,7 +395,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 			? itemsOnPage.map((record) => getKey(rowKey, record)).filter((key) => !exceptedItems.includes(key))
 			: exceptedItems,
 	[defaultSelection, itemsOnPage, exceptedItems, rowKey])
-    
+
     const indeterminate = !allIsSelected && !noneIsSelected
     const rowSelection: TableRowSelection<RowData> = {
         type: 'checkbox',
@@ -419,15 +419,15 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
         )
     }
 
-	const useInitialExceptedItems = useRef(Boolean(initialExceptedItems))
+	const useInitialExceptedItemsRef = useRef(Boolean(initialExceptedItems))
 	useEffect(() => {
         setDefaultSelectionAndExceptedItems(
             false,
-            useInitialExceptedItems.current
+            useInitialExceptedItemsRef.current
             ? initialExceptedItems ?? []
             : []
         )
-		useInitialExceptedItems.current = false // only use initial excepted items once at the beginning
+		useInitialExceptedItemsRef.current = false // only use initial excepted items once at the beginning
 	}, [initialExceptedItems, setDefaultSelectionAndExceptedItems])
 
     // make sure to reset selections when filters change
@@ -505,7 +505,7 @@ export function createQueryParamsFromSortBy<ColumnID extends string>(sortKeys: S
 export function newFilterDefinitionToOldFilterDescription(columnKey: string, filterDescription: FilterDescription, searchPropertyDefinition: SearchPropertyDefinition): OldFilterDescription {
     switch (filterDescription.type) {
         case FILTER_TYPE.INPUT:
-        case FILTER_TYPE.INPUT_NUMBER: 
+        case FILTER_TYPE.INPUT_NUMBER:
         case FILTER_TYPE.INPUT_OBJECT_ID: {
             return {
                 type: filterDescription.type,
@@ -556,7 +556,7 @@ export function newFilterDefinitionsToFilterSet(columnID: string, filterValue: F
                     description: newFilterDefinitionToOldFilterDescription(columnID, filterDescription, searchPropertyDefinition ?? {}),
                 }
             }
-        } 
+        }
     }
 }
 
