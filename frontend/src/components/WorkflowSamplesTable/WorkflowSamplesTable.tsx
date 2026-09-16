@@ -27,7 +27,6 @@ export interface WorkflowSamplesTableProps {
 	filters?: FilterSet,
 	setFilter?: SetFilterFunc,
 	setFilterOptions?: SetFilterOptionFunc,
-	sortByList: SortBy[],
 	setSortByList?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
@@ -37,7 +36,7 @@ export interface WorkflowSamplesTableProps {
 	loading?: boolean
 }
 
-function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortByList, setSortByList, pagination, selection, hasFilter, clearFilters, loading }: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, setSortByList, pagination, selection, hasFilter, clearFilters, loading }: WorkflowSamplesTableProps) {
 
 	const columnsWithFilters = useMemo(() => {
 		return addFiltersToColumns(
