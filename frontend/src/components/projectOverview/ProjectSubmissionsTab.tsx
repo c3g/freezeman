@@ -101,12 +101,12 @@ const ProjectSubmissionsTab = ({
 
   return (
     <>
+      {!isLoading && <ExternalIDProjectsDashboard data={internalProjects} />}
       {!isLoading && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
           <ProjectOverviewExportButton data={exportButtonData} />
         </div>
       )}
-      {!isLoading && <ExternalIDProjectsDashboard data={internalProjects} />}
 
       <Table
         size="small"

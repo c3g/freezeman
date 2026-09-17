@@ -357,7 +357,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           >
             <Row gutter={[12, 12]}>
               <Col xs={24} lg={12}>
-                <Card size="small" type="inner" title="Alignement rate">
+                <Card size="small" type="inner" title="Alignment rate">
                   <Statistic
                     value={metrics.avgAlignment === null ? "-" : metrics.avgAlignment * 100}
                     precision={metrics.avgAlignment === null ? undefined : 2}

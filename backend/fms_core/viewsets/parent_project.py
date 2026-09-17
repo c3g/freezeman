@@ -57,7 +57,6 @@ class ParentProjectViewSet(viewsets.ModelViewSet):
             "external_id": F("dataset__project__parent_project__external_id"),
             "run_name": F("dataset__experiment_run__name"),
             "lane": F("dataset__lane"),
-            "reference_genome_id": F("derived_sample__biosample__individual__reference_genome_id"),
             "reference_genome_assembly_name": F("derived_sample__biosample__individual__reference_genome__assembly_name"),
             "sequencing_index_name": F("derived_sample__library__index__name"),
             "run_validation_status": F("validation_status"),

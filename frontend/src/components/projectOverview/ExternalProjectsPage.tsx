@@ -55,16 +55,6 @@ const internalProjectColumns: ColumnsType<FMSProject> = [
     ),
   },
   {
-    title: "Principal Investigator",
-    dataIndex: "principal_investigator",
-    key: "principal_investigator",
-  },
-  {
-    title: "Requestor Name",
-    dataIndex: "requestor_name",
-    key: "requestor_name",
-  },
-  {
     title: "Status",
     dataIndex: "status",
     key: "status",
@@ -287,8 +277,7 @@ const ExternalProjectsPage = () => {
           }}
           pagination={{
             pageSize: 20,
-            showSizeChanger: true,
-            pageSizeOptions: ["20", "50", "100"],
+            showSizeChanger: false,
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} external IDs`,
           }}
         />
