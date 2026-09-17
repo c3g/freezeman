@@ -117,8 +117,7 @@ const ProjectSubmissionsTab = ({
         loading={isLoading}
         pagination={{
           pageSize: 20,
-          showSizeChanger: true,
-          pageSizeOptions: ["20", "50", "100"],
+          showSizeChanger: false,
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
         }}
       />

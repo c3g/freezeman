@@ -527,7 +527,7 @@ function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectRe
           scroll={{ x: "max-content", y: 400 }}
           pagination={{
             pageSize: 5,
-            showSizeChanger: true,
+            showSizeChanger: false,
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} readsets`,
           }}
         />
