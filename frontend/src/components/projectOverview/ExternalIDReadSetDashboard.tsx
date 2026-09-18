@@ -9,36 +9,11 @@ import {
   TeamOutlined,
 } from "@ant-design/icons"
 import { Column } from "@ant-design/charts"
-import { ProjectOverviewReadset } from "./types"
 import { FMSReadsetSummary } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
 
 const { Text } = Typography
-
-const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
-  const total = items.length
-
-  const complete = items.filter((item) => {
-    return (
-      item.average_quality !== null &&
-      item.average_quality !== undefined &&
-      item.pf_reads_aligned !== null &&
-      item.pf_reads_aligned !== undefined &&
-      item.duplicate_aligned !== null &&
-      item.duplicate_aligned !== undefined
-    )
-  }).length
-
-  const incomplete = items.length - complete
-
-  return {
-    complete: total === 0 ? 0 : Math.round((complete / total) * 100),
-    incomplete: total === 0 ? 0 : Math.round((incomplete / total) * 100),
-    completeCount: complete,
-    incompleteCount: incomplete,
-  }
-}
 
 const iconStyle = (color: string, backgroundColor: string): React.CSSProperties => ({
   color,
