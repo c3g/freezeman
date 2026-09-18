@@ -43,7 +43,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
         return ReadsetSerializer
 
     @action(detail=False, methods=["get"])
-    def summary(self, request, *args, **kwargs):
+    def summary(self, request):
         qs = cast(QuerySet[Readset], self.filter_queryset(Readset.objects.all()))
 
         total_readsets = qs.count()
@@ -52,7 +52,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
 
         qs = qs.select_related("metrics")
 
-        total_reads: int = qs.annotate(
+        nb_reads: int = qs.annotate(
             nb_reads=Subquery(
                 Metric.objects.filter(readset=OuterRef("pk"), name="nb_reads").values('value_numeric')[:1]
             ),
@@ -73,3 +73,12 @@ class ReadsetViewSet(viewsets.ModelViewSet):
             f"{metric_name}__isnull": False
             for metric_name in AVERAGED_METRIC_NAMES
         }).count()
+
+        return Response({
+            "total_readsets": total_readsets,
+            "total_runs": total_runs,
+            "total_samples": total_samples,
+            "nb_reads": nb_reads,
+            **averaged_metrics,
+            "complete_count": complete_count
+        })
