@@ -1,16 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useState } from "react"
 import dayjs, { Dayjs } from "dayjs"
-import { ProjectOverviewExportButtonData, ProjectOverviewReadset } from "./types"
 import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
-import api from "../../utils/api"
-import { useAppDispatch } from "../../hooks"
 
 import type { ColumnsType } from "antd/es/table"
 import type { FilterDropdownProps } from "antd/es/table/interface"
-import { Alert, Button, DatePicker, Empty, Input, Spin, Table, Tag, Typography } from "antd"
+import { Button, DatePicker, Input, Table, Tag, Typography } from "antd"
 import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, FilterOutlined } from "@ant-design/icons"
-import ProjectOverviewExportButton from "./ProjectOverviewExportButton"
-import { useCreateCsvExportFunction } from "./useCsvExport"
 import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
 import { ValidationStatus } from "../../modules/experimentRunLanes/models"
 
@@ -19,7 +14,6 @@ const { Text } = Typography
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
   externalID: string
-  isActive: boolean
 }
 const compactHeaderCell = () => ({
   style: {
@@ -391,153 +385,25 @@ const getProjectOverviewReadsetColumns = (
   },
 ]
 
-const formatReadsetFilesForCsv = (files: ProjectOverviewReadset["readset_files"]): string => {
-  if (!files?.length) {
-    return ""
-  }
 
-  return files
-    .flatMap((file) => {
-      if (!file.file_path) {
-        return []
-      }
-      return [file.file_path]
-    })
-    .join("; ")
-}
-
-function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectReadSetsTabProps) {
-  const [projectOverviewReadsets, setProjectOverviewReadsets] = useState<ProjectOverviewReadset[]>(
-    [],
-  )
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const dispatch = useAppDispatch()
-
-  // Charge les Read Sets associés au projet parent donné.
-  const fetchReadsetsByParentProjectID = useCallback(
-    async (parentProjectId: number): Promise<ProjectOverviewReadset[]> => {
-      const response = await dispatch(
-        api.parentProjects.readsets(
-          parentProjectId,
-          {
-            limit: 100000,
-          },
-          true,
-        ),
-      )
-
-      return response.data.results
-    },
-    [dispatch],
-  )
-
-  // Charge les Read Sets du projet parent et met à jour l’état du composant.
-  const loadParentProjectReadsets = useCallback(
-    async (parentProjectId: number): Promise<void> => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const fetchedReadsets = await fetchReadsetsByParentProjectID(parentProjectId)
-        setProjectOverviewReadsets(fetchedReadsets)
-      } catch (error) {
-        setProjectOverviewReadsets([])
-        setError(error instanceof Error ? error.message : "Failed to fetch read sets")
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [fetchReadsetsByParentProjectID],
-  )
-
-  useEffect(() => {
-    if (!isActive) {
-      return
-    }
-
-    if (parentProjectId === null) {
-      setProjectOverviewReadsets([])
-      setError("Invalid parent project ID")
-      return
-    }
-
-    loadParentProjectReadsets(parentProjectId)
-  }, [isActive, parentProjectId, loadParentProjectReadsets])
-
-  const exportReadsets = useMemo(
-    () =>
-      projectOverviewReadsets.map((readset) => ({
-        ...readset,
-        readset_files: formatReadsetFilesForCsv(readset.readset_files),
-      })),
-    [projectOverviewReadsets],
-  )
-
-  const generateCsvContent = useCreateCsvExportFunction(exportReadsets)
-
-  const libraryTypeFilters = Array.from(
-    new Set(
-      projectOverviewReadsets
-        .map((readset) => readset.library_type)
-        .filter((libraryType): libraryType is string => Boolean(libraryType)),
-    ),
-  ).map((libraryType) => ({
-    text: libraryType,
-    value: libraryType,
-  }))
-
-  const projectOverviewReadsetColumns = useMemo(
-    () => getProjectOverviewReadsetColumns(libraryTypeFilters),
-    [libraryTypeFilters],
-  )
-
-  if (isLoading) {
-    return <Spin />
-  }
-
-  if (error) {
-    return <Alert type="error" title={error} showIcon />
-  }
-
-  const exportButtonData: ProjectOverviewExportButtonData = {
-    exportType: "Project Readsets",
-    exportFunction: generateCsvContent,
-    filename: "Project Readsets",
-    itemsCount: projectOverviewReadsets.length,
-    disabled: projectOverviewReadsets.length === 0,
-  }
-
+function ProjectReadSetsTab({ parentProjectId, externalID }: ProjectReadSetsTabProps) {
+  if (!parentProjectId) return undefined
   return (
     <>
-      {!isLoading && isActive && <ExternalIDReadSetDashboard readsets={projectOverviewReadsets} />}
-      {!isLoading && projectOverviewReadsets.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <ProjectOverviewExportButton data={exportButtonData} />
-        </div>
-      )}
-      {projectOverviewReadsets.length > 0 ? (
-        <Table
-          dataSource={projectOverviewReadsets}
-          columns={projectOverviewReadsetColumns}
-          rowKey="id"
-          size="small"
-          bordered
-          scroll={{ x: "max-content", y: 400 }}
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} readsets`,
-          }}
-        />
-      ) : (
-        <Empty
-          description={
-            externalID ? `No read sets found for External ID: ${externalID}` : "No read sets found"
-          }
-        />
-      )}
+      <ExternalIDReadSetDashboard parentProjectId={parentProjectId} />
+      <Table
+        dataSource={[]}
+        columns={[]}
+        rowKey="id"
+        size="small"
+        bordered
+        scroll={{ x: "max-content", y: 400 }}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} readsets`,
+        }}
+      />
     </>
   )
 }

@@ -149,7 +149,6 @@ const ExternalProjectDetailsPage = () => {
                 <ProjectReadSetsTab
                   parentProjectId={parentProjectId}
                   externalID={externalID}
-                  isActive={activeKey === "readsets"}
                 />
               ),
             },
