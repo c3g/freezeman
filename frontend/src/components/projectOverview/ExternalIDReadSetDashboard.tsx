@@ -210,14 +210,14 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
                     <Text>Complete QC Metrics</Text>
                     <Progress
                       size="small"
-                      percent={summary.complete_count}
+                      percent={summary.complete_count / summary.total_readsets * 100}
                       strokeColor="#2fbd5b"
                     />
 
                     <Text>Missing QC Metrics</Text>
                     <Progress
                       size="small"
-                      percent={summary.total_readsets - summary.complete_count}
+                      percent={(summary.total_readsets - summary.complete_count) / summary.total_readsets * 100}
                       strokeColor="#faad14"
                     />
                   </Space>

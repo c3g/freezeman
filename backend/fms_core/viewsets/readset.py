@@ -7,7 +7,7 @@ from fms_core.filters import ReadsetFilter
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Avg, Count, QuerySet, Subquery, OuterRef, Q, Sum, F
+from django.db.models import Avg, Count, Subquery, OuterRef, Q, Sum, F
 from fms_core.models import Metric, Readset
 from fms_core.serializers import ReadsetSerializer, ReadsetWithMetricsSerializer
 from fms_core.models._constants import ValidationStatus
@@ -44,12 +44,14 @@ class ReadsetViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
-        qs = cast(QuerySet[Readset], self.filter_queryset(Readset.objects.all()))
+        qs = self.filter_queryset(Readset.objects.all())
+        # so that library_type_distribution computes correctly
+        qs = Readset.objects.filter(id__in=qs.values_list("id", flat=True))
 
         total_readsets = qs.count()
-        total_runs: int = qs.annotate(run_count=Count("dataset__experiment_run", distinct=True)).aggregate(Sum("run_count"))["run_count__sum"]
-        total_samples: int = qs.annotate(sample_count=Count("derived_sample__biosample", distinct=True)).aggregate(Sum("sample_count"))["sample_count__sum"]
-        total_cohorts: int = qs.annotate(cohort_count=Count("derived_sample__biosample__individual__cohort", distinct=True)).aggregate(Sum("cohort_count"))["cohort_count__sum"]
+        total_runs: int = qs.annotate(run_count=Count("dataset__experiment_run", distinct=True)).aggregate(Sum("run_count", default=0))["run_count__sum"]
+        total_samples: int = qs.annotate(sample_count=Count("derived_sample__biosample", distinct=True)).aggregate(Sum("sample_count", default=0))["sample_count__sum"]
+        total_cohorts: int = qs.annotate(cohort_count=Count("derived_sample__biosample__individual__cohort", distinct=True)).aggregate(Sum("cohort_count", default=0))["cohort_count__sum"]
 
         library_type_distribution = (
             qs
@@ -63,7 +65,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
             nb_reads=Subquery(
                 Metric.objects.filter(readset=OuterRef("pk"), name="nb_reads").values('value_numeric')[:1]
             ),
-        ).aggregate(Sum("nb_reads"))["nb_reads__sum"]
+        ).aggregate(Sum("nb_reads", default=0))["nb_reads__sum"]
 
         AVERAGED_METRIC_NAMES = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
         for metric_name in AVERAGED_METRIC_NAMES:
@@ -74,7 +76,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
             })
         averaged_metrics = {}
         for metric_name in AVERAGED_METRIC_NAMES:
-            averaged_metrics[metric_name] = qs_metrics.filter(**{f"{metric_name}__isnull": False}).aggregate(Avg(metric_name))[f"{metric_name}__avg"]
+            averaged_metrics[metric_name] = qs_metrics.filter(**{f"{metric_name}__isnull": False}).aggregate(Avg(metric_name, default=0))[f"{metric_name}__avg"]
 
         complete_count = qs_metrics.filter(**{
             f"{metric_name}__isnull": False
