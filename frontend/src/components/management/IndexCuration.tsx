@@ -12,7 +12,7 @@ const columns = [
     PooledSampleColumnID.PROJECT,
 ] as const
 
-const TABLE_HEIGHT = '75vh'
+const TABLE_HEIGHT = '65vh'
 
 export function IndexCuration() {
     const dispatch = useAppDispatch()
