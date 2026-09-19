@@ -184,7 +184,7 @@ const App = ({ userID, usersByID, logOut }) => {
         icon: <ProjectOutlined />,
         text: "Projects",
         key: "projects",
-        children: [         
+        children: [
           {
             icon: <ApartmentOutlined />,
             url: "/projects",
