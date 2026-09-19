@@ -184,18 +184,18 @@ const App = ({ userID, usersByID, logOut }) => {
         icon: <ProjectOutlined />,
         text: "Projects",
         key: "projects",
-        children: [
-          {
-            icon: <GlobalOutlined />,
-            url: "/external-projects-overview",
-            text: "External Overview",
-            key: "external-project-overview",
-          },
+        children: [         
           {
             icon: <ApartmentOutlined />,
             url: "/projects",
-            text: "Internal Projects",
+            text: "Projects",
             key: "internal-project",
+          },
+          {
+            icon: <GlobalOutlined />,
+            url: "/external-projects-overview",
+            text: "Parents Overview",
+            key: "external-project-overview",
           },
         ],
       },
