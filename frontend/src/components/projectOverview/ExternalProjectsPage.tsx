@@ -162,7 +162,7 @@ const ExternalProjectsPage = () => {
         title: "Freezeman Projects",
         dataIndex: "projects",
         key: "projects",
-        width: 20,
+        width: 140,
         render: (projects: FMSParentProject["projects"]) => {
           const projectCount = projects?.length ?? 0
           return <Tag color={projectCount > 1 ? "blue" : "default"}>{projectCount}</Tag>
@@ -251,7 +251,7 @@ const ExternalProjectsPage = () => {
           dataSource={parentProjects}
           columns={parentProjectColumns}
           loading={isLoading}
-
+          scroll={{ y: "70vh" }}
           expandable={{
             expandedRowRender: (parentProject) => {
               const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
