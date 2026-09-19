@@ -1,0 +1,54 @@
+
+# syntax=docker/dockerfile:1
+FROM docker.io/library/python:3.14.7-trixie AS build
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONUTF8=1
+
+WORKDIR /data/freezeman/backend
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libpq-dev \
+    libssl-dev \
+    pkg-config \
+    rustc \
+    cargo \
+    && rm -rf /var/lib/apt/lists/* # keeps image slim
+
+RUN python -m pip install --upgrade pip
+
+COPY ./backend/requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt \
+    && pip wheel --no-cache-dir --wheel-dir /wheels gunicorn eventlet
+
+# -----------------------
+FROM docker.io/library/python:3.14.7-trixie AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=2 \
+    PYTHONUTF8=1
+
+WORKDIR /data/freezeman/backend
+
+# Runtime libs only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    libffi8 \
+    tzdata \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /wheels /wheels
+RUN pip install --no-cache-dir /wheels/*
+
+COPY ./VERSION ./.git/ /data/freezeman/
+COPY ./backend/ /data/freezeman/backend/
+
+EXPOSE 80
+ENV FMS_PORT=80
+
+ENTRYPOINT ["gunicorn", "fms.wsgi:application", "--worker-class=eventlet"]
