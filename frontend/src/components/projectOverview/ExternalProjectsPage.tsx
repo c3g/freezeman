@@ -251,7 +251,7 @@ const ExternalProjectsPage = () => {
           dataSource={parentProjects}
           columns={parentProjectColumns}
           loading={isLoading}
-          scroll={{ y: "70vh" }}
+          scroll={{ y: "65vh" }}
           expandable={{
             expandedRowRender: (parentProject) => {
               const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
