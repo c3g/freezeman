@@ -146,8 +146,24 @@ export interface FMSReadset extends FMSTrackedModel {
   metrics?: FMSMetric[] | { [key: string]: FMSMetric }
 }
 
-export interface FMSReadsetWithMetrics extends FMSReadset {
-  metrics: FMSMetric[]
+export interface FMSProjectReadset extends FMSReadset {
+  id: FMSId
+  sample_name: string
+  alias: string
+  cohort: string
+  library_type: string
+  run_name: string
+  run_start_date: string
+  validation_status: number
+  nb_reads: number
+  avg_qual: number
+  pf_read_alignment_rate: number
+  duplicate_rate: number
+  yield: number
+  readset_files: {
+    file_path: string,
+    size: number,
+  }[]
 }
 
 export interface FMSReadsetSummary {
