@@ -13,7 +13,15 @@ export function renderGroup(g) {
 }
 
 export function renderParentProject(p) {
-  return { value: p.external_id, label: p.name}
+  return {
+    value: p.external_id,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {p.external_id}{' '}
+          <Text type="secondary">{p.name}</Text>
+      </div>
+    )
+  }
 }
 
 export function renderTaxon(t) {
