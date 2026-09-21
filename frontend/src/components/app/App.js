@@ -126,7 +126,6 @@ export const mapStateToProps = (state) => ({
 export const actionCreators = { logOut }
 
 const App = ({ userID, usersByID, logOut }) => {
-  // FMS_ENV is global
   const env = FMS_ENV
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
@@ -187,16 +186,16 @@ const App = ({ userID, usersByID, logOut }) => {
         key: "projects",
         children: [
           {
-            icon: <GlobalOutlined />,
-            url: "/external-projects-overview",
-            text: "External Overview",
-            key: "external-project-overview",
-          },
-          {
             icon: <ApartmentOutlined />,
             url: "/projects",
-            text: "Internal Projects",
+            text: "Projects",
             key: "internal-project",
+          },
+          {
+            icon: <GlobalOutlined />,
+            url: "/external-projects-overview",
+            text: "Parents Overview",
+            key: "external-project-overview",
           },
         ],
       },
@@ -400,7 +399,7 @@ const App = ({ userID, usersByID, logOut }) => {
             )}
           </Layout.Sider>
         )}
-        <Layout.Content style={{ position: "relative" }}>
+        <Layout.Content style={{ position: "relative", overflow: "scroll" }}>
           <Routes>
             <Route path="/login/*" element={<LoginPage />} />
             <Route

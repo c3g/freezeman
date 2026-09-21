@@ -53,6 +53,9 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                                                                       principal_investigator=full_project_data['principal_investigator'],
                                                                       requestor_name=full_project_data['requestor_name'],
                                                                       requestor_email=full_project_data['requestor_email'])
+                elif parent_project_obj is None and full_project_data.get("external_name") is None:
+                    transaction.set_rollback(True)
+                    raise ValidationError({"external_name": "With a new external project, you must provide an external project name."})
         
             project_obj = Project.objects.create(name=full_project_data['name'],
                                                  targeted_end_date=full_project_data['targeted_end_date'],

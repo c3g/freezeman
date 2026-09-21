@@ -55,16 +55,6 @@ const internalProjectColumns: ColumnsType<FMSProject> = [
     ),
   },
   {
-    title: "Principal Investigator",
-    dataIndex: "principal_investigator",
-    key: "principal_investigator",
-  },
-  {
-    title: "Requestor Name",
-    dataIndex: "requestor_name",
-    key: "requestor_name",
-  },
-  {
     title: "Status",
     dataIndex: "status",
     key: "status",
@@ -172,7 +162,7 @@ const ExternalProjectsPage = () => {
         title: "Freezeman Projects",
         dataIndex: "projects",
         key: "projects",
-        width: 20,
+        width: 140,
         render: (projects: FMSParentProject["projects"]) => {
           const projectCount = projects?.length ?? 0
           return <Tag color={projectCount > 1 ? "blue" : "default"}>{projectCount}</Tag>
@@ -261,7 +251,7 @@ const ExternalProjectsPage = () => {
           dataSource={parentProjects}
           columns={parentProjectColumns}
           loading={isLoading}
-
+          scroll={{ y: "65vh" }}
           expandable={{
             expandedRowRender: (parentProject) => {
               const internalProjects = (parentProject.projects ?? []).reduce<FMSProject[]>(
@@ -287,8 +277,7 @@ const ExternalProjectsPage = () => {
           }}
           pagination={{
             pageSize: 20,
-            showSizeChanger: true,
-            pageSizeOptions: ["20", "50", "100"],
+            showSizeChanger: false,
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} external IDs`,
           }}
         />

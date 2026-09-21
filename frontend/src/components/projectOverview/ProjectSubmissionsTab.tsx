@@ -101,12 +101,12 @@ const ProjectSubmissionsTab = ({
 
   return (
     <>
+      {!isLoading && <ExternalIDProjectsDashboard data={internalProjects} />}
       {!isLoading && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
           <ProjectOverviewExportButton data={exportButtonData} />
         </div>
       )}
-      {!isLoading && <ExternalIDProjectsDashboard data={internalProjects} />}
 
       <Table
         size="small"
@@ -115,10 +115,10 @@ const ProjectSubmissionsTab = ({
         dataSource={internalProjects}
         columns={submissionColumns}
         loading={isLoading}
+        scroll={{ y: "42vh" }}
         pagination={{
           pageSize: 20,
-          showSizeChanger: true,
-          pageSizeOptions: ["20", "50", "100"],
+          showSizeChanger: false,
           showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
         }}
       />

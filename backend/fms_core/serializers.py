@@ -103,6 +103,7 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ParentProjectSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
