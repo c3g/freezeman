@@ -1,8 +1,7 @@
-import React from "react";
+import React from "react"
 
-import {Typography} from "antd";
-const {Text} = Typography
-
+import { Typography } from "antd"
+const { Text } = Typography
 
 export function render(v) {
   return { value: v, label: v }
@@ -16,11 +15,10 @@ export function renderParentProject(p) {
   return {
     value: p.external_id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {p.external_id}{' '}
-          <Text type="secondary">{p.name}</Text>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {p.external_id} <Text type="secondary">{p.name}</Text>
       </div>
-    )
+    ),
   }
 }
 
@@ -28,18 +26,17 @@ export function renderTaxon(t) {
   return {
     value: t.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {t.name}{' '}
-        <Text type="secondary">NCBI:txid{t.ncbi_id}</Text>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {t.name} <Text type="secondary">NCBI:txid{t.ncbi_id}</Text>
       </div>
-    )
+    ),
   }
 }
 
 export function renderReferenceGenome(rg) {
   return {
     value: rg.id,
-    label: `${rg.assembly_name}${rg.synonym ? ` (${rg.synonym})` : ''}`,
+    label: `${rg.assembly_name}${rg.synonym ? ` (${rg.synonym})` : ""}`,
   }
 }
 
@@ -47,11 +44,10 @@ export function renderIndividual(i) {
   return {
     value: i.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {i.name}{' '}
-        <Text type="secondary">{i.id}</Text>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {i.name} <Text type="secondary">{i.id}</Text>
       </div>
-    )
+    ),
   }
 }
 
@@ -59,11 +55,10 @@ export function renderSampleKind(sk) {
   return {
     value: sk.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {sk.name}{' '}
-        <Text type="secondary">{sk.id}</Text>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {sk.name} <Text type="secondary">{sk.id}</Text>
       </div>
-    )
+    ),
   }
 }
 
@@ -71,11 +66,13 @@ export function renderCoordinate(c) {
   return {
     value: c.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         {c.name}
-        <Text type="secondary">Row : {c.row + 1}, Column : {c.column + 1}</Text>
+        <Text type="secondary">
+          Row : {c.row + 1}, Column : {c.column + 1}
+        </Text>
       </div>
-    )
+    ),
   }
 }
 
@@ -83,11 +80,10 @@ export function renderContainer(c) {
   return {
     value: c.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {c.barcode}{' '}({c.name})
-        <Text type="secondary">{c.kind}</Text>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {c.barcode} ({c.name})<Text type="secondary">{c.kind}</Text>
       </div>
-    )
+    ),
   }
 }
 
@@ -95,34 +91,27 @@ export function renderSample(s) {
   return {
     value: s.id,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <span>
-          {s.name}{s.alias && <small> (alias: {s.alias})</small>}{' '}
+          {s.name}
+          {s.alias && <small> (alias: {s.alias})</small>}{" "}
         </span>
         <Text type="secondary">{s.id}</Text>
       </div>
-    )
+    ),
   }
 }
 
 export function renderInstrumentType(i) {
   return {
     value: i.id,
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {i.type}
-      </div>
-    )
+    label: <div style={{ display: "flex", justifyContent: "space-between" }}>{i.type}</div>,
   }
 }
 
 export function renderMetadata(m) {
   return {
     value: m.name,
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {m.name}
-      </div>
-    )
+    label: <div style={{ display: "flex", justifyContent: "space-between" }}>{m.name}</div>,
   }
 }
