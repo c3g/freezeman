@@ -399,7 +399,7 @@ const App = ({ userID, usersByID, logOut }) => {
             )}
           </Layout.Sider>
         )}
-        <Layout.Content style={{ position: "relative" }}>
+        <Layout.Content style={{ position: "relative", overflow: "scroll" }}>
           <Routes>
             <Route path="/login/*" element={<LoginPage />} />
             <Route
