@@ -115,6 +115,7 @@ const ProjectSubmissionsTab = ({
         dataSource={internalProjects}
         columns={submissionColumns}
         loading={isLoading}
+        scroll={{ y: "42vh" }}
         pagination={{
           pageSize: 20,
           showSizeChanger: false,
