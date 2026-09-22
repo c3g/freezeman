@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { FILTER_TYPE } from "../../constants"
 import { useAppDispatch } from "../../hooks"
 import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
@@ -20,9 +20,10 @@ import {
 } from "../../utils/tableHooks"
 import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
 
-import { Table } from "antd"
+import { Button, Table } from "antd"
 import api from "../../utils/api"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
+import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
 
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
@@ -77,9 +78,9 @@ const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
 const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
 
 const VALIDATION_STATUS_NUMBER_TO_LABEL = {
-    "0": "Available",
-    "1": "Passed",
-    "2": "Failed",
+  "0": "Available",
+  "1": "Passed",
+  "2": "Failed",
 } as const
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
@@ -113,7 +114,10 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.RUN_START]: { type: FILTER_TYPE.DATE_RANGE },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     type: FILTER_TYPE.SELECT,
-    options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({ value: k, label: v })),
+    options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({
+      value: k,
+      label: v,
+    })),
   },
 }
 
@@ -134,69 +138,93 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "ID",
     dataIndex: "id",
     sorter: true,
+    width: 100,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
     dataIndex: "name",
     sorter: true,
+    width: 200,
   },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     title: "Sample Name",
     dataIndex: "sample_name",
     sorter: true,
+    width: 200,
   },
-  [ProjectReadsetsColumnID.ALIAS]: {
-    title: "Alias",
-    dataIndex: "alias",
-    sorter: true,
-  },
+  // [ProjectReadsetsColumnID.ALIAS]: {
+  //   title: "Alias",
+  //   dataIndex: "alias",
+  //   sorter: true,
+  //   width: 100,
+  // },
   [ProjectReadsetsColumnID.COHORT]: {
     title: "Cohort",
     dataIndex: "cohort",
+    width: 200,
   },
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
     title: "Library Type",
     dataIndex: "library_type",
+    width: 200,
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     title: "Run Name",
     dataIndex: "run_name",
     sorter: true,
+    width: 200,
   },
   [ProjectReadsetsColumnID.RUN_START]: {
     title: "Run Start",
     dataIndex: "run_start",
     sorter: true,
+    width: 200,
   },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
     dataIndex: "validation_status",
-    render(validation_status) {
+    render: (validation_status: FMSProjectReadset["validation_status"]) => {
       return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
-    }
+    },
+    width: 175,
   },
   [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
-    title: "Number of Reads",
+    title: "nb_reads",
     dataIndex: "nb_reads",
+    width: 125,
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
-    title: "Avg Quality",
+    title: "avg_qual",
     dataIndex: "avg_qual",
+    width: 100,
+    render: (avg_qual: FMSProjectReadset['avg_qual']) => {
+      return avg_qual.toFixed(3)
+    }
   },
   [ProjectReadsetsColumnID.PF_READS_ALIGNED]: {
-    title: "PF Reads Aligned",
+    title: "pf_reads_aligned",
     dataIndex: "pf_reads_aligned",
+    width: 150,
   },
   [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: {
-    title: "Duplicate Aligned",
+    title: "duplicate_aligned",
     dataIndex: "duplicate_aligned",
+    width: 175,
   },
   [ProjectReadsetsColumnID.READSET_FILES]: {
     title: "Files",
     dataIndex: "readset_files",
-    render(readset_files) {
-      return readset_files.map((s) => s.file_path).join(";")
+    render: (readset_files: FMSProjectReadset["readset_files"]) => {
+      return (
+        <>
+          {readset_files.map((s) => (
+            <CopyableReadsetFilePath key={s.file_path} file={s.file_path} />
+          ))}
+        </>
+      )
     },
+    width: 300,
+    ellipsis: true
   },
 }
 
@@ -265,6 +293,8 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
     sortBy,
   })
 
+  console.info(tableColumnsProps)
+
   const filterSet = useMemo(
     () =>
       Object.entries(filters).reduce(
@@ -307,7 +337,36 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
         rowKey={"id"}
         bordered
         pagination={paginationProps}
+        scroll={{ x: "100%" }}
       />
     </>
+  )
+}
+
+function CopyableReadsetFilePath({ file }: { file: string }) {
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false)
+
+  const handleCopy = async (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation()
+    await navigator.clipboard.writeText(file)
+    setCopiedToClipboard(true)
+
+    setTimeout(() => {
+      setCopiedToClipboard(false)
+    }, 2000)
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <span style={{ overflow: "scroll", textWrap: "nowrap", width: "17em" }}>
+        {file}
+      </span>
+      <Button
+        type="text"
+        size="small"
+        onClick={handleCopy}
+        icon={copiedToClipboard ? <CheckCircleTwoTone twoToneColor="#52c41a" /> : <CopyOutlined />}
+      />
+    </div>
   )
 }

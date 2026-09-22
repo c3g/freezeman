@@ -110,6 +110,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
 def queryset_for_export(queryset: QuerySet[Readset]):
     READSET_ANNOTATIONS = {
         "id": None,
+        "name": None,
         "sample_name": None,
         "alias": F("derived_sample__biosample__alias"),
         "cohort": F("derived_sample__biosample__individual__cohort"),
