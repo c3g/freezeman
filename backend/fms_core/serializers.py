@@ -35,6 +35,7 @@ from .models import (
     Process,
     ProcessMeasurement,
     Project,
+    ParentProject,
     Sample,
     SampleKind,
     SampleMetadata,
@@ -102,6 +103,8 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ParentProjectSerializer",
+    "ParentProjectReadsetSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -122,7 +125,7 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
-    "DerivedSampleSerializer"
+    "DerivedSampleSerializer",
     "FreezemanPermissionSerializer",
 ]
 
@@ -596,14 +599,70 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    external_id = serializers.CharField(read_only=True, source="parent_project.external_id")
+    external_name = serializers.CharField(read_only=True, source="parent_project.name")
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = '__all__'
 
+
 class ProjectExportSerializer(serializers.ModelSerializer):
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
+
+class ParentProjectSerializer(serializers.ModelSerializer):
+    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    class Meta:
+        model = ParentProject
+        fields = '__all__'
+
+
+class ParentProjectReadsetSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    readset_sample_name = serializers.CharField()
+    biosample_id = serializers.IntegerField(allow_null=True)
+    run_name = serializers.CharField()
+    lane = serializers.IntegerField()
+    reference_genome_assembly_name = serializers.CharField(allow_null=True,)
+    sequencing_index_name = serializers.CharField(allow_null=True)
+    run_start_date = serializers.DateField()
+    alias = serializers.CharField(allow_null=True)
+    cohort = serializers.CharField(allow_blank=True,allow_null=True,)
+    library_type = serializers.CharField(allow_null=True,)
+    container_barcodes = serializers.ListField(child=serializers.CharField(allow_null=True),allow_empty=True,)
+    number_of_reads = serializers.IntegerField(allow_null=True,)
+    number_of_bases = serializers.IntegerField(allow_null=True,)
+    average_quality = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+
+    pf_reads_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+
+    duplicate_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    readset_files = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+    )
+    run_validation_status = serializers.IntegerField(allow_null=True,)
+
 
 
 class IndexSetSerializer(serializers.ModelSerializer):
@@ -687,7 +746,7 @@ class DatasetSerializer(serializers.ModelSerializer):
     validation_status = serializers.SerializerMethodField()
     latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
-    external_project_id = serializers.CharField(read_only=True, source="project.external_id")
+    external_project_id = serializers.CharField(read_only=True, source="project.parent_project.external_id")
     project_name = serializers.CharField(read_only=True, source="project.name")
     run_name = serializers.CharField(read_only=True, source="experiment_run.name")
 
@@ -735,12 +794,14 @@ class ReadsetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -763,12 +824,14 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -971,7 +1034,7 @@ class StepOrderSerializer(serializers.ModelSerializer):
     step_name = serializers.CharField(read_only=True, source='step.name')
     class Meta:
         model = StepOrder
-        fields = ["id", "step_id", "step_name", "protocol_id", "order"]
+        fields = ["id", "step_id", "step_name", "protocol_id", "order", "mandatory"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps_order = serializers.SerializerMethodField(read_only=True)

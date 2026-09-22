@@ -135,7 +135,7 @@ On this page we list the various steps needed for deployments. The first section
     export PATH=/opt/torque/x86_64/bin:/usr/pgsql-15/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/django/.local/bin:/home/django/bin
     npm cache clean
     sudo /usr/local/bin/npm install -g n
-    sudo /bin/n 16.20.2
+    sudo /bin/n 24.18.0
     ```
   * Install and Configure nginx
     ```
@@ -228,3 +228,5 @@ On this page we list the various steps needed for deployments. The first section
 * Version 5.7.0:
   * Upgrade Python version to 3.14.
   * Upgrade Django version to 6.0.4.
+* Version 5.9.0:
+  * Upgrade node.js to v24.18.0.

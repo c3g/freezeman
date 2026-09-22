@@ -1,14 +1,14 @@
-const webpack = require("webpack");
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack")
+const path = require("path")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
 
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
-const gitRevisionPlugin = new GitRevisionPlugin();
-const fs = require('fs');
-const child_process = require('child_process')
-const dotenv = require('dotenv');
+const GitRevisionPlugin = require("git-revision-webpack-plugin")
+const gitRevisionPlugin = new GitRevisionPlugin()
+const fs = require("fs")
+const child_process = require("child_process")
+const dotenv = require("dotenv")
 
-dotenv.config({ path: path.resolve(__dirname, "./.env") });
+dotenv.config({ path: path.resolve(__dirname, "./.env") })
 
 module.exports = (env, argv) => ({
   entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
@@ -17,11 +17,11 @@ module.exports = (env, argv) => ({
       {
         test: /\.(js|jsx|ts|tsx)$/,
         exclude: /node_modules/,
-        use: ["babel-loader"]
+        use: ["babel-loader"],
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"]
+        use: ["style-loader", "css-loader"],
       },
       {
         test: /\.scss$/i,
@@ -30,24 +30,24 @@ module.exports = (env, argv) => ({
       {
         test: /\.m?js/,
         resolve: {
-            fullySpecified: false
-        }
+          fullySpecified: false,
+        },
       },
-    ]
+    ],
   },
   resolve: {
-    extensions: ["*", ".js", ".jsx", ".ts", ".tsx"]
+    extensions: ["*", ".js", ".jsx", ".ts", ".tsx"],
   },
   output: {
     path: path.resolve(__dirname, "dist"),
     publicPath: "/",
     filename: "[name].js",
-    chunkFilename: "[name].bundle.js"
+    chunkFilename: "[name].bundle.js",
   },
   optimization: {
     splitChunks: {
-      chunks: "all"
-    }
+      chunks: "all",
+    },
   },
 
   plugins: [
@@ -60,9 +60,17 @@ module.exports = (env, argv) => ({
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
-      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%ci').toString().trim().split(' ').slice(0, 2).join(' ')),
-      FMS_VERSION: JSON.stringify(fs.readFileSync('../VERSION', 'utf8')),
-      FMS_ENV: JSON.stringify(process.env.FMS_ENV || "LOCAL")
+      GIT_LASTUPDATE: JSON.stringify(
+        child_process
+          .execSync("git log -1 --format=%ci")
+          .toString()
+          .trim()
+          .split(" ")
+          .slice(0, 2)
+          .join(" "),
+      ),
+      FMS_VERSION: JSON.stringify(fs.readFileSync("../VERSION", "utf8")),
+      FMS_ENV: JSON.stringify(process.env.FMS_ENV || "LOCAL"),
     }),
   ],
 
@@ -77,14 +85,14 @@ module.exports = (env, argv) => ({
         target: "http://localhost:8000",
       },
       "/static/submission_templates": {
-        target: "http://localhost:8000"
+        target: "http://localhost:8000",
       },
       "/static/samplesheet_templates": {
-        target: "http://localhost:8000"
-      }
+        target: "http://localhost:8000",
+      },
     },
     client: {
       overlay: false,
-    }
+    },
   },
-});
+})

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 
+from fms_core.services.project import create_full_project
 from fms_core.models import (
     RunType,
     Container,
@@ -11,7 +12,8 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
-    Dataset
+    Dataset,
+    ParentProject
 )
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 
@@ -43,7 +45,7 @@ class DatasetTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.my_project = Project.objects.create(name="test", external_id="P031553")
+        self.my_project, _, _ = create_full_project(name="test", external_id="P031553", external_name="ClientProject")
 
         self.my_experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                               run_type=self.run_type,
@@ -56,7 +58,7 @@ class DatasetTest(TestCase):
         dataset = Dataset.objects.create(project=self.my_project, experiment_run=self.my_experiment_run, lane=1)
         self.assertEqual(Dataset.objects.count(), 1)
         self.assertEqual(dataset.project.name, "test")
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
 
@@ -64,7 +66,7 @@ class DatasetTest(TestCase):
         dataset = Dataset.objects.create(project=self.my_project, experiment_run=self.my_experiment_run, lane=1, metric_report_url="https://www.FakeMetricReport.com")
         self.assertEqual(Dataset.objects.count(), 1)
         self.assertEqual(dataset.project.name, "test")
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.metric_report_url, "https://www.FakeMetricReport.com")

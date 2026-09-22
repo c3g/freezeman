@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
+import { FILTER_TYPE, SEX, PROJECT_STATUS, QPCR_SELECTION_STATUS } from "../../constants"
 
 export const SAMPLE_FILTERS = {
   id: {
@@ -11,7 +11,7 @@ export const SAMPLE_FILTERS = {
     key: "derived_samples__sample_kind__name",
     label: "Type",
     mode: "multiple",
-    placeholder: "All"
+    placeholder: "All",
   },
   name: {
     type: FILTER_TYPE.INPUT,
@@ -76,7 +76,7 @@ export const SAMPLE_FILTERS = {
     placeholder: "All",
     options: [
       { label: "Yes", value: "true" },
-      { label: "No",  value: "false"},
+      { label: "No", value: "false" },
     ],
   },
   qc_flag: {
@@ -84,11 +84,11 @@ export const SAMPLE_FILTERS = {
     key: "qc_flag",
     label: "QC Flag",
     placeholder: "All",
-    mode:"multiple",
+    mode: "multiple",
     options: [
       { label: "None", value: "None" },
       { label: "Passed", value: "true" },
-      { label: "Failed",  value: "false" },
+      { label: "Failed", value: "false" },
     ],
   },
 
@@ -114,8 +114,8 @@ export const SAMPLE_FILTERS = {
     mode: "multiple",
     placeholder: "All",
     options: [
-      { label: "Female",  value: "F" },
-      { label: "Male",    value: "M" },
+      { label: "Female", value: "F" },
+      { label: "Male", value: "M" },
       { label: "Unknown", value: "Unknown" },
     ],
     detached: true,
@@ -133,8 +133,8 @@ export const SAMPLE_FILTERS = {
     label: "qPCR Selection Status",
     placeholder: "All",
     mode: "multiple",
-    options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
-    detached:true,
+    options: QPCR_SELECTION_STATUS.map((x) => ({ label: x, value: x })),
+    detached: true,
   },
   is_pooled: {
     type: FILTER_TYPE.SELECT,
@@ -143,14 +143,14 @@ export const SAMPLE_FILTERS = {
     placeholder: "All",
     options: [
       { label: "Yes", value: "true" },
-      { label: "No",  value: "false" },
-    ]
+      { label: "No", value: "false" },
+    ],
   },
   metadata: {
     type: FILTER_TYPE.METADATA,
     key: "metadata",
     label: "Metadata",
-    detached:true,
+    detached: true,
   },
 }
 
@@ -198,8 +198,8 @@ export const CONTAINER_FILTERS = {
   comment: {
     type: FILTER_TYPE.INPUT,
     key: "comment",
-    label: "Comment"
-  }
+    label: "Comment",
+  },
 }
 
 export const INDIVIDUAL_FILTERS = {
@@ -227,7 +227,7 @@ export const INDIVIDUAL_FILTERS = {
     label: "Sex",
     mode: "multiple",
     placeholder: "All",
-    options: SEX.map(x => ({ label: x, value: x })),
+    options: SEX.map((x) => ({ label: x, value: x })),
   },
   pedigree: {
     type: FILTER_TYPE.INPUT,
@@ -257,7 +257,7 @@ export const PROCESS_MEASUREMENT_FILTERS = {
     key: "process__protocol__name",
     label: "Protocol",
     mode: "multiple",
-    placeholder: "All"
+    placeholder: "All",
   },
   source_sample__name: {
     type: FILTER_TYPE.INPUT,
@@ -299,14 +299,14 @@ export const EXPERIMENT_RUN_FILTERS = {
     key: "run_type__name",
     label: "Run Type",
     mode: "multiple",
-    placeholder: "All"
+    placeholder: "All",
   },
   instrument: {
     type: FILTER_TYPE.SELECT,
     key: "instrument__name",
     label: "Instrument",
     mode: "multiple",
-    placeholder: "All"
+    placeholder: "All",
   },
   instrument_type: {
     type: FILTER_TYPE.INPUT,
@@ -337,17 +337,17 @@ export const USER_FILTERS = {
   id: {
     type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
-    label: "User ID"
+    label: "User ID",
   },
   username: {
     type: FILTER_TYPE.INPUT,
     key: "username",
-    label: "Username"
+    label: "Username",
   },
   email: {
     type: FILTER_TYPE.INPUT,
     key: "email",
-    label: "Email"
+    label: "Email",
   },
 }
 
@@ -355,7 +355,7 @@ export const PROJECT_FILTERS = {
   id: {
     type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
-    label: "Project ID"
+    label: "Project ID",
   },
   name: {
     type: FILTER_TYPE.INPUT,
@@ -364,7 +364,7 @@ export const PROJECT_FILTERS = {
   },
   principal_investigator: {
     type: FILTER_TYPE.INPUT,
-    key: "principal_investigator",
+    key: "parent_project__principal_investigator",
     label: "Principal Investigator",
   },
   status: {
@@ -373,11 +373,11 @@ export const PROJECT_FILTERS = {
     label: "Status",
     mode: "multiple",
     placeholder: "All",
-    options: PROJECT_STATUS.map(x => ({ label: x, value: x })),
+    options: PROJECT_STATUS.map((x) => ({ label: x, value: x })),
   },
   requestor_name: {
     type: FILTER_TYPE.INPUT,
-    key: "requestor_name",
+    key: "parent_project__requestor_name",
     label: "Requestor Name",
   },
   targeted_end_date: {
@@ -515,7 +515,7 @@ export const LIBRARY_FILTERS = {
     placeholder: "All",
     options: [
       { label: "Yes", value: "true" },
-      { label: "No",  value: "false"},
+      { label: "No", value: "false" },
     ],
   },
   qc_flag: {
@@ -523,11 +523,11 @@ export const LIBRARY_FILTERS = {
     key: "qc_flag",
     label: "QC Flag",
     placeholder: "All",
-    mode:"multiple",
+    mode: "multiple",
     options: [
       { label: "None", value: "None" },
       { label: "Passed", value: "true" },
-      { label: "Failed",  value: "false" },
+      { label: "Failed", value: "false" },
     ],
   },
   is_pooled: {
@@ -537,9 +537,9 @@ export const LIBRARY_FILTERS = {
     placeholder: "All",
     options: [
       { label: "Yes", value: "true" },
-      { label: "No",  value: "false" },
-    ]
-  }
+      { label: "No", value: "false" },
+    ],
+  },
 }
 
 export const READSET_FILTERS = {
@@ -627,7 +627,7 @@ export const DATASET_FILE_FILTERS = {
     options: [
       { label: "Available", value: "0" },
       { label: "Released", value: "1" },
-      { label: "Blocked",  value: "2" },
+      { label: "Blocked", value: "2" },
     ],
   },
   release_flag_timestamp: {
@@ -637,70 +637,69 @@ export const DATASET_FILE_FILTERS = {
   },
 }
 
-
 export const POOLED_SAMPLES_FILTERS = {
-    sample__id: {
-        // Note: The sample__id filter adds the pool id to the query.
-        // It's not mapped to any column, but is required for the pool id to be sent
-        // to the endpoint properly.
-      type: FILTER_TYPE.INPUT_OBJECT_ID,
-      key: "sample__id",
-    },
-    project_name: {
-        type: FILTER_TYPE.INPUT,
-        key: "project__name",
-        label: "Project Name"
-    },
-    parent_sample_name: {
-      type: FILTER_TYPE.INPUT,
-      key: "parent_sample_name",
-      label: "Parent Sample Name"
-    },
-    alias: {
-      type: FILTER_TYPE.INPUT,
-      key: "derived_sample__biosample__alias",
-      label: "Alias"
-    },
-    volume_ratio: {
-      type: FILTER_TYPE.RANGE,
-      key: "volume_ratio",
-      label: "Volume Ratio"
-    },
-    library_type: {
-      type: FILTER_TYPE.INPUT,
-      key: "derived_sample__library__library_type__name",
-      label: "Library Type"
-    },
-    library_selection_target: {
-      type: FILTER_TYPE.INPUT,
-      key: "derived_sample__library__library_selection__target",
-      label: "Selection Target"
-    },
-    library_size: {
-      type: FILTER_TYPE.RANGE,
-      key: "sample__fragment_size",
-      label: "Library Size",
-    },
-    index: {
-        type: FILTER_TYPE.INPUT,
-        key: 'derived_sample__library__index__name',
-        label: "Index"
-    },
-    sample_kind: {
-      type: FILTER_TYPE.SELECT,
-      key: "derived_sample__sample_kind__name",
-      label: "Type",
-      mode: "multiple",
-      placeholder: "All"
-    },
-    individual_name: {
-      type: FILTER_TYPE.INPUT,
-      key: "derived_sample__biosample__individual__name",
-      label: "Individual"
-    },
-    collection_site: {
-      type: FILTER_TYPE.INPUT,
-      key: "derived_sample__biosample__collection_site",
-      label: "Collection Site"
-    },
+  sample__id: {
+    // Note: The sample__id filter adds the pool id to the query.
+    // It's not mapped to any column, but is required for the pool id to be sent
+    // to the endpoint properly.
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
+    key: "sample__id",
+  },
+  project_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "project__name",
+    label: "Project Name",
+  },
+  parent_sample_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "parent_sample_name",
+    label: "Parent Sample Name",
+  },
+  alias: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__biosample__alias",
+    label: "Alias",
+  },
+  volume_ratio: {
+    type: FILTER_TYPE.RANGE,
+    key: "volume_ratio",
+    label: "Volume Ratio",
+  },
+  library_type: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__library__library_type__name",
+    label: "Library Type",
+  },
+  library_selection_target: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__library__library_selection__target",
+    label: "Selection Target",
+  },
+  library_size: {
+    type: FILTER_TYPE.RANGE,
+    key: "sample__fragment_size",
+    label: "Library Size",
+  },
+  index: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__library__index__name",
+    label: "Index",
+  },
+  sample_kind: {
+    type: FILTER_TYPE.SELECT,
+    key: "derived_sample__sample_kind__name",
+    label: "Type",
+    mode: "multiple",
+    placeholder: "All",
+  },
+  individual_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__biosample__individual__name",
+    label: "Individual",
+  },
+  collection_site: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__biosample__collection_site",
+    label: "Collection Site",
+  },
 }

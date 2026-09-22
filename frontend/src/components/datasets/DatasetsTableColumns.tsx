@@ -164,7 +164,7 @@ export const DATASET_FILTER_DEFINITIONS : {[key in DatasetFilterID]: FilterDescr
 // Special filter for datasets table that is filtered by a particular project.
 export const DATASET_EXTERNAL_PROJECT_FILTER : FilterDescription = {
 	type: FILTER_TYPE.INPUT,
-	key: 'project__external_id',
+	key: 'project__parent_project__external_id',
 	label: 'External Project ID'
 }
 

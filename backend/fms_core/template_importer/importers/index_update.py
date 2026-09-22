@@ -72,6 +72,8 @@ class IndexUpdateImporter(GenericImporter):
                         if warning_row_ids is None:
                             # if the conflicting index reported is not the same.
                             warning_row_ids = mapping_index_to_rows.get(index_y.name, None)
+                        if warning_row_ids is None:
+                            continue
                         for warning_row_id in warning_row_ids:
                             if sample in samples_affected_by_row.get(warning_row_id, set()): # ensure the warning applies to the given row
                                 warnings_by_row[warning_row_id].append(("Pooled library {0} (Sample ID {1}) would have a conflict between index {2} and index {3}.", [sample.name, sample.id, index_x.name, index_y.name]))
