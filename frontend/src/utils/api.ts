@@ -676,7 +676,7 @@ function apiFetch<R extends ResponseWithData<any>>(
       if (ongoingRequests[requestID]) {
         ongoingRequests[requestID].abort({
           name: ABORT_ERROR_NAME,
-          message: `Request aborted for request to ${requestID}`,
+          message: `Request aborted for request ${requestID}`,
         })
       }
       ongoingRequests[requestID] = controller

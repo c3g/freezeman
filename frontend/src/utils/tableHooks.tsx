@@ -61,7 +61,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
             setLoading(true)
         }
 
-        clearTimeout(timeoutRef.current)
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
         timeoutRef.current = setTimeout(async () => {
             setPagination(pageNumberRef.current, pageSizeRef.current, totalRef.current)
             setLoading(true)
