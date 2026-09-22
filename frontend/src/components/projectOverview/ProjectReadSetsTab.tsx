@@ -76,8 +76,14 @@ const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
 }
 const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
 
+const VALIDATION_STATUS_NUMBER_TO_LABEL = {
+    "0": "Available",
+    "1": "Passed",
+    "2": "Failed",
+} as const
+
 const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
-  [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+  [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
   [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     type: FILTER_TYPE.INPUT,
@@ -107,11 +113,7 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.RUN_START]: { type: FILTER_TYPE.DATE_RANGE },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     type: FILTER_TYPE.SELECT,
-    options: [
-      { value: "0", label: "Available" },
-      { value: "1", label: "Passed" },
-      { value: "2", label: "Failed" },
-    ],
+    options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({ value: k, label: v })),
   },
 }
 
@@ -156,13 +158,11 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "Cohort",
     dataIndex: "cohort",
     key: "cohort",
-    sorter: true,
   },
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
     title: "Library Type",
     dataIndex: "library_type",
     key: "library_type",
-    sorter: true,
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     title: "Run Name",
@@ -180,7 +180,9 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "Validation Status",
     dataIndex: "validation_status",
     key: "validation_status",
-    sorter: true,
+    render(validation_status) {
+      return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
+    }
   },
   [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
     title: "Number of Reads",
@@ -206,8 +208,8 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "Files",
     dataIndex: "readset_files",
     key: "readset_files",
-    render: (_, record) => {
-      return record.readset_files.map((s) => s.file_path).join(";")
+    render(readset_files) {
+      return readset_files.map((s) => s.file_path).join(";")
     },
   },
 }
