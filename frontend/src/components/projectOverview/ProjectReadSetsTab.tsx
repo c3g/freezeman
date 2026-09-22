@@ -1,9 +1,28 @@
+import { useCallback, useEffect, useMemo } from "react"
 import { FILTER_TYPE } from "../../constants"
-import { FMSProjectReadset } from "../../models/fms_api_models"
-import { ColumnDefinitions, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, SortKeys } from "../../utils/tableHooks"
+import { useAppDispatch } from "../../hooks"
+import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
+import {
+  ColumnDefinitions,
+  createQueryParamsFromFilters,
+  createQueryParamsFromSortBy,
+  FetchRowData,
+  FilterDescriptions,
+  FilterKeys,
+  Filters,
+  newFilterDefinitionsToFilterSet,
+  SearchPropertiesDefinitions,
+  SortKeys,
+  useFilters,
+  usePaginatedDataProps,
+  useTableColumnsProps,
+  useTableSortByProps,
+} from "../../utils/tableHooks"
 import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
 
 import { Table } from "antd"
+import api from "../../utils/api"
+import FiltersBar from "../filters/filtersBar/FiltersBar"
 
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
@@ -15,19 +34,7 @@ function ProjectReadSetsTab({ parentProjectId }: ProjectReadSetsTabProps) {
   return (
     <>
       <ExternalIDReadSetDashboard parentProjectId={parentProjectId} />
-      <Table
-        dataSource={[]}
-        columns={[]}
-        rowKey="id"
-        size="small"
-        bordered
-        scroll={{ x: "max-content", y: 400 }}
-        pagination={{
-          pageSize: 5,
-          showSizeChanger: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} readsets`,
-        }}
-      />
+      <ProjectReadsetsTable parentProjectID={parentProjectId} />
     </>
   )
 }
@@ -48,7 +55,7 @@ enum ProjectReadsetsColumnID {
   AVERAGE_QUALITY = "AVERAGE_QUALITY",
   PF_READS_ALIGNED = "PF_READS_ALIGNED",
   DUPLICATE_ALIGNED = "DUPLICATE_ALIGNED",
-  READSET_FILES = "READSET_FILES"
+  READSET_FILES = "READSET_FILES",
 }
 
 const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
@@ -72,13 +79,40 @@ const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
 const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
   [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
-  [ProjectReadsetsColumnID.SAMPLE_NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
-  [ProjectReadsetsColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
-  [ProjectReadsetsColumnID.COHORT]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
-  [ProjectReadsetsColumnID.LIBRARY_TYPE]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
-  [ProjectReadsetsColumnID.RUN_NAME]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: true },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: true,
+    exactMatch: true,
+  },
   [ProjectReadsetsColumnID.RUN_START]: { type: FILTER_TYPE.DATE_RANGE },
-  [ProjectReadsetsColumnID.VALIDATION_STATUS]: { type: FILTER_TYPE.SELECT, options: [ { value: "0", label: "Available" }, { value: "1", label: "Passed" }, { value: "2", label: "Failed" } ] },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    type: FILTER_TYPE.SELECT,
+    options: [
+      { value: "0", label: "Available" },
+      { value: "1", label: "Passed" },
+      { value: "2", label: "Failed" },
+    ],
+  },
 }
 
 const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
@@ -174,11 +208,118 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     key: "readset_files",
     render: (_, record) => {
       return record.readset_files.map((s) => s.file_path).join(";")
-    }
-  }
+    },
+  },
 }
 
+function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
+  const dispatch = useAppDispatch()
+  const fetchProjectReadsets = useCallback<
+    FetchRowData<ProjectReadsetsColumnID, FMSProjectReadset>
+  >(
+    async ({ pageNumber, pageSize, filters, sortBy }) => {
+      const response = await dispatch(
+        api.projectReadsets.list(
+          {
+            ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+            ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+            dataset__project__parent_project__id__in: parentProjectID,
+            offset: (pageNumber - 1) * pageSize,
+            limit: pageSize,
+          },
+          {
+            abort: true,
+            requestID: "ProjectReadsetsTable.fetchReadsets",
+          },
+        ),
+      )
+      return {
+        total: response.data.count,
+        data: response.data.results,
+      }
+    },
+    [dispatch, parentProjectID],
+  )
 
-function ProjectReadsetsTable() {
+  const defaultPageSize = 5
 
+  const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
+    defaultPageSize,
+    fetchRowData: fetchProjectReadsets,
+  })
+
+  const DEBOUNCE_DELAY = 500
+  const debouncedOnSort = useCallback(
+    (newSortBy: Partial<Record<ProjectReadsetsColumnID, "ascend" | "descend">>) => {
+      fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [tableSortByProps, { sortBy }] = useTableSortByProps<
+    ProjectReadsetsColumnID,
+    FMSProjectReadset
+  >(debouncedOnSort)
+
+  const debouncedOnFilter = useCallback(
+    (newFilters: Filters<ProjectReadsetsColumnID>) => {
+      fetchRowData({ filters: newFilters, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [filters, setFilters] = useFilters<ProjectReadsetsColumnID>({}, debouncedOnFilter)
+
+  const tableColumnsProps = useTableColumnsProps<ProjectReadsetsColumnID, FMSProjectReadset>({
+    filters,
+    setFilters,
+    filterDescriptions: FILTER_DESCRIPTIONS,
+    columnDefinitions: COLUMN_DEFINITIONS,
+    searchPropertyDefinitions: SEARCH_DEFINITIONS,
+    sortBy,
+  })
+
+  const filterSet = useMemo(
+    () =>
+      Object.entries(filters).reduce(
+        (acc, [columnID, filterValue]) => {
+          const filterDescription = FILTER_DESCRIPTIONS[columnID as ProjectReadsetsColumnID]
+          if (!filterDescription) {
+            return acc
+          }
+          return {
+            ...acc,
+            ...newFilterDefinitionsToFilterSet(
+              columnID as ProjectReadsetsColumnID,
+              filterValue,
+              filterDescription,
+              SEARCH_DEFINITIONS[columnID as ProjectReadsetsColumnID],
+            ),
+          }
+        },
+        {} as ReturnType<typeof newFilterDefinitionsToFilterSet>,
+      ),
+    [filters],
+  )
+
+  useEffect(() => {
+    fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
+  }, [fetchRowData])
+
+  return (
+    <>
+      <FiltersBar
+        filters={filterSet}
+        clearFilters={() => {
+          setFilters({})
+        }}
+      />
+      <Table<FMSProjectReadset>
+        {...tableDataProps}
+        {...tableSortByProps}
+        {...tableColumnsProps}
+        rowKey={"id"}
+        bordered
+        pagination={paginationProps}
+      />
+    </>
+  )
 }

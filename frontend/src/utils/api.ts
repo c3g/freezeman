@@ -32,11 +32,11 @@ import {
   FMSVersion,
   FMSExperimentRun,
   FMSReadsetSummary,
+  FMSProjectReadset,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
 import { notifyError } from "../modules/notification/actions"
-import { ProjectOverviewReadset } from "../components/projectOverview/types"
 
 const api = {
   auth: {
@@ -219,12 +219,6 @@ const api = {
         abort,
         requestID,
       }),
-    readsets: (parentProjectId: FMSId, options: QueryParams, abort?: boolean) =>
-      get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(
-        `/parent-projects/${parentProjectId}/readsets/`,
-        options,
-        { abort },
-      ),
   },
 
   platforms: {
@@ -294,6 +288,11 @@ const api = {
       check: (action, template) => post(`/projects/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
     },
+  },
+
+  projectReadsets: {
+    list: (options: QueryParams, apiFetchOptions?: APIFetchOptions) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/readsets/export_list/", options, apiFetchOptions)
   },
 
   propertyValues: {
