@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FILTER_TYPE } from "../../constants"
 import { useAppDispatch } from "../../hooks"
 import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
@@ -138,19 +138,19 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "ID",
     dataIndex: "id",
     sorter: true,
-    width: 100,
+    minWidth: 100,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
     dataIndex: "name",
     sorter: true,
-    width: 200,
+    minWidth: 200,
   },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     title: "Sample Name",
     dataIndex: "sample_name",
     sorter: true,
-    width: 200,
+    minWidth: 200,
   },
   // [ProjectReadsetsColumnID.ALIAS]: {
   //   title: "Alias",
@@ -161,24 +161,24 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.COHORT]: {
     title: "Cohort",
     dataIndex: "cohort",
-    width: 200,
+    minWidth: 200,
   },
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
     title: "Library Type",
     dataIndex: "library_type",
-    width: 200,
+    minWidth: 150,
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     title: "Run Name",
     dataIndex: "run_name",
     sorter: true,
-    width: 200,
+    minWidth: 200,
   },
   [ProjectReadsetsColumnID.RUN_START]: {
     title: "Run Start",
     dataIndex: "run_start",
     sorter: true,
-    width: 200,
+    minWidth: 175,
   },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
@@ -186,12 +186,12 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     render: (validation_status: FMSProjectReadset["validation_status"]) => {
       return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
     },
-    width: 175,
+    minWidth: 175,
   },
   [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
     title: "nb_reads",
     dataIndex: "nb_reads",
-    width: 125,
+    minWidth: 125,
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "avg_qual",
@@ -204,12 +204,12 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.PF_READS_ALIGNED]: {
     title: "pf_reads_aligned",
     dataIndex: "pf_reads_aligned",
-    width: 150,
+    minWidth: 150,
   },
   [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: {
     title: "duplicate_aligned",
     dataIndex: "duplicate_aligned",
-    width: 175,
+    minWidth: 150,
   },
   [ProjectReadsetsColumnID.READSET_FILES]: {
     title: "Files",
@@ -223,8 +223,6 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
         </>
       )
     },
-    width: 300,
-    ellipsis: true
   },
 }
 
@@ -338,6 +336,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
         bordered
         pagination={paginationProps}
         scroll={{ x: "100%" }}
+        tableLayout={"auto"}
       />
     </>
   )
@@ -358,7 +357,11 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span style={{ overflow: "scroll", textWrap: "nowrap", width: "17em" }}>
+      <span style={{ overflow: "scroll", textWrap: "nowrap", width: "17em" }} ref={(node) => {
+        if (node) {
+          node.scrollLeft = node.scrollWidth
+        }
+      }}>
         {file}
       </span>
       <Button
