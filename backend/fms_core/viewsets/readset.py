@@ -101,7 +101,10 @@ class ReadsetViewSet(viewsets.ModelViewSet):
         qs = self.filter_queryset(Readset.objects.all())
         qs = queryset_for_export(qs)
 
-        return Response(qs)
+        return Response({
+            "count": qs.count(),
+            "results": qs
+        })
 
 
 def queryset_for_export(queryset: QuerySet[Readset]):
