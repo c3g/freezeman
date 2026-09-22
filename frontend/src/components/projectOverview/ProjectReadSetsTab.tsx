@@ -133,53 +133,44 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.ID]: {
     title: "ID",
     dataIndex: "id",
-    key: "id",
     sorter: true,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
     dataIndex: "name",
-    key: "name",
     sorter: true,
   },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     title: "Sample Name",
     dataIndex: "sample_name",
-    key: "sample_name",
     sorter: true,
   },
   [ProjectReadsetsColumnID.ALIAS]: {
     title: "Alias",
     dataIndex: "alias",
-    key: "alias",
     sorter: true,
   },
   [ProjectReadsetsColumnID.COHORT]: {
     title: "Cohort",
     dataIndex: "cohort",
-    key: "cohort",
   },
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
     title: "Library Type",
     dataIndex: "library_type",
-    key: "library_type",
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     title: "Run Name",
     dataIndex: "run_name",
-    key: "run_name",
     sorter: true,
   },
   [ProjectReadsetsColumnID.RUN_START]: {
     title: "Run Start",
     dataIndex: "run_start",
-    key: "run_start",
     sorter: true,
   },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
     dataIndex: "validation_status",
-    key: "validation_status",
     render(validation_status) {
       return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
     }
@@ -187,27 +178,22 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
     title: "Number of Reads",
     dataIndex: "nb_reads",
-    key: "nb_reads",
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "Avg Quality",
     dataIndex: "avg_qual",
-    key: "avg_qual",
   },
   [ProjectReadsetsColumnID.PF_READS_ALIGNED]: {
     title: "PF Reads Aligned",
     dataIndex: "pf_reads_aligned",
-    key: "pf_reads_aligned",
   },
   [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: {
     title: "Duplicate Aligned",
     dataIndex: "duplicate_aligned",
-    key: "duplicate_aligned",
   },
   [ProjectReadsetsColumnID.READSET_FILES]: {
     title: "Files",
     dataIndex: "readset_files",
-    key: "readset_files",
     render(readset_files) {
       return readset_files.map((s) => s.file_path).join(";")
     },

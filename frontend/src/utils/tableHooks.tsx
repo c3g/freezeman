@@ -261,7 +261,9 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
   return useMemo(() => {
     const columns: ColumnsType<RowData> = []
     for (const columnID in columnDefinitions) {
-      const column: ColumnType<RowData> = {}
+      const column: ColumnType<RowData> = {
+        key: columnID
+      }
       Object.assign(column, columnDefinitions[columnID])
 
       const searchPropsArgs = searchPropertyDefinitions[columnID]
@@ -683,7 +685,7 @@ export type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject>
 
 export type ColumnDefinition<RowData extends AntdAnyObject> = ColumnType<RowData>
 export type ColumnDefinitions<ColumnID extends string, RowData extends AntdAnyObject> = Partial<
-  Record<ColumnID, ColumnDefinition<RowData>>
+  Record<ColumnID, Omit<ColumnDefinition<RowData>, 'key'>>
 >
 
 export type FilterKeys<ColumnID extends string> = Partial<Record<ColumnID, string>>
