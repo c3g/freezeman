@@ -29,7 +29,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
   const [summary, setSummary] = useState<FMSReadsetSummary>()
 
   useEffect(() => {
-    dispatch(api.readsets.summary({ dataset__project__parent_project__id__in: parentProjectId })).then((response) => {
+    dispatch(api.projectReadsets.summary({ dataset__project__parent_project__id__in: parentProjectId })).then((response) => {
       setSummary(response.data)
     })
   }, [dispatch, parentProjectId])

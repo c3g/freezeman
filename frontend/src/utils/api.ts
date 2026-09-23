@@ -292,7 +292,9 @@ const api = {
 
   projectReadsets: {
     list: (options: QueryParams, apiFetchOptions?: APIFetchOptions) =>
-      get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/readsets/export_list/", options, apiFetchOptions)
+      get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/project-readsets/", options, apiFetchOptions),
+    summary: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<FMSReadsetSummary>>(`/project-readsets/summary/`, options, { abort }),
   },
 
   propertyValues: {
@@ -313,8 +315,6 @@ const api = {
     get: (id) => get(`/readsets/${id}/`),
     list: (options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
-    summary: (options: QueryParams, abort?: boolean) =>
-      get<JsonResponse<FMSReadsetSummary>>(`/readsets/summary/`, options, { abort }),
   },
 
   referenceGenomes: {

@@ -26,6 +26,7 @@ from .viewsets import (
     VersionViewSet,
     RevisionViewSet,
     ProjectViewSet,
+    ProjectReadsetViewSet,
     SequenceViewSet,
     TaxonViewSet,
     SampleLineageViewSet,
@@ -62,6 +63,7 @@ router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
+router.register(r"project-readsets", ProjectReadsetViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"sample-metadata", SampleMetadataViewSet, basename="sample-metadata")
 router.register(r"protocols", ProtocolViewSet)

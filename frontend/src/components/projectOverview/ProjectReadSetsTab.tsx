@@ -292,8 +292,6 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
     sortBy,
   })
 
-  console.info(tableColumnsProps)
-
   const filterSet = useMemo(
     () =>
       Object.entries(filters).reduce(
