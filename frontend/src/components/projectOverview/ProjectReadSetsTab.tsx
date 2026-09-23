@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { FILTER_TYPE } from "../../constants"
 import { useAppDispatch } from "../../hooks"
 import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
@@ -20,7 +20,7 @@ import {
 } from "../../utils/tableHooks"
 import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
 
-import { Button, Table } from "antd"
+import { Button, ConfigProvider, Popover, Table } from "antd"
 import api from "../../utils/api"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
@@ -138,47 +138,47 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "ID",
     dataIndex: "id",
     sorter: true,
-    minWidth: 100,
+    width: 100,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
     dataIndex: "name",
     sorter: true,
-    minWidth: 200,
+    width: 200,
   },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     title: "Sample Name",
     dataIndex: "sample_name",
     sorter: true,
-    minWidth: 200,
+    width: 200,
   },
-  // [ProjectReadsetsColumnID.ALIAS]: {
-  //   title: "Alias",
-  //   dataIndex: "alias",
-  //   sorter: true,
-  //   width: 100,
-  // },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    title: "Alias",
+    dataIndex: "alias",
+    sorter: true,
+    width: 200,
+  },
   [ProjectReadsetsColumnID.COHORT]: {
     title: "Cohort",
     dataIndex: "cohort",
-    minWidth: 200,
+    width: 200,
   },
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
     title: "Library Type",
     dataIndex: "library_type",
-    minWidth: 150,
+    width: 150,
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     title: "Run Name",
     dataIndex: "run_name",
     sorter: true,
-    minWidth: 200,
+    width: 200,
   },
   [ProjectReadsetsColumnID.RUN_START]: {
     title: "Run Start",
     dataIndex: "run_start",
     sorter: true,
-    minWidth: 175,
+    width: 175,
   },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
@@ -186,12 +186,12 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     render: (validation_status: FMSProjectReadset["validation_status"]) => {
       return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
     },
-    minWidth: 175,
+    width: 175,
   },
   [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
     title: "nb_reads",
     dataIndex: "nb_reads",
-    minWidth: 125,
+    width: 125,
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "avg_qual",
@@ -204,15 +204,15 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.PF_READS_ALIGNED]: {
     title: "pf_reads_aligned",
     dataIndex: "pf_reads_aligned",
-    minWidth: 150,
+    width: 150,
   },
   [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: {
     title: "duplicate_aligned",
     dataIndex: "duplicate_aligned",
-    minWidth: 150,
+    width: 150,
   },
   [ProjectReadsetsColumnID.READSET_FILES]: {
-    title: "Files",
+    title: "Files (hover to see full path)",
     dataIndex: "readset_files",
     render: (readset_files: FMSProjectReadset["readset_files"]) => {
       return (
@@ -223,6 +223,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
         </>
       )
     },
+    width: 250,
   },
 }
 
@@ -328,16 +329,27 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
           setFilters({})
         }}
       />
-      <Table<FMSProjectReadset>
-        {...tableDataProps}
-        {...tableSortByProps}
-        {...tableColumnsProps}
-        rowKey={"id"}
-        bordered
-        pagination={paginationProps}
-        scroll={{ x: "100%" }}
-        tableLayout={"auto"}
-      />
+      <ConfigProvider
+        theme={{
+          components: {
+            Table: {
+              cellPaddingBlock: 4,
+              cellPaddingInline: 8
+            }
+          }
+        }}
+      >
+        <Table<FMSProjectReadset>
+          {...tableDataProps}
+          {...tableSortByProps}
+          {...tableColumnsProps}
+          rowKey={"id"}
+          bordered
+          pagination={paginationProps}
+          scroll={{ x: "100%", y: "40vh" }}
+          tableLayout={"fixed"}
+        />
+      </ConfigProvider>
     </>
   )
 }
@@ -357,13 +369,11 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span style={{ overflow: "scroll", textWrap: "nowrap", width: "17em" }} ref={(node) => {
-        if (node) {
-          node.scrollLeft = node.scrollWidth
-        }
-      }}>
-        {file}
-      </span>
+      <Popover content={file} mouseEnterDelay={0} mouseLeaveDelay={0} destroyOnHidden={true}>
+        <span style={{ overflowX: "hidden", textWrap: "nowrap", textOverflow: "ellipsis", direction: "rtl", width: "17em" }}>
+          {file}
+        </span>
+      </Popover>
       <Button
         type="text"
         size="small"
