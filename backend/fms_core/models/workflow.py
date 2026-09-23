@@ -5,6 +5,7 @@ from django.db import models
 
 from .tracked_model import TrackedModel
 from .step import Step
+from .library_type import LibraryType
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._validators import name_validator_with_spaces_and_parentheses
@@ -16,6 +17,7 @@ __all__ = ["Workflow"]
 @reversion.register()
 class Workflow(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Worflow name.", validators=[name_validator_with_spaces_and_parentheses])
+    virtual_library_type = models.ForeignKey(LibraryType, null=True, blank=True, on_delete=models.PROTECT, related_name="libraryless_workflow",  help_text="Library type for the library that gets created when doing experiment run preparation for workflows with virtual library preparation.")
     structure = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Worflow structure.", validators=[name_validator_with_spaces_and_parentheses])
     steps = models.ManyToManyField(Step, blank=True, through="StepOrder", symmetrical=False, related_name="workflows")
 

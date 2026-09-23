@@ -154,7 +154,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO: list[SheetInfo] = [
       },
       {
           'name': 'Samples',
-          'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates',
+          'headers': ['Experiment Name', 'Source Sample Name', 'Virtual Library Type', 'Source Container Barcode', 'Source Container Coordinates',
                       'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates (Lane)', 'Comment', 'Workflow Action'],
           'stitch_column': 'Experiment Name',
           'batch': False,
@@ -204,12 +204,13 @@ EXPERIMENT_MGI_TEMPLATE: TemplateDefinition = {
 
 EXPERIMENT_ILLUMINA_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add Illumina experiments",
-               "file": static("submission_templates/Experiment_run_illumina_v5_3_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_illumina_v5_10_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
       ("Samples", "Source Sample Name", "name", "name", None),
+      ("Samples", "Virtual Library Type", "volume", "volume", None),
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
       ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
       ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
