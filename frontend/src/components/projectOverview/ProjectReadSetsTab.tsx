@@ -51,7 +51,7 @@ enum ProjectReadsetsColumnID {
   COHORT = "COHORT",
   LIBRARY_TYPE = "LIBRARY_TYPE",
   RUN_NAME = "RUN_NAME",
-  RUN_START = "RUN_START",
+  RUN_START_DATE = "RUN_START_DATE",
   VALIDATION_STATUS = "VALIDATION_STATUS",
   NUMBER_OF_READS = "NUMBER_OF_READS",
   AVERAGE_QUALITY = "AVERAGE_QUALITY",
@@ -68,7 +68,7 @@ const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.COHORT]: "derived_sample__biosample__individual__cohort",
   [ProjectReadsetsColumnID.LIBRARY_TYPE]: "derived_sample__library__library_type__name",
   [ProjectReadsetsColumnID.RUN_NAME]: "dataset__experiment_run__name",
-  [ProjectReadsetsColumnID.RUN_START]: "dataset__experiment_run__start_date",
+  [ProjectReadsetsColumnID.RUN_START_DATE]: "dataset__experiment_run__start_date",
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: "validation_status",
   // [ProjectReadsetsColumnID.NUMBER_OF_READS]: "number_reads",
   // [ProjectReadsetsColumnID.AVERAGE_QUALITY]: "",
@@ -112,7 +112,7 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
     startsWith: true,
     exactMatch: true,
   },
-  [ProjectReadsetsColumnID.RUN_START]: { type: FILTER_TYPE.DATE_RANGE },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: { type: FILTER_TYPE.DATE_RANGE },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     type: FILTER_TYPE.SELECT,
     options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({
@@ -120,18 +120,6 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
       label: v,
     })),
   },
-}
-
-const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
-  [ProjectReadsetsColumnID.ID]: {},
-  [ProjectReadsetsColumnID.NAME]: {},
-  [ProjectReadsetsColumnID.SAMPLE_NAME]: {},
-  [ProjectReadsetsColumnID.ALIAS]: {},
-  [ProjectReadsetsColumnID.COHORT]: {},
-  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {},
-  [ProjectReadsetsColumnID.RUN_NAME]: {},
-  [ProjectReadsetsColumnID.RUN_START]: {},
-  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {},
 }
 
 const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectReadset> = {
@@ -175,9 +163,9 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     sorter: true,
     width: 200,
   },
-  [ProjectReadsetsColumnID.RUN_START]: {
+  [ProjectReadsetsColumnID.RUN_START_DATE]: {
     title: "Run Start Date",
-    dataIndex: "run_start",
+    dataIndex: "run_start_date",
     sorter: true,
     width: 175,
   },
@@ -227,6 +215,18 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     },
     width: 250,
   },
+}
+
+const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ID]?.title as string },
+  [ProjectReadsetsColumnID.NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.NAME]?.title as string },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.SAMPLE_NAME]?.title as string },
+  [ProjectReadsetsColumnID.ALIAS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ALIAS]?.title as string },
+  [ProjectReadsetsColumnID.COHORT]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.COHORT]?.title as string },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.LIBRARY_TYPE]?.title as string },
+  [ProjectReadsetsColumnID.RUN_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_NAME]?.title as string },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_START_DATE]?.title as string },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.VALIDATION_STATUS]?.title as string },
 }
 
 function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
