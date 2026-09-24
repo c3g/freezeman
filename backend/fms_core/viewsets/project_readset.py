@@ -1,4 +1,5 @@
 import csv
+from itertools import batched
 from typing import Any
 
 
@@ -81,7 +82,7 @@ class ProjectReadsetViewSet(viewsets.ModelViewSet):
 
     def list(self, _request):
         qs = self.filter_queryset(Readset.objects.all())
-        qs = queryset_for_export(qs)
+        qs = readsets_to_projectreadsets(qs)
         result = self.paginate_queryset(qs)
         return Response({
             "count": len(result),
@@ -91,7 +92,7 @@ class ProjectReadsetViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def export_list(self, _request):
         qs = self.filter_queryset(Readset.objects.all())
-        qs = queryset_for_export(qs, readset_files_q=StringAgg('files__file_path', delimiter=Value(";"), default=""))
+        qs = readsets_to_projectreadsets(qs, readset_files_q=StringAgg('files__file_path', delimiter=Value(";")))
         value_keys = [
             "id",
             "name",
@@ -118,8 +119,8 @@ class ProjectReadsetViewSet(viewsets.ModelViewSet):
         writer = csv.writer(pseudo_buffer)
         def stream_rows():
             yield writer.writerow(value_keys)
-            for row in qs.values_list(*value_keys, flat=False):
-                yield writer.writerow(row)
+            for batch in batched(qs.values_list(*value_keys, flat=False), 100):
+                yield "".join(writer.writerow(row) for row in batch)
 
         return StreamingHttpResponse(
             stream_rows(),
@@ -137,7 +138,7 @@ READSET_FILES_TO_ARRAY = ArrayAgg(
     default=Value([]),
 )
 
-def queryset_for_export(queryset: QuerySet[Readset], readset_files_q: Any = READSET_FILES_TO_ARRAY):
+def readsets_to_projectreadsets(queryset: QuerySet[Readset], readset_files_q: Any = READSET_FILES_TO_ARRAY):
     READSET_ANNOTATIONS = {
         "id": None,
         "name": None,
