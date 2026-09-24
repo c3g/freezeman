@@ -295,6 +295,8 @@ const api = {
       get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/project-readsets/", options, apiFetchOptions),
     summary: (options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSReadsetSummary>>(`/project-readsets/summary/`, options, { abort }),
+    listExport: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
+      get<StringResponse>("/project-readsets/export_list/", options, apiFetchOptions)
   },
 
   propertyValues: {

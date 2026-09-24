@@ -25,6 +25,7 @@ import api from "../../utils/api"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
 import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
+import ExportButton from "../ExportButton"
 
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
@@ -260,7 +261,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
 
   const defaultPageSize = 5
 
-  const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
+  const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
     defaultPageSize,
     fetchRowData: fetchProjectReadsets,
   })
@@ -321,8 +322,16 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
     fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
   }, [fetchRowData])
 
+  const exportFunctions = useCallback(async () => {
+    return (await dispatch(api.projectReadsets.listExport({
+      ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+      ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+    }))).data
+  }, [dispatch, filters, sortBy])
+
   return (
     <>
+      <ExportButton exportType={"Project's Readsets"} exportFunction={exportFunctions} filename={`Project_Readsets`} itemsCount={totalCount} />
       <FiltersBar
         filters={filterSet}
         clearFilters={() => {

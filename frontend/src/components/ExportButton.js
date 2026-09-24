@@ -6,7 +6,11 @@ import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { useAppDispatch } from "../hooks";
 import { notifyError } from "../modules/notification/actions";
 const { confirm } = Modal;
-
+/**
+ * 
+ * @param {{ exportType: string, exportFunction: () => Promise<BlobPart>, filename: string, itemsCount: number } & import("antd").ButtonProps} param0 
+ * @returns 
+ */
 const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch()
