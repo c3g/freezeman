@@ -206,7 +206,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.PF_READS_ALIGNMENT_RATE]: {
     title: "pf_read_alignment_rate",
     dataIndex: "pf_read_alignment_rate",
-    width: 150,
+    width: 175,
   },
   [ProjectReadsetsColumnID.DUPLICATE_RATE]: {
     title: "duplicate_rate",
