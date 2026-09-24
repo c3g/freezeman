@@ -24,6 +24,7 @@ import { Button, ConfigProvider, Popover, Table } from "antd"
 import api from "../../utils/api"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
+import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
 
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
@@ -54,8 +55,8 @@ enum ProjectReadsetsColumnID {
   VALIDATION_STATUS = "VALIDATION_STATUS",
   NUMBER_OF_READS = "NUMBER_OF_READS",
   AVERAGE_QUALITY = "AVERAGE_QUALITY",
-  PF_READS_ALIGNED = "PF_READS_ALIGNED",
-  DUPLICATE_ALIGNED = "DUPLICATE_ALIGNED",
+  PF_READS_ALIGNMENT_RATE = "PF_READS_ALIGNMENT_RATE",
+  DUPLICATE_RATE = "DUPLICATE_ALIGNED",
   READSET_FILES = "READSET_FILES",
 }
 
@@ -175,7 +176,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     width: 200,
   },
   [ProjectReadsetsColumnID.RUN_START]: {
-    title: "Run Start",
+    title: "Run Start Date",
     dataIndex: "run_start",
     sorter: true,
     width: 175,
@@ -183,8 +184,8 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
     dataIndex: "validation_status",
-    render: (validation_status: FMSProjectReadset["validation_status"]) => {
-      return VALIDATION_STATUS_NUMBER_TO_LABEL[validation_status]
+    render: (value: FMSProjectReadset["validation_status"]) => {
+      return <LaneValidationStatus validationStatus={value} isValidationInProgress={false} />
     },
     width: 175,
   },
@@ -192,23 +193,24 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "nb_reads",
     dataIndex: "nb_reads",
     width: 125,
+    render: (value: FMSProjectReadset["nb_reads"]) => value.toLocaleString("fr-CA")
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "avg_qual",
     dataIndex: "avg_qual",
     width: 100,
-    render: (avg_qual: FMSProjectReadset['avg_qual']) => {
-      return avg_qual.toFixed(3)
+    render: (value: FMSProjectReadset['avg_qual']) => {
+      return value.toFixed(2)
     }
   },
-  [ProjectReadsetsColumnID.PF_READS_ALIGNED]: {
-    title: "pf_reads_aligned",
-    dataIndex: "pf_reads_aligned",
+  [ProjectReadsetsColumnID.PF_READS_ALIGNMENT_RATE]: {
+    title: "pf_read_alignment_rate",
+    dataIndex: "pf_read_alignment_rate",
     width: 150,
   },
-  [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: {
-    title: "duplicate_aligned",
-    dataIndex: "duplicate_aligned",
+  [ProjectReadsetsColumnID.DUPLICATE_RATE]: {
+    title: "duplicate_rate",
+    dataIndex: "duplicate_rate",
     width: 150,
   },
   [ProjectReadsetsColumnID.READSET_FILES]: {
