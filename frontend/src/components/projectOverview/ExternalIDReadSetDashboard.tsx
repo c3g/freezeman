@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, Col, Progress, Row, Space, Statistic, Tooltip, Typography } from "antd"
 import {
   CheckCircleOutlined,
@@ -9,33 +9,11 @@ import {
   TeamOutlined,
 } from "@ant-design/icons"
 import { Column } from "@ant-design/charts"
-import { ProjectOverviewReadset } from "./types"
+import { FMSReadsetSummary } from "../../models/fms_api_models"
+import api from "../../utils/api"
+import { useAppDispatch } from "../../hooks"
 
 const { Text } = Typography
-
-const getQcCompletenessData = (items: ProjectOverviewReadset[]) => {
-  const total = items.length
-
-  const complete = items.filter((item) => {
-    return (
-      item.average_quality !== null &&
-      item.average_quality !== undefined &&
-      item.pf_reads_aligned !== null &&
-      item.pf_reads_aligned !== undefined &&
-      item.duplicate_aligned !== null &&
-      item.duplicate_aligned !== undefined
-    )
-  }).length
-
-  const incomplete = items.length - complete
-
-  return {
-    complete: total === 0 ? 0 : Math.round((complete / total) * 100),
-    incomplete: total === 0 ? 0 : Math.round((incomplete / total) * 100),
-    completeCount: complete,
-    incompleteCount: incomplete,
-  }
-}
 
 const iconStyle = (color: string, backgroundColor: string): React.CSSProperties => ({
   color,
@@ -46,134 +24,17 @@ const iconStyle = (color: string, backgroundColor: string): React.CSSProperties 
   marginRight: 4,
 })
 
-function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewReadset[] }) {
-  const metrics = useMemo(() => {
-    // Avg. Alignment Calculation
-    const readsetsWithAlignment = readsets.filter((readset) => readset.pf_reads_aligned !== null)
+function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: number }) {
+  const dispatch = useAppDispatch()
+  const [summary, setSummary] = useState<FMSReadsetSummary>()
 
-    const allAlignmentsHaveNumberOfReads = readsetsWithAlignment.every(
-      (readset) => readset.number_of_reads !== null && Number(readset.number_of_reads) > 0,
-    )
-
-    const simpleAverageAlignment =
-      readsetsWithAlignment.length === 0
-        ? null
-        : readsetsWithAlignment.reduce(
-            (sum, readset) => sum + Number(readset.pf_reads_aligned),
-            0,
-          ) / readsetsWithAlignment.length
-
-    const totalNumberOfReadsForAlignment = readsetsWithAlignment.reduce(
-      (sum, readset) => sum + Number(readset.number_of_reads),
-      0,
-    )
-
-    const weightedAlignmentSum = readsetsWithAlignment.reduce(
-      (sum, readset) => sum + Number(readset.pf_reads_aligned) * Number(readset.number_of_reads),
-      0,
-    )
-
-    const averageAlignment =
-      readsetsWithAlignment.length === 0
-        ? null
-        : allAlignmentsHaveNumberOfReads
-          ? weightedAlignmentSum / totalNumberOfReadsForAlignment
-          : simpleAverageAlignment
-
-    // Avg. Quality Calculation
-    const readsetsWithQuality = readsets.filter((readset) => readset.average_quality !== null)
-
-    const allHaveNumberOfBases = readsetsWithQuality.every(
-      (readset) => readset.number_of_bases !== null && Number(readset.number_of_bases) > 0,
-    )
-
-    const simpleAverageQuality =
-      readsetsWithQuality.length === 0
-        ? null
-        : readsetsWithQuality.reduce((sum, readset) => sum + Number(readset.average_quality), 0) /
-          readsetsWithQuality.length
-
-    const totalNumberOfBases = readsetsWithQuality.reduce(
-      (sum, readset) => sum + Number(readset.number_of_bases),
-      0,
-    )
-
-    const weightedQualitySum = readsetsWithQuality.reduce(
-      (sum, readset) => sum + Number(readset.average_quality) * Number(readset.number_of_bases),
-      0,
-    )
-
-    const averageQuality =
-      readsetsWithQuality.length === 0
-        ? null
-        : allHaveNumberOfBases
-          ? weightedQualitySum / totalNumberOfBases
-          : simpleAverageQuality
-
-    // Avg. Duplication Calculation
-    const readsetsWithDuplication = readsets.filter((readset) => readset.duplicate_aligned !== null)
-
-    const allDuplicationsHaveNumberOfReads = readsetsWithDuplication.every(
-      (readset) => readset.number_of_reads !== null && Number(readset.number_of_reads) > 0,
-    )
-
-    const simpleAverageDuplication =
-      readsetsWithDuplication.length === 0
-        ? null
-        : readsetsWithDuplication.reduce(
-            (sum, readset) => sum + Number(readset.duplicate_aligned),
-            0,
-          ) / readsetsWithDuplication.length
-
-    const totalNumberOfReadsForDuplication = readsetsWithDuplication.reduce(
-      (sum, readset) => sum + Number(readset.number_of_reads),
-      0,
-    )
-
-    const weightedDuplicationSum = readsetsWithDuplication.reduce(
-      (sum, readset) => sum + Number(readset.duplicate_aligned) * Number(readset.number_of_reads),
-      0,
-    )
-
-    const averageDuplication =
-      readsetsWithDuplication.length === 0
-        ? null
-        : allDuplicationsHaveNumberOfReads
-          ? weightedDuplicationSum / totalNumberOfReadsForDuplication
-          : simpleAverageDuplication
-
-    return {
-      totalReadsets: readsets.length,
-      totalReads: readsets.reduce((sum, x) => sum + Number(x.number_of_reads || 0), 0),
-      totalRuns: new Set(readsets.map((x) => x.run_name)).size,
-      totalSamples: new Set(
-        readsets.map((x) => x.biosample_id).filter((id) => id !== null && id !== undefined),
-      ).size,
-      totalCohorts: new Set(readsets.map((x) => x.cohort)).size,
-      avgQuality: averageQuality,
-      avgAlignment: averageAlignment,
-      avgDuplication: averageDuplication,
-    }
-  }, [readsets])
-
-  const qcCompleteness = useMemo(() => getQcCompletenessData(readsets), [readsets])
-
-  const libraryTypeData = useMemo(() => {
-    const grouped = new Map<string, number>()
-
-    readsets.forEach((item) => {
-      const libraryType = item.library_type?.trim() || "Unknown"
-
-      grouped.set(libraryType, (grouped.get(libraryType) || 0) + 1)
+  useEffect(() => {
+    dispatch(api.projectReadsets.summary({ dataset__project__parent_project__id__in: parentProjectId })).then((response) => {
+      setSummary(response.data)
     })
+  }, [dispatch, parentProjectId])
 
-    return Array.from(grouped.entries()).map(([libraryType, count]) => ({
-      libraryType,
-      count,
-    }))
-  }, [readsets])
-
-  return (
+  return summary && (
     <div style={{ background: "#f5f7fb", padding: 0 }}>
       <Row gutter={[16, 16]} style={{ margin: 8, borderRadius: 4 }}>
         <Col xs={24} sm={12} lg={6} xl={3}>
@@ -181,7 +42,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             <Statistic
               groupSeparator=" "
               title="Readsets"
-              value={metrics.totalReadsets}
+              value={summary.total_readsets}
               prefix={<ExperimentOutlined style={iconStyle("#1677ff", "#e6f4ff")} />}
             />
           </Card>
@@ -192,7 +53,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             <Statistic
               groupSeparator=" "
               title="Runs"
-              value={metrics.totalRuns}
+              value={summary.total_runs}
               prefix={<ClusterOutlined style={iconStyle("#722ed1", "#f9f0ff")} />}
             />
           </Card>
@@ -203,7 +64,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
             <Statistic
               groupSeparator=" "
               title="Samples"
-              value={metrics.totalSamples}
+              value={summary.total_samples}
               prefix={<TeamOutlined style={iconStyle("#13c2c2", "#e6fffb")} />}
             />
           </Card>
@@ -211,7 +72,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 
         <Col xs={24} sm={12} lg={6} xl={3}>
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
-            <Statistic groupSeparator=" " title="Cohorts" value={metrics.totalCohorts} />
+            <Statistic groupSeparator=" " title="Cohorts" value={summary.total_cohorts} />
           </Card>
         </Col>
 
@@ -219,7 +80,7 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
               title="Reads"
-              value={`${(metrics.totalReads / 1_000_000_000).toFixed(1)} G`}
+              value={`${(summary.nb_reads / 1_000_000_000).toFixed(1)} G`}
               prefix={<DatabaseOutlined style={iconStyle("#2f54eb", "#f0f5ff")} />}
             />
           </Card>
@@ -229,8 +90,8 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
               title="Avg Quality"
-              value={metrics.avgQuality === null ? "—" : metrics.avgQuality}
-              precision={metrics.avgQuality === null ? undefined : 1}
+              value={summary.avg_qual}
+              precision={1}
               prefix={<CheckCircleOutlined style={iconStyle("#2f54eb", "#f0f5ff")} />}
             />
           </Card>
@@ -240,9 +101,9 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
               title="Avg Alignment"
-              value={metrics.avgAlignment === null ? "—" : metrics.avgAlignment * 100}
-              precision={metrics.avgAlignment === null ? undefined : 2}
-              suffix={metrics.avgAlignment === null ? undefined : "%"}
+              value={summary.pf_read_alignment_rate * 100}
+              precision={2}
+              suffix={"%"}
             />
           </Card>
         </Col>
@@ -251,9 +112,9 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
               title="Avg Duplication"
-              value={metrics.avgDuplication === null ? "—" : metrics.avgDuplication * 100}
-              precision={metrics.avgDuplication === null ? undefined : 2}
-              suffix={metrics.avgDuplication === null ? undefined : "%"}
+              value={summary.duplicate_rate * 100}
+              precision={2}
+              suffix={"%"}
             />
           </Card>
         </Col>
@@ -280,8 +141,8 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                 >
                   <Column
                     height={120}
-                    data={libraryTypeData}
-                    xField="libraryType"
+                    data={summary.library_type_distribution}
+                    xField="type"
                     yField="count"
                     color="#3578ff"
                     label={{
@@ -324,20 +185,16 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
                     <Text>Complete QC Metrics</Text>
                     <Progress
                       size="small"
-                      percent={qcCompleteness.complete}
+                      percent={summary.complete_count / summary.total_readsets * 100}
                       strokeColor="#2fbd5b"
                     />
 
                     <Text>Missing QC Metrics</Text>
                     <Progress
                       size="small"
-                      percent={qcCompleteness.incomplete}
+                      percent={(summary.total_readsets - summary.complete_count) / summary.total_readsets * 100}
                       strokeColor="#faad14"
                     />
-
-                    <Text type="secondary">
-                      {qcCompleteness.completeCount} / {readsets.length} fully usable readsets
-                    </Text>
                   </Space>
                 </Card>
               </Col>
@@ -357,20 +214,16 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
           >
             <Row gutter={[12, 12]}>
               <Col xs={24} lg={12}>
-                <Card size="small" type="inner" title="Alignment rate">
+                <Card size="small" type="inner" title="Alignement rate">
                   <Statistic
-                    value={metrics.avgAlignment === null ? "-" : metrics.avgAlignment * 100}
-                    precision={metrics.avgAlignment === null ? undefined : 2}
-                    suffix={metrics.avgAlignment === null ? undefined : "%"}
+                    value={summary.pf_read_alignment_rate * 100}
+                    precision={2}
+                    suffix={"%"}
                     styles={{ content: { color: "#1677ff" } }}
                   />
                   <Progress
                     size="small"
-                    percent={
-                      metrics.avgAlignment === null
-                        ? 0
-                        : Number((metrics.avgAlignment * 100).toFixed(2))
-                    }
+                    percent={Number((summary.pf_read_alignment_rate * 100).toFixed(2))}
                     strokeColor={{ color: "#1677ff" }}
                     style={{ marginBottom: 52 }}
                   />
@@ -381,18 +234,14 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
               <Col xs={24} lg={12}>
                 <Card size="small" type="inner" title="Duplication rate">
                   <Statistic
-                    value={metrics.avgDuplication === null ? "—" : metrics.avgDuplication * 100}
-                    precision={metrics.avgDuplication === null ? undefined : 2}
-                    suffix={metrics.avgDuplication === null ? undefined : "%"}
+                    value={summary.duplicate_rate * 100}
+                    precision={2}
+                    suffix={"%"}
                     styles={{ content: { color: "#1677ff" } }}
                   />
                   <Progress
                     size="small"
-                    percent={
-                      metrics.avgDuplication === null
-                        ? 0
-                        : Number((metrics.avgDuplication * 100).toFixed(2))
-                    }
+                    percent={Number((summary.duplicate_rate * 100).toFixed(2))}
                     strokeColor={{ color: "#1677ff" }}
                     style={{ marginBottom: 52 }}
                   />

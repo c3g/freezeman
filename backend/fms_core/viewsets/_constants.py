@@ -274,6 +274,7 @@ _library_filterset_fields: FiltersetFields = {
 _dataset_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "project": FK_FILTERS,
+    "project__parent_project__id": FK_FILTERS,
     "project__parent_project__external_id": CATEGORICAL_FILTERS_LOOSE,
     "project__name": CATEGORICAL_FILTERS_LOOSE,
     "experiment_run": FK_FILTERS,

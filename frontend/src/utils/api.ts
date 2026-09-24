@@ -31,11 +31,12 @@ import {
   FMSTemplatePrefillOption,
   FMSVersion,
   FMSExperimentRun,
+  FMSReadsetSummary,
+  FMSProjectReadset,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
 import { notifyError } from "../modules/notification/actions"
-import { ProjectOverviewReadset } from "../components/projectOverview/types"
 
 const api = {
   auth: {
@@ -218,12 +219,6 @@ const api = {
         abort,
         requestID,
       }),
-    readsets: (parentProjectId: FMSId, options: QueryParams, abort?: boolean) =>
-      get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(
-        `/parent-projects/${parentProjectId}/readsets/`,
-        options,
-        { abort },
-      ),
   },
 
   platforms: {
@@ -293,6 +288,13 @@ const api = {
       check: (action, template) => post(`/projects/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
     },
+  },
+
+  projectReadsets: {
+    list: (options: QueryParams, apiFetchOptions?: APIFetchOptions) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/project-readsets/", options, apiFetchOptions),
+    summary: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<FMSReadsetSummary>>(`/project-readsets/summary/`, options, { abort }),
   },
 
   propertyValues: {
@@ -674,7 +676,7 @@ function apiFetch<R extends ResponseWithData<any>>(
       if (ongoingRequests[requestID]) {
         ongoingRequests[requestID].abort({
           name: ABORT_ERROR_NAME,
-          message: `Request aborted for request to ${requestID}`,
+          message: `Request aborted for request ${requestID}`,
         })
       }
       ongoingRequests[requestID] = controller

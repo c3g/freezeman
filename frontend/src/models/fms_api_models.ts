@@ -146,6 +146,42 @@ export interface FMSReadset extends FMSTrackedModel {
   metrics?: FMSMetric[] | { [key: string]: FMSMetric }
 }
 
+export interface FMSProjectReadset extends FMSReadset {
+  id: FMSId
+  sample_name: string
+  alias: string
+  cohort: string
+  library_type: string
+  run_name: string
+  run_start_date: string
+  validation_status: number
+  nb_reads: number
+  avg_qual: number
+  pf_read_alignment_rate: number
+  duplicate_rate: number
+  yield: number
+  readset_files: {
+    file_path: string,
+    size: number,
+  }[]
+}
+
+export interface FMSReadsetSummary {
+    total_readsets: number
+    total_runs: number
+    total_samples: number
+    complete_count: number
+    total_cohorts: number
+
+    library_type_distribution: { "type": string, count: number }[]
+
+    nb_reads: number
+
+    avg_qual: number
+    pf_read_alignment_rate: number
+    duplicate_rate: number
+}
+
 export interface FMSDatasetFile extends FMSTrackedModel {
   dataset: FMSId // The dataset that owns this file
   file_path: string // The path to the dataset file (on Abacus?)

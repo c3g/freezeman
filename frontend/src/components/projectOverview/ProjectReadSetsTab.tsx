@@ -1,38 +1,357 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import dayjs, { Dayjs } from "dayjs"
-import { ProjectOverviewExportButtonData, ProjectOverviewReadset } from "./types"
-import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
-import api from "../../utils/api"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { FILTER_TYPE } from "../../constants"
 import { useAppDispatch } from "../../hooks"
+import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
+import {
+  ColumnDefinitions,
+  createQueryParamsFromFilters,
+  createQueryParamsFromSortBy,
+  FetchRowData,
+  FilterDescriptions,
+  FilterKeys,
+  Filters,
+  newFilterDefinitionsToFilterSet,
+  SearchPropertiesDefinitions,
+  SortKeys,
+  useFilters,
+  usePaginatedDataProps,
+  useTableColumnsProps,
+  useTableSortByProps,
+} from "../../utils/tableHooks"
+import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
 
-import type { ColumnsType } from "antd/es/table"
-import type { FilterDropdownProps } from "antd/es/table/interface"
-import { Alert, Button, DatePicker, Empty, Input, Spin, Table, Tag, Typography } from "antd"
-import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, FilterOutlined } from "@ant-design/icons"
-import ProjectOverviewExportButton from "./ProjectOverviewExportButton"
-import { useCreateCsvExportFunction } from "./useCsvExport"
+import { Button, ConfigProvider, Popover, Table } from "antd"
+import api from "../../utils/api"
+import FiltersBar from "../filters/filtersBar/FiltersBar"
+import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
 import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
-import { ValidationStatus } from "../../modules/experimentRunLanes/models"
-
-const { Text } = Typography
 
 interface ProjectReadSetsTabProps {
   parentProjectId: number | null
   externalID: string
-  isActive: boolean
 }
-const compactHeaderCell = () => ({
-  style: {
-    padding: "4px 8px",
-    lineHeight: "16px",
-    height: 20,
-  },
-})
 
-const nowrapCell = {
-  style: {
-    whiteSpace: "nowrap",
+function ProjectReadSetsTab({ parentProjectId }: ProjectReadSetsTabProps) {
+  if (!parentProjectId) return undefined
+  return (
+    <>
+      <ExternalIDReadSetDashboard parentProjectId={parentProjectId} />
+      <ProjectReadsetsTable parentProjectID={parentProjectId} />
+    </>
+  )
+}
+
+export default ProjectReadSetsTab
+
+enum ProjectReadsetsColumnID {
+  ID = "ID",
+  NAME = "NAME",
+  SAMPLE_NAME = "SAMPLE_NAME",
+  ALIAS = "ALIAS",
+  COHORT = "COHORT",
+  LIBRARY_TYPE = "LIBRARY_TYPE",
+  RUN_NAME = "RUN_NAME",
+  RUN_START_DATE = "RUN_START_DATE",
+  VALIDATION_STATUS = "VALIDATION_STATUS",
+  NUMBER_OF_READS = "NUMBER_OF_READS",
+  AVERAGE_QUALITY = "AVERAGE_QUALITY",
+  PF_READS_ALIGNMENT_RATE = "PF_READS_ALIGNMENT_RATE",
+  DUPLICATE_RATE = "DUPLICATE_ALIGNED",
+  READSET_FILES = "READSET_FILES",
+}
+
+const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: "id",
+  [ProjectReadsetsColumnID.NAME]: "name",
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: "sample_name",
+  [ProjectReadsetsColumnID.ALIAS]: "derived_sample__biosample__alias",
+  [ProjectReadsetsColumnID.COHORT]: "derived_sample__biosample__individual__cohort",
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: "derived_sample__library__library_type__name",
+  [ProjectReadsetsColumnID.RUN_NAME]: "dataset__experiment_run__name",
+  [ProjectReadsetsColumnID.RUN_START_DATE]: "dataset__experiment_run__start_date",
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: "validation_status",
+  // [ProjectReadsetsColumnID.NUMBER_OF_READS]: "number_reads",
+  // [ProjectReadsetsColumnID.AVERAGE_QUALITY]: "",
+  // [ProjectReadsetsColumnID.PF_READS_ALIGNED]: "",
+  // [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: "",
+  // [ProjectReadsetsColumnID.READSET_FILES]: "",
+}
+const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
+
+const VALIDATION_STATUS_NUMBER_TO_LABEL = {
+  "0": "Available",
+  "1": "Passed",
+  "2": "Failed",
+} as const
+
+const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
+  [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
   },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: true,
+    exactMatch: true,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: { type: FILTER_TYPE.DATE_RANGE },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    type: FILTER_TYPE.SELECT,
+    options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({
+      value: k,
+      label: v,
+    })),
+  },
+}
+
+const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectReadset> = {
+  [ProjectReadsetsColumnID.ID]: {
+    title: "ID",
+    dataIndex: "id",
+    sorter: true,
+    width: 100,
+  },
+  [ProjectReadsetsColumnID.NAME]: {
+    title: "Readset Name",
+    dataIndex: "name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    title: "Sample Name",
+    dataIndex: "sample_name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    title: "Alias",
+    dataIndex: "alias",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    title: "Cohort",
+    dataIndex: "cohort",
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    title: "Library Type",
+    dataIndex: "library_type",
+    width: 150,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    title: "Run Name",
+    dataIndex: "run_name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: {
+    title: "Run Start Date",
+    dataIndex: "run_start_date",
+    sorter: true,
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    title: "Validation Status",
+    dataIndex: "validation_status",
+    render: (value: FMSProjectReadset["validation_status"]) => {
+      return <LaneValidationStatus validationStatus={value} isValidationInProgress={false} />
+    },
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
+    title: "nb_reads",
+    dataIndex: "nb_reads",
+    width: 125,
+    render: (value: FMSProjectReadset["nb_reads"]) => value.toLocaleString("fr-CA")
+  },
+  [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
+    title: "avg_qual",
+    dataIndex: "avg_qual",
+    width: 100,
+    render: (value: FMSProjectReadset['avg_qual']) => {
+      return value.toFixed(2)
+    }
+  },
+  [ProjectReadsetsColumnID.PF_READS_ALIGNMENT_RATE]: {
+    title: "pf_read_alignment_rate",
+    dataIndex: "pf_read_alignment_rate",
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.DUPLICATE_RATE]: {
+    title: "duplicate_rate",
+    dataIndex: "duplicate_rate",
+    width: 150,
+  },
+  [ProjectReadsetsColumnID.READSET_FILES]: {
+    title: "Files (hover to see full path)",
+    dataIndex: "readset_files",
+    render: (readset_files: FMSProjectReadset["readset_files"]) => {
+      return (
+        <>
+          {readset_files.map((s) => (
+            <CopyableReadsetFilePath key={s.file_path} file={s.file_path} />
+          ))}
+        </>
+      )
+    },
+    width: 250,
+  },
+}
+
+const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ID]?.title as string },
+  [ProjectReadsetsColumnID.NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.NAME]?.title as string },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.SAMPLE_NAME]?.title as string },
+  [ProjectReadsetsColumnID.ALIAS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ALIAS]?.title as string },
+  [ProjectReadsetsColumnID.COHORT]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.COHORT]?.title as string },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.LIBRARY_TYPE]?.title as string },
+  [ProjectReadsetsColumnID.RUN_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_NAME]?.title as string },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_START_DATE]?.title as string },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.VALIDATION_STATUS]?.title as string },
+}
+
+function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
+  const dispatch = useAppDispatch()
+  const fetchProjectReadsets = useCallback<
+    FetchRowData<ProjectReadsetsColumnID, FMSProjectReadset>
+  >(
+    async ({ pageNumber, pageSize, filters, sortBy }) => {
+      const response = await dispatch(
+        api.projectReadsets.list(
+          {
+            ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+            ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+            dataset__project__parent_project__id__in: parentProjectID,
+            offset: (pageNumber - 1) * pageSize,
+            limit: pageSize,
+          },
+          {
+            abort: true,
+            requestID: "ProjectReadsetsTable.fetchReadsets",
+          },
+        ),
+      )
+      return {
+        total: response.data.count,
+        data: response.data.results,
+      }
+    },
+    [dispatch, parentProjectID],
+  )
+
+  const defaultPageSize = 5
+
+  const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
+    defaultPageSize,
+    fetchRowData: fetchProjectReadsets,
+  })
+
+  const DEBOUNCE_DELAY = 500
+  const debouncedOnSort = useCallback(
+    (newSortBy: Partial<Record<ProjectReadsetsColumnID, "ascend" | "descend">>) => {
+      fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [tableSortByProps, { sortBy }] = useTableSortByProps<
+    ProjectReadsetsColumnID,
+    FMSProjectReadset
+  >(debouncedOnSort)
+
+  const debouncedOnFilter = useCallback(
+    (newFilters: Filters<ProjectReadsetsColumnID>) => {
+      fetchRowData({ filters: newFilters, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [filters, setFilters] = useFilters<ProjectReadsetsColumnID>({}, debouncedOnFilter)
+
+  const tableColumnsProps = useTableColumnsProps<ProjectReadsetsColumnID, FMSProjectReadset>({
+    filters,
+    setFilters,
+    filterDescriptions: FILTER_DESCRIPTIONS,
+    columnDefinitions: COLUMN_DEFINITIONS,
+    searchPropertyDefinitions: SEARCH_DEFINITIONS,
+    sortBy,
+  })
+
+  const filterSet = useMemo(
+    () =>
+      Object.entries(filters).reduce(
+        (acc, [columnID, filterValue]) => {
+          const filterDescription = FILTER_DESCRIPTIONS[columnID as ProjectReadsetsColumnID]
+          if (!filterDescription) {
+            return acc
+          }
+          return {
+            ...acc,
+            ...newFilterDefinitionsToFilterSet(
+              columnID as ProjectReadsetsColumnID,
+              filterValue,
+              filterDescription,
+              SEARCH_DEFINITIONS[columnID as ProjectReadsetsColumnID],
+            ),
+          }
+        },
+        {} as ReturnType<typeof newFilterDefinitionsToFilterSet>,
+      ),
+    [filters],
+  )
+
+  useEffect(() => {
+    fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
+  }, [fetchRowData])
+
+  return (
+    <>
+      <FiltersBar
+        filters={filterSet}
+        clearFilters={() => {
+          setFilters({})
+        }}
+      />
+      <ConfigProvider
+        theme={{
+          components: {
+            Table: {
+              cellPaddingBlock: 4,
+              cellPaddingInline: 8
+            }
+          }
+        }}
+      >
+        <Table<FMSProjectReadset>
+          {...tableDataProps}
+          {...tableSortByProps}
+          {...tableColumnsProps}
+          rowKey={"id"}
+          bordered
+          pagination={paginationProps}
+          scroll={{ x: "100%", y: "40vh" }}
+          tableLayout={"fixed"}
+        />
+      </ConfigProvider>
+    </>
+  )
 }
 
 function CopyableReadsetFilePath({ file }: { file: string }) {
@@ -50,7 +369,11 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span>{file}</span>
+      <Popover content={file} mouseEnterDelay={0} mouseLeaveDelay={0} destroyOnHidden={true}>
+        <span style={{ overflowX: "hidden", textWrap: "nowrap", textOverflow: "ellipsis", direction: "rtl", width: "17em" }}>
+          {file}
+        </span>
+      </Popover>
       <Button
         type="text"
         size="small"
@@ -60,486 +383,3 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
     </div>
   )
 }
-
-const getProjectOverviewReadsetColumns = (
-  libraryTypeFilters: { text: string; value: string }[],
-): ColumnsType<ProjectOverviewReadset> => [
-  {
-    title: "ID",
-    dataIndex: "id",
-    key: "id",
-    //fixed: 'left',
-    width: 70,
-    onHeaderCell: compactHeaderCell,
-    onCell: () => nowrapCell,
-    render: (id: number) => <Text code>{id}</Text>,
-  },
-  {
-    title: "Readset",
-    dataIndex: "name",
-    key: "name",
-    //fixed: 'left',
-    width: 450,
-    onHeaderCell: compactHeaderCell,
-    render: (name: string) => <Text strong>{name}</Text>,
-  },
-  {
-    title: "Sample",
-    dataIndex: "readset_sample_name",
-    key: "readset_sample_name",
-    width: 450,
-    onHeaderCell: compactHeaderCell,
-    filterIcon: (filtered) => (
-      <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-    }: FilterDropdownProps) => (
-      <div style={{ padding: 8 }}>
-        <Input
-          placeholder="Search sample"
-          value={selectedKeys[0]}
-          onChange={(event) => {
-            setSelectedKeys(event.target.value ? [event.target.value] : [])
-          }}
-          onPressEnter={() => confirm()}
-          style={{
-            marginBottom: 8,
-            display: "block",
-          }}
-        />
-
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => confirm()}
-          style={{
-            width: 90,
-            marginRight: 8,
-          }}
-        >
-          Search
-        </Button>
-
-        <Button
-          size="small"
-          onClick={() => {
-            clearFilters?.()
-            confirm()
-          }}
-          style={{ width: 90 }}
-        >
-          Reset
-        </Button>
-      </div>
-    ),
-    onFilter: (value, record) =>
-      String(record.readset_sample_name ?? "")
-        .toLowerCase()
-        .includes(String(value).toLowerCase()),
-  },
-  {
-    title: "Alias",
-    dataIndex: "alias",
-    key: "alias",
-    width: 450,
-    onHeaderCell: compactHeaderCell,
-    render: (alias: string | null) => alias || <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "Cohort",
-    dataIndex: "cohort",
-    key: "cohort",
-    width: 120,
-    onHeaderCell: compactHeaderCell,
-    render: (cohort: string | null) => cohort || <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "Library Type",
-    dataIndex: "library_type",
-    key: "library_type",
-    width: 140,
-    onHeaderCell: compactHeaderCell,
-    filters: libraryTypeFilters,
-    filterIcon: (filtered) => (
-      <FilterOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    onFilter: (value, record) => record.library_type === value,
-    render: (libraryType: string | null) =>
-      libraryType ? <Tag>{libraryType}</Tag> : <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "Run",
-    dataIndex: "run_name",
-    key: "run_name",
-    width: 260,
-    onHeaderCell: compactHeaderCell,
-    filterIcon: (filtered) => (
-      <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-    }: FilterDropdownProps) => (
-      <div style={{ padding: 8 }}>
-        <Input
-          placeholder="Search run"
-          value={selectedKeys[0]}
-          onChange={(event) => {
-            setSelectedKeys(event.target.value ? [event.target.value] : [])
-          }}
-          onPressEnter={() => confirm()}
-          style={{ marginBottom: 8, display: "block" }}
-        />
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => confirm()}
-          style={{ width: 90, marginRight: 8 }}
-        >
-          Search
-        </Button>
-        <Button
-          size="small"
-          onClick={() => {
-            clearFilters?.()
-            confirm()
-          }}
-          style={{ width: 90 }}
-        >
-          Reset
-        </Button>
-      </div>
-    ),
-
-    onFilter: (value, record) =>
-      String(record.run_name ?? "")
-        .toLowerCase()
-        .includes(String(value).toLowerCase()),
-  },
-  {
-    title: "Run Start",
-    dataIndex: "run_start_date",
-    key: "run_start_date",
-    width: 120,
-    onHeaderCell: compactHeaderCell,
-    filterIcon: (filtered) => (
-      <FilterOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
-    ),
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-    }: FilterDropdownProps) => (
-      <div style={{ padding: 8 }}>
-        <DatePicker.RangePicker
-          style={{ marginBottom: 8, display: "block" }}
-          value={
-            selectedKeys.length === 1
-              ? (() => {
-                  const [startDate, endDate] = String(selectedKeys[0]).split("|")
-
-                  return startDate && endDate
-                    ? ([dayjs(startDate), dayjs(endDate)] as [Dayjs, Dayjs])
-                    : null
-                })()
-              : null
-          }
-          onChange={(dates) => {
-            if (!dates || !dates[0] || !dates[1]) {
-              setSelectedKeys([])
-              return
-            }
-
-            setSelectedKeys([`${dates[0].format("YYYY-MM-DD")}|${dates[1].format("YYYY-MM-DD")}`])
-          }}
-        />
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => confirm()}
-          style={{ width: 90, marginRight: 8 }}
-        >
-          Filter
-        </Button>
-        <Button
-          size="small"
-          onClick={() => {
-            clearFilters?.()
-            confirm()
-          }}
-          style={{ width: 90 }}
-        >
-          Reset
-        </Button>
-      </div>
-    ),
-
-    onFilter: (value, record) => {
-      const [startDate, endDate] = String(value).split("|")
-
-      if (!startDate || !endDate) {
-        return true
-      }
-
-      return record.run_start_date >= startDate && record.run_start_date <= endDate
-    },
-  },
-  {
-    title: "Validation Status",
-    dataIndex: "run_validation_status",
-    key: "run_validation_status",
-    width: 170,
-    onHeaderCell: compactHeaderCell,
-    render: (validationStatus: ValidationStatus | null) =>
-      validationStatus === null ? (
-        <Text type="secondary">N/A</Text>
-      ) : (
-        <LaneValidationStatus validationStatus={validationStatus} isValidationInProgress={false} />
-      ),
-  },
-  // {
-  // 	title: 'Container Barcodes',
-  // 	dataIndex: 'barcodes',
-  // 	key: 'barcodes',
-  // 	width: 280,
-  // 	onHeaderCell: compactHeaderCell,
-  // 	render: (barcodes: string[]) =>
-  // 		barcodes?.length ? (
-  // 			<Space size={[0, 4]} wrap>
-  // 				{barcodes.map((barcode) => (
-  // 					<Tag key={barcode}>{barcode}</Tag>
-  // 				))}
-  // 			</Space>
-  // 		) : (
-  // 			<Text type="secondary">N/A</Text>
-  // 		),
-  // },
-  {
-    title: "Reads",
-    dataIndex: "number_of_reads",
-    key: "number_of_reads",
-    align: "right",
-    width: 180,
-    onHeaderCell: compactHeaderCell,
-    render: (reads: number | null) =>
-      reads !== null ? reads.toLocaleString("fr-CA") : <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "Avg Quality",
-    dataIndex: "average_quality",
-    key: "average_quality",
-    align: "right",
-    width: 100,
-    onHeaderCell: compactHeaderCell,
-    render: (value: string | null) =>
-      value !== null ? Number(value).toFixed(2) : <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "% PF Aligned",
-    dataIndex: "pf_reads_aligned",
-    key: "pf_reads_aligned",
-    align: "right",
-    width: 100,
-    onHeaderCell: compactHeaderCell,
-    render: (value: string | null) =>
-      value !== null ? `${(Number(value) * 100).toFixed(2)}` : <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "% Duplicate",
-    dataIndex: "duplicate_aligned",
-    key: "duplicate_aligned",
-    align: "right",
-    width: 100,
-    onHeaderCell: compactHeaderCell,
-    render: (value: string | null) =>
-      value !== null ? `${(Number(value) * 100).toFixed(2)}` : <Text type="secondary">N/A</Text>,
-  },
-  {
-    title: "Readset Files",
-    dataIndex: "readset_files",
-    key: "readset_files",
-    onHeaderCell: compactHeaderCell,
-    render: (files?: ProjectOverviewReadset["readset_files"] | null) =>
-      files?.length ? (
-        <div style={{ whiteSpace: "nowrap" }}>
-          {files.map((file, index) =>
-            file.file_path ? (
-              <div
-                key={`${file.file_path}-${index}`}
-                style={{ display: "flex", alignItems: "center", gap: 8 }}
-              >
-                <CopyableReadsetFilePath file={file.file_path} />
-                <Text type="secondary">
-                  {file.size !== null && file.size !== undefined
-                    ? `${(Number(file.size) / 1024 / 1024).toFixed(2)} MB`
-                    : "N/A"}
-                </Text>
-              </div>
-            ) : null,
-          )}
-        </div>
-      ) : (
-        <Text type="secondary">N/A</Text>
-      ),
-  },
-]
-
-const formatReadsetFilesForCsv = (files: ProjectOverviewReadset["readset_files"]): string => {
-  if (!files?.length) {
-    return ""
-  }
-
-  return files
-    .flatMap((file) => {
-      if (!file.file_path) {
-        return []
-      }
-      return [file.file_path]
-    })
-    .join("; ")
-}
-
-function ProjectReadSetsTab({ parentProjectId, externalID, isActive }: ProjectReadSetsTabProps) {
-  const [projectOverviewReadsets, setProjectOverviewReadsets] = useState<ProjectOverviewReadset[]>(
-    [],
-  )
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const dispatch = useAppDispatch()
-
-  // Charge les Read Sets associés au projet parent donné.
-  const fetchReadsetsByParentProjectID = useCallback(
-    async (parentProjectId: number): Promise<ProjectOverviewReadset[]> => {
-      const response = await dispatch(
-        api.parentProjects.readsets(
-          parentProjectId,
-          {
-            limit: 100000,
-          },
-          true,
-        ),
-      )
-
-      return response.data.results
-    },
-    [dispatch],
-  )
-
-  // Charge les Read Sets du projet parent et met à jour l’état du composant.
-  const loadParentProjectReadsets = useCallback(
-    async (parentProjectId: number): Promise<void> => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const fetchedReadsets = await fetchReadsetsByParentProjectID(parentProjectId)
-        setProjectOverviewReadsets(fetchedReadsets)
-      } catch (error) {
-        setProjectOverviewReadsets([])
-        setError(error instanceof Error ? error.message : "Failed to fetch read sets")
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [fetchReadsetsByParentProjectID],
-  )
-
-  useEffect(() => {
-    if (!isActive) {
-      return
-    }
-
-    if (parentProjectId === null) {
-      setProjectOverviewReadsets([])
-      setError("Invalid parent project ID")
-      return
-    }
-
-    loadParentProjectReadsets(parentProjectId)
-  }, [isActive, parentProjectId, loadParentProjectReadsets])
-
-  const exportReadsets = useMemo(
-    () =>
-      projectOverviewReadsets.map((readset) => ({
-        ...readset,
-        readset_files: formatReadsetFilesForCsv(readset.readset_files),
-      })),
-    [projectOverviewReadsets],
-  )
-
-  const generateCsvContent = useCreateCsvExportFunction(exportReadsets)
-
-  const libraryTypeFilters = Array.from(
-    new Set(
-      projectOverviewReadsets
-        .map((readset) => readset.library_type)
-        .filter((libraryType): libraryType is string => Boolean(libraryType)),
-    ),
-  ).map((libraryType) => ({
-    text: libraryType,
-    value: libraryType,
-  }))
-
-  const projectOverviewReadsetColumns = useMemo(
-    () => getProjectOverviewReadsetColumns(libraryTypeFilters),
-    [libraryTypeFilters],
-  )
-
-  if (isLoading) {
-    return <Spin />
-  }
-
-  if (error) {
-    return <Alert type="error" title={error} showIcon />
-  }
-
-  const exportButtonData: ProjectOverviewExportButtonData = {
-    exportType: "Project Readsets",
-    exportFunction: generateCsvContent,
-    filename: "Project Readsets",
-    itemsCount: projectOverviewReadsets.length,
-    disabled: projectOverviewReadsets.length === 0,
-  }
-
-  return (
-    <>
-      {!isLoading && isActive && <ExternalIDReadSetDashboard readsets={projectOverviewReadsets} />}
-      {!isLoading && projectOverviewReadsets.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <ProjectOverviewExportButton data={exportButtonData} />
-        </div>
-      )}
-      {projectOverviewReadsets.length > 0 ? (
-        <Table
-          dataSource={projectOverviewReadsets}
-          columns={projectOverviewReadsetColumns}
-          rowKey="id"
-          size="small"
-          bordered
-          scroll={{ x: "max-content", y: 400 }}
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: false,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} readsets`,
-          }}
-        />
-      ) : (
-        <Empty
-          description={
-            externalID ? `No read sets found for External ID: ${externalID}` : "No read sets found"
-          }
-        />
-      )}
-    </>
-  )
-}
-
-export default ProjectReadSetsTab
