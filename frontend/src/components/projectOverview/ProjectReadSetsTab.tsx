@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FILTER_TYPE } from "../../constants"
 import { useAppDispatch } from "../../hooks"
-import { FMSId, FMSProjectReadset } from "../../models/fms_api_models"
+import { FMSId, FMSReadsetReporting } from "../../models/fms_api_models"
 import {
   ColumnDefinitions,
   createQueryParamsFromFilters,
@@ -123,7 +123,7 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   },
 }
 
-const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectReadset> = {
+const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetReporting> = {
   [ProjectReadsetsColumnID.ID]: {
     title: "Readset ID",
     dataIndex: "id",
@@ -173,7 +173,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
     title: "Validation Status",
     dataIndex: "validation_status",
-    render: (value: FMSProjectReadset["validation_status"]) => {
+    render: (value: FMSReadsetReporting["validation_status"]) => {
       return <LaneValidationStatus validationStatus={value} isValidationInProgress={false} />
     },
     width: 175,
@@ -182,13 +182,13 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
     title: "nb_reads",
     dataIndex: "nb_reads",
     width: 125,
-    render: (value: FMSProjectReadset["nb_reads"]) => value.toLocaleString("fr-CA")
+    render: (value: FMSReadsetReporting["nb_reads"]) => value.toLocaleString("fr-CA")
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "avg_qual",
     dataIndex: "avg_qual",
     width: 100,
-    render: (value: FMSProjectReadset['avg_qual']) => {
+    render: (value: FMSReadsetReporting['avg_qual']) => {
       return value.toFixed(2)
     }
   },
@@ -205,11 +205,11 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectR
   [ProjectReadsetsColumnID.READSET_FILES]: {
     title: "Files (hover to see full path)",
     dataIndex: "readset_files",
-    render: (readset_files: FMSProjectReadset["readset_files"]) => {
+    render: (readset_files: FMSReadsetReporting["readset_files"]) => {
       return (
         <>
           {readset_files.map((s) => (
-            <CopyableReadsetFilePath key={s.file_path} file={s.file_path} />
+            <CopyableReadsetFilePath key={s} file={s} />
           ))}
         </>
       )
@@ -233,7 +233,7 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> =
 function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
   const dispatch = useAppDispatch()
   const fetchProjectReadsets = useCallback<
-    FetchRowData<ProjectReadsetsColumnID, FMSProjectReadset>
+    FetchRowData<ProjectReadsetsColumnID, FMSReadsetReporting>
   >(
     async ({ pageNumber, pageSize, filters, sortBy }) => {
       const response = await dispatch(
@@ -275,7 +275,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
   )
   const [tableSortByProps, { sortBy }] = useTableSortByProps<
     ProjectReadsetsColumnID,
-    FMSProjectReadset
+    FMSReadsetReporting
   >(debouncedOnSort)
 
   const debouncedOnFilter = useCallback(
@@ -286,7 +286,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
   )
   const [filters, setFilters] = useFilters<ProjectReadsetsColumnID>({}, debouncedOnFilter)
 
-  const tableColumnsProps = useTableColumnsProps<ProjectReadsetsColumnID, FMSProjectReadset>({
+  const tableColumnsProps = useTableColumnsProps<ProjectReadsetsColumnID, FMSReadsetReporting>({
     filters,
     setFilters,
     filterDescriptions: FILTER_DESCRIPTIONS,
@@ -351,7 +351,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
           }
         }}
       >
-        <Table<FMSProjectReadset>
+        <Table<FMSReadsetReporting>
           {...tableDataProps}
           {...tableSortByProps}
           {...tableColumnsProps}

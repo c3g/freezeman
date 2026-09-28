@@ -72,6 +72,7 @@ __all__ = [
     "DatasetSerializer",
     "DatasetFileSerializer",
     "ReadsetSerializer",
+    "ReadsetReportingSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "ExternalExperimentRunSerializer",
@@ -792,6 +793,29 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
+
+class ReadsetReportingSerializer(serializers.ModelSerializer):
+    readset_id = serializers.BigIntegerField(read_only=True, source="id")
+    readset_name = serializers.CharField(read_only=True, source="name")
+
+    alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
+    cohort = serializers.CharField(read_only=True, source="derived_sample.biosample.individual.cohort")
+    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
+    run_name = serializers.CharField(read_only=True, source="dataset.experiment_run.name")
+    run_start_date = serializers.DateTimeField(read_only=True, source="dataset.experiment_run.start_date")
+
+    readset_files = serializers.SerializerMethodField(read_only=True)
+
+    def get_readset_files(self, obj: Readset):
+        return obj.files.values_list("file_path", flat=True)
+
+    class Meta:
+        model = Readset
+        fields = (
+            "readset_id", "readset_name", "alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
+            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", "yield",
+        )
+
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)

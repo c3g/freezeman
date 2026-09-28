@@ -3,6 +3,7 @@ from itertools import batched
 from typing import Any
 
 
+
 from ._constants import _readset_filterset_fields
 from ._utils import _list_keys
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -11,12 +12,13 @@ from django.db.models.functions import JSONObject
 from django.http import StreamingHttpResponse
 from fms_core.filters import ReadsetFilter
 from fms_core.models import Readset, Metric
+from fms_core.serializers import ReadsetReportingSerializer
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 class ReadsetReportingViewSet(viewsets.ModelViewSet):
-    queryset = Readset.objects.all()
+    serializer_class = ReadsetReportingSerializer
 
     ordering_fields = (
         *_list_keys(_readset_filterset_fields),
@@ -27,11 +29,30 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
     }
     ordering = ["id"]
 
+    def get_queryset(self):
+        AGGREGATOR_BY_METRIC = {
+            "nb_reads": Sum,
+            "avg_qual": Avg,
+            "pf_read_alignment_rate": Avg,
+            "duplicate_rate": Avg,
+            "yield": Avg,
+        }
+
+        return Readset.objects.annotate(
+            alias=F("derived_sample__biosample__alias"),
+            cohort=F("derived_sample__biosample__individual__cohort"),
+            library_type=F("derived_sample__library__library_type__name"),
+            run_name=F("dataset__experiment_run__name"),
+            run_start_date=F("dataset__experiment_run__start_date"),
+            **{
+                metric: AGGREGATOR_BY_METRIC[metric]("metrics__value_numeric", filter=Q(metrics__name=metric))
+                for metric in AGGREGATOR_BY_METRIC.keys()
+            },
+        )
+
     @action(detail=False, methods=["get"])
     def summary(self, request):
-        qs = self.filter_queryset(Readset.objects.all())
-        # so that library_type_distribution computes correctly
-        qs = Readset.objects.filter(id__in=qs.values_list("id", flat=True))
+        qs = self.filter_queryset(self.get_queryset())
 
         total_readsets = qs.count()
         total_runs: int = qs.annotate(run_count=Count("dataset__experiment_run", distinct=True)).aggregate(Sum("run_count", default=0))["run_count__sum"]
@@ -101,7 +122,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def export_list(self, _request):
         qs = self.filter_queryset(Readset.objects.all())
-        qs = readsets_to_projectreadsets(qs, readset_files_q=StringAgg('files__file_path', delimiter=Value(";")))
+        qs = readsets_to_projectreadsets(qs)
         qs = qs.annotate(readset_id=F("id"), readset_name=F("name"))
         value_keys = [
             "readset_id",
@@ -138,17 +159,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             headers={"Content-Disposition": 'attachment; filename="readsets.csv"'},
         )
 
-READSET_FILES_TO_ARRAY = ArrayAgg(
-    JSONObject(
-        file_path=F("files__file_path"),
-        size=F("files__size"),
-    ),
-    filter=Q(files__isnull=False),
-    distinct=True,
-    default=Value([]),
-)
-
-def readsets_to_projectreadsets(queryset: QuerySet[Readset], readset_files_q: Any = READSET_FILES_TO_ARRAY):
+def readsets_to_projectreadsets(queryset: QuerySet[Readset]):
     READSET_ANNOTATIONS = {
         "id": None,
         "name": None,
@@ -179,7 +190,7 @@ def readsets_to_projectreadsets(queryset: QuerySet[Readset], readset_files_q: An
             "metrics__value_numeric",
             filter=Q(metrics__name="yield"),
         ),
-        "readset_files": readset_files_q,
+        "readset_files": ArrayAgg("files__file_path"),
     }
 
     return (

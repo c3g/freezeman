@@ -32,7 +32,7 @@ import {
   FMSVersion,
   FMSExperimentRun,
   FMSReadsetSummary,
-  FMSProjectReadset,
+  FMSReadsetReporting,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
@@ -292,7 +292,7 @@ const api = {
 
   projectReadsets: {
     list: (options: QueryParams, apiFetchOptions?: APIFetchOptions) =>
-      get<JsonResponse<FMSPagedResultsReponse<FMSProjectReadset>>>("/readset-reporting/", options, apiFetchOptions),
+      get<JsonResponse<FMSPagedResultsReponse<FMSReadsetReporting>>>("/readset-reporting/", options, apiFetchOptions),
     summary: (options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSReadsetSummary>>(`/readset-reporting/summary/`, options, { abort }),
     listExport: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
