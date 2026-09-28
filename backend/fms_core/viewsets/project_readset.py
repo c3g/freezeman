@@ -151,23 +151,23 @@ def readsets_to_projectreadsets(queryset: QuerySet[Readset], readset_files_q: An
         "run_name": F("dataset__experiment_run__name"),
         "run_start_date": F("dataset__experiment_run__start_date"),
         "validation_status": None,
-        "nb_reads": Max(
+        "nb_reads": Avg(
             "metrics__value_numeric",
             filter=Q(metrics__name="nb_reads"),
         ),
-        "avg_qual": Max(
+        "avg_qual": Avg(
             "metrics__value_numeric",
             filter=Q(metrics__name="avg_qual"),
         ),
-        "pf_read_alignment_rate": Max(
+        "pf_read_alignment_rate": Avg(
             "metrics__value_numeric",
             filter=Q(metrics__name="pf_read_alignment_rate"),
         ),
-        "duplicate_rate": Max(
+        "duplicate_rate": Avg(
             "metrics__value_numeric",
             filter=Q(metrics__name="duplicate_rate"),
         ),
-        "yield": Max(
+        "yield": Avg(
             "metrics__value_numeric",
             filter=Q(metrics__name="yield"),
         ),
