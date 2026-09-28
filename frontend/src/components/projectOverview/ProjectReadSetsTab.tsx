@@ -20,7 +20,7 @@ import {
 } from "../../utils/tableHooks"
 import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
 
-import { Button, ConfigProvider, Popover, Table } from "antd"
+import { Button, ConfigProvider, Flex, Popover, Table } from "antd"
 import api from "../../utils/api"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
@@ -125,10 +125,10 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
 
 const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSProjectReadset> = {
   [ProjectReadsetsColumnID.ID]: {
-    title: "ID",
+    title: "Readset ID",
     dataIndex: "id",
     sorter: true,
-    width: 100,
+    width: 150,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
@@ -326,18 +326,21 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
     return (await dispatch(api.projectReadsets.listExport({
       ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
       ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+      dataset__project__parent_project__id__in: parentProjectID,
     }))).data
-  }, [dispatch, filters, sortBy])
+  }, [dispatch, filters, parentProjectID, sortBy])
 
   return (
     <>
-      <ExportButton exportType={"Project's Readsets"} exportFunction={exportFunctions} filename={`Project_Readsets`} itemsCount={totalCount} />
-      <FiltersBar
-        filters={filterSet}
-        clearFilters={() => {
-          setFilters({})
-        }}
-      />
+      <Flex justify={"flex-end"} gap={"small"} align={"center"}>
+        <ExportButton exportType={"To CSV"} exportFunction={exportFunctions} filename={`Project_Readsets`} itemsCount={totalCount} />
+        <FiltersBar
+          filters={filterSet}
+          clearFilters={() => {
+            setFilters({})
+          }}
+        />        
+      </Flex>
       <ConfigProvider
         theme={{
           components: {

@@ -94,9 +94,10 @@ class ProjectReadsetViewSet(viewsets.ModelViewSet):
     def export_list(self, _request):
         qs = self.filter_queryset(Readset.objects.all())
         qs = readsets_to_projectreadsets(qs, readset_files_q=StringAgg('files__file_path', delimiter=Value(";")))
+        qs = qs.annotate(readset_id=F("id"), readset_name=F("name"))
         value_keys = [
-            "id",
-            "name",
+            "readset_id",
+            "readset_name",
             "sample_name",
             "alias",
             "cohort",
