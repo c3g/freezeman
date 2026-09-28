@@ -52,20 +52,28 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             ),
         ).aggregate(Sum("nb_reads", default=0))["nb_reads__sum"]
 
-        AVERAGED_METRIC_NAMES = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
-        for metric_name in AVERAGED_METRIC_NAMES:
+        AGGREGATION_BY_METRIC = {
+            "avg_qual": (Avg("avg_qual"),"avg_qual__avg"),
+            "pf_read_alignment_rate": (Avg("pf_read_alignment_rate"), "pf_read_alignment_rate__avg"),
+            "duplicate_rate": (Avg("duplicate_rate"), "duplicate_rate__avg"),
+        }
+        METRIC_NAMES = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
+        for metric_name in METRIC_NAMES:
             qs_metrics = qs_metrics.annotate(**{
                 metric_name: Subquery(
                     Metric.objects.filter(readset=OuterRef("pk"), name=metric_name).values('value_numeric')[:1]
                 ),
             })
-        averaged_metrics = {}
-        for metric_name in AVERAGED_METRIC_NAMES:
-            averaged_metrics[metric_name] = qs_metrics.filter(**{f"{metric_name}__isnull": False}).aggregate(Avg(metric_name, default=0))[f"{metric_name}__avg"]
+        aggregated_metrics = {}
+        for metric_name in METRIC_NAMES:
+            aggregated_metrics[metric_name] = (
+                qs_metrics
+                .filter(**{f"{metric_name}__isnull": False})
+                .aggregate(AGGREGATION_BY_METRIC[metric_name][0])[AGGREGATION_BY_METRIC[metric_name][1]])
 
         complete_count = qs_metrics.filter(**{
             f"{metric_name}__isnull": False
-            for metric_name in AVERAGED_METRIC_NAMES
+            for metric_name in METRIC_NAMES
         }).count()
 
         return Response({
@@ -75,7 +83,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             "total_cohorts": total_cohorts,
             "library_type_distribution": library_type_distribution,
             "nb_reads": nb_reads,
-            **averaged_metrics,
+            **aggregated_metrics,
             "complete_count": complete_count
         })
 
