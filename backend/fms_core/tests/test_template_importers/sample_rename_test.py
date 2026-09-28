@@ -10,11 +10,11 @@ from fms_core.template_importer.importers.sample_rename import SampleRenameImpor
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 valid_templates = [
-    "Sample_Rename_v5_6_0_double_rename.xlsx",
+    "Sample_Rename_v5_10_0_double_rename.xlsx",
 ]
 invalid_templates = [
-    "Sample_Rename_v5_6_0_multiple_samples.xlsx",
-    "Sample_Rename_v5_6_0_no_sample.xlsx",
+    "Sample_Rename_v5_10_0_multiple_samples.xlsx",
+    "Sample_Rename_v5_10_0_no_sample.xlsx",
 ]
 
 @pytest.mark.django_db
@@ -38,7 +38,7 @@ def test_double_sample_rename():
         container=container, individual=individual, sample_kind=sample_kind,
     ); assert sample is not None
 
-    result = load_template(importer=SampleRenameImporter(), file=APP_DATA_ROOT / "Sample_Rename_v5_6_0_double_rename.xlsx")
+    result = load_template(importer=SampleRenameImporter(), file=APP_DATA_ROOT / "Sample_Rename_v5_10_0_double_rename.xlsx")
 
     assert result['valid'] is True, "Invalid: " + " ".join(base_error["error"] for base_error in result.get('base_errors', []))
     assert not DerivedBySample.objects.filter(sample__name="SampleNewName", derived_sample__biosample__alias="SampleNewAlias").exists()
@@ -64,7 +64,7 @@ def test_no_sample_to_rename():
         container=container, individual=individual, sample_kind=sample_kind,
     ); assert sample is not None
 
-    result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_6_0_no_sample.xlsx")
+    result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_10_0_no_sample.xlsx")
 
     assert result['valid'] is False
     assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["No sample found with the criteria provided; please fix your criteria."]
@@ -90,7 +90,7 @@ def test_multiple_sample_found_when_renaming():
             container=container, individual=individual, sample_kind=sample_kind,
         ); assert sample is not None
 
-    result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_6_0_multiple_samples.xlsx")
+    result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_10_0_multiple_samples.xlsx")
 
     assert result['valid'] is False
     assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["2 samples found with the provided criteria; please refine your criteria."]
