@@ -22,7 +22,7 @@ import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsA
 import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import Flexbar from '../shared/Flexbar'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
-import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
+import { SAMPLE_COHORT_FILTER, SAMPLE_ALIAS_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
 import { selectCurrentPreferences } from '../../modules/profiles/selectors'
 
@@ -47,6 +47,7 @@ const detachedFilters = [
 	SAMPLE_COHORT_FILTER,
 	SAMPLE_SEX_FILTER,
 	SAMPLE_COLLECTION_SITE_FILTER,
+	SAMPLE_ALIAS_FILTER,
 	SAMPLE_QPCR_STATUS,
 	SAMPLE_METADATA_FILTER
 ]

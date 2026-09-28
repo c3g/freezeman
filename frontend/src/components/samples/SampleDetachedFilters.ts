@@ -29,6 +29,13 @@ export const SAMPLE_SEX_FILTER: FilterDescription = {
 	],
 }
 
+export const SAMPLE_ALIAS_FILTER: FilterDescription = {
+	type: FILTER_TYPE.INPUT,
+	key: 'derived_samples__biosample__alias',
+	label: 'Biosample Alias',
+	width: 250,
+}
+
 export const SAMPLE_COLLECTION_SITE_FILTER: FilterDescription = {
 	type: FILTER_TYPE.INPUT,
 	key: 'derived_samples__biosample__collection_site',
