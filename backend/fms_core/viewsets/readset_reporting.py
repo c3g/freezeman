@@ -15,7 +15,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-class ProjectReadsetViewSet(viewsets.ModelViewSet):
+class ReadsetReportingViewSet(viewsets.ModelViewSet):
     queryset = Readset.objects.all()
 
     ordering_fields = (
