@@ -87,7 +87,7 @@ const VALIDATION_STATUS_NUMBER_TO_LABEL = {
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
-  [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+  [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
     type: FILTER_TYPE.INPUT,
     startsWith: false,
@@ -110,8 +110,8 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
   },
   [ProjectReadsetsColumnID.RUN_NAME]: {
     type: FILTER_TYPE.INPUT,
-    startsWith: true,
-    exactMatch: true,
+    startsWith: false,
+    exactMatch: false,
   },
   [ProjectReadsetsColumnID.RUN_START_DATE]: { type: FILTER_TYPE.DATE_RANGE },
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
