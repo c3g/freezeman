@@ -19,6 +19,9 @@ def AUTOMATED_COMMENT_DATASET_NEW_DATA():
 def AUTOMATED_COMMENT_DATASET_RESET():
     return f"Dataset data was invalidated and removed."
 
+def AUTOMATED_COMMENT_DATASET_MISSING_IDENTITY_MATCH_INFO():
+    return f"WARNING: Identity matching script not run or identity match information missing from the dataset for identity verified samples."
+
 def create_archived_comment_for_model(object_model: Model, object_id: int, comment: str):
     """
     Create an archived comment on an instance of a model.
