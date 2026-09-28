@@ -83,10 +83,11 @@ class ProjectReadsetViewSet(viewsets.ModelViewSet):
     def list(self, _request):
         qs = self.filter_queryset(Readset.objects.all())
         qs = readsets_to_projectreadsets(qs)
-        result = self.paginate_queryset(qs)
+        count = qs.count()
+        results = self.paginate_queryset(qs)
         return Response({
-            "count": len(result),
-            "results": result
+            "count": count,
+            "results": results
         })
 
     @action(detail=False, methods=["get"])
