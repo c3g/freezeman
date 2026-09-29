@@ -798,22 +798,34 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     readset_id = serializers.BigIntegerField(read_only=True, source="id")
     readset_name = serializers.CharField(read_only=True, source="name")
 
-    alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
+    sample_name = serializers.CharField(read_only=True)
+    sample_alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
     cohort = serializers.CharField(read_only=True, source="derived_sample.biosample.individual.cohort")
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     run_name = serializers.CharField(read_only=True, source="dataset.experiment_run.name")
-    run_start_date = serializers.DateTimeField(read_only=True, source="dataset.experiment_run.start_date")
+    run_start_date = serializers.DateField(read_only=True, source="dataset.experiment_run.start_date")
 
     readset_files = serializers.SerializerMethodField(read_only=True)
+
+    nb_reads = serializers.FloatField(read_only=True)
+    avg_qual = serializers.FloatField(read_only=True)
+    pf_read_alignment_rate = serializers.FloatField(read_only=True)
+    duplicate_rate = serializers.FloatField(read_only=True)
+    # yield = serializers.FloatField(read_only=True)
 
     def get_readset_files(self, obj: Readset):
         return obj.files.values_list("file_path", flat=True)
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["yield"] = getattr(instance, "yield")
+        return representation
+
     class Meta:
         model = Readset
         fields = (
-            "readset_id", "readset_name", "alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
-            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", "yield",
+            "readset_id", "readset_name", "sample_name", "sample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
+            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", # "yield",
         )
 
 

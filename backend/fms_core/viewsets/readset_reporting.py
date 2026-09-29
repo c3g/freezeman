@@ -1,16 +1,9 @@
-import csv
-from itertools import batched
-from typing import Any
 
 
 
 from ._constants import _readset_filterset_fields
 from ._utils import _list_keys
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F, Q, Avg, Count, Max, OuterRef, QuerySet, StringAgg, Subquery, Sum, Value
-from django.db.models.functions import JSONObject
-from django.http import StreamingHttpResponse
-from fms_core.filters import ReadsetFilter
+from django.db.models import F, Avg, Count, DecimalField, ExpressionWrapper, FloatField, OuterRef, Subquery, Sum, Value
 from fms_core.models import Readset, Metric
 from fms_core.serializers import ReadsetReportingSerializer
 from rest_framework import viewsets
@@ -20,82 +13,64 @@ from rest_framework.response import Response
 class ReadsetReportingViewSet(viewsets.ModelViewSet):
     serializer_class = ReadsetReportingSerializer
 
+    def get_queryset(self):
+        METRICS = [
+            "nb_reads",
+            "avg_qual",
+            "pf_read_alignment_rate",
+            "duplicate_rate",
+            "yield",
+        ]
+        return Readset.objects.annotate(
+            **{
+                metric: Metric.objects.filter(readset=OuterRef("pk"), name=metric).values("value_numeric")[:1]
+                for metric in METRICS
+            }
+        )
+
     ordering_fields = (
         *_list_keys(_readset_filterset_fields),
     )
-
     filterset_fields = {
         **_readset_filterset_fields
     }
     ordering = ["id"]
-
-    def get_queryset(self):
-        AGGREGATOR_BY_METRIC = {
-            "nb_reads": Sum,
-            "avg_qual": Avg,
-            "pf_read_alignment_rate": Avg,
-            "duplicate_rate": Avg,
-            "yield": Avg,
-        }
-
-        return Readset.objects.annotate(
-            alias=F("derived_sample__biosample__alias"),
-            cohort=F("derived_sample__biosample__individual__cohort"),
-            library_type=F("derived_sample__library__library_type__name"),
-            run_name=F("dataset__experiment_run__name"),
-            run_start_date=F("dataset__experiment_run__start_date"),
-            **{
-                metric: AGGREGATOR_BY_METRIC[metric]("metrics__value_numeric", filter=Q(metrics__name=metric))
-                for metric in AGGREGATOR_BY_METRIC.keys()
-            },
-        )
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
         qs = self.filter_queryset(self.get_queryset())
 
         total_readsets = qs.count()
-        total_runs: int = qs.annotate(run_count=Count("dataset__experiment_run", distinct=True)).aggregate(Sum("run_count", default=0))["run_count__sum"]
-        total_samples: int = qs.annotate(sample_count=Count("derived_sample__biosample", distinct=True)).aggregate(Sum("sample_count", default=0))["sample_count__sum"]
-        total_cohorts: int = qs.annotate(cohort_count=Count("derived_sample__biosample__individual__cohort", distinct=True)).aggregate(Sum("cohort_count", default=0))["cohort_count__sum"]
+        total_runs: int = qs.values_list("dataset__experiment_run__id", flat=True).distinct().count()
+        total_samples: int = qs.values_list("derived_sample__biosample__id", flat=True).distinct().count()
+        total_cohorts: int = qs.values_list("derived_sample__biosample__individual__cohort", flat=True).distinct().count()
 
         library_type_distribution = (
             qs
             .values(type=F("derived_sample__library__library_type__name"))
             .annotate(count=Count("type"))
-        )
+        ).order_by("type")
 
-        qs_metrics = qs
-
-        nb_reads: int = qs_metrics.annotate(
+        total_nb_reads: int = qs.annotate(
             nb_reads=Subquery(
                 Metric.objects.filter(readset=OuterRef("pk"), name="nb_reads").values('value_numeric')[:1]
             ),
         ).aggregate(Sum("nb_reads", default=0))["nb_reads__sum"]
 
-        AGGREGATION_BY_METRIC = {
-            "avg_qual": (Avg("avg_qual"),"avg_qual__avg"),
-            "pf_read_alignment_rate": (Avg("pf_read_alignment_rate"), "pf_read_alignment_rate__avg"),
-            "duplicate_rate": (Avg("duplicate_rate"), "duplicate_rate__avg"),
-        }
-        METRIC_NAMES = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
-        for metric_name in METRIC_NAMES:
-            qs_metrics = qs_metrics.annotate(**{
-                metric_name: Subquery(
-                    Metric.objects.filter(readset=OuterRef("pk"), name=metric_name).values('value_numeric')[:1]
-                ),
-            })
-        aggregated_metrics = {}
-        for metric_name in METRIC_NAMES:
-            aggregated_metrics[metric_name] = (
-                qs_metrics
-                .filter(**{f"{metric_name}__isnull": False})
-                .aggregate(AGGREGATION_BY_METRIC[metric_name][0])[AGGREGATION_BY_METRIC[metric_name][1]])
+        AVERAGED_METRICS = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
 
-        complete_count = qs_metrics.filter(**{
+        complete_count = qs.filter(**{
             f"{metric_name}__isnull": False
-            for metric_name in METRIC_NAMES
+            for metric_name in AVERAGED_METRICS
         }).count()
+
+        aggregated_metrics: dict[str, float] = {}
+        for metric_name in AVERAGED_METRICS:
+            aggregated_metrics[metric_name] = (
+                qs
+                .annotate(weighted=ExpressionWrapper(F(metric_name) * F("nb_reads"), output_field=DecimalField()))
+                .aggregate(avg=Sum("weighted") / Value(total_nb_reads, output_field=DecimalField()))["avg"]
+            )
 
         return Response({
             "total_readsets": total_readsets,
@@ -103,98 +78,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             "total_samples": total_samples,
             "total_cohorts": total_cohorts,
             "library_type_distribution": library_type_distribution,
-            "nb_reads": nb_reads,
+            "nb_reads": total_nb_reads,
             **aggregated_metrics,
             "complete_count": complete_count
         })
-
-
-    def list(self, _request):
-        qs = self.filter_queryset(Readset.objects.all())
-        qs = readsets_to_projectreadsets(qs)
-        count = qs.count()
-        results = self.paginate_queryset(qs)
-        return Response({
-            "count": count,
-            "results": results
-        })
-
-    @action(detail=False, methods=["get"])
-    def export_list(self, _request):
-        qs = self.filter_queryset(Readset.objects.all())
-        qs = readsets_to_projectreadsets(qs)
-        qs = qs.annotate(readset_id=F("id"), readset_name=F("name"))
-        value_keys = [
-            "readset_id",
-            "readset_name",
-            "sample_name",
-            "alias",
-            "cohort",
-            "library_type",
-            "run_name",
-            "run_start_date",
-            "validation_status",
-            "nb_reads",
-            "avg_qual",
-            "pf_read_alignment_rate",
-            "duplicate_rate",
-            "yield",
-            "readset_files",
-        ]
-
-        # https://docs.djangoproject.com/en/6.1/howto/outputting-csv/#streaming-large-csv-files
-        class Echo:
-            def write(self, value):
-                return value
-        pseudo_buffer = Echo()
-        writer = csv.writer(pseudo_buffer)
-        def stream_rows():
-            yield writer.writerow(value_keys)
-            for batch in batched(qs.values_list(*value_keys, flat=False), 100):
-                yield "".join(writer.writerow(row) for row in batch)
-
-        return StreamingHttpResponse(
-            stream_rows(),
-            content_type="text/csv",
-            headers={"Content-Disposition": 'attachment; filename="readsets.csv"'},
-        )
-
-def readsets_to_projectreadsets(queryset: QuerySet[Readset]):
-    READSET_ANNOTATIONS = {
-        "id": None,
-        "name": None,
-        "sample_name": None,
-        "alias": F("derived_sample__biosample__alias"),
-        "cohort": F("derived_sample__biosample__individual__cohort"),
-        "library_type": F("derived_sample__library__library_type__name"),
-        "run_name": F("dataset__experiment_run__name"),
-        "run_start_date": F("dataset__experiment_run__start_date"),
-        "validation_status": None,
-        "nb_reads": Avg(
-            "metrics__value_numeric",
-            filter=Q(metrics__name="nb_reads"),
-        ),
-        "avg_qual": Avg(
-            "metrics__value_numeric",
-            filter=Q(metrics__name="avg_qual"),
-        ),
-        "pf_read_alignment_rate": Avg(
-            "metrics__value_numeric",
-            filter=Q(metrics__name="pf_read_alignment_rate"),
-        ),
-        "duplicate_rate": Avg(
-            "metrics__value_numeric",
-            filter=Q(metrics__name="duplicate_rate"),
-        ),
-        "yield": Avg(
-            "metrics__value_numeric",
-            filter=Q(metrics__name="yield"),
-        ),
-        "readset_files": ArrayAgg("files__file_path"),
-    }
-
-    return (
-        queryset
-        .annotate(**{k:v for k,v in READSET_ANNOTATIONS.items() if v})
-        .values(*READSET_ANNOTATIONS.keys())
-    )
