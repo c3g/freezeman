@@ -814,7 +814,7 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     # yield = serializers.FloatField(read_only=True)
 
     def get_readset_files(self, obj: Readset):
-        return obj.files.values_list("file_path", flat=True)
+        return list(obj.files.values_list("file_path", flat=True))
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

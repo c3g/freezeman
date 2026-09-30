@@ -1,9 +1,6 @@
-
-
-
 from ._constants import _readset_filterset_fields
 from ._utils import _list_keys
-from django.db.models import F, Avg, Count, DecimalField, ExpressionWrapper, FloatField, OuterRef, Subquery, Sum, Value
+from django.db.models import F, Count, DecimalField, ExpressionWrapper, OuterRef, Subquery, Sum, Value
 from fms_core.models import Readset, Metric
 from fms_core.serializers import ReadsetReportingSerializer
 from rest_framework import viewsets
@@ -51,11 +48,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             .annotate(count=Count("type"))
         ).order_by("type")
 
-        total_nb_reads: int = qs.annotate(
-            nb_reads=Subquery(
-                Metric.objects.filter(readset=OuterRef("pk"), name="nb_reads").values('value_numeric')[:1]
-            ),
-        ).aggregate(Sum("nb_reads", default=0))["nb_reads__sum"]
+        total_nb_reads: int = qs.aggregate(Sum("nb_reads", default=0))["nb_reads__sum"]
 
         AVERAGED_METRICS = ["avg_qual", "pf_read_alignment_rate", "duplicate_rate"]
 
