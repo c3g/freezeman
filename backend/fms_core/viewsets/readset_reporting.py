@@ -1,6 +1,6 @@
 from ._constants import _readset_filterset_fields
 from ._utils import _list_keys
-from django.db.models import F, Count, DecimalField, ExpressionWrapper, OuterRef, Subquery, Sum, Value
+from django.db.models import F, Avg, Count, DecimalField, ExpressionWrapper, OuterRef, Subquery, Sum, Value
 from fms_core.models import Readset, Metric
 from fms_core.serializers import ReadsetReportingSerializer, ReadsetReportingExportSerializer
 from rest_framework import viewsets
@@ -54,7 +54,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.is_csv_request():
-            fields = ReadsetReportingSerializer.Meta.fields
+            fields = ReadsetReportingExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: " ".join(s.capitalize() for s in i.split('_')) for i in fields}
         return context
@@ -85,11 +85,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
 
         aggregated_metrics: dict[str, float] = {}
         for metric_name in AVERAGED_METRICS:
-            aggregated_metrics[metric_name] = (
-                qs
-                .annotate(weighted=ExpressionWrapper(F(metric_name) * F("nb_reads"), output_field=DecimalField()))
-                .aggregate(avg=Sum("weighted") / Value(total_nb_reads, output_field=DecimalField()))["avg"]
-            )
+            aggregated_metrics[metric_name] = qs.aggregate(avg=Avg(metric_name))["avg"]
 
         return Response({
             "total_readsets": total_readsets,
