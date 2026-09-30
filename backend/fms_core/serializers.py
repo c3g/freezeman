@@ -799,7 +799,7 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     readset_name = serializers.CharField(read_only=True, source="name")
 
     sample_name = serializers.CharField(read_only=True)
-    sample_alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
+    biosample_alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
     cohort = serializers.CharField(read_only=True, source="derived_sample.biosample.individual.cohort")
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     run_name = serializers.CharField(read_only=True, source="dataset.experiment_run.name")
@@ -824,7 +824,7 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Readset
         fields = (
-            "readset_id", "readset_name", "sample_name", "sample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
+            "readset_id", "readset_name", "sample_name", "biosample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
             "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", # "yield",
         )
 

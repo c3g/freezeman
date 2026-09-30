@@ -126,13 +126,13 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
 const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetReporting> = {
   [ProjectReadsetsColumnID.ID]: {
     title: "Readset ID",
-    dataIndex: "id",
+    dataIndex: "readset_id",
     sorter: true,
     width: 150,
   },
   [ProjectReadsetsColumnID.NAME]: {
     title: "Readset Name",
-    dataIndex: "name",
+    dataIndex: "readset_name",
     sorter: true,
     width: 200,
   },
@@ -143,8 +143,8 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetR
     width: 200,
   },
   [ProjectReadsetsColumnID.ALIAS]: {
-    title: "Alias",
-    dataIndex: "alias",
+    title: "Biosample Alias",
+    dataIndex: "biosample_alias",
     sorter: true,
     width: 200,
   },
@@ -327,6 +327,7 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
       ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
       ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
       dataset__project__parent_project__id__in: parentProjectID,
+      format: "csv"
     }))).data
   }, [dispatch, filters, parentProjectID, sortBy])
 
