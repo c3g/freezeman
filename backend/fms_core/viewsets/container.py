@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
@@ -119,7 +120,18 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 except Exception as err:
                     raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container['coordinate']}."})
             container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=coordinates, container_parent=container_parent, creation_comment=container['comment'])
-            serializer = ContainerSerializer(container_obj)
+            if container_obj is None and errors:
+                patterns = [
+                    (r"^Invalid coordinates \S+ specified for coordinate system \S+$", "coordinate"),
+                    (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate")
+                ]
+                for error in errors:
+                    for pattern, field in patterns:
+                        if re.fullmatch(pattern, error):
+                            raise ValidationError({field: ",".join(errors)})
+                raise ValidationError({"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
+            else:
+                serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
         
