@@ -7,7 +7,7 @@ from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db import models
-from django.db.models import Max, Sum, Subquery, Q
+from django.db.models import Max, StringAgg, Sum, Subquery, Q, Value
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
@@ -62,7 +62,7 @@ from .models import (
     FreezemanPermission
 )
 
-from .models._constants import ReleaseStatus
+from .models._constants import ReleaseStatus, ValidationStatus
 from .containers import CONTAINER_KIND_SPECS
 
 
@@ -73,6 +73,7 @@ __all__ = [
     "DatasetFileSerializer",
     "ReadsetSerializer",
     "ReadsetReportingSerializer",
+    "ReadsetReportingExportSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "ExternalExperimentRunSerializer",
@@ -824,10 +825,19 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Readset
         fields = (
-            "readset_id", "readset_name", "sample_name", "biosample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status", "readset_files",
+            "readset_id", "readset_name", "sample_name", "biosample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status",
             "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", # "yield",
+            "readset_files",
         )
 
+class ReadsetReportingExportSerializer(ReadsetReportingSerializer):
+    validation_status = serializers.SerializerMethodField(read_only=True)
+
+    def get_readset_files(self, obj: Readset):
+        return obj.files.aggregate(readset_files=StringAgg("file_path", delimiter=Value(";")))['readset_files']
+
+    def get_validation_status(self, obj: Readset):
+        return ValidationStatus(obj.validation_status).name
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)

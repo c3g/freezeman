@@ -2,13 +2,19 @@ from ._constants import _readset_filterset_fields
 from ._utils import _list_keys
 from django.db.models import F, Count, DecimalField, ExpressionWrapper, OuterRef, Subquery, Sum, Value
 from fms_core.models import Readset, Metric
-from fms_core.serializers import ReadsetReportingSerializer
+from fms_core.serializers import ReadsetReportingSerializer, ReadsetReportingExportSerializer
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 class ReadsetReportingViewSet(viewsets.ModelViewSet):
-    serializer_class = ReadsetReportingSerializer
+    ordering_fields = (
+        *_list_keys(_readset_filterset_fields),
+    )
+    filterset_fields = {
+        **_readset_filterset_fields
+    }
+    ordering = ["id"]
 
     def get_queryset(self):
         METRICS = [
@@ -25,13 +31,33 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
             }
         )
 
-    ordering_fields = (
-        *_list_keys(_readset_filterset_fields),
-    )
-    filterset_fields = {
-        **_readset_filterset_fields
-    }
-    ordering = ["id"]
+    def get_serializer_class(self):
+        if self.is_csv_request():
+            return ReadsetReportingExportSerializer
+        return ReadsetReportingSerializer
+
+    def paginate_queryset(self, queryset):
+        if self.is_csv_request():
+            # Returning None disables pagination entirely for this request
+            return None
+        return super().paginate_queryset(queryset)
+
+    def is_csv_request(self):
+        # 1. Check if Content Negotiation resolved to CSV renderer
+        if hasattr(self.request, 'accepted_renderer') and self.request.accepted_renderer.media_type == 'text/csv':
+            return True
+        # 2. Fallback: check Accept header directly
+        if 'text/csv' in self.request.headers.get('Accept', ''):
+            return True
+        return False
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.is_csv_request():
+            fields = ReadsetReportingSerializer.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: " ".join(s.capitalize() for s in i.split('_')) for i in fields}
+        return context
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
