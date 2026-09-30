@@ -85,7 +85,7 @@ class ReadsetReportingViewSet(viewsets.ModelViewSet):
 
         aggregated_metrics: dict[str, float] = {}
         for metric_name in AVERAGED_METRICS:
-            aggregated_metrics[metric_name] = qs.aggregate(avg=Avg(metric_name))["avg"]
+            aggregated_metrics[metric_name] = qs.aggregate(Avg(metric_name))[f"{metric_name}__avg"]
 
         return Response({
             "total_readsets": total_readsets,
