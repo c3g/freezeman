@@ -71,11 +71,6 @@ const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
   [ProjectReadsetsColumnID.RUN_NAME]: "dataset__experiment_run__name",
   [ProjectReadsetsColumnID.RUN_START_DATE]: "dataset__experiment_run__start_date",
   [ProjectReadsetsColumnID.VALIDATION_STATUS]: "validation_status",
-  // [ProjectReadsetsColumnID.NUMBER_OF_READS]: "number_reads",
-  // [ProjectReadsetsColumnID.AVERAGE_QUALITY]: "",
-  // [ProjectReadsetsColumnID.PF_READS_ALIGNED]: "",
-  // [ProjectReadsetsColumnID.DUPLICATE_ALIGNED]: "",
-  // [ProjectReadsetsColumnID.READSET_FILES]: "",
 }
 const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
 
