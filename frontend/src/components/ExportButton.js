@@ -1,60 +1,66 @@
-import React, {useState} from "react";
-import {downloadFromFile} from "../utils/download";
-import {Button, Modal} from "antd";
+import React, { useState } from "react"
+import { downloadFromFile } from "../utils/download"
+import { Button, Modal } from "antd"
 
-import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { useAppDispatch } from "../hooks";
-import { notifyError } from "../modules/notification/actions";
-const { confirm } = Modal;
+import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
+import { useAppDispatch } from "../hooks"
+import { notifyError } from "../modules/notification/actions"
+const { confirm } = Modal
 /**
- * 
- * @param {{ exportType: string, exportFunction: () => Promise<BlobPart>, filename: string, itemsCount: number } & import("antd").ButtonProps} param0 
- * @returns 
+ *
+ * @param {{ exportType: string, exportFunction: () => Promise<BlobPart>, filename: string, itemsCount: number } & import("antd").ButtonProps} param0
+ * @returns
  */
 const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...rest }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
   const dispatch = useAppDispatch()
 
-  const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
+  const name = filename + "_" + new Date().toISOString().slice(0, 10) + ".csv"
 
   const onClick = () => {
-    setLoading(true);
+    setLoading(true)
 
     confirm({
-        title: 'Do you want to download this list?',
-        icon: <ExclamationCircleOutlined />,
-        content:
-            <div>
-                <p><b>{itemsCount} items</b> will be exported</p>
-                You can select a subset of items to export by filtering the list below.
-            </div>,
-        onOk() {
-            exportFunction()
-            .then(text => {
-              downloadFromFile(name, text)
-            })
-            .catch(err => {
-              const key = 'Failed to export'
-              dispatch(notifyError({
+      title: "Do you want to download this list?",
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div>
+          <p>
+            <b>{itemsCount} items</b> will be exported
+          </p>
+          You can select a subset of items to export by filtering the list below.
+        </div>
+      ),
+      onOk() {
+        exportFunction()
+          .then((text) => {
+            downloadFromFile(name, text)
+          })
+          .catch((err) => {
+            const key = "Failed to export"
+            dispatch(
+              notifyError({
                 id: key,
                 title: key,
                 description: err.message,
                 duration: 0,
-              }))
-            })
-            .then(() => {
-              setLoading(false);
-            })
-        },
-        onCancel() {
-          setLoading(false);
-        },
-      });
-
+              }),
+            )
+          })
+          .then(() => {
+            setLoading(false)
+          })
+      },
+      onCancel() {
+        setLoading(false)
+      },
+    })
   }
   return (
-		<Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>{exportType ? `Export ${exportType}` : 'Export'}</Button>
+    <Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
+      {exportType ? `Export ${exportType}` : "Export"}
+    </Button>
   )
 }
 
-export default ExportButton;
+export default ExportButton

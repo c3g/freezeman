@@ -146,10 +146,7 @@ const ExternalProjectDetailsPage = () => {
               label: "Read Sets",
               key: "readsets",
               children: (
-                <ProjectReadSetsTab
-                  parentProjectId={parentProjectId}
-                  externalID={externalID}
-                />
+                <ProjectReadSetsTab parentProjectId={parentProjectId} externalID={externalID} />
               ),
             },
           ]}

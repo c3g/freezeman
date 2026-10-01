@@ -262,7 +262,7 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
     const columns: ColumnsType<RowData> = []
     for (const columnID in columnDefinitions) {
       const column: ColumnType<RowData> = {
-        key: columnID
+        key: columnID,
       }
       Object.assign(column, columnDefinitions[columnID])
 
@@ -685,7 +685,7 @@ export type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject>
 
 export type ColumnDefinition<RowData extends AntdAnyObject> = ColumnType<RowData>
 export type ColumnDefinitions<ColumnID extends string, RowData extends AntdAnyObject> = Partial<
-  Record<ColumnID, Omit<ColumnDefinition<RowData>, 'key'>>
+  Record<ColumnID, Omit<ColumnDefinition<RowData>, "key">>
 >
 
 export type FilterKeys<ColumnID extends string> = Partial<Record<ColumnID, string>>

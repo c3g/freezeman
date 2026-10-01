@@ -5,49 +5,54 @@ import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
 
 const columns = [
-    PooledSampleColumnID.ALIAS,
-    PooledSampleColumnID.CONTAINER_BARCODE,
-    PooledSampleColumnID.COORDINATES,
-    PooledSampleColumnID.INDEX,
-    PooledSampleColumnID.PROJECT,
+  PooledSampleColumnID.ALIAS,
+  PooledSampleColumnID.CONTAINER_BARCODE,
+  PooledSampleColumnID.COORDINATES,
+  PooledSampleColumnID.INDEX,
+  PooledSampleColumnID.PROJECT,
 ] as const
 
-const TABLE_HEIGHT = '65vh'
+const TABLE_HEIGHT = "65vh"
 
 export function IndexCuration() {
-    const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch()
 
-    const [templateAction, setTemplateAction] = useState<FMSTemplateAction>()
-    useEffect(() => {
-        dispatch(api.pooledSamples.template.actions()).then(response => {
-            setTemplateAction(
-                response.data.find(action => action.name === "Update Library Index")
-            )
-        })
-    }, [dispatch])
+  const [templateAction, setTemplateAction] = useState<FMSTemplateAction>()
+  useEffect(() => {
+    dispatch(api.pooledSamples.template.actions()).then((response) => {
+      setTemplateAction(response.data.find((action) => action.name === "Update Library Index"))
+    })
+  }, [dispatch])
 
-    const [templatePrefill, setTemplatePrefill] = useState<FMSTemplatePrefillOption>()
-    useEffect(() => {
-        dispatch(api.pooledSamples.prefill.templates()).then(response => {
-            setTemplatePrefill(
-                response.data.find(prefill => prefill.description === "Template to replace a library index")
-            )
-        })
-    }, [dispatch])
+  const [templatePrefill, setTemplatePrefill] = useState<FMSTemplatePrefillOption>()
+  useEffect(() => {
+    dispatch(api.pooledSamples.prefill.templates()).then((response) => {
+      setTemplatePrefill(
+        response.data.find(
+          (prefill) => prefill.description === "Template to replace a library index",
+        ),
+      )
+    })
+  }, [dispatch])
 
-    const filterOptions = useMemo(() => ({
-        derived_sample__library__isnull: false
-    }), [])
+  const filterOptions = useMemo(
+    () => ({
+      derived_sample__library__isnull: false,
+    }),
+    [],
+  )
 
-    return <PooledSamples
-        columns={columns}
-        tableHeight={TABLE_HEIGHT}
-        title={"Index Curation"}
-        actionUrlBase={"/management/index-curations"}
-        templateAction={templateAction}
-        templatePrefill={templatePrefill}
-        filterOptions={filterOptions}
-        parentComponentID={"IndexCuration"}
+  return (
+    <PooledSamples
+      columns={columns}
+      tableHeight={TABLE_HEIGHT}
+      title={"Index Curation"}
+      actionUrlBase={"/management/index-curations"}
+      templateAction={templateAction}
+      templatePrefill={templatePrefill}
+      filterOptions={filterOptions}
+      parentComponentID={"IndexCuration"}
     />
+  )
 }
 export default IndexCuration

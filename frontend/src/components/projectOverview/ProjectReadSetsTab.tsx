@@ -177,15 +177,15 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetR
     title: "nb_reads",
     dataIndex: "nb_reads",
     width: 125,
-    render: (value: FMSReadsetReporting["nb_reads"]) => value.toLocaleString("fr-CA")
+    render: (value: FMSReadsetReporting["nb_reads"]) => value.toLocaleString("fr-CA"),
   },
   [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
     title: "avg_qual",
     dataIndex: "avg_qual",
     width: 100,
-    render: (value: FMSReadsetReporting['avg_qual']) => {
+    render: (value: FMSReadsetReporting["avg_qual"]) => {
       return value.toFixed(2)
-    }
+    },
   },
   [ProjectReadsetsColumnID.PF_READS_ALIGNMENT_RATE]: {
     title: "pf_read_alignment_rate",
@@ -214,15 +214,33 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetR
 }
 
 const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
-  [ProjectReadsetsColumnID.ID]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ID]?.title as string },
-  [ProjectReadsetsColumnID.NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.NAME]?.title as string },
-  [ProjectReadsetsColumnID.SAMPLE_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.SAMPLE_NAME]?.title as string },
-  [ProjectReadsetsColumnID.ALIAS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ALIAS]?.title as string },
-  [ProjectReadsetsColumnID.COHORT]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.COHORT]?.title as string },
-  [ProjectReadsetsColumnID.LIBRARY_TYPE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.LIBRARY_TYPE]?.title as string },
-  [ProjectReadsetsColumnID.RUN_NAME]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_NAME]?.title as string },
-  [ProjectReadsetsColumnID.RUN_START_DATE]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_START_DATE]?.title as string },
-  [ProjectReadsetsColumnID.VALIDATION_STATUS]: { placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.VALIDATION_STATUS]?.title as string },
+  [ProjectReadsetsColumnID.ID]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ID]?.title as string,
+  },
+  [ProjectReadsetsColumnID.NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.SAMPLE_NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ALIAS]?.title as string,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.COHORT]?.title as string,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.LIBRARY_TYPE]?.title as string,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_START_DATE]?.title as string,
+  },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.VALIDATION_STATUS]?.title as string,
+  },
 }
 
 function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
@@ -318,33 +336,42 @@ function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
   }, [fetchRowData])
 
   const exportFunctions = useCallback(async () => {
-    return (await dispatch(api.projectReadsets.listExport({
-      ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
-      ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
-      dataset__project__parent_project__id__in: parentProjectID,
-      format: "csv"
-    }))).data
+    return (
+      await dispatch(
+        api.projectReadsets.listExport({
+          ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+          ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+          dataset__project__parent_project__id__in: parentProjectID,
+          format: "csv",
+        }),
+      )
+    ).data
   }, [dispatch, filters, parentProjectID, sortBy])
 
   return (
     <>
       <Flex justify={"flex-end"} gap={"small"} align={"center"}>
-        <ExportButton exportType={"To CSV"} exportFunction={exportFunctions} filename={`Project_Readsets`} itemsCount={totalCount} />
+        <ExportButton
+          exportType={"To CSV"}
+          exportFunction={exportFunctions}
+          filename={`Project_Readsets`}
+          itemsCount={totalCount}
+        />
         <FiltersBar
           filters={filterSet}
           clearFilters={() => {
             setFilters({})
           }}
-        />        
+        />
       </Flex>
       <ConfigProvider
         theme={{
           components: {
             Table: {
               cellPaddingBlock: 4,
-              cellPaddingInline: 8
-            }
-          }
+              cellPaddingInline: 8,
+            },
+          },
         }}
       >
         <Table<FMSReadsetReporting>
@@ -378,7 +405,15 @@ function CopyableReadsetFilePath({ file }: { file: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <Popover content={file} mouseEnterDelay={0} mouseLeaveDelay={0} destroyOnHidden={true}>
-        <span style={{ overflowX: "hidden", textWrap: "nowrap", textOverflow: "ellipsis", direction: "rtl", width: "17em" }}>
+        <span
+          style={{
+            overflowX: "hidden",
+            textWrap: "nowrap",
+            textOverflow: "ellipsis",
+            direction: "rtl",
+            width: "17em",
+          }}
+        >
           {file}
         </span>
       </Popover>

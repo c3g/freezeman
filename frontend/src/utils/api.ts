@@ -292,9 +292,13 @@ const api = {
 
   projectReadsets: {
     list: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
-      get<JsonResponse<FMSPagedResultsReponse<FMSReadsetReporting>>>("/readset-reporting/", options, apiFetchOptions),
+      get<JsonResponse<FMSPagedResultsReponse<FMSReadsetReporting>>>(
+        "/readset-reporting/",
+        options,
+        apiFetchOptions,
+      ),
     listExport: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
-      get<StringResponse>("/readset-reporting/", {...options, format: "csv"}, apiFetchOptions),
+      get<StringResponse>("/readset-reporting/", { ...options, format: "csv" }, apiFetchOptions),
     summary: (options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSReadsetSummary>>(`/readset-reporting/summary/`, options, { abort }),
   },
