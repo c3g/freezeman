@@ -90,7 +90,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
         <Col xs={24} sm={12} lg={6} xl={3}>
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
-              title={<BadAverageWarning title="Avg Quality"/>}
+              title={<SimplifiedAverageWarning title="Avg Quality"/>}
               value={summary.avg_qual}
               precision={1}
               prefix={<CheckCircleOutlined style={iconStyle("#2f54eb", "#f0f5ff")} />}
@@ -101,7 +101,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
         <Col xs={24} sm={12} lg={6} xl={3}>
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
-              title={<BadAverageWarning title={"Avg Alignment"} />}
+              title={<SimplifiedAverageWarning title={"Avg Alignment"} />}
               value={summary.pf_read_alignment_rate * 100}
               precision={2}
               suffix={"%"}
@@ -112,7 +112,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
         <Col xs={24} sm={12} lg={6} xl={3}>
           <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
             <Statistic
-              title={<BadAverageWarning title={"Avg Duplication"} />}
+              title={<SimplifiedAverageWarning title={"Avg Duplication"} />}
               value={summary.duplicate_rate * 100}
               precision={2}
               suffix={"%"}
@@ -215,7 +215,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
           >
             <Row gutter={[12, 12]}>
               <Col xs={24} lg={12}>
-                <Card size="small" type="inner" title={<BadAverageWarning title={"Alignement rate"} />}>
+                <Card size="small" type="inner" title={<SimplifiedAverageWarning title={"Alignement rate"} />}>
                   <Statistic
                     value={summary.pf_read_alignment_rate * 100}
                     precision={2}
@@ -233,7 +233,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
               </Col>
 
               <Col xs={24} lg={12}>
-                <Card size="small" type="inner" title={<BadAverageWarning title={"Duplication rate"} />}>
+                <Card size="small" type="inner" title={<SimplifiedAverageWarning title={"Duplication rate"} />}>
                   <Statistic
                     value={summary.duplicate_rate * 100}
                     precision={2}
@@ -257,7 +257,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
   )
 }
 
-function BadAverageWarning({ title }: { title: React.ReactNode }) {
+function SimplifiedAverageWarning({ title }: { title: React.ReactNode }) {
   return <Flex justify={"space-between"}>
       {title}
       <Tooltip
