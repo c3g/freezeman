@@ -162,7 +162,7 @@ export interface FMSReadsetReporting {
   avg_qual: number
   pf_read_alignment_rate: number
   duplicate_rate: number
-  yield: number
+  base_yield: number
 }
 
 export interface FMSReadsetSummary {

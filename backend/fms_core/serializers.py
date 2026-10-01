@@ -812,21 +812,16 @@ class ReadsetReportingSerializer(serializers.ModelSerializer):
     avg_qual = serializers.FloatField(read_only=True)
     pf_read_alignment_rate = serializers.FloatField(read_only=True)
     duplicate_rate = serializers.FloatField(read_only=True)
-    # yield = serializers.FloatField(read_only=True)
+    base_yield = serializers.FloatField(read_only=True, source="yield")
 
     def get_readset_files(self, obj: Readset):
         return list(obj.files.values_list("file_path", flat=True))
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["yield"] = getattr(instance, "yield")
-        return representation
 
     class Meta:
         model = Readset
         fields = (
             "readset_id", "readset_name", "sample_name", "biosample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status",
-            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", # "yield",
+            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", "base_yield",
             "readset_files",
         )
 
