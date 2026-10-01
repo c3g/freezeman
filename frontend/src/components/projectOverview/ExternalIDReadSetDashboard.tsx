@@ -261,7 +261,7 @@ function SimplifiedAverageWarning({ title }: { title: React.ReactNode }) {
   return <Flex justify={"space-between"}>
       {title}
       <Tooltip
-        title={"This is computed using simple average, so should not be used in analysis."}
+        title={"This is computed using simple average and should not be used in analysis."}
         destroyOnHidden={true}
         mouseEnterDelay={0}
       >
