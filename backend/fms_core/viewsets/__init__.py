@@ -20,6 +20,7 @@ from .sample_metadata import SampleMetadataViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
+from .readset_reporting import ReadsetReportingViewSet
 from .sequence import SequenceViewSet
 from .library import LibraryViewSet
 from .platform import PlatformViewSet
@@ -71,6 +72,7 @@ __all__ = [
     "UserViewSet",
     "VersionViewSet",
     "ProjectViewSet",
+    "ReadsetReportingViewSet",
     "SequenceViewSet",
     "LibraryViewSet",
     "PlatformViewSet",

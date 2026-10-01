@@ -13,7 +13,7 @@ const columns = [
   PooledSampleColumnID.INDEX,
 ] as const
 
-const TABLE_HEIGHT = "75vh"
+const TABLE_HEIGHT = "65vh"
 
 export function SampleRename() {
   const dispatch = useAppDispatch()
