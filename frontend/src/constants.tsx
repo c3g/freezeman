@@ -61,3 +61,5 @@ export const DEFAULT_PAGE_SIZE = 100
 export const DEFAULT_SMALL_PAGE_SIZE = 10
 
 export const TUBES_WIHOUT_PARENT_NAME = 'tubes without parent container'
+
+export const EMPTY_LIST = []

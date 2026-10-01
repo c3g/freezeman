@@ -36,6 +36,7 @@ import api from "../../utils/api"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { DEFAULT_SMALL_PAGINATION_LIMIT } from "../../config"
 import { FastForwardOutlined, StopOutlined } from "@ant-design/icons"
+import { EMPTY_LIST } from "../../constants"
 
 interface StudyStepSamplesTableProps {
   studyID: FMSId
@@ -153,8 +154,6 @@ function StudyStepSamplesTable({
     />
   )
 }
-
-const EMPTY_LIST = []
 
 interface ActionButtonProps {
   sample: Sample
