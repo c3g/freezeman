@@ -88,9 +88,9 @@ function StudyStepSamplesTable({
     [dispatch, studyID, step],
   )
 
-  const setSortBy = useCallback(
-    (sortBy: SortBy) => {
-      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortBy))
+  const setSortByList = useCallback(
+    (sortByList: SortBy[]) => {
+      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortByList))
     },
     [studyID, step, dispatch],
   )
@@ -140,7 +140,8 @@ function StudyStepSamplesTable({
       filters={settings?.filters ?? {}}
       setFilter={setFilter}
       setFilterOptions={setFilterOptions}
-      setSortBy={setSortBy}
+      sortByList={settings?.sortByList ?? EMPTY_LIST}
+      setSortByList={setSortByList}
       pagination={{
         pageNumber,
         pageSize,
@@ -152,6 +153,8 @@ function StudyStepSamplesTable({
     />
   )
 }
+
+const EMPTY_LIST = []
 
 interface ActionButtonProps {
   sample: Sample

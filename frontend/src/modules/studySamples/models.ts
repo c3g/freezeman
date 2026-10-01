@@ -2,8 +2,6 @@ import { SampleAndLibraryAndIdentity } from "../../components/WorkflowSamplesTab
 import {
   FMSId,
   FMSSampleNextStepByStudy,
-  FMSStepHistory,
-  WorkflowStepOrder,
 } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
@@ -63,7 +61,7 @@ export interface StudyUXStepSettings {
   readonly expanded?: boolean
   readonly selectedSamplesTab?: StudyStepSamplesTabSelection
   readonly filters?: FilterSet
-  readonly sortBy?: SortBy
+  readonly sortByList?: SortBy[]
 }
 
 // Settings for one study

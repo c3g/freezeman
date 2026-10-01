@@ -166,13 +166,13 @@ export function removeStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, descri
 	}
 }
 
-export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy: SortBy) {
+export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortByList: SortBy[]) {
 	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: SET_STUDY_STEP_SORT_ORDER,
 			studyID,
 			stepOrderID,
-			sortBy
+			sortByList
 		})
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
