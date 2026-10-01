@@ -1,8 +1,5 @@
 import { SampleAndLibraryAndIdentity } from "../../components/WorkflowSamplesTable/ColumnSets"
-import {
-  FMSId,
-  FMSSampleNextStepByStudy,
-} from "../../models/fms_api_models"
+import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
