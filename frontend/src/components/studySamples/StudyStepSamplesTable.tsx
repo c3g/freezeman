@@ -36,6 +36,7 @@ import api from "../../utils/api"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { DEFAULT_SMALL_PAGINATION_LIMIT } from "../../config"
 import { FastForwardOutlined, StopOutlined } from "@ant-design/icons"
+import { EMPTY_LIST } from "../../constants"
 
 interface StudyStepSamplesTableProps {
   studyID: FMSId
@@ -88,9 +89,9 @@ function StudyStepSamplesTable({
     [dispatch, studyID, step],
   )
 
-  const setSortBy = useCallback(
-    (sortBy: SortBy) => {
-      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortBy))
+  const setSortByList = useCallback(
+    (sortByList: SortBy[]) => {
+      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortByList))
     },
     [studyID, step, dispatch],
   )
@@ -140,7 +141,8 @@ function StudyStepSamplesTable({
       filters={settings?.filters ?? {}}
       setFilter={setFilter}
       setFilterOptions={setFilterOptions}
-      setSortBy={setSortBy}
+      sortByList={settings?.sortByList ?? EMPTY_LIST}
+      setSortByList={setSortByList}
       pagination={{
         pageNumber,
         pageSize,

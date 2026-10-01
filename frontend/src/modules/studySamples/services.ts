@@ -263,7 +263,7 @@ async function fetchSamplesAtStepOrder(
     const serializedFilters = settings.filters
       ? serializeFilterParamsWithDescriptions(settings.filters)
       : {}
-    const ordering = settings.sortBy ? serializeSortByParams(settings.sortBy) : undefined
+    const ordering = settings.sortByList ? serializeSortByParams(settings.sortByList) : undefined
     options = { ordering, ...serializedFilters }
   }
 
