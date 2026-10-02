@@ -33,6 +33,8 @@ import {
   FMSExperimentRun,
   FMSReadsetSummary,
   FMSReadsetReporting,
+  FMSDerivedSample,
+  FMSDerivedBySample,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
@@ -107,6 +109,15 @@ const api = {
       get<JsonResponse<FMSBiosample>>(`/derivedsamples/${derivedSampleId}/`),
     list: (options: QueryParams, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSDerivedSample>>>(`/derivedsamples/`, options, {
+        abort,
+      }),
+  },
+
+  derivedBySamples: {
+    get: (derivedBySampleId: FMSId) =>
+      get<JsonResponse<FMSDerivedBySample>>(`/derived-by-samples/${derivedBySampleId}/`),
+    list: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSDerivedBySample>>>(`/derived-by-samples/`, options, {
         abort,
       }),
   },

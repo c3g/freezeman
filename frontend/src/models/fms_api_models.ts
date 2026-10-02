@@ -65,6 +65,14 @@ export interface FMSDerivedSample extends FMSTrackedModel {
   derived_from?: FMSId // ID of the derived sample from which the derived sample is derived
 }
 
+export interface FMSDerivedBySample extends FMSTrackedModel {
+  id: FMSId // Unique ID of object in database
+  derived_sample: FMSId // ID of the derived sample
+  sample: FMSId // ID of the sample containing the derived sample
+  volume_ratio: string // Derived sample volume as a ratio of the sample volume. Note: decimals are exported as string to avoid losing precision.
+  project: FMSId | null // ID of the project linked to the derived sample - sample pair
+}
+
 export interface FMSContainer extends FMSTrackedModel {
   kind: string // The type of container (eg. 96-well-plate)
   name: string // Container name
