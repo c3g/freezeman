@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Button, Drawer, Flex, Modal, Select, Space, Spin } from "antd"
+import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
 import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
@@ -374,130 +374,139 @@ function WorkflowOptions({
 
     for (const step of workflow.steps_order) {
       result.push(
-        <Button
-          className="left-aligned-ant-btn"
+        <Tooltip
           key={step.order}
-          type="primary"
-          onClick={async () => {
-            const NOTIFICATION_KEY = `LabworkSamples_${selectedStudy.id}_${step.order}` as const
-            if (actionName == "dequeue") {
-              try {
-                const sampleIDs = (
-                  await dispatch(
-                    fetchSamplesByDefaultSelectionAndExceptedIDs(
-                      defaultSelection,
-                      exceptedSampleIDs,
-                      serializeFilterParamsWithDescriptions(filters),
-                    ),
-                  )
-                ).map((sample) => sample.id)
-                const removed = (
-                  await dispatch(
-                    api.sampleNextStepByStudy.removeList(sampleIDs, selectedStudy.id, step.order),
-                  )
-                ).data
-                const samplesRemovedCount = removed.length
-                dispatch(
-                  notifySuccess({
-                    id: NOTIFICATION_KEY,
-                    title: "Samples dequeued from workflow",
-                    description: `Successfully dequeued ${samplesRemovedCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
-                  }),
-                )
-                refresh()
-              } catch {
-                dispatch(
-                  notifyError({
-                    id: NOTIFICATION_KEY,
-                    title: "Error dequeuing samples from workflow",
-                    description: `Failed to dequeue samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
-                    duration: 10,
-                  }),
-                )
-              }
-            } else if (actionName == "skip") {
-              try {
-                const sampleIDs = (
-                  await dispatch(
-                    fetchSamplesByDefaultSelectionAndExceptedIDs(
-                      defaultSelection,
-                      exceptedSampleIDs,
-                      serializeFilterParamsWithDescriptions(filters),
-                    ),
-                  )
-                ).map((sample) => sample.id)
-                if (sampleIDs.length == 0) {
-                  dispatch(
-                    notifyError({
-                      id: NOTIFICATION_KEY,
-                      title: "Samples skip failed",
-                      description:
-                        "Sample selection is outdated. Please close this panel and try again.",
-                    }),
-                  )
-                } else {
-                  const skipCount = (
+          destroyOnHidden
+          mouseEnterDelay={0}
+          title={
+            step.mandatory && actionName == "skip" ? `${step.step_name} cannot be skipped` : ""
+          }
+        >
+          <Button
+            className="left-aligned-ant-btn"
+            disabled={step.mandatory && actionName == "skip"}
+            type="primary"
+            onClick={async () => {
+              const NOTIFICATION_KEY = `LabworkSamples_${selectedStudy.id}_${step.order}` as const
+              if (actionName == "dequeue") {
+                try {
+                  const sampleIDs = (
                     await dispatch(
-                      api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order),
+                      fetchSamplesByDefaultSelectionAndExceptedIDs(
+                        defaultSelection,
+                        exceptedSampleIDs,
+                        serializeFilterParamsWithDescriptions(filters),
+                      ),
+                    )
+                  ).map((sample) => sample.id)
+                  const removed = (
+                    await dispatch(
+                      api.sampleNextStepByStudy.removeList(sampleIDs, selectedStudy.id, step.order),
                     )
                   ).data
+                  const samplesRemovedCount = removed.length
                   dispatch(
                     notifySuccess({
                       id: NOTIFICATION_KEY,
-                      title: "Samples skipped in workflow",
-                      description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                      title: "Samples dequeued from workflow",
+                      description: `Successfully dequeued ${samplesRemovedCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                    }),
+                  )
+                  refresh()
+                } catch {
+                  dispatch(
+                    notifyError({
+                      id: NOTIFICATION_KEY,
+                      title: "Error dequeuing samples from workflow",
+                      description: `Failed to dequeue samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
+                      duration: 10,
                     }),
                   )
                 }
-                refresh()
-              } catch (error) {
-                dispatch(
-                  notifyError({
-                    id: NOTIFICATION_KEY,
-                    title: `Error skipping samples at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
-                    description: error.data,
-                    duration: 10,
-                  }),
-                )
+              } else if (actionName == "skip") {
+                try {
+                  const sampleIDs = (
+                    await dispatch(
+                      fetchSamplesByDefaultSelectionAndExceptedIDs(
+                        defaultSelection,
+                        exceptedSampleIDs,
+                        serializeFilterParamsWithDescriptions(filters),
+                      ),
+                    )
+                  ).map((sample) => sample.id)
+                  if (sampleIDs.length == 0) {
+                    dispatch(
+                      notifyError({
+                        id: NOTIFICATION_KEY,
+                        title: "Samples skip failed",
+                        description:
+                          "Sample selection is outdated. Please close this panel and try again.",
+                      }),
+                    )
+                  } else {
+                    const skipCount = (
+                      await dispatch(
+                        api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order),
+                      )
+                    ).data
+                    dispatch(
+                      notifySuccess({
+                        id: NOTIFICATION_KEY,
+                        title: "Samples skipped in workflow",
+                        description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                      }),
+                    )
+                  }
+                  refresh()
+                } catch (error) {
+                  dispatch(
+                    notifyError({
+                      id: NOTIFICATION_KEY,
+                      title: `Error skipping samples at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
+                      description: error.data,
+                      duration: 10,
+                    }),
+                  )
+                }
+              } else if (actionName == "queue") {
+                try {
+                  await dispatch(
+                    api.samples.addSamplesToStudy(
+                      exceptedSampleIDs,
+                      defaultSelection,
+                      selectedProject.id,
+                      selectedStudy.letter,
+                      step.order,
+                      serializeFilterParamsWithDescriptions(filters),
+                    ),
+                  )
+                  dispatch(
+                    notifySuccess({
+                      id: NOTIFICATION_KEY,
+                      title: "Samples queued to workflow",
+                      description: `Successfully queued samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}"`,
+                    }),
+                  )
+                  refresh()
+                } catch (error) {
+                  const errors: string[] | undefined = error.data?.["add_sample_to_study"]
+                  dispatch(
+                    notifyError({
+                      id: NOTIFICATION_KEY,
+                      title: "Error queuing samples to workflow",
+                      description: errors
+                        ? `${errors[0]}${errors[0].endsWith(".") ? "" : "."}${errors.length > 1 ? " And " + (errors.length - 1) + " more errors..." : ""}`
+                        : `Could not queue samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
+                      duration: 10,
+                    }),
+                  )
+                }
               }
-            } else if (actionName == "queue") {
-              try {
-                await dispatch(
-                  api.samples.addSamplesToStudy(
-                    exceptedSampleIDs,
-                    defaultSelection,
-                    selectedProject.id,
-                    selectedStudy.letter,
-                    step.order,
-                    serializeFilterParamsWithDescriptions(filters),
-                  ),
-                )
-                dispatch(
-                  notifySuccess({
-                    id: NOTIFICATION_KEY,
-                    title: "Samples queued to workflow",
-                    description: `Successfully queued samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}"`,
-                  }),
-                )
-                refresh()
-              } catch (error) {
-                const errors: string[] | undefined = error.data?.["add_sample_to_study"]
-                dispatch(
-                  notifyError({
-                    id: NOTIFICATION_KEY,
-                    title: "Error queuing samples to workflow",
-                    description: errors
-                      ? `${errors[0]}${errors[0].endsWith(".") ? "" : "."}${errors.length > 1 ? " And " + (errors.length - 1) + " more errors..." : ""}`
-                      : `Could not queue samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
-                    duration: 10,
-                  }),
-                )
-              }
-            }
-          }}
-        >
-          {step.order} - {step.step_name}
-        </Button>,
+            }}
+          >
+            {step.order} - {step.step_name}
+          </Button>
+        </Tooltip>,
       )
     }
     return result
