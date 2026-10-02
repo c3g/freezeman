@@ -375,6 +375,7 @@ function WorkflowOptions({
     for (const step of workflow.steps_order) {
       result.push(
         <Tooltip
+          key={step.order}
           destroyOnHidden
           mouseEnterDelay={0}
           title={
@@ -384,7 +385,6 @@ function WorkflowOptions({
           <Button
             className="left-aligned-ant-btn"
             disabled={step.mandatory && actionName == "skip"}
-            key={step.order}
             type="primary"
             onClick={async () => {
               const NOTIFICATION_KEY = `LabworkSamples_${selectedStudy.id}_${step.order}` as const
