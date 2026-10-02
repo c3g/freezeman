@@ -154,7 +154,7 @@ class DerivedSampleSerializer(serializers.ModelSerializer):
 class DerivedBySampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = DerivedBySample
-        fields = ("id", "derived_sample", "sample", "volume_ratio", "project")
+        fields = "__all__"
         read_only_fields = fields
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
