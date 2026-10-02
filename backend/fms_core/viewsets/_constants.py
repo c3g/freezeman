@@ -29,6 +29,14 @@ _derived_sample_filterset_fields: FiltersetFields = {
     "readsets__id": FK_FILTERS,
 }
 
+_derived_by_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "derived_sample": FK_FILTERS,
+    "sample": FK_FILTERS,
+    "project": NULLABLE_FK_FILTERS,
+    "volume_ratio": SCALAR_FILTERS,
+}
+
 _coordinate_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

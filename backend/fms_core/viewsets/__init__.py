@@ -47,6 +47,7 @@ from .sample_identity import SampleIdentityViewSet
 from .sample_identity_match import SampleIdentityMatchViewSet
 from .profile import ProfileViewSet
 from .derived_sample import DerivedSampleViewSet
+from .derived_by_sample import DerivedBySampleViewSet
 from .parent_project import ParentProjectViewSet
 
 __all__ = [
@@ -99,5 +100,6 @@ __all__ = [
     "SampleIdentityMatchViewSet",
     "ProfileViewSet",
     "DerivedSampleViewSet",
+    "DerivedBySampleViewSet",
     "ParentProjectViewSet",
 ]

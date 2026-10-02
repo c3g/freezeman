@@ -127,6 +127,7 @@ __all__ = [
     "SampleIdentitySerializer",
     "ProfileSerializer",
     "DerivedSampleSerializer",
+    "DerivedBySampleSerializer",
     "FreezemanPermissionSerializer",
 ]
 
@@ -149,6 +150,12 @@ class DerivedSampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = DerivedSample
         fields = "__all__"
+
+class DerivedBySampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DerivedBySample
+        fields = ("id", "derived_sample", "sample", "volume_ratio", "project")
+        read_only_fields = fields
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
     class Meta:
