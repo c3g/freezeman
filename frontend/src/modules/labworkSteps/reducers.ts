@@ -348,6 +348,7 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 				isFetching: false,
 				groups: data.map((group) => ({
 					name: group.name,
+					id: group.id,
 					count: group.count,
 					sample_locators: group.sample_locators.reduce((prev, curr) => {
 						prev[curr.sample_id] = curr

@@ -45,7 +45,7 @@ export interface LabworkStepSamples {
 
 type LabworkStepInfoGroup = LabworkStepInfo["results"]["samples"]["groups"][number]
 
-export interface LabworkStepSamplesGroup extends Pick<LabworkStepInfoGroup, 'name' | 'count'> {
+export interface LabworkStepSamplesGroup extends Pick<LabworkStepInfoGroup, 'name' | 'id' | 'count'> {
   containers: any
   sample_locators: Record<FMSId, SampleLocator | undefined>
   selected_samples: Record<FMSId, SampleLocator | undefined>

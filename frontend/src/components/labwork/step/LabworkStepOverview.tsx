@@ -1,5 +1,6 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo, ComponentProps } from 'react'
+import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
@@ -46,6 +47,16 @@ export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key:
 export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", key: "ordering_container_name"}
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
+
+// Route prefix of the page referenced by the group, for the groupings that have one
+const GROUPING_ROUTE_PREFIX = new Map<FilterDescription, string>([
+  [GROUPING_PROJECT, '/projects'],
+  [GROUPING_CONTAINER, '/containers'],
+  [GROUPING_CREATED_BY, '/users'],
+])
+
+// Keeps clicks on the group link and the group buttons from toggling the panel
+const stopPropagation = (event: React.SyntheticEvent) => event.stopPropagation()
 
 const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortByList, setSortByList, pagination, selection, clearFilters }: LabworkStepOverviewProps) => {
   const dispatch = useAppDispatch()
@@ -101,11 +112,13 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
     return finalColumns
   }, [activeGrouping, columns])
 
-  const collapsePanels = useMemo<NonNullable<ComponentProps<typeof Collapse>['items']>>(() => (labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
+  const collapsePanels = useMemo<NonNullable<ComponentProps<typeof Collapse>['items']>>(() => {
+    const routePrefix = GROUPING_ROUTE_PREFIX.get(activeGrouping)
+    return (labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
           const sample_ids = Object.keys(group.sample_locators).map((id) => Number(id))
           const selectedCount = Object.keys(group.selected_samples).length
           const ButtonsSelectAndClear = (
-            <Space orientation="horizontal" style={{width: '100%', justifyContent: 'center'}}>
+            <Space orientation="horizontal" style={{width: '100%', justifyContent: 'center'}} onClick={stopPropagation}>
               <Tag variant="outlined"><Title style={{ margin: 0 }} level={4}>{`${selectedCount}/${group.count}`}</Title></Tag>
               <Button disabled={loading || group.count === 0 || selectedCount === group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
               <Button disabled={loading || selectedCount === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
@@ -114,7 +127,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 
 					return {
               key: group.name,
-              label: group.name,
+              label: routePrefix && group.id != null ? <Link to={`${routePrefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>{group.name}</Link> : group.name,
               extra: ButtonsSelectAndClear,
               children: <LabworkStepOverviewPanel
 							  refreshing={refreshing || labworkStepSummary.isFetching}
@@ -135,7 +148,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  stepID={step.id}
 							/>
             }
-				})) ?? [], [activeGrouping, clearFilters, filterDefinitions, filterKeys, filters, finalColumns, handleClearGroup, handleSelectGroup, labworkStepSummary, loading, pagination, refreshing, selection, setFilter, setFilterOptions, setSortByList, sortByList, step.id])
+				})) ?? []}, [activeGrouping, clearFilters, filterDefinitions, filterKeys, filters, finalColumns, handleClearGroup, handleSelectGroup, labworkStepSummary, loading, pagination, refreshing, selection, setFilter, setFilterOptions, setSortByList, sortByList, step.id])
 
 	return (
 		<>
@@ -146,7 +159,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
         <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
       </div>
       <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-			<Collapse accordion destroyOnHidden={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'} items={collapsePanels} />
+			<Collapse accordion destroyOnHidden={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : undefined} items={collapsePanels} />
 		</>
 	)
 }

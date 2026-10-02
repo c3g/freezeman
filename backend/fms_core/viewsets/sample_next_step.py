@@ -16,7 +16,7 @@ from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
 from fms_core.templates import (EXPERIMENT_PACBIO_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
-                                LIBRARY_PREPARATION_TEMPLATE, LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
+                                LIBRARY_PREPARATION_TEMPLATE, LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE,
                                 SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
                                 EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE, EXPERIMENT_ULTIMA_TEMPLATE,
                                 QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE, SAMPLE_IDENTITY_QC_TEMPLATE)
@@ -47,6 +47,15 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             When(Q(sample__coordinate__isnull=True), then=Value("tubes without parent container")),
             default=F('sample__container__name'),
             output_field=CharField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_id=Case(
+            When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__id')),
+            When(Q(sample__coordinate__isnull=True), then=Value(None)),
+            default=F('sample__container__id'),
+            output_field=IntegerField()
         )
     )
 
@@ -268,14 +277,14 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     @action(detail=False, methods=["get"])
     def labwork_info(self, request, *args, **kwargs):
         """
-        API call to retrieve the lab work information about the number samples waiting for each step of a workflow. 
+        API call to retrieve the lab work information about the number samples waiting for each step of a workflow.
         As well as their step specifications.
 
         Args:
             `request`: The request object received then whe API call was made.
             `*args`: Arguments to set on the view.
             `**kwargs`: Additional properties to set on the view.
-                    
+
         Returns:
           An object of the form:
           {
@@ -287,7 +296,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                         name
                         count
                         steps: [{
-                            name 
+                            name
                             count
                             step_specifications
                         }]
@@ -300,7 +309,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                         name
                         count
                         step_specifications
-                    }]    
+                    }]
                 }
             }
           }
@@ -308,7 +317,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         self.queryset = self.filter_queryset(self.get_queryset())
         # The objects that is going to be returned
         sample_next_step_summary = {"protocols":{}, "automations": {"count": 0, "steps": []}}
-        
+
         # Iterate through protocols
         for protocol in Protocol.objects.all():
             # Get the sample count waiting for this protocol
@@ -320,12 +329,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             # labwork doesn't need protocols that are not used by any workflow (Infinium...)
             if not Workflow.objects.filter(steps__in=protocolSteps).exists():
                 continue
-            
+
             # Some protocols have no associated steps, so don't include those in labwork info.
             if protocolSteps.count() > 0:
                 # Add protocol info to the results
                 sample_next_step_summary['protocols'][protocol.id] = {
-                    "name" : protocol.name, 
+                    "name" : protocol.name,
                     "count": protocol_sample_count,
                     "steps": []
                 }
@@ -340,7 +349,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                     # Add step information to the protocol
                     sample_next_step_summary['protocols'][protocol.id]["steps"].append({
                         "id": step.id,
-                        "name" : step.name, 
+                        "name" : step.name,
                         "count": step_sample_count,
                         "step_specifications": step_specifications
                     })
@@ -352,7 +361,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             # labwork doesn't need steps that are not used by any workflow
             if not Workflow.objects.filter(steps__in=[step]).exists():
                 continue
-            
+
             # Get the precise count of sample for the specific step and the specifications
             step_sample_count = SampleNextStep.objects.filter(step=step).count()
             automation_sample_count = automation_sample_count + step_sample_count
@@ -362,7 +371,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             # Add step information to the protocol
             sample_next_step_summary["automations"]["steps"].append({
                 "id": step.id,
-                "name" : step.name, 
+                "name" : step.name,
                 "count": step_sample_count,
                 "step_specifications": step_specifications,
             })
@@ -385,29 +394,25 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                                                   - qc_flag
             `*args`: Arguments to set on the view.
             `**kwargs`: Additional properties to set on the view.
-                    
+
         Returns:
           An object of the form:
           {
             results:
             {
               step_id: id
-              samples: 
+              samples:
               {
                 grouping_column : column_name
                 groups : [
                   {
                     name = grouping_value_1
-                    count
-                    sample_locators: []
-                  },
-                  {
-                    name = grouping_value_2
+                    id = id of the object referenced by grouping_value_1, null if not applicable
                     count
                     sample_locators: []
                   },
                   ...
-                ],                
+                ],
               }
             }
           }
@@ -421,23 +426,36 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         # The objects that is going to be returned
         grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
 
+        # Column holding the id of the object referenced by the grouping value (used to link to the object page)
+        GROUPING_ID_COLUMNS = {
+            "sample__derived_by_samples__project__name": "sample__derived_by_samples__project__id",
+            "ordering_container_name": "ordering_container_id",
+            "sample__created_by__username": "sample__created_by__id",
+        }
+        grouping_id_column = GROUPING_ID_COLUMNS.get(grouping_column)
+
         grouped_step_samples = self.filter_queryset(self.get_queryset())
         # Get all samples on the steps with the grouping field
         grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
             .annotate(sample_name=F("sample__name")) \
             .annotate(container_name=F("sample__container__name")) \
+            .annotate(group_id=F(grouping_id_column) if grouping_id_column else Value(None, output_field=IntegerField())) \
             .values_list(
                 "sample_id",
                 "sample_name",
                 "container_name",
                 grouping_column,
+                "group_id",
                 "ordering_container_barcode",
                 "ordering_container_coordinates"
             )
 
         groups = defaultdict(list)
+        group_ids = {}
         # Extract the locators from the entries
-        for sample_id, sample_name, container_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+        for sample_id, sample_name, container_name, group_column, group_id, container_barcode, container_coordinates in grouped_step_samples.all():
+            if group_ids.get(group_column) is None:
+                group_ids[group_column] = group_id
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
@@ -449,6 +467,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         for grouping in sorted(groups.keys()):
             grouped_step_summary["samples"]["groups"].append({
                 "name": grouping,
+                "id": group_ids.get(grouping),
                 "count": len(groups[grouping]),
                 "sample_locators": groups[grouping]
             })
