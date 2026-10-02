@@ -240,7 +240,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
   )
 }
 
-interface LabworkSampleActionsProps {
+interface WorkflowOptionsProps {
   actionName: WorkflowAction
   defaultSelection: boolean
   exceptedSampleIDs: Sample["id"][]
@@ -253,7 +253,7 @@ function WorkflowOptions({
   exceptedSampleIDs,
   filters,
   refresh,
-}: LabworkSampleActionsProps) {
+}: WorkflowOptionsProps) {
   const dispatch = useAppDispatch()
 
   const [sampleCount, setSampleCount] = useState<number>()
