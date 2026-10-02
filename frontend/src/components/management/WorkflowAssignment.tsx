@@ -374,7 +374,13 @@ function WorkflowOptions({
 
     for (const step of workflow.steps_order) {
       result.push(
-        <Tooltip destroyOnHidden mouseEnterDelay={0} title={step.mandatory && actionName == "skip" ? `${step.step_name} cannot be skipped` : ""}>
+        <Tooltip
+          destroyOnHidden
+          mouseEnterDelay={0}
+          title={
+            step.mandatory && actionName == "skip" ? `${step.step_name} cannot be skipped` : ""
+          }
+        >
           <Button
             className="left-aligned-ant-btn"
             disabled={step.mandatory && actionName == "skip"}
