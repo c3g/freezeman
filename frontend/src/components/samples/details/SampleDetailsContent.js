@@ -37,9 +37,11 @@ const depletedStyle = {
   marginLeft: "4px",
 };
 
+/**
+ * @type {import("react").CSSProperties}
+ */
 const pageStyle = {
   padding: 0,
-  overflow: "hidden",
 }
 
 const tabStyle = {
@@ -182,7 +184,7 @@ const SampleDetailsContent = () => {
         </TabPane>
 
         <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
-          <SampleDetailsLineage sample={sample} 
+          <SampleDetailsLineage sample={sample}
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
           />
