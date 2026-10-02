@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, Drawer, Flex, Modal, Select, Space, Spin } from "antd"
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
-import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
+import { FMSProject, FMSStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
 import { notifyError, notifySuccess } from "../../modules/notification/actions"
 import { Sample, Study } from "../../models/frontend_models"
 import {
@@ -47,6 +47,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
   const [searchParams] = useSearchParams()
   const [searchParamsProcessed, setSearchParamsProcessed] = useState(false)
   useEffect(() => {
+    // Initial load and search param set
     samplesTableCallbacks.clearFiltersCallback()
     for (const [columnID, value] of searchParams.entries()) {
       const COLUMN_ID = columnID.toUpperCase()
@@ -66,29 +67,27 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
     }
   }, [samplesTableCallbacks, searchParams])
 
-  const [sampleNextStepsBySampleID, setSampleNextStepsBySampleID] = useState<
-    Record<Sample["id"], FMSSampleNextStep[]>
-  >({})
+  const [nextStepsBySampleID, setNextStepsBySampleID] = useState<Record<Sample["id"], FMSStep[]>>({})
   const dispatch = useAppDispatch()
   useEffect(() => {
     ;(async () => {
       if (samplesTableState.items.length === 0) {
-        setSampleNextStepsBySampleID({})
+        setNextStepsBySampleID({})
         return
       }
 
-      const newSampleNextStepsBySampleID: Record<Sample["id"], FMSSampleNextStep[]> = {}
+      const nextStepsBySampleID: Record<Sample["id"], FMSStep[]> = {}
       for (const sampleID of samplesTableState.items) {
-        newSampleNextStepsBySampleID[sampleID] = []
+        nextStepsBySampleID[sampleID] = []
       }
 
       const sampleNextSteps = (
         await dispatch(api.sampleNextStep.listSamples([...samplesTableState.items]))
       ).data.results
       for (const sampleNextStep of sampleNextSteps) {
-        newSampleNextStepsBySampleID[sampleNextStep.sample].push(sampleNextStep)
+        nextStepsBySampleID[sampleNextStep.sample].push(sampleNextStep.step)
       }
-      setSampleNextStepsBySampleID(newSampleNextStepsBySampleID)
+      setNextStepsBySampleID(nextStepsBySampleID)
     })()
   }, [dispatch, samplesTableState.items])
 
@@ -107,15 +106,15 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
         dataIndex: ["sample", "id"],
         render: (_, { sample }) => {
           if (!sample) return null
-          const sampleNextSteps = sampleNextStepsBySampleID[sample.id]
-          if (!sampleNextSteps) return <Spin size={"small"} />
-          return <DropdownListItems listItems={sampleNextSteps.map((s) => s.step.name)} />
+          const nextSteps = nextStepsBySampleID[sample.id]
+          if (!nextSteps) return <Spin size={"small"} />
+          return <DropdownListItems listItems={nextSteps.map((s) => s.name)} />
         },
         sorter: { multiple: 1 },
         width: 175,
       } as SampleColumn,
     ]
-  }, [sampleNextStepsBySampleID])
+  }, [nextStepsBySampleID])
 
   const columns = useFilteredColumns<ObjectWithSample>(
     SAMPLES_TABLE_COLUMNS,
@@ -128,13 +127,9 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
 
   const [samples, setSamples] = useState<ObjectWithSample[]>([])
   useEffect(() => {
-    ;(async () => {
-      setSamples(
-        (await fetchSamples(samplesTableState.items)).map((sample) => ({
-          sample: sample as Sample,
-        })),
-      )
-    })()
+    fetchSamples(samplesTableState.items).then((samples) => {
+      setSamples(samples.map((s) => ({ sample: s as Sample })))
+    })
   }, [samplesTableState.items])
 
   const mapSampleIDs = useCallback(
