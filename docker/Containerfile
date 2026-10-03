@@ -1,0 +1,125 @@
+# FreezeMan application images. Build context: repository root.
+#
+# Targets:
+#   backend-dev    Django runserver; expects the repository bind-mounted at /src
+#   backend-prod   Django served by gunicorn, source baked in
+#   frontend-dev   webpack-dev-server; expects the repository bind-mounted at /src
+#   web            nginx serving the built frontend + Django static files, proxying /api
+#
+# The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
+# because the code reads ../VERSION relative to backend/ and frontend/.
+
+ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
+ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
+ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
+
+
+############
+# Backend  #
+############
+
+FROM ${PYTHON_IMAGE} AS python-base
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/opt/venv/bin:$PATH
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libpq5 \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --uid 1000 --create-home --shell /bin/sh fms
+COPY --chmod=755 docker/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
+WORKDIR /src/backend
+ENTRYPOINT ["fms-entrypoint"]
+
+FROM python-base AS backend-deps
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+RUN python -m venv /opt/venv
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /tmp/requirements.txt
+
+FROM python-base AS backend-dev
+# fms/info.py reads commit information from the bind-mounted .git
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git postgresql-client \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+COPY --from=backend-deps /opt/venv /opt/venv
+EXPOSE 8000
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+
+#############
+# Frontend  #
+#############
+
+FROM ${NODE_IMAGE} AS node-base
+# webpack.config.js shells out to git for the commit hash, branch and date
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+WORKDIR /src/frontend
+
+FROM node-base AS frontend-dev
+ENV FMS_API_PROXY_TARGET=http://backend:8000
+EXPOSE 9000
+# Reinstall dependencies only when package-lock.json is newer than the installed tree.
+CMD ["sh", "-c", "if [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then npm ci; fi && exec npx webpack serve --mode development --host 0.0.0.0 --port 9000 --allowed-hosts all"]
+
+FROM node-base AS frontend-build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+COPY VERSION /src/VERSION
+COPY frontend/ ./
+ARG FMS_ENV=PROD
+ENV FMS_ENV=${FMS_ENV}
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    npm run build
+
+# Commit information for backend/fms/info.py, which has no git repository at runtime.
+FROM node-base AS build-info
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    cd /src \
+ && printf '{"commit_date": "%s", "commit_full_hash": "%s", "commit_small_hash": "%s", "commit_tagged_version": "%s", "branch": "%s"}\n' \
+      "$(git show --quiet --format=%cI)" \
+      "$(git show --quiet --format=%H)" \
+      "$(git show --quiet --format=%h)" \
+      "$(git describe --tags 2>/dev/null || true)" \
+      "$(git branch --show-current)" \
+      > /build_info.json \
+ && cat /build_info.json
+
+
+#####################
+# Production images #
+#####################
+
+FROM python-base AS backend-prod
+COPY --from=backend-deps /opt/venv /opt/venv
+COPY VERSION /src/VERSION
+COPY backend/ /src/backend/
+COPY --from=build-info /build_info.json /src/backend/fms/build_info.json
+ENV FMS_ENV=PROD \
+    FMS_DEBUG=False \
+    WEB_CONCURRENCY=3
+# Writable locations; media, triggers and automations_work are volumes in compose.yaml.
+# The backend directory itself stays writable for fms.log, which settings.py
+# writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
+RUN python manage.py collectstatic --noinput \
+ && mkdir -p media/uploads/templates triggers automations_work tmp \
+ && chown -R fms:fms media triggers automations_work tmp \
+ && chown fms:fms /src/backend
+USER fms
+EXPOSE 8000
+# Worker count comes from WEB_CONCURRENCY (gunicorn default)
+CMD ["gunicorn", "fms.wsgi:application", "--bind", "0.0.0.0:8000", "--timeout", "300", "--access-logfile", "-"]
+
+FROM ${NGINX_IMAGE} AS web
+ENV BACKEND_UPSTREAM=backend:8000
+COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
+COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
+EXPOSE 8080

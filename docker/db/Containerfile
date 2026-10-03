@@ -1,0 +1,21 @@
+# PostgreSQL with the fzy extension (backend/dependencies/pg_fzy).
+# Build context: repository root
+#   podman build -f docker/db/Containerfile .
+#
+# To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
+# (a new major version needs a dump and restore of existing data).
+
+ARG POSTGRES_IMAGE=docker.io/library/postgres:18-trixie
+
+FROM ${POSTGRES_IMAGE} AS build
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential "postgresql-server-dev-$PG_MAJOR" \
+ && rm -rf /var/lib/apt/lists/*
+COPY backend/dependencies/pg_fzy /src
+WORKDIR /src
+# Compile from source; the binaries in pg_fzy/static target older PostgreSQL versions.
+RUN make clean && make && make install DESTDIR=/out
+
+FROM ${POSTGRES_IMAGE}
+COPY --from=build /out/ /
+COPY --chmod=755 docker/db/initdb/ /docker-entrypoint-initdb.d/

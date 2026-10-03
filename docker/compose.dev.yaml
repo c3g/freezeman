@@ -1,0 +1,78 @@
+# Development override: source bind-mounted from the host, Django runserver
+# and webpack-dev-server with live reload. Works with podman-compose on any OS
+# (on macOS/Windows inside `podman machine`).
+#
+#   podman-compose -f compose.yaml -f compose.dev.yaml up
+#
+# Frontend: http://localhost:9000   Backend: http://localhost:8000
+#
+# The repository is mounted at /src so backend/fms/info.py and
+# frontend/webpack.config.js find ../VERSION and .git as they do outside
+# containers. ":z" relabels the mounts for SELinux (Rocky/RHEL/Fedora) and is
+# ignored elsewhere. userns_mode: keep-id keeps files written into the
+# repository (fms.log, migrations, uploads) owned by the host user.
+
+x-dev-backend: &dev-backend
+  image: localhost/freezeman-backend-dev:latest
+  environment:
+    FMS_ENV: LOCAL
+    FMS_DEBUG: "True"
+    # Port 8000 is published directly, without the nginx in front
+    FMS_BEHIND_PROXY: "False"
+  userns_mode: keep-id
+  restart: "no"
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  migrate:
+    <<: *dev-backend
+    build:
+      target: backend-dev
+    volumes:
+      - ..:/src:z
+
+  backend:
+    <<: *dev-backend
+    volumes:
+      - ..:/src:z
+      # Replace the named volumes from compose.yaml with the repository directories
+      - ../backend/media:/src/backend/media:z
+      - ../backend/triggers:/src/backend/triggers:z
+      - ../backend/automations_work:/src/backend/automations_work:z
+    ports:
+      - "8000:8000"
+    healthcheck:
+      disable: true
+
+  frontend:
+    image: localhost/freezeman-frontend-dev:latest
+    build:
+      context: ..
+      dockerfile: docker/Containerfile
+      target: frontend-dev
+    environment:
+      FMS_ENV: LOCAL
+      FMS_API_PROXY_TARGET: http://backend:8000
+      # The keep-id user's home directory does not exist in the image
+      NPM_CONFIG_CACHE: /tmp/.npm
+    userns_mode: keep-id
+    volumes:
+      - ..:/src:z
+      # Linux dependencies installed by the container, separate from the host's node_modules
+      # (":U" chowns the volume to the container user)
+      - frontend_node_modules:/src/frontend/node_modules:U
+    ports:
+      - "9000:9000"
+    depends_on:
+      - backend
+    restart: "no"
+
+  web:
+    # The production nginx image is not used in development.
+    profiles: ["prod"]
+
+volumes:
+  frontend_node_modules:

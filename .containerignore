@@ -1,0 +1,24 @@
+# Build context exclusions for docker/Containerfile (context: repository root).
+# .git is intentionally kept: the frontend build reads commit info from it.
+
+**/.env
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/*.log
+**/*.log.*
+.vscode
+.pytest_cache
+**/.pytest_cache
+
+backend/env
+backend/staticfiles
+backend/media
+backend/triggers
+backend/automations_work
+backend/tmp
+
+frontend/dist
+
+# Generated inside the image by docker/Containerfile
+backend/fms/build_info.json
