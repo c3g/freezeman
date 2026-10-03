@@ -1,0 +1,75 @@
+# Development override: source bind-mounted from the host, Django runserver
+# and webpack-dev-server with live reload.
+#
+#   podman-compose -f compose.yaml -f compose.dev.yaml up
+#
+# Frontend: http://localhost:9000   Backend: http://localhost:8000
+#
+# The repository is mounted at /src so backend/fms/info.py and
+# frontend/webpack.config.js find ../VERSION and .git as they do outside
+# containers. ":z" relabels the mounts for SELinux (Rocky/RHEL/Fedora).
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  migrate:
+    build:
+      target: backend-dev
+    image: localhost/freezeman-backend-dev:latest
+    environment:
+      FMS_ENV: LOCAL
+      FMS_DEBUG: "True"
+    userns_mode: keep-id
+    volumes:
+      - ..:/src:z
+
+  backend:
+    image: localhost/freezeman-backend-dev:latest
+    environment:
+      FMS_ENV: LOCAL
+      FMS_DEBUG: "True"
+      # Port 8000 is published directly, without the nginx in front
+      FMS_BEHIND_PROXY: "False"
+    # Files written in the mounted repository (fms.log, migrations, uploads)
+    # stay owned by the host user.
+    userns_mode: keep-id
+    volumes:
+      - ..:/src:z
+      # Use the repository directories instead of the named volumes from compose.yaml
+      - ../backend/media:/src/backend/media:z
+      - ../backend/triggers:/src/backend/triggers:z
+      - ../backend/automations_work:/src/backend/automations_work:z
+    ports:
+      - "8000:8000"
+    healthcheck:
+      disable: true
+    restart: "no"
+
+  frontend:
+    image: localhost/freezeman-frontend-dev:latest
+    build:
+      context: ..
+      dockerfile: docker/Containerfile
+      target: frontend-dev
+    environment:
+      FMS_ENV: LOCAL
+      FMS_API_PROXY_TARGET: http://backend:8000
+    userns_mode: keep-id
+    volumes:
+      - ..:/src:z
+      # Linux dependencies installed by the container, separate from the host's node_modules
+      # (":U" chowns the volume to the container user)
+      - frontend_node_modules:/src/frontend/node_modules:U
+    ports:
+      - "9000:9000"
+    depends_on:
+      - backend
+
+  web:
+    # The production nginx image is not used in development.
+    profiles: ["prod"]
+
+volumes:
+  frontend_node_modules:

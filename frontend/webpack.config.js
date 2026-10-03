@@ -10,6 +10,8 @@ const dotenv = require("dotenv")
 
 dotenv.config({ path: path.resolve(__dirname, "./.env") })
 
+const apiProxyTarget = process.env.FMS_API_PROXY_TARGET || "http://localhost:8000"
+
 module.exports = (env, argv) => ({
   entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
   module: {
@@ -82,13 +84,13 @@ module.exports = (env, argv) => ({
     historyApiFallback: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: apiProxyTarget,
       },
       "/static/submission_templates": {
-        target: "http://localhost:8000",
+        target: apiProxyTarget,
       },
       "/static/samplesheet_templates": {
-        target: "http://localhost:8000",
+        target: apiProxyTarget,
       },
     },
     client: {

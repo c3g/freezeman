@@ -165,9 +165,17 @@ EMAIL_SSL_CERTFILE  = os.environ.get('FMS_SSL_CERTFILE', None)
 FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
 
 # Security
-ALLOWED_HOSTS = (([os.environ.get("FMS_HOST", "")] if FMS_ENV == "PROD" 
-             else [os.environ.get("FMS_HOST", ""), "localhost"]) if not DEBUG 
+ALLOWED_HOSTS = (([os.environ.get("FMS_HOST", "")] if FMS_ENV == "PROD"
+             else [os.environ.get("FMS_HOST", ""), "localhost"]) if not DEBUG
              else [])
+# Additional comma-separated hosts (e.g. container healthchecks, k8s probes)
+ALLOWED_HOSTS += [host.strip() for host in os.environ.get("FMS_EXTRA_ALLOWED_HOSTS", "").split(",") if host.strip()]
+
+# Behind a reverse proxy that always sets X-Forwarded-Proto (e.g. the container nginx),
+# so absolute URLs use https when the outer proxy terminates TLS.
+# Never enable it when Django can be reached without going through that proxy.
+if os.environ.get("FMS_BEHIND_PROXY", "False").lower() == "true":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

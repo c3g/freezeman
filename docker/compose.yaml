@@ -1,0 +1,123 @@
+# FreezeMan, production-like stack.
+#
+#   cd docker && cp .env.example .env   # then edit .env
+#   podman-compose build
+#   podman-compose up -d
+#
+# Development: see compose.dev.yaml and README.md.
+#
+# After rebuilding images or editing .env, apply with
+#   podman-compose up -d --force-recreate
+# (plain `up -d` only recreates containers when this file's resolved config changes).
+#
+# Rocky 9 notes (see README.md, "Rocky 9 notes"):
+#   - restart: always relies on `systemctl --user enable podman-restart.service`
+#     for start on boot; Quadlet units are the longer-term replacement.
+#   - podman-compose does not check migrate's exit code; check its logs.
+
+name: freezeman
+
+x-podman:
+  # Plain bridge network with service-name DNS, like Kubernetes Services.
+  # (Pods would also conflict with userns_mode in compose.dev.yaml.)
+  in_pod: false
+
+x-backend-env: &backend-env
+  PG_DATABASE: ${POSTGRES_DB}
+  PG_USER: ${POSTGRES_USER}
+  PG_PASSWORD: ${POSTGRES_PASSWORD}
+  PG_HOST: db
+  PG_PORT: "5432"
+  # Only reachable through the web container, which sets X-Forwarded-Proto
+  FMS_BEHIND_PROXY: "True"
+
+services:
+  db:
+    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/db/Containerfile
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # PostgreSQL 18 images keep PGDATA in /var/lib/postgresql/18/docker
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # One-shot: apply migrations, then exit (a Job in Kubernetes).
+  migrate:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Containerfile
+      target: backend-prod
+    env_file: .env
+    environment: *backend-env
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    env_file: .env
+    environment: *backend-env
+    volumes:
+      - media:/src/backend/media
+      - triggers:/src/backend/triggers
+      - automations_work:/src/backend/automations_work
+    healthcheck:
+      # Any HTTP answer below 500 means gunicorn and Django are up (the endpoint requires authentication).
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request, urllib.error
+          try:
+              urllib.request.urlopen("http://127.0.0.1:8000/api/info/", timeout=5)
+          except urllib.error.HTTPError as e:
+              sys.exit(e.code >= 500)
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: always
+
+  web:
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Containerfile
+      target: web
+      args:
+        FMS_ENV: ${FMS_ENV:-PROD}
+    environment:
+      BACKEND_UPSTREAM: backend:8000
+    ports:
+      - "${FMS_HTTP_PORT:-8080}:8080"
+    volumes:
+      - media:/var/www/media:ro
+    # nginx exits if "backend" does not resolve at startup; the condition (and
+    # restart: always, as a fallback) makes sure it does.
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  pgdata:
+  media:
+  triggers:
+  automations_work:
