@@ -451,11 +451,10 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             )
 
         groups = defaultdict(list)
-        group_ids = {}
+        group_ids = dict[str, int | None]()
         # Extract the locators from the entries
         for sample_id, sample_name, container_name, group_column, group_id, container_barcode, container_coordinates in grouped_step_samples.all():
-            if group_ids.get(group_column) is None:
-                group_ids[group_column] = group_id
+            group_ids[group_column] = group_id
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
