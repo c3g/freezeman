@@ -10,6 +10,7 @@ djangorestframework==3.17.1
 djangorestframework-csv==3.0.2
 djangorestframework_simplejwt==5.5.1
 drf-yasg==1.21.15
+gunicorn==23.0.0
 et_xmlfile==2.0.0
 execnet==2.1.2
 inflection==0.5.1

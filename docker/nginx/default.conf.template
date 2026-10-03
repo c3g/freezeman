@@ -1,0 +1,54 @@
+# Rendered by the nginx image entrypoint (envsubst) into /etc/nginx/conf.d/default.conf.
+# Only variables defined in the environment are substituted, so nginx's own
+# $uri, $host, ... are left untouched.
+
+# Keep the scheme set by an outer TLS proxy (host nginx, Ingress); fall back to
+# our own when accessed directly. Django uses it for absolute URLs
+# (request.build_absolute_uri), see FMS_BEHIND_PROXY in backend/fms/settings.py.
+map $http_x_forwarded_proto $fms_forwarded_proto {
+    default $http_x_forwarded_proto;
+    ""      $scheme;
+}
+
+server {
+    listen 8080;
+    server_name _;
+
+    client_max_body_size 100m;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Single-page application built by webpack
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Django collectstatic output, baked into this image
+    location /static/ {
+        alias /usr/share/nginx/static/;
+    }
+
+    # Uploaded files, shared with the backend through the media volume
+    location /media/ {
+        alias /var/www/media/;
+    }
+
+    location /api/ {
+        proxy_pass http://${BACKEND_UPSTREAM};
+        # $http_host keeps the port (e.g. :8080) in absolute URLs Django builds
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $fms_forwarded_proto;
+        proxy_read_timeout 300s;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+}

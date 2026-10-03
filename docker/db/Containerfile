@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+#
+# PostgreSQL 18 with the fzy extension (backend/dependencies/pg_fzy).
+# Build context: repository root
+#   podman build -f docker/db/Containerfile .
+#
+# The repository root context keeps this buildable with a plain `podman build`.
+# compose `additional_contexts` (supported by EPEL 9's podman-compose 1.5) would
+# allow a docker/db context instead; there is no functional difference.
+
+ARG POSTGRES_IMAGE=docker.io/library/postgres:18-trixie
+
+FROM ${POSTGRES_IMAGE} AS build
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential postgresql-server-dev-18 \
+ && rm -rf /var/lib/apt/lists/*
+COPY backend/dependencies/pg_fzy /src
+WORKDIR /src
+# Compile from source; the binaries in pg_fzy/static target older PostgreSQL versions.
+RUN make clean && make && make install DESTDIR=/out
+
+FROM ${POSTGRES_IMAGE}
+COPY --from=build /out/ /
+COPY --chmod=755 docker/db/initdb/ /docker-entrypoint-initdb.d/
