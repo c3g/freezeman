@@ -98,12 +98,13 @@ function StudyStepSamplesTable({
   const protocol: Protocol | undefined = protocolsByID[step.protocolID]
   const stepDefinition = stepsByID[step.stepID]
 
-  const actionColumn = useMemo(
+  const actionColumn = useMemo<IdentifiedTableColumnType<SampleAndLibraryAndIdentity>>(
     () => ({
       columnID: "Action",
       title: "Action",
       dataIndex: ["sample", "id"],
       width: 150,
+      fixed: "end",
       render: (_: any, { sample }: SampleAndLibraryAndIdentity) => {
         return sample && <ActionButton sample={sample} step={step} studyID={studyID} />
       },
