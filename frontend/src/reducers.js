@@ -44,7 +44,6 @@ import {
 import {
     libraryTypes,
 } from "./modules/libraryTypes/reducers";
-import { notifications } from './modules/notification/reducers';
 import { reducer as pagination } from "./modules/pagination";
 import { parentProjects } from "./modules/parentProjects/reducers";
 import {
@@ -180,7 +179,6 @@ const allReducers = combineReducers({
     labworkStepSummary,
     sampleNextStepTemplateActions,
     steps,
-    notifications,
     placement,
     workflowAssignment
 });

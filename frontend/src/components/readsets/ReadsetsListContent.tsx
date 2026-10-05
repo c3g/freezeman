@@ -23,8 +23,7 @@ import { ReadsetMetricContent } from "./ReadsetMetricContent";
 import api from "../../utils/api";
 import produce from "immer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
-import { notifyError, notifySuccess } from "../../modules/notification/actions";
-import { INFINITE_DURATION } from "../../modules/notification/models";
+import { INFINITE_DURATION, notifyError, notifySuccess } from "../../modules/notification/actions";
 
 const RELEASE_STATUS_STRING = {
     [ReleaseStatus.RELEASED]: 'Released',
