@@ -31,7 +31,7 @@ class SamplePoolingImporter(GenericImporter):
         """
 
         pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
-        result_list = []
+        result_list: list[SamplesToPoolRowHandler.Result] = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
             samplestopool_kwargs = {
@@ -45,7 +45,7 @@ class SamplePoolingImporter(GenericImporter):
                   "pool_name": pool_name,
                 },
                 "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
-                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]), 
+                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]),
                 "comment": str_cast_and_normalize(row_data["Comment"]),
                 "workflow":
                     {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),

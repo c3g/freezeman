@@ -1,13 +1,36 @@
 
+from decimal import Decimal
+from typing import Any, Optional, TypedDict
+
+from fms_core.models.sample import Sample
+from fms_core.models.step import Step
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import get_sample_from_container
 
-class SamplesToPoolRowHandler(GenericRowHandler):
+class SamplesToPoolRowObjectWorkflow(TypedDict):
+    step_action: str
+    step: Step | None
+
+SamplesToPoolRowObject = TypedDict(
+    "SamplesToPoolRowObject",
+    {
+        "Source Sample": Sample | None,
+        "Source Container Barcode": str,
+        "Source Container Coordinate": str,
+        "Source Depleted": bool,
+        "Volume Used": Decimal | None,
+        "Volume In Pool": Decimal | None,
+        "Comment": str,
+        "Workflow": SamplesToPoolRowObjectWorkflow,
+    }
+)
+
+class SamplesToPoolRowHandler(GenericRowHandler[SamplesToPoolRowObject]):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, source_sample, pool, volume_used, volume_in_pool, comment, workflow):
+    def process_row_inner(self, source_sample: dict[str, Any], pool: dict[str, Any], volume_used: Optional[Decimal], volume_in_pool: Optional[Decimal], comment: str, workflow: SamplesToPoolRowObjectWorkflow):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 

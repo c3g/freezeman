@@ -1,27 +1,34 @@
+from typing import Any, TypedDict
+
 from django.core.exceptions import ValidationError
 import pandas as pd
+
+from fms_core.utils import SerializedWarning
 from ._utils import data_row_ids_range, panda_values_to_str_list
 
 '''
     SheetData objects
-    attributes (input): 
+    attributes (input):
         name, pandas dataframe, header row number
 
-    preview info from rows results (output): 
-        a dictionary with the sheet name, list of column headers, data sheet validity, 
+    preview info from rows results (output):
+        a dictionary with the sheet name, list of column headers, data sheet validity,
                               list of base_errors, list of rows_results
 '''
 
 
 class SheetData():
-    def __init__(self, name, dataframe, headers, shared_data=None):
-        self.base_errors = []
+    def __init__(self, name: str, dataframe: pd.DataFrame, headers: list[str], shared_data: Any = None):
+        self.base_errors: list[str] = []
+        self.rows: list[pd.Series] = []
+        self.rows_results: list[SheetData.RowResult] = []
         self.is_valid = None
         self.header_row_nb = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
         self.shared_data = shared_data # This is additional information that is not assigned to a specific row. None for xls templates.
+
 
         if self.shared_data is not None: # This is not defined for xls templates
             self.header_row_nb = -1 # No header in dataframe for json files
@@ -35,8 +42,14 @@ class SheetData():
         if self.header_row_nb is not None:
             self.prepare_rows()
         else:
-            self.base_errors.append(f"SheetData headers could not be found for sheet " + self.name + ". Template may be outdated.")
+            self.base_errors.append(f"SheetData headers could not be found for sheet {self.name}. Template may be outdated.")
 
+    class RowResult(TypedDict):
+        row_repr: str
+        diff: list[str]
+        errors: list[str | Exception]
+        validation_error: ValidationError
+        warnings: list[SerializedWarning]
 
     def prepare_rows(self):
         self.rows = []
@@ -48,7 +61,7 @@ class SheetData():
             row_repr = f"#{row}"
             row_str_data = panda_values_to_str_list(row_data)
 
-            result = {
+            result: SheetData.RowResult = {
                 'row_repr': row_repr,
                 'diff': [row_repr] + row_str_data,
                 'errors': [],
@@ -57,7 +70,14 @@ class SheetData():
             }
             self.rows_results.append(result)
 
-    def generate_preview_info_from_rows_results(self, rows_results):
+    class PreviewInfo(TypedDict):
+        name: str
+        headers: list[str]
+        valid: bool
+        base_errors: list[str]
+        rows: list[SheetData.RowResult]
+
+    def generate_preview_info_from_rows_results(self, rows_results: list[RowResult]) -> PreviewInfo:
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
