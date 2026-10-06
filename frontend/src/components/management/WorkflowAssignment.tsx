@@ -377,9 +377,8 @@ function WorkflowOptions({
         <Tooltip
           key={step.order}
           destroyOnHidden
-          mouseEnterDelay={0}
           title={
-            step.mandatory && actionName == "skip" ? `${step.step_name} cannot be skipped` : ""
+            step.mandatory && actionName == "skip" ? `Cannot skip: '${step.step_name}' is mandatory in workflow '${workflow.name}'.` : ""
           }
         >
           <Button
