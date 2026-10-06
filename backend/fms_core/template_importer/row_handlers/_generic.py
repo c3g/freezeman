@@ -1,4 +1,4 @@
-from typing import Any, TypedDict
+from typing import Any, Protocol, TypedDict
 
 from django.core.exceptions import ValidationError
 from collections import defaultdict
@@ -56,3 +56,18 @@ class GenericRowHandler[RowObject]():
     def get_result(self) -> Result:
         warnings = serialize_warnings(self.warnings)
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}
+
+
+class RowHandlerProtocol[RowObject, **RowInputs](Protocol):
+    """
+    Structural view of a GenericRowHandler subclass. RowInputs is inferred from the subclass's
+    process_row_inner signature so that Importer.handle_row can type-check the inputs it forwards.
+    """
+    @property
+    def row_object(self) -> RowObject | None: ...
+
+    def __init__(self) -> None: ...
+
+    def process_row(self, *args: Any, **kwargs: Any) -> GenericRowHandler.Result: ...
+
+    def process_row_inner(self, *args: RowInputs.args, **kwargs: RowInputs.kwargs) -> None: ...

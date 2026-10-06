@@ -34,30 +34,26 @@ class SamplePoolingImporter(GenericImporter):
         result_list: list[SamplesToPoolRowHandler.Result] = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
-            samplestopool_kwargs = {
-                "source_sample": {
-                    "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
-                    "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
-                    "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
-                },
-                "pool": {
-                  "pool_set": pool_set,
-                  "pool_name": pool_name,
-                },
-                "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
-                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]),
-                "comment": str_cast_and_normalize(row_data["Comment"]),
-                "workflow":
-                    {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),
-                     "step": step_by_row_id[i]
-                    },
-            }
-
             (result, row_object) = self.handle_row(
                 row_handler_class=SamplesToPoolRowHandler,
                 sheet=samplestopool_sheet,
                 row_i=i,
-                **samplestopool_kwargs,
+                source_sample={
+                    "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
+                    "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
+                    "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
+                },
+                pool={
+                    "pool_set": pool_set,
+                    "pool_name": pool_name,
+                },
+                volume_used=float_to_decimal_and_none(row_data["Volume Used (uL)"]),
+                volume_in_pool=float_to_decimal_and_none(row_data["Volume In Pool (uL)"]),
+                comment=str_cast_and_normalize(row_data["Comment"]),
+                workflow={
+                    "step_action": str_cast_and_normalize(row_data["Workflow Action"]),
+                    "step": step_by_row_id[i],
+                },
             )
             result_list.append(result)
             if pool_name is not None:
