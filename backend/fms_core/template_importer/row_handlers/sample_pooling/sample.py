@@ -9,19 +9,19 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container
 
 class SamplesToPoolRowObjectWorkflow(TypedDict):
-    step_action: str
+    step_action: Optional[str]
     step: Step | None
 
 SamplesToPoolRowObject = TypedDict(
     "SamplesToPoolRowObject",
     {
         "Source Sample": Sample | None,
-        "Source Container Barcode": str,
-        "Source Container Coordinate": str,
-        "Source Depleted": bool,
+        "Source Container Barcode": Optional[str],
+        "Source Container Coordinate": Optional[str],
+        "Source Depleted": Optional[bool],
         "Volume Used": Decimal | None,
         "Volume In Pool": Decimal | None,
-        "Comment": str,
+        "Comment": Optional[str],
         "Workflow": SamplesToPoolRowObjectWorkflow,
     }
 )
@@ -30,12 +30,12 @@ class SamplesToPoolRowHandler(GenericRowHandler[SamplesToPoolRowObject]):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, source_sample: dict[str, Any], pool: dict[str, Any], volume_used: Optional[Decimal], volume_in_pool: Optional[Decimal], comment: str, workflow: SamplesToPoolRowObjectWorkflow):
+    def process_row_inner(self, source_sample: dict[str, Any], pool: dict[str, Any], volume_used: Optional[Decimal], volume_in_pool: Optional[Decimal], comment: Optional[str], workflow: SamplesToPoolRowObjectWorkflow):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 
         # Add a warning if the sample has failed qc
-        if sample.failed_qc:
+        if sample and sample.failed_qc:
             self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
         if volume_used is None:

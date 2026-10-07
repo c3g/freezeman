@@ -1,3 +1,5 @@
+from typing import Any
+
 from fms_core.models import Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPoolRowHandler, PoolsRowHandler
@@ -14,10 +16,10 @@ class SamplePoolingImporter(GenericImporter):
         super().__init__()
         self.initialize_data_for_template()
 
-    def initialize_data_for_template(self):
+    def initialize_data_for_template(self, *args: Any, **kwargs: Any) -> None:
         self.preloaded_data = {'protocol': Protocol.objects.get(name='Sample Pooling')}
 
-    def import_template_inner(self):
+    def import_template_inner(self, *args: Any, **kwargs: Any) -> None:
         pools_dict = defaultdict(list)
         samplestopool_sheet = self.sheets['SamplesToPool']
         pools_sheet = self.sheets['Pools']

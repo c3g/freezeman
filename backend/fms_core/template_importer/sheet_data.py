@@ -8,11 +8,11 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 '''
     SheetData objects
-    attributes (input):
+    attributes (input): 
         name, pandas dataframe, header row number
 
-    preview info from rows results (output):
-        a dictionary with the sheet name, list of column headers, data sheet validity,
+    preview info from rows results (output): 
+        a dictionary with the sheet name, list of column headers, data sheet validity, 
                               list of base_errors, list of rows_results
 '''
 
@@ -23,12 +23,11 @@ class SheetData():
         self.rows: list[pd.Series] = []
         self.rows_results: list[SheetData.RowResult] = []
         self.is_valid = None
-        self.header_row_nb = None
+        self.header_row_nb: int | None = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
         self.shared_data = shared_data # This is additional information that is not assigned to a specific row. None for xls templates.
-
 
         if self.shared_data is not None: # This is not defined for xls templates
             self.header_row_nb = -1 # No header in dataframe for json files
@@ -52,6 +51,7 @@ class SheetData():
         warnings: list[SerializedWarning]
 
     def prepare_rows(self):
+        assert self.header_row_nb is not None
         self.rows = []
         self.rows_results = []
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):

@@ -24,17 +24,19 @@ class GenericImporter():
     ERRORS_CUTOFF = 20
     logger = logging.getLogger(__name__)
 
+    # Set by import_template() before any of the methods using them run.
+    file: Path | InMemoryUploadedFile
+    format: str
+    dry_run: bool
+
     def __init__(self):
         self.base_errors: list[Exception | str] = []
         self.errors_count = 0
 
         self.preloaded_data: dict[str, Any] = {}
-        self.file: Path | InMemoryUploadedFile | None = None
-        self.format: str | None = None
         self.imported_file: ImportedFile | None = None
         self.sheets: dict[str, SheetData] = {}
         self.previews_info: list[SheetData.PreviewInfo] = []
-        self.dry_run: bool | None = None
         self.output_file: GenericImporter.OutputFile | None = None
 
         # self.SHEETS_INFO is expected to be defined in child classes
@@ -95,7 +97,7 @@ class GenericImporter():
                                 self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.pk)
                             except Exception as err:
                                 self.base_errors.append(err)
-                        self.import_template_inner()
+                        self.import_template_inner()                            
                         reversion.set_comment("Template import")
                 except:
                     self.logger.error("Error during template import. Transaction rolled back.", exc_info=True)
@@ -141,11 +143,12 @@ class GenericImporter():
     def preprocess_file(self, path: Any) -> os.PathLike[Any] | StringIO:
         return path
 
-    def create_sheet_data(self, name: str, headers: list[str]):
+    def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
         try:
             shared_data = None
             if self.format == ".json":
-                with open(self.file, 'r') as file:
+                # open() transparently handles InMemoryUploadedFile at runtime
+                with open(self.file, 'r') as file: # type: ignore
                     file_content = file.read()
                 json_content = json.loads(file_content)
                 sheet_data = StringIO(json.dumps(json_content["datasheets"][name]["sheet_data"]))

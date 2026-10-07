@@ -7,15 +7,15 @@ from fms_core.utils import SerializedWarning, Warnings, serialize_warnings
 
 '''
     RowHandler objects
-    An object inheriting from RowHandler() should be created for each different 'type' of row
+    An object inheriting from RowHandler() should be created for each different 'type' of row 
     (the 'type' being determined by a unique combination of columns)
     validate_input (input):
         verify that input provided by the user are compatible with the row handler operation.
         returns errors helpful to the user.
-    process_row (input):
+    process_row (input): 
         row data obtained from the Importer objects.
-    get_result (output):
-        A row result dictionary containing errors, validation error, warnings, and row data
+    get_result (output): 
+        A row result dictionary containing errors, validation error, warnings, and row data 
 '''
 
 
@@ -29,13 +29,13 @@ class GenericRowHandler[RowObject]():
     def validate_row_input(self, *args: Any, **kwargs: Any) -> None:
         pass # no validation is done by default
 
-    def has_errors(self):
+    def has_errors(self) -> bool:
         has_errors = False
         for error in self.errors.values():
             has_errors = has_errors or bool(error)
         return has_errors
 
-    def process_row(self, *args: Any, **kwargs: Any):
+    def process_row(self, *args: Any, **kwargs: Any) -> Result:
         if kwargs["is_empty_row"]:
             self.warnings["Template"] = f"Empty template row."
         elif not self.errors:

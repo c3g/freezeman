@@ -111,12 +111,12 @@ def remove_empty_str_from_dict(d) -> dict:
     return d
 
 
-def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]:
+def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
     if not isinstance(date, datetime.date):
         return None
     date_as_string = f"{date.year}-{date.month:02}-{date.day:02}"
     return date_as_string > str(datetime.datetime.now().date())
-
+    
 
 def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
     """
@@ -198,9 +198,9 @@ Warnings = dict[str, tuple[str] | str | list[str] | tuple[str, list[str]] | list
 class SerializedWarning(TypedDict):
     key: str
     format: str
-    args: list[str]
+    args: list[Any]
 def serialize_warnings(warnings: Warnings) -> list[SerializedWarning]:
-    serialized = []
+    serialized: list[SerializedWarning] = []
     for (k, vs) in (warnings).items():
         if isinstance(vs, tuple):
             # turn a single tuple warning into a canonical
