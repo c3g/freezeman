@@ -129,7 +129,10 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 for error in errors:
                     for pattern, field in patterns:
                         if re.fullmatch(pattern, error):
-                            parsed_errors[field] += error
+                            if parsed_errors[field]:
+                                parsed_errors[field] = parsed_errors[field] + ", " + error
+                            else:
+                                parsed_errors[field] = error
                 raise ValidationError(parsed_errors or {"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
             else:
                 serializer = ContainerSerializer(container_obj)
