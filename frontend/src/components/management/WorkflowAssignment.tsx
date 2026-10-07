@@ -113,7 +113,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
         },
         sorter: { multiple: 1 },
         width: 175,
-        fixed: 'end',
+        fixed: "end",
       } as SampleColumn,
     ]
   }, [sampleNextStepsBySampleID])
