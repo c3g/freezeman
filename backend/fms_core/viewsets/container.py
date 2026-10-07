@@ -125,11 +125,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     (r"^Invalid coordinates \S+ specified for coordinate system \S+$", "coordinate"),
                     (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate")
                 ]
+                parsed_errors = defaultdict(str)
                 for error in errors:
                     for pattern, field in patterns:
                         if re.fullmatch(pattern, error):
-                            raise ValidationError({field: error})
-                raise ValidationError({"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
+                            parsed_errors[field] += error
+                raise ValidationError(parsed_errors or {"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
             else:
                 serializer = ContainerSerializer(container_obj)
         except Exception as errors:
