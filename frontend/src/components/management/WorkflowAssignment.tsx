@@ -406,12 +406,12 @@ function WorkflowOptions({
                   }),
                 )
                 refresh()
-              } catch {
+              } catch (e) {
                 dispatch(
                   notifyError({
                     id: NOTIFICATION_KEY,
-                    title: "Error dequeuing samples from workflow",
-                    description: `Failed to dequeue samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
+                    title: `Error dequeing samples at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
+                    description: e.data,
                     duration: 10,
                   }),
                 )

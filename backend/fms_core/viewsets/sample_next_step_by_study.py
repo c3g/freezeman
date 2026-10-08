@@ -125,6 +125,12 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(sample_next_step__sample__id__in=sample_ids, study=study, step_order__order=stepOrder)
         values_list = queryset.values_list("sample_next_step__sample", "study", "step_order__order")
         values_list = list(values_list)
+
+        if not values_list:
+            study = Study.objects.get(pk=study)
+            step_order = StepOrder.objects.get(order=stepOrder, workflow__studies=study)
+            return HttpResponseBadRequest(f"Could not find any samples selected for step '{step_order.step.name}' in study {study.letter}.")
+
         errors = []
         removed = {}
         try:
@@ -145,7 +151,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                 if errors:
                     raise IntegrityError(errors, removed)
         except Exception as err:
-            return ValidationError(err)
+            return HttpResponseBadRequest(err)
         return Response(data=[int(k) for k in removed], status=status.HTTP_200_OK)
 
 
