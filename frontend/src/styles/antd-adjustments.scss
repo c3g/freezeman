@@ -7,7 +7,6 @@
 
 $darker-border-color: #e0e0e0;
 
-
 .PageContent.--with-tabs {
   .ant-spin-nested-loading,
   .ant-spin-container {
@@ -17,7 +16,6 @@ $darker-border-color: #e0e0e0;
     height: 100%;
   }
 }
-
 
 /*
  * Card
@@ -64,7 +62,6 @@ $darker-border-color: #e0e0e0;
   padding: 0 8px !important;
 }
 
-
 /*
  * Collapse header
  */
@@ -83,7 +80,6 @@ $darker-border-color: #e0e0e0;
 .ant-form-item-label {
   font-weight: bold;
 }
-
 
 /*
  * Descriptions
@@ -106,7 +102,6 @@ $descriptions-border-color: #e0e0e0;
   border: 1px solid $descriptions-border-color;
 }
 
-
 /*
  * Table
  */
@@ -117,7 +112,7 @@ $table-border-color: #cccccc;
   border: 1px solid $table-border-color;
 }
 .ant-table .ant-table-thead > tr > th {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(242.25, 242.25, 242.25);
 }
 .ant-table.ant-table-bordered > .ant-table-container {
   & > .ant-table-content > table > thead > tr > th,
@@ -139,7 +134,6 @@ $table-border-color: #cccccc;
   }
 }
 
-
 /*
  * Hierarchy tree
  */
@@ -156,16 +150,16 @@ $table-border-color: #cccccc;
   display: none;
 }
 
-.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:after{
-  content: ' ' !important;
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:after {
+  content: " " !important;
   width: 1px !important;
   border-left: 1px solid #d9d9d9 !important;
   height: 100% !important;
   position: absolute !important;
   left: 11px !important;
 }
-.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:before{
-  content: ' ';
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:before {
+  content: " ";
   width: 16px;
   border-bottom: 1px solid #d9d9d9;
   height: 45%;
@@ -173,9 +167,11 @@ $table-border-color: #cccccc;
   left: 12px;
 }
 
-.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+.ant-tree-show-line-no-icon.ant-tree-show-line
+  > li:last-child
+  > .ant-tree-switcher.ant-tree-switcher-noop:before {
   display: block;
-  content: ' ' !important;
+  content: " " !important;
   width: 16px !important;
   border-left: 1px solid #d9d9d9 !important;
   border-bottom: 1px solid #d9d9d9 !important;
@@ -184,10 +180,12 @@ $table-border-color: #cccccc;
   left: 12px !important;
 }
 
-
-.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+.ant-tree-show-line-no-icon.ant-tree-show-line
+  .ant-tree-child-tree
+  > li:last-child
+  > .ant-tree-switcher.ant-tree-switcher-noop:before {
   display: block;
-  content: ' ' !important;
+  content: " " !important;
   width: 16px !important;
   border-left: 1px solid #d9d9d9 !important;
   border-bottom: 1px solid #d9d9d9 !important;
@@ -196,24 +194,30 @@ $table-border-color: #cccccc;
   left: 12px !important;
 }
 
-.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+.ant-tree-show-line-no-icon.ant-tree-show-line
+  > li:last-child
+  > .ant-tree-switcher.ant-tree-switcher-noop:after {
   display: none !important;
 }
 
-.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+.ant-tree-show-line-no-icon.ant-tree-show-line
+  .ant-tree-child-tree
+  > li:last-child
+  > .ant-tree-switcher.ant-tree-switcher-noop:after {
   display: none !important;
 }
 
 body {
-  margin:0px;
+  margin: 0px;
 }
 
 div.ant-collapse-header {
-  align-items: center!important;
+  align-items: center !important;
 }
 
-div.ant-collapse-item  {
-  h4,h5{
+div.ant-collapse-item {
+  h4,
+  h5 {
     margin-top: 0px;
     margin-bottom: 0px;
   }
@@ -221,15 +225,15 @@ div.ant-collapse-item  {
 
 .ant-table-pagination {
   justify-content: flex-end;
-  margin: 12px
+  margin: 12px;
 }
 
 .ant-table-header-short .ant-table-header .ant-table-cell {
-  padding: 0 1em 0 1em !important
+  padding: 0 1em 0 1em !important;
 }
 
 .ant-table-cells-short .ant-table-body .ant-table-cell {
-  padding: 0 1em 0 1em !important
+  padding: 0 1em 0 1em !important;
 }
 
 .labwork-samples-actions {
