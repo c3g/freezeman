@@ -98,6 +98,7 @@ const ContainersDetailContent = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Kind">{container?.kind}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{container?.comment}</Descriptions.Item>
+              <Descriptions.Item label="Last Update Comment" span={3}>{container?.update_comment}</Descriptions.Item>
             </Descriptions>
 
             <TrackingFieldsContent entity={container} />
