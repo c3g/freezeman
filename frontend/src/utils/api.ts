@@ -493,6 +493,10 @@ const api = {
         study,
         step_order: stepOrder,
       }),
+    canSamplesSkip: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<boolean>>("/sample-next-step-by-study/can_samples_skip/", options, {
+        abort,
+      }),
     list: (options, abort?: boolean) =>
       get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },

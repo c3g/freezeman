@@ -28,7 +28,7 @@ import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeF
 import { fetchSamplesByDefaultSelectionAndExceptedIDs } from "../pagedItemsTable/functions"
 import { useSearchParams } from "react-router-dom"
 import DropdownListItems from "../DropdownListItems"
-import { toTitleCase } from "../../utils/functions"
+import { smartQuerySetLookup, toTitleCase } from "../../utils/functions"
 
 const MAX_SELECTION = 960
 
@@ -159,6 +159,32 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
   const sampleSelectionCount = defaultSelection
     ? samplesTableState.totalCount - exceptedSampleIDs.length
     : exceptedSampleIDs.length
+  const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
+
+  const [canSkip, setCanSkip] = useState(false)
+  useEffect(() => {
+    if (sampleSelectionCount < 1) {
+      setCanSkip(false)
+      return
+    }
+    ;(async () => {
+      try {
+        const { data } = await dispatch(
+          api.sampleNextStepByStudy.canSamplesSkip(
+            {
+              ...serializeFilterParamsWithDescriptions(wholeFilters),
+              ...smartQuerySetLookup("id", defaultSelection, exceptedSampleIDs),
+            },
+            true,
+          ),
+        )
+        setCanSkip(data)
+      } catch {
+        setCanSkip(false)
+      }
+    })()
+  }, [defaultSelection, dispatch, exceptedSampleIDs, sampleSelectionCount, wholeFilters])
+
   const selection: NonNullable<PagedItemsTableProps<SampleAndLibraryAndIdentity>["selection"]> =
     useMemo(
       () => ({
@@ -189,8 +215,6 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
     setOpenForAction(null)
   }, [])
 
-  const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
-
   const refresh = useCallback(() => {
     return samplesTableCallbacks.refreshPageCallback()
   }, [samplesTableCallbacks])
@@ -207,15 +231,26 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
           selection={selection}
           topBarExtra={
             <Space>
-              {WORKFLOW_ACTIONS.map((action) => (
-                <Button
-                  key={action}
-                  onClick={() => maybeExpandRightPanel(action)}
-                  disabled={sampleSelectionCount < 1}
-                >
-                  {`${toTitleCase(action)}`}
-                </Button>
-              ))}
+              {WORKFLOW_ACTIONS.map((action) => {
+                const skipBlocked = action === "skip" && sampleSelectionCount > 0 && !canSkip
+                return (
+                  <Tooltip
+                    key={action}
+                    title={
+                      skipBlocked
+                        ? `Cannot skip: no selected sample is queued at a non-mandatory step, or more than ${MAX_SELECTION} samples are selected.`
+                        : ""
+                    }
+                  >
+                    <Button
+                      onClick={() => maybeExpandRightPanel(action)}
+                      disabled={sampleSelectionCount < 1 || skipBlocked}
+                    >
+                      {`${toTitleCase(action)}`}
+                    </Button>
+                  </Tooltip>
+                )
+              })}
               {`${sampleSelectionCount} Samples Selected`}
             </Space>
           }
