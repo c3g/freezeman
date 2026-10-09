@@ -1,9 +1,10 @@
 from django.db.models import Count, Max, OuterRef, Subquery, Sum
-from fms_core.models import DerivedBySample, Sample, Readset, Metric
+from fms_core.models import DerivedBySample, Sample, Readset, Metric,ProcessMeasurement
 from rest_framework import viewsets
 
 from ._constants import _sample_reporting_filterset_fields
 from fms_core.serializers import SampleReportingSerializer
+from django.contrib.postgres.expressions import ArraySubquery
 
 class SampleReportingViewSet(viewsets.ModelViewSet):
     serializer_class = SampleReportingSerializer
@@ -13,6 +14,7 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
     }
 
     def get_queryset(self):
+
         root_samples = (
             Sample.objects
             .filter(child_of__isnull=True)
@@ -21,6 +23,7 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
             )
             .filter(derived_sample_count=1)
         )
+
         reads_by_biosample = (
             Readset.objects
             .filter(
@@ -42,10 +45,30 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
             .values("total_reads")[:1]
         )
 
+        latest_date_for_sample = (
+        ProcessMeasurement.objects
+        .filter(source_sample_id=OuterRef("source_sample_id"))
+        .order_by("-execution_date")
+        .values("execution_date")[:1]
+        )
+
+        last_processes = (
+            ProcessMeasurement.objects
+            .filter(
+                source_sample_id=OuterRef("sample_id"),
+                execution_date=Subquery(latest_date_for_sample),
+            )
+            .order_by("process_id")
+            .values("process_id")
+            .distinct()
+        )
+
         return DerivedBySample.objects.filter(
             sample__in=root_samples,
             volume_ratio=1,
         ).annotate(
             number_of_reads=Subquery(reads_by_biosample),
             last_process_execution_date=Max("sample__process_measurement__execution_date"),
+            last_process_ids=ArraySubquery(last_processes),
+            last_process_names=ArraySubquery(last_processes.values("process__protocol__name").distinct("process_id")),
         )
