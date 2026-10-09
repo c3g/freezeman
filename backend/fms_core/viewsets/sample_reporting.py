@@ -1,4 +1,4 @@
-from django.db.models import Exists, Min, Max, OuterRef, Subquery, Sum
+from django.db.models import Count, Min, Max, OuterRef, Subquery, Sum
 from fms_core.models import DerivedBySample, Sample, Readset, Metric,ProcessMeasurement,SampleLineage
 from rest_framework import viewsets
 
@@ -7,10 +7,6 @@ from fms_core.serializers import SampleReportingSerializer
 from django.contrib.postgres.expressions import ArraySubquery
 
 from rest_framework.response import Response
-from ._utils import _list_keys
-
-
-
 
 class SampleReportingViewSet(viewsets.ModelViewSet):
     serializer_class = SampleReportingSerializer
@@ -18,12 +14,6 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_sample_reporting_filterset_fields
     }
-
-    ordering_fields = (
-        *_list_keys(_sample_reporting_filterset_fields),
-    )
-
-    ordering = ["id"]
 
     # Collect the root sample and its descendants associated with the same biosample.
     def get_sample_chain_ids(self, root_sample_id, biosample_id):
@@ -159,16 +149,13 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
 
-        parents = SampleLineage.objects.filter(
-            child_id=OuterRef("sample_id"),
-        )
-
-        other_derived_samples = (
-            DerivedBySample.objects
-            .filter(sample_id=OuterRef("sample_id"))
-            .exclude(
-                derived_sample_id=OuterRef("derived_sample_id")
+        root_samples = (
+            Sample.objects
+            .filter(child_of__isnull=True)
+            .annotate(
+                derived_sample_count=Count("derived_samples", distinct=True)
             )
+            .filter(derived_sample_count=1)
         )
 
         reads_by_biosample = (
@@ -210,29 +197,14 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
             .distinct()
         )
 
-        return (
-            DerivedBySample.objects
-            .filter(volume_ratio=1)
-            .alias(
-                has_parent=Exists(parents),
-                has_other_derived_sample=Exists(other_derived_samples),
-            )
-            .filter(
-                has_parent=False,
-                has_other_derived_sample=False,
-            )
-            .annotate(
-                number_of_reads=Subquery(reads_by_biosample),
-                last_process_execution_date=Max(
-                    "sample__process_measurement__execution_date"
-                ),
-                last_process_ids=ArraySubquery(last_processes),
-                last_process_names=ArraySubquery(
-                    last_processes
-                    .values("process__protocol__name")
-                    .distinct("process_id")
-                ),
-            )
+        return DerivedBySample.objects.filter(
+            sample__in=root_samples,
+            volume_ratio=1,
+        ).annotate(
+            number_of_reads=Subquery(reads_by_biosample),
+            last_process_execution_date=Max("sample__process_measurement__execution_date"),
+            last_process_ids=ArraySubquery(last_processes),
+            last_process_names=ArraySubquery(last_processes.values("process__protocol__name").distinct("process_id")),
         )
     
 
