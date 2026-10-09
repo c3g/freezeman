@@ -548,12 +548,14 @@ class SampleReportingSerializer(serializers.ModelSerializer):
     number_of_reads = serializers.FloatField(read_only=True,allow_null=True,)
     cohort = serializers.CharField(source="derived_sample.biosample.individual.cohort",read_only=True,allow_null=True,)
     taxon = serializers.CharField(source="derived_sample.biosample.individual.taxon.name",read_only=True,allow_null=True,)
+    last_process_execution_date = serializers.DateField(read_only=True,allow_null=True,)
 
     class Meta:
         model = DerivedBySample
         fields = ("sample_id", "biosample_id", "external_id", "project_id", "project_name", "name",
                   "alias","container","individual","creation_date","collection_site","comment","experimental_group","volume",
-                  "concentration","quantity","quality_flag","quantity_flag","identity_flag","number_of_reads","cohort","taxon")
+                  "concentration","quantity","quality_flag","quantity_flag","identity_flag","number_of_reads","cohort","taxon",
+                  "last_process_execution_date")
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")

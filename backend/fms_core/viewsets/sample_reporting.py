@@ -1,8 +1,7 @@
-from django.db.models import Count, OuterRef, Subquery, Sum
+from django.db.models import Count, Max, OuterRef, Subquery, Sum
 from fms_core.models import DerivedBySample, Sample, Readset, Metric
 from rest_framework import viewsets
 
-from fms_core.models import DerivedBySample, Sample
 from ._constants import _sample_reporting_filterset_fields
 from fms_core.serializers import SampleReportingSerializer
 
@@ -48,4 +47,5 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
             volume_ratio=1,
         ).annotate(
             number_of_reads=Subquery(reads_by_biosample),
+            last_process_execution_date=Max("sample__process_measurement__execution_date"),
         )
