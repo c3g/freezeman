@@ -1,4 +1,4 @@
-from typing import Any, TypedDict
+from typing import Any, Optional, TypedDict
 
 from django.core.exceptions import ValidationError
 import pandas as pd
@@ -18,12 +18,12 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name: str, dataframe: pd.DataFrame, headers: list[str], shared_data: Any = None):
+    def __init__(self, name: str, dataframe: pd.DataFrame, headers: list[str], shared_data: Optional[dict[str, Any]] = None):
         self.base_errors: list[str] = []
         self.rows: list[pd.Series] = []
         self.rows_results: list[SheetData.RowResult] = []
-        self.is_valid = None
-        self.header_row_nb: int | None = None
+        self.is_valid: Optional[bool] = None
+        self.header_row_nb: Optional[int] = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
@@ -50,7 +50,7 @@ class SheetData():
         validation_error: ValidationError
         warnings: list[SerializedWarning]
 
-    def prepare_rows(self):
+    def prepare_rows(self) -> None:
         assert self.header_row_nb is not None
         self.rows = []
         self.rows_results = []

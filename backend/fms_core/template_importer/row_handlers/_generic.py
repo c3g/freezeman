@@ -1,4 +1,4 @@
-from typing import Any, Protocol, TypedDict
+from typing import Any, Optional, Protocol, TypedDict
 
 from django.core.exceptions import ValidationError
 from collections import defaultdict
@@ -24,7 +24,7 @@ class GenericRowHandler[RowObject]():
         self.errors: defaultdict[str, list[str] | str] = defaultdict(list)
         self.warnings: Warnings = defaultdict(list)
         # optional - in case the Importer needs the current row main object from the RowHandler
-        self.row_object: RowObject | None = None
+        self.row_object: Optional[RowObject] = None
 
     def validate_row_input(self, *args: Any, **kwargs: Any) -> None:
         pass # no validation is done by default
@@ -64,7 +64,7 @@ class RowHandlerProtocol[RowObject, **RowInputs](Protocol):
     process_row_inner signature so that Importer.handle_row can type-check the inputs it forwards.
     """
     @property
-    def row_object(self) -> RowObject | None: ...
+    def row_object(self) -> Optional[RowObject]: ...
 
     def __init__(self) -> None: ...
 

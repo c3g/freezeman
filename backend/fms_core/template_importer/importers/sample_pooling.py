@@ -36,6 +36,7 @@ class SamplePoolingImporter(GenericImporter):
         result_list: list[SamplesToPoolRowHandler.Result] = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
+            source_depleted = row_data["Source Depleted"]
             (result, row_object) = self.handle_row(
                 row_handler_class=SamplesToPoolRowHandler,
                 sheet=samplestopool_sheet,
@@ -43,7 +44,7 @@ class SamplePoolingImporter(GenericImporter):
                 source_sample={
                     "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
                     "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
-                    "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
+                    "depleted": check_truth_like(source_depleted) if bool(source_depleted) else None,
                 },
                 pool={
                     "pool_set": pool_set,

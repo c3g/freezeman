@@ -10,17 +10,17 @@ from fms_core.services.sample import get_sample_from_container
 
 class SamplesToPoolRowObjectWorkflow(TypedDict):
     step_action: Optional[str]
-    step: Step | None
+    step: Optional[Step]
 
 SamplesToPoolRowObject = TypedDict(
     "SamplesToPoolRowObject",
     {
-        "Source Sample": Sample | None,
+        "Source Sample": Optional[Sample],
         "Source Container Barcode": Optional[str],
         "Source Container Coordinate": Optional[str],
         "Source Depleted": Optional[bool],
-        "Volume Used": Decimal | None,
-        "Volume In Pool": Decimal | None,
+        "Volume Used": Optional[Decimal],
+        "Volume In Pool": Optional[Decimal],
         "Comment": Optional[str],
         "Workflow": SamplesToPoolRowObjectWorkflow,
     }

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, TypedDict, cast, overload
+from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, Optional, TypedDict, Union, overload
 
 __all__ = [
     "RE_SEPARATOR",
@@ -36,14 +36,14 @@ def unique[H: Hashable](sequence: Iterable[H]) -> list[H]:
     seen: set[H] = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
 
-def comma_separated_string_to_array(s: str | None) -> list[str]:
+def comma_separated_string_to_array(s: Optional[str]) -> list[str]:
     """
     Returns empty list if argument is a blank string or None,
     otherwise it returns a list of strings
     """
     return [v.strip() for v in s.split(",")] if s else []
 
-def blank_str_to_none[T](s: T) -> T | None:
+def blank_str_to_none[T](s: T) -> Optional[T]:
     """
     Returns None if the argument is a blank string, or the argument with no
     changes otherwise.
@@ -51,11 +51,11 @@ def blank_str_to_none[T](s: T) -> T | None:
     return None if s == "" else s
 
 
-def check_truth_like(string: str) -> bool:
+def check_truth_like(value: object) -> bool:
     """
-    Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
+    Checks if a value, converted to a string, is "truth-like", e.g. true, yes, etc.
     """
-    return str_normalize(string).upper() in TRUTH_VALUES
+    return str_normalize(str(value)).upper() in TRUTH_VALUES
 
 
 def float_to_decimal(n: float | str, decimals: int = 3) -> Decimal:
@@ -79,7 +79,7 @@ def normalize_scientific_name(name: str) -> str:
 def str_normalize(s: str) -> str: ...
 @overload
 def str_normalize(s: None) -> None: ...
-def str_normalize(s: str | None) -> str | None:
+def str_normalize(s: Optional[str]) -> Optional[str]:
     """
     Normalizes the Unicode characters of and strips a string.
     None is returned unchanged.
@@ -87,11 +87,7 @@ def str_normalize(s: str | None) -> str | None:
     return unicodedata.normalize("NFC", s.strip()) if isinstance(s, str) else s
 
 
-@overload
-def str_cast_and_normalize(s: None) -> None: ...  # pyright: ignore[reportOverlappingOverload]
-@overload
-def str_cast_and_normalize(s: Any) -> str: ...
-def str_cast_and_normalize(s: object) -> str | None:
+def str_cast_and_normalize(s: object) -> Optional[str]:
     """
     Casts a value to a string and then normalizes it using str_normalize.
     None is returned unchanged.
@@ -99,39 +95,36 @@ def str_cast_and_normalize(s: object) -> str | None:
     return str_normalize(str(s)) if s is not None else None
 
 
-@overload
-def str_cast_and_normalize_lower(s: None) -> None: ...  # pyright: ignore[reportOverlappingOverload]
-@overload
-def str_cast_and_normalize_lower(s: Any) -> str: ...
-def str_cast_and_normalize_lower(s: object) -> str | None:
+def str_cast_and_normalize_lower(s: object) -> Optional[str]:
     """
     Casts a value to a string, normalizes it and then converts to lower case.
     None is returned unchanged.
     """
-    return str_cast_and_normalize(s).lower() if s is not None else None
+    result = str_cast_and_normalize(s)
+    return result.lower() if result is not None else None
 
 def get_normalized_str(d: Mapping[str, Any], key: str, default: str = "") -> str:
     """
     Gets a string-valued item from a dictionary using a provided key. If the
     value is false-y, returns a default string value instead.
     """
-    return str_cast_and_normalize(d.get(key) or default)
+    return str_normalize(str(d.get(key) or default))
 
-def remove_empty_str_from_dict[K, V](d: Mapping[K, V]) -> dict[K, V | None]:
+def remove_empty_str_from_dict[K, V](d: Mapping[K, V]) -> dict[K, Optional[V]]:
     """
     Gets a dictionary, and replaces all empty string values with a None object.
     """
     return {k: None if not v else v for k, v in d.items()}
 
 
-def is_date_or_time_after_today(date: datetime.date | None) -> bool | None:
+def is_date_or_time_after_today(date: Optional[datetime.date]) -> Union[bool, None]:
     if not isinstance(date, datetime.date):
         return None
     date_as_string = f"{date.year}-{date.month:02}-{date.day:02}"
     return date_as_string > str(datetime.datetime.now().date())
     
 
-def convert_concentration_from_ngbyul_to_nm(concentration: float | None, molecular_weight: float | None, molecule_count: float | None) -> float | None:
+def convert_concentration_from_ngbyul_to_nm(concentration: Optional[float], molecular_weight: Optional[float], molecule_count: Optional[float]) -> Optional[float]:
     """
     Gets a concentration in ng/uL and convert it to molar concentration in nM.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -146,10 +139,10 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float | None, molecul
 
 #TODO Test this
 def convert_concentration_from_nm_to_ngbyul(
-    concentration_nm: float | str | Decimal | None,
-    molecular_weight: float | str | Decimal | None,
-    molecule_count: float | str | Decimal | None,
-) -> Decimal | None:
+    concentration_nm: Optional[float | str | Decimal],
+    molecular_weight: Optional[float | str | Decimal],
+    molecule_count: Optional[float | str | Decimal],
+) -> Optional[Decimal]:
     """
     Gets a concentration in nM and convert it to molar concentration in ng/uL.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -161,7 +154,7 @@ def convert_concentration_from_nm_to_ngbyul(
 
     return concentration
 
-def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
+def make_generator[T](obj: Optional[T | Iterable[T]]) -> Generator[T, None, None]:
     """
     Ensures that ManyToMany fields such as the `obj` passed are iterable.
     None is turned into an empty iterable,
@@ -181,12 +174,10 @@ def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
 
     if obj is None:
         return
+    elif isinstance(obj, Iterable):
+        yield from obj
     else:
-        try:
-            for x in cast(Iterable[T], obj):
-                yield x
-        except TypeError:
-            yield cast(T, obj)
+        yield obj
 
 def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     """

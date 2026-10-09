@@ -1,5 +1,5 @@
 from io import StringIO
-import os
+from pathlib import Path
 from typing import TypedDict
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
@@ -31,7 +31,7 @@ class QCIntegrationSparkImporter(GenericImporter):
         super().__init__()
         self.initialize_data_for_template()
     
-    def preprocess_file(self, path: os.PathLike) -> StringIO:
+    def preprocess_file(self, path: Path | InMemoryUploadedFile) -> StringIO:
         new_content = StringIO()
         if isinstance(path, InMemoryUploadedFile):
             original = path.open()

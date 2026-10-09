@@ -1,7 +1,7 @@
 from io import StringIO
 import logging
 from pathlib import Path
-from typing import Any, Optional, TypedDict, cast
+from typing import Any, Optional, TypedDict
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -34,10 +34,10 @@ class GenericImporter():
         self.errors_count = 0
 
         self.preloaded_data: dict[str, Any] = {}
-        self.imported_file: ImportedFile | None = None
+        self.imported_file: Optional[ImportedFile] = None
         self.sheets: dict[str, SheetData] = {}
         self.previews_info: list[SheetData.PreviewInfo] = []
-        self.output_file: GenericImporter.OutputFile | None = None
+        self.output_file: Optional[GenericImporter.OutputFile] = None
 
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
@@ -54,12 +54,13 @@ class GenericImporter():
         has_warnings: bool
         base_errors: list[GenericImporter.ResultBaseError]
         result_previews: list[SheetData.PreviewInfo]
-        output_file: GenericImporter.OutputFile | None
+        output_file: Optional[GenericImporter.OutputFile]
 
     def import_template(self, file: Path | InMemoryUploadedFile, dry_run: bool, user: Optional[User] = None) -> GenericImporter.Result:
         self.file = file
         self.dry_run = dry_run
-        file_name, file_format = os.path.splitext(cast(str, file.name))
+        assert file.name is not None
+        file_name, file_format = os.path.splitext(file.name)
         self.format = file_format
         file_path = None
 
@@ -113,12 +114,10 @@ class GenericImporter():
             # is a Path object instead of an InMemoryUploadedFile.
 
             # Save the template on the server if the template is valid.
-            if self.is_valid and file_path is not None:
+            if self.is_valid and file_path is not None and isinstance(self.file, InMemoryUploadedFile):
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
-                        # self.file is always an InMemoryUploadedFile in this case
-                        # as user should be not None
-                        for line in self.file: # type: ignore
+                        for line in self.file:
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
                     self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
@@ -140,15 +139,15 @@ class GenericImporter():
         }
         return import_result
 
-    def preprocess_file(self, path: Any) -> os.PathLike[Any] | StringIO:
+    def preprocess_file(self, path: Path | InMemoryUploadedFile) -> Path | InMemoryUploadedFile | StringIO:
         return path
 
-    def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
+    def create_sheet_data(self, name: str, headers: list[str]) -> Optional[SheetData]:
         try:
             shared_data = None
             if self.format == ".json":
-                # open() transparently handles InMemoryUploadedFile at runtime
-                with open(self.file, 'r') as file: # type: ignore
+                # TODO: open() fails if self.file is an InMemoryUploadedFile. Only a Path works here.
+                with open(self.file, 'r') as file:
                     file_content = file.read()
                 json_content = json.loads(file_content)
                 sheet_data = StringIO(json.dumps(json_content["datasheets"][name]["sheet_data"]))
@@ -172,13 +171,13 @@ class GenericImporter():
             return None
 
 
-    def initialize_data_for_template(self, *args: Any, **kwargs: Any):
+    def initialize_data_for_template(self, *args: Any, **kwargs: Any) -> None:
         """
         Preloading data from template & template global data creation
         """
         pass
 
-    def handle_row[RowObject, **RowInputs](self, row_handler_class: type[RowHandlerProtocol[RowObject, RowInputs]], sheet: SheetData, row_i: int, *args: RowInputs.args, **kwargs: RowInputs.kwargs):
+    def handle_row[RowObject, **RowInputs](self, row_handler_class: type[RowHandlerProtocol[RowObject, RowInputs]], sheet: SheetData, row_i: int, *args: RowInputs.args, **kwargs: RowInputs.kwargs) -> tuple[GenericRowHandler.Result, Optional[RowObject]]:
         row_handler_obj = row_handler_class()
         result: GenericRowHandler.Result
         if self.errors_count >= self.ERRORS_CUTOFF:
