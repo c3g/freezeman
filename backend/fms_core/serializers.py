@@ -548,9 +548,20 @@ class SampleReportingSerializer(serializers.ModelSerializer):
     allow_null=True,
     )
 
+    name = serializers.CharField(
+    source="sample.name",
+    read_only=True,
+    )
+
+    alias = serializers.CharField(
+    source="derived_sample.biosample.alias",
+    read_only=True,
+    )
+
     class Meta:
         model = DerivedBySample
-        fields = ("sample_id", "biosample_id", "external_id", "project_id", "project_name")
+        fields = ("sample_id", "biosample_id", "external_id", "project_id", "project_name", "name",
+    "alias",)
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
