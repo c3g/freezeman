@@ -551,14 +551,13 @@ class SampleReportingSerializer(serializers.ModelSerializer):
     last_process_execution_date = serializers.DateField(read_only=True,allow_null=True,)
     last_process_ids = serializers.ListField(child=serializers.IntegerField(),read_only=True,)
     last_process_names = serializers.ListField(child=serializers.CharField(),read_only=True,)
-    extraction_date = serializers.DateField(read_only=True,allow_null=True,)
 
     class Meta:
         model = DerivedBySample
         fields = ("sample_id", "biosample_id", "external_id", "project_id", "project_name", "name",
                   "alias","container","individual","creation_date","collection_site","comment","experimental_group","volume",
                   "concentration","quantity","quality_flag","quantity_flag","identity_flag","number_of_reads","cohort","taxon",
-                  "last_process_execution_date","last_process_ids","last_process_names","extraction_date")
+                  "last_process_execution_date","last_process_ids","last_process_names",)
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
