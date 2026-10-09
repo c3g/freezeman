@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import OuterRef, F
 from django.apps import apps
-from typing import TYPE_CHECKING, Optional, List, Union
+from typing import Optional, List, Union
 
 from ..containers import (
     CONTAINER_KIND_SPECS,
@@ -58,10 +58,6 @@ class Sample(TrackedModel):
                                         help_text='Identity flag of the sample.', max_length=20)
 
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
-
-    if TYPE_CHECKING:
-        # Reverse relation of DerivedBySample.sample, declared for the type checker only.
-        derived_by_samples: models.Manager[DerivedBySample]
 
     class Meta:
         indexes = [

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, Optional, TypedDict, Union, overload
+from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, TypedDict, overload
 
 __all__ = [
     "RE_SEPARATOR",
@@ -36,14 +36,14 @@ def unique[H: Hashable](sequence: Iterable[H]) -> list[H]:
     seen: set[H] = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
 
-def comma_separated_string_to_array(s: Optional[str]) -> list[str]:
+def comma_separated_string_to_array(s: str | None) -> list[str]:
     """
     Returns empty list if argument is a blank string or None,
     otherwise it returns a list of strings
     """
     return [v.strip() for v in s.split(",")] if s else []
 
-def blank_str_to_none[T](s: T) -> Optional[T]:
+def blank_str_to_none[T](s: T) -> T | None:
     """
     Returns None if the argument is a blank string, or the argument with no
     changes otherwise.
@@ -79,7 +79,7 @@ def normalize_scientific_name(name: str) -> str:
 def str_normalize(s: str) -> str: ...
 @overload
 def str_normalize(s: None) -> None: ...
-def str_normalize(s: Optional[str]) -> Optional[str]:
+def str_normalize(s: str | None) -> str | None:
     """
     Normalizes the Unicode characters of and strips a string.
     None is returned unchanged.
@@ -87,7 +87,7 @@ def str_normalize(s: Optional[str]) -> Optional[str]:
     return unicodedata.normalize("NFC", s.strip()) if isinstance(s, str) else s
 
 
-def str_cast_and_normalize(s: object) -> Optional[str]:
+def str_cast_and_normalize(s: object) -> str | None:
     """
     Casts a value to a string and then normalizes it using str_normalize.
     None is returned unchanged.
@@ -95,7 +95,7 @@ def str_cast_and_normalize(s: object) -> Optional[str]:
     return str_normalize(str(s)) if s is not None else None
 
 
-def str_cast_and_normalize_lower(s: object) -> Optional[str]:
+def str_cast_and_normalize_lower(s: object) -> str | None:
     """
     Casts a value to a string, normalizes it and then converts to lower case.
     None is returned unchanged.
@@ -110,21 +110,21 @@ def get_normalized_str(d: Mapping[str, Any], key: str, default: str = "") -> str
     """
     return str_normalize(str(d.get(key) or default))
 
-def remove_empty_str_from_dict[K, V](d: Mapping[K, V]) -> dict[K, Optional[V]]:
+def remove_empty_str_from_dict[K, V](d: Mapping[K, V]) -> dict[K, V | None]:
     """
     Gets a dictionary, and replaces all empty string values with a None object.
     """
     return {k: None if not v else v for k, v in d.items()}
 
 
-def is_date_or_time_after_today(date: Optional[datetime.date]) -> Union[bool, None]:
+def is_date_or_time_after_today(date: datetime.date | None) -> bool | None:
     if not isinstance(date, datetime.date):
         return None
     date_as_string = f"{date.year}-{date.month:02}-{date.day:02}"
     return date_as_string > str(datetime.datetime.now().date())
-    
 
-def convert_concentration_from_ngbyul_to_nm(concentration: Optional[float], molecular_weight: Optional[float], molecule_count: Optional[float]) -> Optional[float]:
+
+def convert_concentration_from_ngbyul_to_nm(concentration: float | None, molecular_weight: float | None, molecule_count: float | None) -> float | None:
     """
     Gets a concentration in ng/uL and convert it to molar concentration in nM.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -139,10 +139,10 @@ def convert_concentration_from_ngbyul_to_nm(concentration: Optional[float], mole
 
 #TODO Test this
 def convert_concentration_from_nm_to_ngbyul(
-    concentration_nm: Optional[float | str | Decimal],
-    molecular_weight: Optional[float | str | Decimal],
-    molecule_count: Optional[float | str | Decimal],
-) -> Optional[Decimal]:
+    concentration_nm: float | str | Decimal | None,
+    molecular_weight: float | str | Decimal | None,
+    molecule_count: float | str | Decimal | None,
+) -> Decimal | None:
     """
     Gets a concentration in nM and convert it to molar concentration in ng/uL.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -154,7 +154,7 @@ def convert_concentration_from_nm_to_ngbyul(
 
     return concentration
 
-def make_generator[T](obj: Optional[T | Iterable[T]]) -> Generator[T, None, None]:
+def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
     """
     Ensures that ManyToMany fields such as the `obj` passed are iterable.
     None is turned into an empty iterable,
@@ -177,7 +177,11 @@ def make_generator[T](obj: Optional[T | Iterable[T]]) -> Generator[T, None, None
     elif isinstance(obj, Iterable):
         yield from obj
     else:
-        yield obj
+        try:
+            for x in obj:
+                yield x
+        except TypeError:
+            yield obj
 
 def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     """

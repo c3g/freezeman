@@ -24,20 +24,18 @@ class GenericImporter():
     ERRORS_CUTOFF = 20
     logger = logging.getLogger(__name__)
 
-    # Set by import_template() before any of the methods using them run.
-    file: Path | InMemoryUploadedFile
-    format: str
-    dry_run: bool
-
     def __init__(self):
         self.base_errors: list[Exception | str] = []
         self.errors_count = 0
 
         self.preloaded_data: dict[str, Any] = {}
-        self.imported_file: Optional[ImportedFile] = None
+        self.file: Path | InMemoryUploadedFile = None
+        self.format: str = None
+        self.imported_file: ImportedFile | None = None
         self.sheets: dict[str, SheetData] = {}
         self.previews_info: list[SheetData.PreviewInfo] = []
-        self.output_file: Optional[GenericImporter.OutputFile] = None
+        self.dry_run: bool = None
+        self.output_file: GenericImporter.OutputFile | None = None
 
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
@@ -54,7 +52,7 @@ class GenericImporter():
         has_warnings: bool
         base_errors: list[GenericImporter.ResultBaseError]
         result_previews: list[SheetData.PreviewInfo]
-        output_file: Optional[GenericImporter.OutputFile]
+        output_file: GenericImporter.OutputFile | None
 
     def import_template(self, file: Path | InMemoryUploadedFile, dry_run: bool, user: Optional[User] = None) -> GenericImporter.Result:
         self.file = file
@@ -98,7 +96,7 @@ class GenericImporter():
                                 self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.pk)
                             except Exception as err:
                                 self.base_errors.append(err)
-                        self.import_template_inner()                            
+                        self.import_template_inner()
                         reversion.set_comment("Template import")
                 except:
                     self.logger.error("Error during template import. Transaction rolled back.", exc_info=True)
@@ -114,7 +112,7 @@ class GenericImporter():
             # is a Path object instead of an InMemoryUploadedFile.
 
             # Save the template on the server if the template is valid.
-            if self.is_valid and file_path is not None and isinstance(self.file, InMemoryUploadedFile):
+            if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
                         for line in self.file:
@@ -139,10 +137,10 @@ class GenericImporter():
         }
         return import_result
 
-    def preprocess_file(self, path: Path | InMemoryUploadedFile) -> Path | InMemoryUploadedFile | StringIO:
+    def preprocess_file(self, path: os.PathLike | StringIO) -> os.PathLike | StringIO:
         return path
 
-    def create_sheet_data(self, name: str, headers: list[str]) -> Optional[SheetData]:
+    def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
         try:
             shared_data = None
             if self.format == ".json":
@@ -177,7 +175,7 @@ class GenericImporter():
         """
         pass
 
-    def handle_row[RowObject, **RowInputs](self, row_handler_class: type[RowHandlerProtocol[RowObject, RowInputs]], sheet: SheetData, row_i: int, *args: RowInputs.args, **kwargs: RowInputs.kwargs) -> tuple[GenericRowHandler.Result, Optional[RowObject]]:
+    def handle_row[RowObject, **RowInputs](self, row_handler_class: type[RowHandlerProtocol[RowObject, RowInputs]], sheet: SheetData, row_i: int, *args: RowInputs.args, **kwargs: RowInputs.kwargs) -> tuple[GenericRowHandler.Result, RowObject | None]:
         row_handler_obj = row_handler_class()
         result: GenericRowHandler.Result
         if self.errors_count >= self.ERRORS_CUTOFF:

@@ -8,11 +8,11 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 '''
     SheetData objects
-    attributes (input): 
+    attributes (input):
         name, pandas dataframe, header row number
 
-    preview info from rows results (output): 
-        a dictionary with the sheet name, list of column headers, data sheet validity, 
+    preview info from rows results (output):
+        a dictionary with the sheet name, list of column headers, data sheet validity,
                               list of base_errors, list of rows_results
 '''
 
@@ -22,8 +22,8 @@ class SheetData():
         self.base_errors: list[str] = []
         self.rows: list[pd.Series] = []
         self.rows_results: list[SheetData.RowResult] = []
-        self.is_valid: Optional[bool] = None
-        self.header_row_nb: Optional[int] = None
+        self.is_valid: bool | None = None
+        self.header_row_nb: int | None = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
