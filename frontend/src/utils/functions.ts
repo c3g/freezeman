@@ -113,9 +113,6 @@ export function smartQuerySetLookup(
   defaultSelection: boolean,
   exceptedIDs: FMSId[],
 ) {
-  if (exceptedIDs.length === 0) {
-    return {}
-  }
   if (defaultSelection) {
     return { [`${field}__not__in`]: exceptedIDs.join(",") }
   } else {

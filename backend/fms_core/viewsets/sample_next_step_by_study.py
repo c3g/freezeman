@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest, QueryDict
 from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
-from fms_core.filters import SampleNextStepByStudyFilter
+from fms_core.filters import SampleFilter, SampleNextStepByStudyFilter
 from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
@@ -17,6 +17,8 @@ from fms_core.models import SampleNextStep, SampleNextStepByStudy, Sample, Study
 from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, skip_by_sample_next_step_by_study
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
+
+MAX_SELECTION = 960
 
 class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all().distinct()
@@ -91,6 +93,26 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest(" ".join(errors))
         else:
             return Response(data=skip_count, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def can_samples_skip(self, request: Request):
+        """
+        Returns True if at least one selected sample is queued to a step order that is not mandatory.
+        Returns False if no selected sample is queued, if all queued samples are at mandatory step
+        orders, or if more than MAX_SELECTION samples are selected.
+        Samples are selected with the samples table filters, plus id__in (inclusive) and id__not__in (exclusive).
+        """
+        # Use SampleFilter, not SampleNextStepByStudyFilter: the table filters are sample filters, and
+        # SampleNextStepByStudyFilter lacks the custom ones (is_pooled, metadata, qPCR_status__in,
+        # qc_flag__in, project name, batch name/barcode).
+        samples = SampleFilter(request.GET, queryset=Sample.objects.all().distinct()).qs
+        if samples.count() > MAX_SELECTION:
+            return Response(False)
+        queued = SampleNextStepByStudy.objects.filter(sample_next_step__sample__in=samples)
+        if not queued.exists():
+            return Response(False)
+        queued = queued.filter(step_order__mandatory=False)
+        return Response(queued.exists())
 
     def destroy(self, request, pk=None):
         removed = False
