@@ -525,6 +525,17 @@ class SampleExportSerializer(serializers.Serializer):
                   'quality_flag', 'quantity_flag', 'identity_flag', 'project', 'depleted', 'is_library', 'derived_samples_count', 'comment')
 
 
+class SampleReportingSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(read_only=True)
+    biosample_id = serializers.IntegerField(
+        source="derived_sample.biosample_id",
+        read_only=True,
+    )
+
+    class Meta:
+        model = DerivedBySample
+        fields = ("sample_id", "biosample_id")
+
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
     derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")

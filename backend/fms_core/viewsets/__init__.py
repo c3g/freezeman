@@ -21,6 +21,7 @@ from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
 from .readset_reporting import ReadsetReportingViewSet
+from .sample_reporting import SampleReportingViewSet
 from .sequence import SequenceViewSet
 from .library import LibraryViewSet
 from .platform import PlatformViewSet
@@ -73,6 +74,7 @@ __all__ = [
     "VersionViewSet",
     "ProjectViewSet",
     "ReadsetReportingViewSet",
+    "SampleReportingViewSet",
     "SequenceViewSet",
     "LibraryViewSet",
     "PlatformViewSet",

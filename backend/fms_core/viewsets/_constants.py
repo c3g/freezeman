@@ -154,6 +154,10 @@ _sample_identity_match_filterset_fields: FiltersetFields = {
     "compared_sites": SCALAR_FILTERS,
 }
 
+_sample_reporting_filterset_fields: FiltersetFields = {
+    "project__parent_project__id": PK_FILTERS,
+}
+
 _protocol_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
