@@ -1,3 +1,5 @@
+from typing import Any
+
 from fms_core.models import Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPoolRowHandler, PoolsRowHandler
@@ -14,10 +16,10 @@ class SamplePoolingImporter(GenericImporter):
         super().__init__()
         self.initialize_data_for_template()
 
-    def initialize_data_for_template(self):
+    def initialize_data_for_template(self, *args: Any, **kwargs: Any) -> None:
         self.preloaded_data = {'protocol': Protocol.objects.get(name='Sample Pooling')}
 
-    def import_template_inner(self):
+    def import_template_inner(self, *args: Any, **kwargs: Any) -> None:
         pools_dict = defaultdict(list)
         samplestopool_sheet = self.sheets['SamplesToPool']
         pools_sheet = self.sheets['Pools']
@@ -31,33 +33,30 @@ class SamplePoolingImporter(GenericImporter):
         """
 
         pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
-        result_list = []
+        result_list: list[SamplesToPoolRowHandler.Result] = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
-            samplestopool_kwargs = {
-                "source_sample": {
-                    "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
-                    "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
-                    "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
-                },
-                "pool": {
-                  "pool_set": pool_set,
-                  "pool_name": pool_name,
-                },
-                "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
-                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]), 
-                "comment": str_cast_and_normalize(row_data["Comment"]),
-                "workflow":
-                    {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),
-                     "step": step_by_row_id[i]
-                    },
-            }
-
+            source_depleted = row_data["Source Depleted"]
             (result, row_object) = self.handle_row(
                 row_handler_class=SamplesToPoolRowHandler,
                 sheet=samplestopool_sheet,
                 row_i=i,
-                **samplestopool_kwargs,
+                source_sample={
+                    "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
+                    "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
+                    "depleted": check_truth_like(source_depleted) if bool(source_depleted) else None,
+                },
+                pool={
+                    "pool_set": pool_set,
+                    "pool_name": pool_name,
+                },
+                volume_used=float_to_decimal_and_none(row_data["Volume Used (uL)"]),
+                volume_in_pool=float_to_decimal_and_none(row_data["Volume In Pool (uL)"]),
+                comment=str_cast_and_normalize(row_data["Comment"]),
+                workflow={
+                    "step_action": str_cast_and_normalize(row_data["Workflow Action"]),
+                    "step": step_by_row_id[i],
+                },
             )
             result_list.append(result)
             if pool_name is not None:

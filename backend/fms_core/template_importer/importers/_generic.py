@@ -1,6 +1,8 @@
 from io import StringIO
 import logging
 from pathlib import Path
+from typing import Any, Optional, TypedDict
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
@@ -16,30 +18,46 @@ from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
 from fms_core.models import ImportedFile
 from fms_core.templates import SheetInfo
+from fms_core.template_importer.row_handlers._generic import GenericRowHandler, RowHandlerProtocol
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        self.base_errors = []
+        self.base_errors: list[Exception | str] = []
         self.errors_count = 0
 
-        self.preloaded_data = {}
-        self.file = None
-        self.format = None
-        self.imported_file = None
-        self.sheets = {}
-        self.previews_info = []
-        self.dry_run = None
-        self.output_file = None
+        self.preloaded_data: dict[str, Any] = {}
+        self.file: Path | InMemoryUploadedFile = None
+        self.format: str = None
+        self.imported_file: ImportedFile | None = None
+        self.sheets: dict[str, SheetData] = {}
+        self.previews_info: list[SheetData.PreviewInfo] = []
+        self.dry_run: bool = None
+        self.output_file: GenericImporter.OutputFile | None = None
 
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
-    def import_template(self, file: Path | InMemoryUploadedFile, dry_run, user = None):
+    class ResultBaseError(TypedDict):
+        error: str
+
+    class OutputFile(TypedDict):
+        name: str
+        content: bytes
+
+    class Result(TypedDict):
+        valid: bool
+        has_warnings: bool
+        base_errors: list[GenericImporter.ResultBaseError]
+        result_previews: list[SheetData.PreviewInfo]
+        output_file: GenericImporter.OutputFile | None
+
+    def import_template(self, file: Path | InMemoryUploadedFile, dry_run: bool, user: Optional[User] = None) -> GenericImporter.Result:
         self.file = file
         self.dry_run = dry_run
+        assert file.name is not None
         file_name, file_format = os.path.splitext(file.name)
         self.format = file_format
         file_path = None
@@ -75,10 +93,10 @@ class GenericImporter():
                             new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
                             file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
                             try:
-                                self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
+                                self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.pk)
                             except Exception as err:
                                 self.base_errors.append(err)
-                        self.import_template_inner()                            
+                        self.import_template_inner()
                         reversion.set_comment("Template import")
                 except:
                     self.logger.error("Error during template import. Transaction rolled back.", exc_info=True)
@@ -97,9 +115,7 @@ class GenericImporter():
             if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
-                        # self.file is always an InMemoryUploadedFile in this case
-                        # as user should be not None
-                        for line in self.file: # type: ignore
+                        for line in self.file:
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
                     self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
@@ -110,23 +126,25 @@ class GenericImporter():
                 has_warnings = True
                 break
 
-        import_result = {'valid': self.is_valid,
-                         'has_warnings': has_warnings,
-                         'base_errors': [{
-                             "error": str(e),
-                             } for e in self.base_errors],
-                         'result_previews': self.previews_info,
-                         'output_file': self.output_file
-                         }
+        import_result: GenericImporter.Result = {
+            'valid': self.is_valid,
+            'has_warnings': has_warnings,
+            'base_errors': [{
+                "error": str(e),
+                } for e in self.base_errors],
+            'result_previews': self.previews_info,
+            'output_file': self.output_file
+        }
         return import_result
 
-    def preprocess_file(self, path) -> os.PathLike | StringIO:
+    def preprocess_file(self, path: os.PathLike | StringIO) -> os.PathLike | StringIO:
         return path
 
-    def create_sheet_data(self, name, headers):
+    def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
         try:
             shared_data = None
             if self.format == ".json":
+                # TODO: open() fails if self.file is an InMemoryUploadedFile. Only a Path works here.
                 with open(self.file, 'r') as file:
                     file_content = file.read()
                 json_content = json.loads(file_content)
@@ -140,7 +158,7 @@ class GenericImporter():
             elif self.format == ".tsv":
                 pd_sheet = pd.read_csv(self.preprocess_file(self.file), sep="\t", header=None)
             else:
-                self.base_errors.append(f"Template file format " + self.format + " not supported.")
+                self.base_errors.append(f"Template file format {self.format} not supported.")
                 return None
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
@@ -151,19 +169,20 @@ class GenericImporter():
             return None
 
 
-    def initialize_data_for_template(self, **kwargs):
+    def initialize_data_for_template(self, *args: Any, **kwargs: Any) -> None:
         """
         Preloading data from template & template global data creation
         """
         pass
 
-    def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
+    def handle_row[RowObject, **RowInputs](self, row_handler_class: type[RowHandlerProtocol[RowObject, RowInputs]], sheet: SheetData, row_i: int, *args: RowInputs.args, **kwargs: RowInputs.kwargs) -> tuple[GenericRowHandler.Result, RowObject | None]:
         row_handler_obj = row_handler_class()
+        result: GenericRowHandler.Result
         if self.errors_count >= self.ERRORS_CUTOFF:
             result = {'errors': [], 'validation_error': ValidationError({}), 'warnings': []} # Skip row handling, report no error
         else:
             is_empty_row = not any(sheet.rows[row_i])
-            result = row_handler_obj.process_row(is_empty_row=is_empty_row, **kwargs)
+            result = row_handler_obj.process_row(*args, is_empty_row=is_empty_row, **kwargs)
 
             if result['validation_error'].messages:
                 self.errors_count += 1
@@ -183,6 +202,6 @@ class GenericImporter():
 
         else:
             return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
-    
-    def import_template_inner(self, *args, **kwargs):
+
+    def import_template_inner(self, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError("import_template_inner must be implemented in child classes")

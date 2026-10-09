@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, NewType, NotRequired, TypeVar, TypedDict, Union
+from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, TypedDict, overload
 
 __all__ = [
     "RE_SEPARATOR",
@@ -32,18 +32,18 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
-def unique(sequence):
-    seen = set()
+def unique[H: Hashable](sequence: Iterable[H]) -> list[H]:
+    seen: set[H] = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
 
-def comma_separated_string_to_array(s):
+def comma_separated_string_to_array(s: str | None) -> list[str]:
     """
     Returns empty list if argument is a blank string or None,
     otherwise it returns a list of strings
     """
     return [v.strip() for v in s.split(",")] if s else []
 
-def blank_str_to_none(s: Any):
+def blank_str_to_none[T](s: T) -> T | None:
     """
     Returns None if the argument is a blank string, or the argument with no
     changes otherwise.
@@ -51,14 +51,14 @@ def blank_str_to_none(s: Any):
     return None if s == "" else s
 
 
-def check_truth_like(string: str) -> bool:
+def check_truth_like(value: object) -> bool:
     """
-    Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
+    Checks if a value, converted to a string, is "truth-like", e.g. true, yes, etc.
     """
-    return str_normalize(string).upper() in TRUTH_VALUES
+    return str_normalize(str(value)).upper() in TRUTH_VALUES
 
 
-def float_to_decimal(n: Union[float, str], decimals: int = 3) -> Decimal:
+def float_to_decimal(n: float | str, decimals: int = 3) -> Decimal:
     tpl = f"{{:.{decimals}f}}"
     return Decimal(tpl.format(float(n)))
 
@@ -75,65 +75,74 @@ def normalize_scientific_name(name: str) -> str:
     return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name or "")))
 
 
-def str_normalize(s: str) -> str:
+@overload
+def str_normalize(s: str) -> str: ...
+@overload
+def str_normalize(s: None) -> None: ...
+def str_normalize(s: str | None) -> str | None:
     """
     Normalizes the Unicode characters of and strips a string.
+    None is returned unchanged.
     """
     return unicodedata.normalize("NFC", s.strip()) if isinstance(s, str) else s
 
 
-def str_cast_and_normalize(s) -> str:
+def str_cast_and_normalize(s: object) -> str | None:
     """
     Casts a value to a string and then normalizes it using str_normalize.
+    None is returned unchanged.
     """
-    return str_normalize(str(s) if s is not None else s)
+    return str_normalize(str(s)) if s is not None else None
 
 
-def str_cast_and_normalize_lower(s) -> Union[str, None]:
+def str_cast_and_normalize_lower(s: object) -> str | None:
     """
     Casts a value to a string, normalizes it and then converts to lower case.
+    None is returned unchanged.
     """
     result = str_cast_and_normalize(s)
-    return result.lower() if result is not None else result
+    return result.lower() if result is not None else None
 
-def get_normalized_str(d: dict, key: str, default: str = "") -> str:
+def get_normalized_str(d: Mapping[str, Any], key: str, default: str = "") -> str:
     """
     Gets a string-valued item from a dictionary using a provided key. If the
     value is false-y, returns a default string value instead.
     """
-    return str_cast_and_normalize(d.get(key) or default)
+    return str_normalize(str(d.get(key) or default))
 
-def remove_empty_str_from_dict(d) -> dict:
+def remove_empty_str_from_dict[K, V](d: Mapping[K, V]) -> dict[K, V | None]:
     """
     Gets a dictionary, and replaces all empty string values with a None object.
     """
-    d = {k: None if not v else v for k, v in d.items() }
-    return d
+    return {k: None if not v else v for k, v in d.items()}
 
 
-def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
+def is_date_or_time_after_today(date: datetime.date | None) -> bool | None:
     if not isinstance(date, datetime.date):
         return None
     date_as_string = f"{date.year}-{date.month:02}-{date.day:02}"
     return date_as_string > str(datetime.datetime.now().date())
-    
 
-def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
+
+def convert_concentration_from_ngbyul_to_nm(concentration: float | None, molecular_weight: float | None, molecule_count: float | None) -> float | None:
     """
     Gets a concentration in ng/uL and convert it to molar concentration in nM.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
     the function return None implying an erroneous state.
     """
-    molar_concentration = None
     if concentration is None or not molecular_weight or not molecule_count:  # Prevent division by 0 and operation on NoneType
-        return molar_concentration
+        return None
     molar_concentration = (concentration / (molecule_count * molecular_weight)) * 1000000
 
     return molar_concentration
 
 
 #TODO Test this
-def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, molecule_count) -> Decimal:
+def convert_concentration_from_nm_to_ngbyul(
+    concentration_nm: float | str | Decimal | None,
+    molecular_weight: float | str | Decimal | None,
+    molecule_count: float | str | Decimal | None,
+) -> Decimal | None:
     """
     Gets a concentration in nM and convert it to molar concentration in ng/uL.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -145,8 +154,7 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
 
     return concentration
 
-T = TypeVar('T')
-def make_generator(obj: Union[T, None, Iterable[T]]) -> Generator[T, None, None]:
+def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
     """
     Ensures that ManyToMany fields such as the `obj` passed are iterable.
     None is turned into an empty iterable,
@@ -166,6 +174,8 @@ def make_generator(obj: Union[T, None, Iterable[T]]) -> Generator[T, None, None]
 
     if obj is None:
         return
+    elif isinstance(obj, Iterable):
+        yield from obj
     else:
         try:
             for x in obj:
@@ -194,49 +204,46 @@ def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     return f"{name}_{str_timestamp}{extension}", timestamp.isoformat()
 
 
-Warnings = NewType('Warnings', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
-class SerializedWarningItem(TypedDict):
+CanonicalWarning = tuple[str, list[Any]]
+"""A canonical warning: a format string and its arguments."""
+WarningValue = str | tuple[str] | CanonicalWarning | list[str] | list[CanonicalWarning] | list[str | CanonicalWarning]
+"""Any shape of warning encountered in this project, so far."""
+Warnings = dict[str, WarningValue]
+class SerializedWarning(TypedDict):
     key: str
     format: str
-    args: list[str]
-SerializedWarnings = list[SerializedWarningItem]
-def serialize_warnings(warnings: Warnings) -> SerializedWarnings:
-    serialized = []
-    for (k, vs) in (warnings).items():
-        if isinstance(vs, tuple):
-            # turn a single tuple warning into a canonical
-            # warning assuming each element is a string
+    args: list[Any]
+def serialize_warnings(warnings: Mapping[str, WarningValue]) -> list[SerializedWarning]:
+    serialized: list[SerializedWarning] = []
+    for k, vs in warnings.items():
+        items: Sequence[str | tuple[str] | CanonicalWarning]
+        if isinstance(vs, (str, tuple)):
+            # wrap a single string or tuple warning in a list
+            items = [vs]
+        else:
+            items = vs
 
-            if len(vs) < 2:
-                # ensure that it is a tuple of length 2
-                vs = (vs[0], [])
-
-            # wrap the tuple in a list
-            vs = [vs]
-        elif isinstance(vs, str):
-            # turn a single string warning into a canonical warning
-            vs = [(vs, [])]
-
-        for v in vs:
+        for v in items:
             if isinstance(v, str):
-                # vs might be just a list of string
-                # so convert each item into a tuple
-                v = (v, [])
-            serialized.append({'key': k, 'format': v[0], 'args': v[1] })
+                # a plain string is a format with no args
+                serialized.append({'key': k, 'format': v, 'args': []})
+            else:
+                # a tuple may omit its args
+                serialized.append({'key': k, 'format': v[0], 'args': v[1] if len(v) > 1 else []})
     return serialized
 
-def has_errors(error_dict):
+def has_errors(error_dict: Mapping[Any, Any]) -> bool:
     has_errors = False
     for error in error_dict.values():
         has_errors = has_errors or bool(error)
     return has_errors
 
-def dict_remove_falsy_entries(dict: dict):
+def dict_remove_falsy_entries(dict: MutableMapping[Any, Any]) -> None:
     for key in list(dict.keys()):
         if not dict[key]:
             del dict[key]
 
-def fit_string_with_ellipsis_in_middle(string: str, max_length: int, ellipsis = "...") -> str:
+def fit_string_with_ellipsis_in_middle(string: str, max_length: int, ellipsis: str = "...") -> str:
     if max_length <= 0:
         raise Exception(f"The max_length ({max_length}) must be greater than 0.")
     if max_length <= len(ellipsis):
@@ -270,7 +277,7 @@ def get_derived_by_sample_querynode(
     coordinates: str | None = None,
     alias: str | None = None,
     name: str | None = None,
-):
+) -> Q:
     query_node = Q()
 
     if index:
