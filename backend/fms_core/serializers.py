@@ -527,52 +527,23 @@ class SampleExportSerializer(serializers.Serializer):
 
 class SampleReportingSerializer(serializers.ModelSerializer):
     sample_id = serializers.IntegerField(read_only=True)
-    biosample_id = serializers.IntegerField(
-        source="derived_sample.biosample_id",
-        read_only=True,
-    )
-    external_id = serializers.CharField(
-    source="project.parent_project.external_id",
-    read_only=True,
-    allow_null=True,
-    )
-
-    project_id = serializers.IntegerField(
-    read_only=True,
-    allow_null=True,
-    )
-
-    project_name = serializers.CharField(
-    source="project.name",
-    read_only=True,
-    allow_null=True,
-    )
-
-    name = serializers.CharField(
-    source="sample.name",
-    read_only=True,
-    )
-
-    alias = serializers.CharField(
-    source="derived_sample.biosample.alias",
-    read_only=True,
-    )
-    
-    container = serializers.CharField(
-    source="sample.container.name",
-    read_only=True,
-    )
-
-    individual = serializers.CharField(
-        source="derived_sample.biosample.individual.name",
-        read_only=True,
-        allow_null=True,
-    )
+    biosample_id = serializers.IntegerField(source="derived_sample.biosample_id",read_only=True,)
+    external_id = serializers.CharField(source="project.parent_project.external_id",read_only=True,allow_null=True,)
+    project_id = serializers.IntegerField(read_only=True,allow_null=True,)
+    project_name = serializers.CharField(source="project.name",read_only=True,allow_null=True,)
+    name = serializers.CharField(source="sample.name",read_only=True,)
+    alias = serializers.CharField(source="derived_sample.biosample.alias",read_only=True,)
+    container = serializers.CharField(source="sample.container.name",read_only=True,)
+    individual = serializers.CharField(source="derived_sample.biosample.individual.name",read_only=True,allow_null=True,)
+    creation_date = serializers.DateField(source="sample.creation_date",read_only=True,)
+    collection_site = serializers.CharField(source="derived_sample.biosample.collection_site",read_only=True,allow_null=True,)
+    comment = serializers.CharField(source="sample.comment",read_only=True,allow_blank=True,)
+    experimental_group = serializers.JSONField(source="derived_sample.experimental_group",read_only=True,)
 
     class Meta:
         model = DerivedBySample
         fields = ("sample_id", "biosample_id", "external_id", "project_id", "project_name", "name",
-                  "alias","container","individual",)
+                  "alias","container","individual","creation_date","collection_site","comment","experimental_group",)
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
