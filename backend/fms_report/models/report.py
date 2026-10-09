@@ -1,10 +1,11 @@
 from django.db import models
 from ._constants import REPORTING_NAME_FIELD_LENGTH
+from fms_core.models.tracked_model import TrackedModel
 
 __all__ = ["Report"]
 
 
-class Report(models.Model):
+class Report(TrackedModel):
     name = models.CharField(default=None, unique=True, max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Internal name by which a report can be identified.")
     display_name = models.CharField(max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Display name of a report.")
     data_model = models.CharField(default=None, max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Name of the model from which to get data.")
