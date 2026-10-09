@@ -1,14 +1,11 @@
 from django.apps import apps
-import reversion
-import json
-import logging
-from reversion.models import Version
 from fms_core.models import *
 
 # Parameters required for this curation
 ACTION = "action"                     # = update_field_value
 CURATION_INDEX = "curation_index"     # Number indicating the order in which this action was performed during the curation.
 COMMENT = "comment"                   # A comment to be stored in the logs. Optional.
+ENTITY_APP = "entity_app"             # The name of the app for the target entity.
 ENTITY_MODEL = "entity_model"         # The name of the model for the target entity.
 ENTITY_DICT_ID = "entity_identifier"  # An array of dictionary that contains the fields required to uniquely identify the targeted entity.
 FIELD_NAME = "field_name"             # The name of the field that need to be updated.
@@ -20,6 +17,7 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # { CURATION_INDEX: 1,
 #   ACTION: "update_field_value",
 #   COMMENT: "Dr. No asked the samples to be changed from BLOOD to PLASMA to correct an error at submission.",
+#   ENTITY_APP: "fms_core",
 #   ENTITY_MODEL: "Sample",
 #   ENTITY_DICT_ID: [{"name": "Sample_test", "id": 42, "container_id": 5823}], # Any subset of fields that identifies uniquely the entity
 #   FIELD_NAME: "sample_kind",
@@ -34,6 +32,7 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 def update_field_value(params, objects_to_delete, log):
     log.info("Action [" + str(params[CURATION_INDEX]) + "] Update Field Value started.")
     log.info("Comment [" + str(params.get(COMMENT, "None")) + "].")
+    log.info("Targeted app : " + str(params[ENTITY_APP]))
     log.info("Targeted model : " + str(params[ENTITY_MODEL]))
     log.info("Identifier used : " + str(params[ENTITY_DICT_ID]))
     log.info("Field to update : " + str(params[FIELD_NAME]))
@@ -44,6 +43,7 @@ def update_field_value(params, objects_to_delete, log):
     # initialize the curation
     curation_code = params.get(CURATION_INDEX, "Invalid index")
     error_found = False
+    app = params[ENTITY_APP]
     model = params[ENTITY_MODEL]
     id_array = params[ENTITY_DICT_ID]
     field = params[FIELD_NAME]
@@ -53,7 +53,7 @@ def update_field_value(params, objects_to_delete, log):
     
 
     try:
-        entity_model = apps.get_model("fms_core", model)
+        entity_model = apps.get_model(app, model)
         count_updates = 0
         for id in id_array:
             try:
@@ -62,7 +62,7 @@ def update_field_value(params, objects_to_delete, log):
                     db_old_value = getattr(entity, field)
                     if not old_value or str(old_value) == str(db_old_value):
                         setattr(entity, field, new_value)
-                        log.info(f"Updated model [{model}] id [{id} field [{field}] old value [{db_old_value}] new value [{new_value}].")
+                        log.info(f"Updated model [{app}_{model}] id [{id} field [{field}] old value [{db_old_value}] new value [{new_value}].")
                         entity.save(requester_id=user_id) # Save using the id of the requester if present
                         count_updates += 1
                     else:
