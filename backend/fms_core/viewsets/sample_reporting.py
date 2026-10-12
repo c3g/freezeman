@@ -6,7 +6,6 @@ from ._constants import _sample_reporting_filterset_fields
 from fms_core.serializers import SampleReportingSerializer
 from django.contrib.postgres.expressions import ArraySubquery
 
-from rest_framework.response import Response
 from ._utils import _list_keys
 
 
@@ -102,24 +101,9 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
                     .distinct("process_id")
                 ),
             )
+            .prefetch_related(
+                "sample__container",
+                "derived_sample__biosample__individual__taxon",
+                "project__parent_project",
+            )
         )
-    
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset()
-        ).prefetch_related(
-            "sample__container",
-            "derived_sample__biosample__individual__taxon",
-            "project__parent_project",
-        )
-
-        page = self.paginate_queryset(queryset)
-        rows = list(page) if page is not None else list(queryset)
-
-        serializer = self.get_serializer(rows, many=True)
-
-        if page is not None:
-            return self.get_paginated_response(serializer.data)
-
-        return Response(serializer.data)
