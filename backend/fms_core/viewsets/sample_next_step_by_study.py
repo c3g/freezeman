@@ -127,9 +127,17 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         values_list = list(values_list)
 
         if not values_list:
-            study = Study.objects.get(pk=study)
-            step_order = StepOrder.objects.get(order=stepOrder, workflow__studies=study)
-            return HttpResponseBadRequest(f"Could not find any samples selected for step '{step_order.step.name}' in study {study.letter}.")
+            study_id = study
+            try:
+                study = Study.objects.get(pk=study_id)
+                step_order = StepOrder.objects.get(order=stepOrder, workflow__studies=study)
+                return HttpResponseBadRequest(f"Could not find any samples selected for step '{step_order.step.name}' in study {study.letter}.")
+            except Study.DoesNotExist:
+                return HttpResponseBadRequest(f"Study with ID {study_id} does not exist.")
+            except StepOrder.DoesNotExist:
+                return HttpResponseBadRequest(f"Step #{stepOrder} does not exist in study {study.letter} ({study.workflow.name}).")
+            except Exception as err:
+                return HttpResponseBadRequest(f"Could not find the selected samples: {err}")
 
         errors = []
         removed = {}
