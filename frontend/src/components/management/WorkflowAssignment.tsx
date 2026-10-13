@@ -3,7 +3,7 @@ import { Button, Drawer, Flex, Modal, Select, Space, Spin } from "antd"
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
 import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
-import { notifyError, notifySuccess } from "../../modules/notification/actions"
+import { notifyError, notifySuccess, notifyWarning } from "../../modules/notification/actions"
 import { Sample, Study } from "../../models/frontend_models"
 import {
   SAMPLE_COLUMN_FILTERS,
@@ -397,13 +397,23 @@ function WorkflowOptions({
                   )
                 ).data
                 const samplesRemovedCount = removed.length
-                dispatch(
-                  notifySuccess({
-                    id: NOTIFICATION_KEY,
-                    title: "Samples dequeued from workflow",
-                    description: `Successfully dequeued ${samplesRemovedCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
-                  }),
-                )
+                if (samplesRemovedCount == sampleCount) {
+                  dispatch(
+                    notifySuccess({
+                      id: NOTIFICATION_KEY,
+                      title: "Samples dequeued from workflow",
+                      description: `Successfully dequeued ${samplesRemovedCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                    }),
+                  )
+                } else {
+                  dispatch(
+                    notifyWarning({
+                      id: NOTIFICATION_KEY,
+                      title: "Some samples dequeued from workflow",
+                      description: `Only dequeued ${samplesRemovedCount}/${sampleCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                    }),
+                  )
+                }
                 refresh()
               } catch (e) {
                 dispatch(
