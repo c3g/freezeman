@@ -97,22 +97,23 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def can_samples_skip(self, request: Request):
         """
-        Returns True if at least one selected sample is queued to a step order that is not mandatory.
-        Returns False if no selected sample is queued, if all queued samples are at mandatory step
-        orders, or if more than MAX_SELECTION samples are selected.
+        Returns True only if every selected sample is queued to a step order that is not mandatory.
+        Returns False if no sample is selected, if any selected sample is not queued or is only at
+        mandatory step orders, or if more than MAX_SELECTION samples are selected.
         Samples are selected with the samples table filters, plus id__in (inclusive) and id__not__in (exclusive).
         """
         # Use SampleFilter, not SampleNextStepByStudyFilter: the table filters are sample filters, and
         # SampleNextStepByStudyFilter lacks the custom ones (is_pooled, metadata, qPCR_status__in,
         # qc_flag__in, project name, batch name/barcode).
         samples = SampleFilter(request.GET, queryset=Sample.objects.all().distinct()).qs
-        if samples.count() > MAX_SELECTION:
+        total = samples.count()
+        if total > MAX_SELECTION or total == 0:
             return Response(False)
-        queued = SampleNextStepByStudy.objects.filter(sample_next_step__sample__in=samples)
-        if not queued.exists():
-            return Response(False)
-        queued = queued.filter(step_order__mandatory=False)
-        return Response(queued.exists())
+        skippable = SampleNextStepByStudy.objects.filter(
+            sample_next_step__sample__in=samples,
+            step_order__mandatory=False,
+        ).values("sample_next_step__sample").distinct().count()
+        return Response(skippable == total)
 
     def destroy(self, request, pk=None):
         removed = False
