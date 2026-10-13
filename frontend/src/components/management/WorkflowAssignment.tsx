@@ -410,7 +410,7 @@ function WorkflowOptions({
                     notifyWarning({
                       id: NOTIFICATION_KEY,
                       title: "Some samples dequeued from workflow",
-                      description: `Only dequeued ${samplesRemovedCount}/${sampleCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                      description: `Only dequeued ${samplesRemovedCount} out of ${sampleCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
                     }),
                   )
                 }
