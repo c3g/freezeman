@@ -8,7 +8,7 @@ from django.db import transaction
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate, Project
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate, Project, SampleNextStepByStudy
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 from fms_core.services.project import add_sample_to_study
 
@@ -24,6 +24,8 @@ from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, ver
 from ._fetch_data import FetchSampleData
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
+
+MAX_SELECTION = 960
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchSampleData):
     queryset = Sample.objects.none() # Should not be called directly
@@ -406,6 +408,24 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         serialized_data, count = self.fetch_data()
         return Response({"results": serialized_data, "count": count})
+
+    @action(detail=False, methods=["get"])
+    def can_skip(self, request):
+        """
+        Returns True only if every selected sample is queued to a step order that is not mandatory.
+        Returns False if no sample is selected, if any selected sample is not queued or is only at
+        mandatory step orders, or if more than MAX_SELECTION samples are selected.
+        Samples are selected with the samples table filters, plus id__in (inclusive) and id__not__in (exclusive).
+        """
+        samples = self.filter_queryset(self.get_queryset())
+        total = samples.count()
+        if total > MAX_SELECTION or total == 0:
+            return Response(False)
+        skippable = SampleNextStepByStudy.objects.filter(
+            sample_next_step__sample__in=samples,
+            step_order__mandatory=False,
+        ).values("sample_next_step__sample").distinct().count()
+        return Response(skippable == total)
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

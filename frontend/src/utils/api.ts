@@ -357,6 +357,8 @@ const api = {
     update: (sample) => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
+    canSkip: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<boolean>>("/samples/can_skip/", options, { abort }),
     listExport: (options) => get("/samples/list_export/", { format: "csv", ...options }),
     listExportMetadata: (options) =>
       get("/samples/list_export_metadata/", { format: "csv", ...options }),
@@ -492,10 +494,6 @@ const api = {
         sample_ids: sampleIDs,
         study,
         step_order: stepOrder,
-      }),
-    canSamplesSkip: (options: QueryParams, abort?: boolean) =>
-      get<JsonResponse<boolean>>("/sample-next-step-by-study/can_samples_skip/", options, {
-        abort,
       }),
     list: (options, abort?: boolean) =>
       get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),

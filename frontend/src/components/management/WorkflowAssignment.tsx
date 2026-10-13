@@ -168,7 +168,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
       return
     }
     dispatch(
-      api.sampleNextStepByStudy.canSamplesSkip(
+      api.samples.canSkip(
         {
           ...serializeFilterParamsWithDescriptions(wholeFilters),
           ...smartQuerySetLookup("id", defaultSelection, exceptedSampleIDs),
@@ -233,7 +233,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
                     key={action}
                     title={
                       skipBlocked
-                        ? `Cannot skip: no selected sample is queued at a non-mandatory step, or more than ${MAX_SELECTION} samples are selected.`
+                        ? `Cannot skip: every selected sample must be queued at a non-mandatory step, and no more than ${MAX_SELECTION} samples can be selected.`
                         : ""
                     }
                   >
