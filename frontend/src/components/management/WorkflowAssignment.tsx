@@ -167,22 +167,17 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
       setCanSkip(false)
       return
     }
-    ;(async () => {
-      try {
-        const { data } = await dispatch(
-          api.sampleNextStepByStudy.canSamplesSkip(
-            {
-              ...serializeFilterParamsWithDescriptions(wholeFilters),
-              ...smartQuerySetLookup("id", defaultSelection, exceptedSampleIDs),
-            },
-            true,
-          ),
-        )
-        setCanSkip(data)
-      } catch {
-        setCanSkip(false)
-      }
-    })()
+    dispatch(
+      api.sampleNextStepByStudy.canSamplesSkip(
+        {
+          ...serializeFilterParamsWithDescriptions(wholeFilters),
+          ...smartQuerySetLookup("id", defaultSelection, exceptedSampleIDs),
+        },
+        true,
+      ),
+    )
+    .then(({ data }) => setCanSkip(data))
+    .catch(() => setCanSkip(false))
   }, [defaultSelection, dispatch, exceptedSampleIDs, sampleSelectionCount, wholeFilters])
 
   const selection: NonNullable<PagedItemsTableProps<SampleAndLibraryAndIdentity>["selection"]> =
