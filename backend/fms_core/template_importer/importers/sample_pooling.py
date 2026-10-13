@@ -3,6 +3,7 @@ from typing import Any
 from fms_core.models import Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPoolRowHandler, PoolsRowHandler
+from fms_core.template_importer.row_handlers.sample_pooling.sample import SamplesToPoolRowObject
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE
 from collections import defaultdict
 from fms_core.services.step import get_step_from_template
@@ -20,7 +21,7 @@ class SamplePoolingImporter(GenericImporter):
         self.preloaded_data = {'protocol': Protocol.objects.get(name='Sample Pooling')}
 
     def import_template_inner(self, *args: Any, **kwargs: Any) -> None:
-        pools_dict = defaultdict(list)
+        pools_dict: defaultdict[str | None, list[SamplesToPoolRowObject | None]] = defaultdict(list)
         samplestopool_sheet = self.sheets['SamplesToPool']
         pools_sheet = self.sheets['Pools']
 

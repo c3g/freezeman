@@ -24,10 +24,10 @@ class SheetData():
         self.rows_results: list[SheetData.RowResult] = []
         self.is_valid: bool | None = None
         self.header_row_nb: int | None = None
-        self.name = name
-        self.dataframe = dataframe
-        self.headers = headers
-        self.shared_data = shared_data # This is additional information that is not assigned to a specific row. None for xls templates.
+        self.name: str = name
+        self.dataframe: pd.DataFrame = dataframe
+        self.headers: list[str] = headers
+        self.shared_data: dict[str, Any] | None = shared_data # This is additional information that is not assigned to a specific row. None for xls templates.
 
         if self.shared_data is not None: # This is not defined for xls templates
             self.header_row_nb = -1 # No header in dataframe for json files

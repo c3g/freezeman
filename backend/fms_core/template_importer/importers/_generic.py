@@ -29,12 +29,12 @@ class GenericImporter():
         self.errors_count = 0
 
         self.preloaded_data: dict[str, Any] = {}
-        self.file: Path | InMemoryUploadedFile = None
-        self.format: str = None
+        self.file: Path | InMemoryUploadedFile | None = None
+        self.format: str | None = None
         self.imported_file: ImportedFile | None = None
         self.sheets: dict[str, SheetData] = {}
         self.previews_info: list[SheetData.PreviewInfo] = []
-        self.dry_run: bool = None
+        self.dry_run: bool | None = None
         self.output_file: GenericImporter.OutputFile | None = None
 
         # self.SHEETS_INFO is expected to be defined in child classes
@@ -115,6 +115,7 @@ class GenericImporter():
             if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
+                        # FIXME: a Path is not iterable, and tests pass a Path when user is None
                         for line in self.file:
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
@@ -137,6 +138,7 @@ class GenericImporter():
         }
         return import_result
 
+    # FIXME: callers pass Path | InMemoryUploadedFile, which does not match this annotation
     def preprocess_file(self, path: os.PathLike | StringIO) -> os.PathLike | StringIO:
         return path
 
@@ -144,7 +146,7 @@ class GenericImporter():
         try:
             shared_data = None
             if self.format == ".json":
-                # TODO: open() fails if self.file is an InMemoryUploadedFile. Only a Path works here.
+                # FIXME: an InMemoryUploadedFile is not a path
                 with open(self.file, 'r') as file:
                     file_content = file.read()
                 json_content = json.loads(file_content)

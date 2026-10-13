@@ -1,4 +1,4 @@
-from typing import Any, Optional, Protocol, TypedDict
+from typing import Any, Protocol, TypedDict
 
 from django.core.exceptions import ValidationError
 from collections import defaultdict

@@ -7,7 +7,8 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence, NotRequired, TypedDict, overload
+from collections.abc import Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence
+from typing import Any, NotRequired, TypedDict, overload
 
 __all__ = [
     "RE_SEPARATOR",
@@ -177,11 +178,7 @@ def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
     elif isinstance(obj, Iterable):
         yield from obj
     else:
-        try:
-            for x in obj:
-                yield x
-        except TypeError:
-            yield obj
+        yield obj
 
 def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     """
@@ -232,13 +229,13 @@ def serialize_warnings(warnings: Mapping[str, WarningValue]) -> list[SerializedW
                 serialized.append({'key': k, 'format': v[0], 'args': v[1] if len(v) > 1 else []})
     return serialized
 
-def has_errors(error_dict: Mapping[Any, Any]) -> bool:
+def has_errors(error_dict: Mapping[object, object]) -> bool:
     has_errors = False
     for error in error_dict.values():
         has_errors = has_errors or bool(error)
     return has_errors
 
-def dict_remove_falsy_entries(dict: MutableMapping[Any, Any]) -> None:
+def dict_remove_falsy_entries(dict: MutableMapping[object, object]) -> None:
     for key in list(dict.keys()):
         if not dict[key]:
             del dict[key]
