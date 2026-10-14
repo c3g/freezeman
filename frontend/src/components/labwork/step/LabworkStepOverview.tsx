@@ -1,5 +1,6 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo, ComponentProps } from 'react'
+import { ExportOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
@@ -127,7 +128,16 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 
 					return {
               key: group.name,
-              label: routePrefix && group.id != null ? <Link to={`${routePrefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>{group.name}</Link> : group.name,
+              label: (
+                <Space>
+                  {routePrefix && group.id != null && (
+                    <Link to={`${routePrefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>
+                      <Button size="small" icon={<ExportOutlined />} title="Open detail page" />
+                    </Link>
+                  )}
+                  {group.name}
+                </Space>
+              ),
               extra: ButtonsSelectAndClear,
               children: <LabworkStepOverviewPanel
 							  refreshing={refreshing || labworkStepSummary.isFetching}
