@@ -115,7 +115,7 @@ class GenericImporter():
             if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
-                        # FIXME: a Path is not iterable, and tests pass a Path when user is None
+                        # FIXME: a Path is not iterable
                         for line in self.file:
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
@@ -138,8 +138,7 @@ class GenericImporter():
         }
         return import_result
 
-    # FIXME: callers pass Path | InMemoryUploadedFile, which does not match this annotation
-    def preprocess_file(self, path: os.PathLike | StringIO) -> os.PathLike | StringIO:
+    def preprocess_file(self, path: Any) -> os.PathLike | StringIO:
         return path
 
     def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
