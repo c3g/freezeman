@@ -70,6 +70,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_CONTAINER : container))
   const [formErrors, setFormErrors] = useState({})
+  const [form] = Form.useForm()
 
   if (!isAdding && formData === undefined && container !== undefined) {
     const newData = deserialize(container)
@@ -87,13 +88,25 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
     setFormData(deserialize({ ...formData, ...values }))
   }
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const data = serialize(formData)
-    const action =
-      isAdding ?
+    const action = () => {
+      const promise = isAdding ?
         add(data).then(container => { history(`/containers/${container.id}`) }) :
         update(id, data).then(() => { history(`/containers/${id}`) })
-    action
+      return promise
+    }
+    if (!data.name) {
+      form.setFieldsValue({ name: data.barcode })
+    }
+    try {
+      await form.validateFields()
+    }
+    catch (err) {
+      setFormErrors(err.data || {})
+      return
+    }
+    action()
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
       .then(() => Promise.all([refreshTable()]))
@@ -127,6 +140,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
       />
       <PageContent>
         <Form
+          form={form}
           key={container ? 'with-container' : 'without-container'}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 14 }}
@@ -153,6 +167,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
             </Select>
           </Item>
           <Item label="Name" {...props("name")}
+            rules={nameRules}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
             extra="Unique name given to a container. (Default to barcode if empty)" >
             <Input />
