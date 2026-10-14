@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from collections.abc import Generator, Hashable, Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import Hashable, Iterable, Mapping, MutableMapping, Sequence
 from typing import Any, NotRequired, TypedDict, overload
 
 __all__ = [
@@ -154,31 +154,6 @@ def convert_concentration_from_nm_to_ngbyul(
     concentration = (Decimal(concentration_nm) * Decimal(molecule_count) * Decimal(molecular_weight)) / Decimal(1000000)
 
     return concentration
-
-def make_generator[T](obj: T | Iterable[T] | None) -> Generator[T, None, None]:
-    """
-    Ensures that ManyToMany fields such as the `obj` passed are iterable.
-    None is turned into an empty iterable,
-    non-None objects are turned into an iterable with a single element,
-    and iterable objects remain the same.
-    It's meant to handle the fact that a ManyToMany field is not a list if it has less than two elements.
-
-    Args:
-        obj: T
-
-    Returns:
-        `Generator[T, None, None]`
-
-    Yields:
-        `T`
-    """
-
-    if obj is None:
-        return
-    elif isinstance(obj, Iterable):
-        yield from obj
-    else:
-        yield obj
 
 def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     """
