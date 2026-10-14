@@ -123,7 +123,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
             if container_obj is None and errors:
                 patterns = [
                     (r"^Invalid coordinates \S+ specified for coordinate system \S+$", "coordinate"),
-                    (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate")
+                    (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate"),
+                    (r"^Cannot specify coordinates in non-specified container$", "location")
                 ]
                 parsed_errors = defaultdict(str)
                 for error in errors:

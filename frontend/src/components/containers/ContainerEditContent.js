@@ -110,7 +110,13 @@ const ContainerEditContent = ({
       return promise
     }
     if (!data.name) {
+      // If the name is not set replace it in the form by the barcode.
       form.setFieldsValue({ name: data.barcode })
+    }
+    if (!data.location) {
+      // If the location is not set make sure the coordinate is reset.
+      data.coordinate = undefined
+      form.setFieldsValue({ coordinate: data.coordinate })
     }
     try {
       await form.validateFields()
