@@ -1,4 +1,4 @@
-import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
+import { Collapse, Typography, Button, Space, Tag, Tooltip, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo, ComponentProps } from 'react'
 import { ExportOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
@@ -49,11 +49,11 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-// Route prefix of the page referenced by the group, for the groupings that have one
-const GROUPING_ROUTE_PREFIX = new Map<FilterDescription, string>([
-  [GROUPING_PROJECT, '/projects'],
-  [GROUPING_CONTAINER, '/containers'],
-  [GROUPING_CREATED_BY, '/users'],
+// Route prefix and page name of the page referenced by the group, for the groupings that have one
+const GROUPING_ROUTE = new Map<FilterDescription, { prefix: string, pageName: string }>([
+  [GROUPING_PROJECT, { prefix: '/projects', pageName: 'project' }],
+  [GROUPING_CONTAINER, { prefix: '/containers', pageName: 'container' }],
+  [GROUPING_CREATED_BY, { prefix: '/users', pageName: 'user' }],
 ])
 
 // Keeps clicks on the group link and the group buttons from toggling the panel
@@ -114,7 +114,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   }, [activeGrouping, columns])
 
   const collapsePanels = useMemo<NonNullable<ComponentProps<typeof Collapse>['items']>>(() => {
-    const routePrefix = GROUPING_ROUTE_PREFIX.get(activeGrouping)
+    const route = GROUPING_ROUTE.get(activeGrouping)
     return (labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
           const sample_ids = Object.keys(group.sample_locators).map((id) => Number(id))
           const selectedCount = Object.keys(group.selected_samples).length
@@ -130,10 +130,12 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
               key: group.name,
               label: (
                 <Space>
-                  {routePrefix && group.id != null && (
-                    <Link to={`${routePrefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>
-                      <Button size="small" icon={<ExportOutlined />} title="Open detail page" />
-                    </Link>
+                  {route && group.id != null && (
+                    <Tooltip title={`Go to ${route.pageName} page of ${group.name}`} styles={{ root: { maxWidth: 'none' } }}>
+                      <Link to={`${route.prefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>
+                        <Button size="small" icon={<ExportOutlined />} aria-label={`Go to ${route.pageName} page of ${group.name}`} />
+                      </Link>
+                    </Tooltip>
                   )}
                   {group.name}
                 </Space>
