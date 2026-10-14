@@ -1,7 +1,7 @@
 from io import StringIO
 import logging
 from pathlib import Path
-from typing import Any, Optional, TypedDict
+from typing import Any, ClassVar, Optional, TypedDict
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -23,8 +23,13 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler, 
 class GenericImporter():
     ERRORS_CUTOFF = 20
     logger = logging.getLogger(__name__)
+    # Defined by child classes
+    SHEETS_INFO: ClassVar[list[SheetInfo]]
 
     def __init__(self):
+        if not hasattr(type(self), "SHEETS_INFO"):
+            raise NotImplementedError(f"{type(self).__name__} must define SHEETS_INFO.")
+
         self.base_errors: list[Exception | str] = []
         self.errors_count = 0
 
@@ -36,9 +41,6 @@ class GenericImporter():
         self.previews_info: list[SheetData.PreviewInfo] = []
         self.dry_run: bool | None = None
         self.output_file: GenericImporter.OutputFile | None = None
-
-        # self.SHEETS_INFO is expected to be defined in child classes
-        self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
     class ResultBaseError(TypedDict):
         error: str
