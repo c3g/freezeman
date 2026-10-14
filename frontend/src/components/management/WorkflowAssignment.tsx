@@ -176,8 +176,8 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
         true,
       ),
     )
-    .then(({ data }) => setCanSkip(data))
-    .catch(() => setCanSkip(false))
+      .then(({ data }) => setCanSkip(data))
+      .catch(() => setCanSkip(false))
   }, [defaultSelection, dispatch, exceptedSampleIDs, sampleSelectionCount, wholeFilters])
 
   const selection: NonNullable<PagedItemsTableProps<SampleAndLibraryAndIdentity>["selection"]> =
@@ -408,7 +408,9 @@ function WorkflowOptions({
           key={step.order}
           destroyOnHidden
           title={
-            step.mandatory && actionName == "skip" ? `Cannot skip: '${step.step_name}' is mandatory in workflow '${workflow.name}'.` : ""
+            step.mandatory && actionName == "skip"
+              ? `Cannot skip: '${step.step_name}' is mandatory in workflow '${workflow.name}'.`
+              : ""
           }
         >
           <Button
