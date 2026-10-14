@@ -4,6 +4,7 @@ import React, { useCallback, useState, useEffect } from "react"
 
 import useHashURL from "../../hooks/useHashURL"
 import AppPageHeader from "../AppPageHeader"
+import EditButton from "../EditButton"
 import PageContent from "../PageContent"
 
 import ProjectSubmissionsTab from "./ProjectSubmissionsTab"
@@ -119,6 +120,11 @@ const ExternalProjectDetailsPage = () => {
           parentProject
             ? `Project Overview: ${displayedProjectName} (External ID: ${externalID})`
             : "Project Overview"
+        }
+        extra={
+          parentProject && (
+            <EditButton url={`/external-projects-overview/${parentProject.id}/update`} />
+          )
         }
       />
 

@@ -219,6 +219,11 @@ const api = {
         abort,
         requestID,
       }),
+    update: (parentProject: Partial<FMSParentProject> & { id: FMSId }) =>
+      patch<JsonResponse<FMSParentProject>>(
+        `/parent-projects/${parentProject.id}/`,
+        parentProject,
+      ),
   },
 
   platforms: {
