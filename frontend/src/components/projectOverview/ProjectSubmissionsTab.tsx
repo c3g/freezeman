@@ -32,32 +32,30 @@ const submissionColumns = [
     ),
   },
   {
-    title: "External ID",
-    dataIndex: "external_id",
-    key: "external_id",
-  },
-  {
-    title: "Principal Investigator",
-    dataIndex: "principal_investigator",
-    key: "principal_investigator",
-  },
-  {
-    title: "Requestor Name",
-    dataIndex: "requestor_name",
-    key: "requestor_name",
-  },
-  {
     title: "Status",
     dataIndex: "status",
     key: "status",
   },
   {
-    title: "Created At",
+    title: "Creation Date",
     dataIndex: "created_at",
     key: "created_at",
     render: (createdAt: string) =>
       createdAt
         ? new Date(createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "",
+  },
+  {
+    title: "Targeted End Date",
+    dataIndex: "targeted_end_date",
+    key: "targeted_end_date",
+    render: (targeted_end_date: string) =>
+      targeted_end_date
+        ? new Date(targeted_end_date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -158,7 +156,7 @@ const ProjectSubmissionsTab = ({ projectIDs, externalID }: ProjectSubmissionsTab
         dataSource={internalProjects}
         columns={submissionColumns}
         loading={isLoading}
-        scroll={{ y: "42vh" }}
+        scroll={{ y: "55vh" }}
         pagination={{
           pageSize: 20,
           showSizeChanger: false,
