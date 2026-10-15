@@ -160,6 +160,8 @@ _sample_reporting_filterset_fields: FiltersetFields = {
     "derived_sample__biosample_id": PK_FILTERS,
     "sample__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__creation_date": DATE_FILTERS,
+    "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__individual__cohort": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
