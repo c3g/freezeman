@@ -1,4 +1,5 @@
-import { Alert, Button, Form, Input, Space, message } from "antd"
+import { Alert, Button, Flex, Form, Input, message } from "antd"
+import type { FormItemProps } from "antd"
 import React, { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
@@ -10,12 +11,44 @@ import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 
 const MAX_LENGTH = 200
-const maxLengthRule = { max: MAX_LENGTH, message: `Maximum ${MAX_LENGTH} characters` }
+const inputCount = { show: true, max: MAX_LENGTH }
 
 type FormValues = Pick<
   FMSParentProject,
   "external_id" | "name" | "principal_investigator" | "requestor_name" | "requestor_email"
 >
+
+const PROPS_OF_FIELDS: (FormItemProps<FormValues> & { name: keyof FormValues })[] = [
+  {
+    name: "external_id",
+    label: "External ID",
+    rules: [...requiredRules, ...externalIdRules],
+    tooltip: "Format: P000000.",
+    extra: "External identifier for the project (Hercules project number).",
+  },
+  {
+    name: "name",
+    label: "Name",
+    rules: requiredRules,
+    extra: "Full external name of the project (Hercules name).",
+  },
+  {
+    name: "principal_investigator",
+    label: "Principal Investigator",
+    extra: "Full name of the principal investigator.",
+  },
+  {
+    name: "requestor_name",
+    label: "Requestor Name",
+    extra: "Full name of the contact person that made the project request.",
+  },
+  {
+    name: "requestor_email",
+    label: "Requestor Email",
+    rules: emailRules,
+    extra: "Email of the contact for the project.",
+  },
+]
 
 const ExternalProjectEditPage = () => {
   const { parentProjectId } = useParams()
@@ -91,53 +124,18 @@ const ExternalProjectEditPage = () => {
         {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
         <Form
           form={form}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 14 }}
+          labelCol={{ xs: 24, md: 6 }}
+          wrapperCol={{ xs: 24, md: 14 }}
           layout="horizontal"
+          scrollToFirstError
           onFinish={onFinish}
           disabled={!parentProject}
         >
-          <Form.Item
-            label="External ID"
-            name="external_id"
-            rules={[...requiredRules, ...externalIdRules, maxLengthRule]}
-            tooltip="Format: P000000."
-            extra="External identifier for the project (Hercules project number)."
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[...requiredRules, maxLengthRule]}
-            extra="Full external name of the project (Hercules name)."
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Principal Investigator"
-            name="principal_investigator"
-            rules={[maxLengthRule]}
-            extra="Full name of the principal investigator."
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Requestor Name"
-            name="requestor_name"
-            rules={[maxLengthRule]}
-            extra="Full name of the contact person that made the project request."
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Requestor Email"
-            name="requestor_email"
-            rules={[...emailRules, maxLengthRule]}
-            extra="Email of the contact for the project."
-          >
-            <Input />
-          </Form.Item>
+          {PROPS_OF_FIELDS.map((fieldProps) => (
+            <Form.Item key={fieldProps.name} {...fieldProps}>
+              <Input count={inputCount} autoComplete="off" />
+            </Form.Item>
+          ))}
           {nonFieldErrors.length > 0 && (
             <Alert
               showIcon
@@ -154,14 +152,12 @@ const ExternalProjectEditPage = () => {
             />
           )}
           <Form.Item>
-            <Space>
+            <Flex gap="small">
               <Button type="primary" htmlType="submit" loading={isSubmitting}>
                 Submit
               </Button>
-              <Button onClick={() => navigate(-1)} disabled={false}>
-                Cancel
-              </Button>
-            </Space>
+              <Button onClick={() => navigate(-1)}>Cancel</Button>
+            </Flex>
           </Form.Item>
         </Form>
       </PageContent>
