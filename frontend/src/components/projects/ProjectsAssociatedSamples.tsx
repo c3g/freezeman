@@ -9,7 +9,7 @@ import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsA
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
-import { Button, Popover, Tag } from "antd";
+import { Button, Popover, Space, Tag } from "antd";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 import { FMSSampleNextStepByStudy, FMSStudy, WorkflowStepOrder } from "../../models/fms_api_models";
 import { fetchStudies } from "../../modules/cache/cache";
@@ -251,15 +251,17 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 {...projectSamplesTableCallbacks}
                 initialLoad={false}
                 selection={selection}
-                topBarExtra={[
-                    <Button
-                        disabled={sampleCount === 0}
-                        key={0}
-                        onClick={() => setLinkSamplesToStudyOpen(true)}
-                    >
-                        Link to Study
-                    </Button>,
-                ]}
+                topBarExtra={
+                    <Space>
+                        <Button
+                            disabled={sampleCount === 0}
+                            onClick={() => setLinkSamplesToStudyOpen(true)}
+                        >
+                            Link to Study
+                        </Button>
+                        {`${sampleCount} Sample${sampleCount === 1 ? '' : 's'} Selected`}
+                    </Space>
+                }
             />
         </>
     )

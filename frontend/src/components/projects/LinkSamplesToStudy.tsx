@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Form, Modal, Select, Typography } from "antd";
 import api from "../../utils/api";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectStudiesByID } from "../../selectors";
+import { selectStudiesByID, selectWorkflowsByID } from "../../selectors";
 import { getAllItems, Study } from "../../models/frontend_models";
 import { WorkflowStepOrder } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
@@ -25,6 +25,7 @@ export interface LinkSamplesToStudyProps {
 export default function LinkSamplesToStudy({ open, defaultSelection, exceptedSampleIDs, totalCount, projectID, filters, handleOk, handleCancel, handleSuccess }: LinkSamplesToStudyProps) {
     const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
+    const workflowsByID = useAppSelector(selectWorkflowsByID)
     const studies = useMemo(() =>
         getAllItems(studiesByID)
             .filter(study => study.project_id === projectID)
@@ -118,7 +119,7 @@ export default function LinkSamplesToStudy({ open, defaultSelection, exceptedSam
                                 key={study.id}
                                 value={study.letter}
                             >
-                                {study.letter}
+                                {`${study.letter} - ${workflowsByID[study.workflow_id]?.name ?? '...'}`}
                             </Select.Option>)
                         }
                     </Select>
