@@ -195,7 +195,7 @@ def create_container(barcode, kind, name=None, coordinates=None, container_paren
 
                     # Pile up all validation error raised during the creation of the container
                     except ValidationError as e:
-                        errors.append(';'.join(e.messages))
+                        errors.extend(e.messages)
         else:
             errors.append(f"Container kind is required to create a container.")  
     else:
