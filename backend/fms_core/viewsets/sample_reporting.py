@@ -8,6 +8,9 @@ from django.contrib.postgres.expressions import ArraySubquery
 
 from ._utils import _list_keys
 
+from rest_framework.response import Response
+from fms_core.services.sample_lineage import get_first_extraction_dates
+
 
 
 
@@ -107,3 +110,23 @@ class SampleReportingViewSet(viewsets.ModelViewSet):
                 "project__parent_project",
             )
         )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        rows = list(page) if page is not None else list(queryset)
+
+        extraction_dates = get_first_extraction_dates(
+            [row.sample_id for row in rows]
+        )
+
+        for row in rows:
+            row.extraction_date = extraction_dates[row.sample_id]
+
+        serializer = self.get_serializer(rows, many=True)
+
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+
+        return Response(serializer.data)
