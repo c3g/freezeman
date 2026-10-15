@@ -1,18 +1,18 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 
-import ExternalIDProjectsDashboard from "./ExternalIDProjectDashboard"
 import { Empty, Table } from "antd"
 import { Link } from "react-router-dom"
 
+import { useAppDispatch } from "../../hooks"
 import { FMSProject } from "../../models/fms_api_models"
+import api from "../../utils/api"
 
 import { useCreateCsvExportFunction } from "./useCsvExport"
 import { ProjectOverviewExportButtonData } from "./types"
 import ProjectOverviewExportButton from "./ProjectOverviewExportButton"
 
 interface ProjectSubmissionsTabProps {
-  internalProjects: FMSProject[]
-  isLoading: boolean
+  projectIDs: number[]
   externalID: string
 }
 
@@ -66,11 +66,55 @@ const submissionColumns = [
   },
 ]
 
-const ProjectSubmissionsTab = ({
-  internalProjects,
-  isLoading,
-  externalID,
-}: ProjectSubmissionsTabProps) => {
+const ProjectSubmissionsTab = ({ projectIDs, externalID }: ProjectSubmissionsTabProps) => {
+  const dispatch = useAppDispatch()
+  const [fetchedProjects, setFetchedProjects] = useState<FMSProject[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  // Avoids a synchronous state reset in the effect when the parent has no projects.
+  const internalProjects = useMemo(
+    () => (projectIDs.length === 0 ? [] : fetchedProjects),
+    [projectIDs, fetchedProjects],
+  )
+
+  // Charge les projets internes correspondant aux IDs associés au projet parent.
+  useEffect(() => {
+    if (projectIDs.length === 0) {
+      return
+    }
+
+    let cancelled = false
+    const fetchInternalProjects = async () => {
+      try {
+        setIsLoading(true)
+        const response = await dispatch(
+          api.projects.list(
+            {
+              id__in: projectIDs.join(","),
+              limit: 100000,
+            },
+            true,
+          ),
+        )
+        if (!cancelled) {
+          setFetchedProjects(response.data.results)
+        }
+      } catch {
+        if (!cancelled) {
+          setFetchedProjects([])
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchInternalProjects()
+    return () => {
+      cancelled = true
+    }
+  }, [dispatch, projectIDs])
+
   const exportProjects = useMemo<Record<string, unknown>[]>(
     () =>
       internalProjects.map((project) => ({
@@ -101,7 +145,6 @@ const ProjectSubmissionsTab = ({
 
   return (
     <>
-      {!isLoading && <ExternalIDProjectsDashboard data={internalProjects} />}
       {!isLoading && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
           <ProjectOverviewExportButton data={exportButtonData} />
