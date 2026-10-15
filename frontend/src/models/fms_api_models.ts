@@ -669,6 +669,7 @@ export interface LabworkStepInfo {
       grouping_column: string
       groups: {
         name: string
+        id: FMSId | null
         count: number
         sample_locators: SampleLocator[]
       }[]
