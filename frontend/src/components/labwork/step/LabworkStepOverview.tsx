@@ -131,7 +131,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
               label: (
                 <Space>
                   {route && group.id != null && (
-                    <Tooltip title={`Go to ${route.pageName} page of ${group.name}`} styles={{ root: { maxWidth: 'none' } }}>
+                    <Tooltip title={`Go to ${route.pageName} page of ${group.name}`} styles={{ root: { maxWidth: 'none', pointerEvents: 'none' } }}>
                       <Link to={`${route.prefix}/${group.id}`} onClick={stopPropagation} onKeyDown={stopPropagation}>
                         <Button size="small" icon={<ExportOutlined />} aria-label={`Go to ${route.pageName} page of ${group.name}`} />
                       </Link>
