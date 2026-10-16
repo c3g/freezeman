@@ -1,0 +1,2 @@
+*.xlsx diff=xlsx
+*.xlsm diff=xlsx

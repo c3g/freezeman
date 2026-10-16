@@ -10,6 +10,7 @@ tracking of biological samples in a laboratory environment.
   * [Running tests](#running-tests)
   * [Creating releases](#creating-releases)
   * [Deploying to production](#deploying-to-production)
+  * [Diff Excel files with git](#diff-excel-files-with-git)
   * [Database diagram](#database-diagram)
 
 ## Dependencies
@@ -141,6 +142,31 @@ python ./manage.py test -v 2
       `staticfiles/` directory
     * `./manage.py migrate` - Migrates the database to the latest version
 
+
+## Diff Excel files with git
+
+Git stores `.xlsx` files as binary data. The `.gitattributes` file at the repository root
+sends them to the `xlsx` diff driver. The driver `tools/xlsx_textconv.py` converts a workbook to
+text with one line per cell, merged range, data validation and named range. Git then diffs the text.
+
+Run these commands once in each clone, because git does not commit this setting:
+
+```
+git config diff.xlsx.textconv "backend/.venv/bin/python backend/tools/xlsx_textconv.py"
+git config diff.xlsx.cachetextconv true
+```
+
+Then use the usual git commands:
+
+  * `git diff path/to/file.xlsx` - Working tree against the index
+  * `git diff HEAD -- path/to/file.xlsx` - Working tree against the last commit
+  * `git log -p -- path/to/file.xlsx` and `git show <commit>` - Changes in past commits
+  * `git diff --no-index a.xlsx b.xlsx` - Two files inside the clone (for example two template versions)
+
+Named ranges show as `name <name>: <reference>` (workbook scope) or `<Sheet> name <name>: <reference>`
+(sheet scope). Formatting and styles are not compared.
+
+To print the text of one workbook, run `backend/.venv/bin/python backend/tools/xlsx_textconv.py file.xlsx`.
 
 ## Database diagram
 
