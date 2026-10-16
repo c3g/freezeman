@@ -162,6 +162,15 @@ _sample_reporting_filterset_fields: FiltersetFields = {
     "sample__creation_date": DATE_FILTERS,
     "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__individual__cohort": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__individual__taxon__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__container__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__quality_flag": ["exact", "isnull"],
+    "sample__quantity_flag": ["exact", "isnull"],
+    "sample__identity_flag": ["exact", "isnull"],
+    "sample__volume": SCALAR_FILTERS,
+    "sample__concentration": [*SCALAR_FILTERS, *NULLABLE_FILTERS],
 }
 
 _protocol_filterset_fields: FiltersetFields = {
