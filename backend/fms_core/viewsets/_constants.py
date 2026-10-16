@@ -171,6 +171,7 @@ _sample_reporting_filterset_fields: FiltersetFields = {
     "sample__identity_flag": ["exact", "isnull"],
     "sample__volume": SCALAR_FILTERS,
     "sample__concentration": [*SCALAR_FILTERS, *NULLABLE_FILTERS],
+    "project__name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
