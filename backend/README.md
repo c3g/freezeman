@@ -152,7 +152,7 @@ text with one line per cell, merged range, data validation and named range. Git 
 Run these commands once in each clone, because git does not commit this setting:
 
 ```
-git config diff.xlsx.textconv "backend/.venv/bin/python backend/tools/xlsx_textconv.py"
+git config diff.xlsx.textconv "backend/env/bin/python backend/tools/xlsx_textconv.py"
 git config diff.xlsx.cachetextconv true
 ```
 
@@ -171,10 +171,10 @@ row. For sheets that are tables of columns, such as the `Index` sheet, print col
 column then appears as one block. Add the flag to the textconv command:
 
 ```
-git config diff.xlsx.textconv "backend/.venv/bin/python backend/tools/xlsx_textconv.py --by-column"
+git config diff.xlsx.textconv "backend/env/bin/python backend/tools/xlsx_textconv.py --by-column"
 ```
 
-To print the text of one workbook, run `backend/.venv/bin/python backend/tools/xlsx_textconv.py [--by-column] file.xlsx`.
+To print the text of one workbook, run `backend/env/bin/python backend/tools/xlsx_textconv.py [--by-column] file.xlsx`.
 
 ## Database diagram
 
