@@ -1,7 +1,8 @@
+import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
-from django.db.models.lookups import StartsWith, IStartsWith, Contains, IContains, Exact
+from django.db.models import Q, F, Prefetch, CharField
+from django.db.models.functions import Cast, Greatest
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -27,7 +28,7 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys, FZY
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
@@ -153,7 +154,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
-        Searches for parent containers that match the given query
+        Searches for containers that match the given query.
+        Without exact_match, the closest fuzzy (fzy) match on barcode, name or id comes first.
         """
         search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
@@ -162,50 +164,45 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         qs_except_kinds = _request.GET.get("except_kinds")
         except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
-        queryset = Container.objects.all()
-        queryset = queryset.annotate(priority=Value(100))
+        containers_data = Container.objects.all()
 
-        if search_input is not None:
+        # The kind filters apply with or without q.
+        if is_parent:
+            kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+        if is_sample_holding:
+            kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+
+        # An empty or missing q skips fzy, because the fzy score of an empty needle is undefined.
+        if search_input:
             if is_exact_match:
-                queryset = queryset.filter(
-                    Q(barcode=search_input) |
-                    Q(name=search_input) |
-                    Q(id=search_input)
-                )
-            else:
-                queryset = queryset.filter(
-                    Q(barcode__icontains=search_input) |
-                    Q(name__icontains=search_input) |
-                    Q(id__icontains=search_input)
-                )
-
-                cases = [
-                    When(Exact(search_input, F("barcode")), Value(0)),
-                    When(Exact(search_input, F("name")), Value(0)),
-                ]
+                # Exact match is case-sensitive on barcode and name, with no fuzzy scoring.
+                exact_query = Q(barcode=search_input) | Q(name=search_input)
+                # id is an integer. Django raises ValueError when q is not numeric.
                 if search_input.isdigit():
-                    cases.append(When(Exact(search_input, F("pk")), Value(0)))
-                cases.extend([
-                    When(StartsWith(search_input, F("barcode")), Value(1)),
-                    When(StartsWith(search_input, F("name")), Value(1)),
-                    When(IStartsWith(search_input, F("barcode")), Value(2)),
-                    When(IStartsWith(search_input, F("name")), Value(2)),
-                    When(Contains(search_input, F("barcode")), Value(4)),
-                    When(Contains(search_input, F("name")), Value(4)),
-                ])
-                queryset = queryset.annotate(priority=Case(
-                    *cases,
-                    default=Value(100)
-                ))
-            if is_parent:
-                kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
-                queryset = queryset.filter(Q(kind__in=kinds))
-            if is_sample_holding:
-                kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
-                queryset = queryset.filter(Q(kind__in=kinds))
+                    exact_query |= Q(id=search_input)
+                containers_data = containers_data.filter(exact_query).order_by("id")
+            else:
+                # The best score of the three fields ranks the container.
+                # An exact, case-insensitive match scores INT32_MAX, so it comes first.
+                # id is cast to text because fzy compares strings.
+                containers_data = containers_data.annotate(
+                    score=Greatest(
+                        FZY(search_input, F("barcode")),
+                        FZY(search_input, F("name")),
+                        FZY(search_input, Cast("id", CharField())),
+                    )
+                )
+                # fzy returns 0 for a non-match and can return a negative score for a very weak match.
+                # Keep only score > 0, as QueryViewSet.search does.
+                containers_data = containers_data.filter(score__gt=0)
+                # Order by id after the score so that pagination stays stable on equal scores.
+                containers_data = containers_data.order_by("-score", "id")
+        else:
+            containers_data = containers_data.order_by("id")
 
-        queryset = queryset.order_by("priority")
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(containers_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
