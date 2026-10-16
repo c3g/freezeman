@@ -166,7 +166,15 @@ Then use the usual git commands:
 Named ranges show as `name <name>: <reference>` (workbook scope) or `<Sheet> name <name>: <reference>`
 (sheet scope). Formatting and styles are not compared.
 
-To print the text of one workbook, run `backend/.venv/bin/python backend/tools/xlsx_textconv.py file.xlsx`.
+By default the tool prints cells row by row (A1, B1, A2, B2). A new column then appears as one line in each
+row. For sheets that are tables of columns, such as the `Index` sheet, print column by column instead. A new
+column then appears as one block. Add the flag to the textconv command:
+
+```
+git config diff.xlsx.textconv "backend/.venv/bin/python backend/tools/xlsx_textconv.py --by-column"
+```
+
+To print the text of one workbook, run `backend/.venv/bin/python backend/tools/xlsx_textconv.py [--by-column] file.xlsx`.
 
 ## Database diagram
 

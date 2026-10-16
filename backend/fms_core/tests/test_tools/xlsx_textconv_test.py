@@ -48,3 +48,19 @@ def test_named_range_change(tmp_path):
     newer = list(dump_workbook(_make_workbook(tmp_path / "newer.xlsx", local_ref="Data!$C$1")))
     assert [l for l in old if l not in newer] == ["Data name LocalRange: Data!$B$1"]
     assert [l for l in newer if l not in old] == ["Data name LocalRange: Data!$C$1"]
+
+
+def test_by_column_order(tmp_path):
+    wb = Workbook()
+    ws = wb.active
+    assert ws is not None
+    ws.title = "Data"
+    ws["A1"], ws["B1"], ws["A2"], ws["B2"] = "a1", "b1", "a2", "b2"
+    path = tmp_path / "order.xlsx"
+    wb.save(path)
+
+    def cells(by_column: bool) -> list[str]:
+        return [l.split(":")[0] for l in dump_workbook(str(path), by_column=by_column) if l.startswith("Data!")]
+
+    assert cells(False) == ["Data!A1", "Data!B1", "Data!A2", "Data!B2"]
+    assert cells(True) == ["Data!A1", "Data!A2", "Data!B1", "Data!B2"]

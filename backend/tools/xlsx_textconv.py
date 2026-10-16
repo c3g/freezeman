@@ -2,6 +2,7 @@
 
 Use it as a git `textconv` driver. See the "Diff Excel files with git" section of `backend/README.md`.
 """
+import argparse
 import sys
 from datetime import date, time
 from typing import Iterable, Iterator
@@ -32,13 +33,15 @@ def _sorted_names(names: Iterable[DefinedName]) -> list[DefinedName]:
     return sorted(names, key=lambda n: n.name)
 
 
-def dump_workbook(path: str) -> Iterator[str]:
+def dump_workbook(path: str, by_column: bool = False) -> Iterator[str]:
     """Yield one text line per item of the workbook: cells, merges, validations and named ranges.
 
     Formulas appear as formula text. Values use `repr()` so that `"1"` and `1` differ.
 
     Args:
         path: Path to the `.xlsx` or `.xlsm` file.
+        by_column: Print the cells column by column (A1, A2, B1, B2) instead of row by row (A1, B1, A2, B2).
+            Column order keeps a new column in one block of the diff.
 
     Yields:
         The lines of the text representation, in workbook order.
@@ -46,8 +49,9 @@ def dump_workbook(path: str) -> Iterator[str]:
     wb = load_workbook(path, data_only=False)
     for ws in wb.worksheets:
         yield f"=== Sheet: {ws.title} [state={ws.sheet_state}] ==="
-        for row in ws.iter_rows():
-            for cell in row:
+        cell_groups = ws.iter_cols() if by_column else ws.iter_rows()
+        for cells in cell_groups:
+            for cell in cells:
                 if cell.value is not None:
                     value = cell.value.isoformat() if isinstance(cell.value, (date, time)) else repr(cell.value)
                     yield f"{ws.title}!{cell.coordinate}: {value}"
@@ -62,19 +66,20 @@ def dump_workbook(path: str) -> Iterator[str]:
 
 
 def main() -> int:
-    """Print the text representation of the workbook given as the only argument.
+    """Print the text representation of the workbook given on the command line.
 
     Returns:
-        0 on success, 1 on a bad argument or an unreadable file.
+        0 on success, 1 on an unreadable file. A bad command line exits with code 2.
     """
-    if len(sys.argv) != 2:
-        print("usage: xlsx_textconv.py <workbook.xlsx>", file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser(description="Print an Excel workbook as text for `git diff`.")
+    parser.add_argument("workbook", help="Path to the .xlsx or .xlsm file.")
+    parser.add_argument("--by-column", action="store_true", help="Print cells column by column instead of row by row.")
+    args = parser.parse_args()
     try:
-        for line in dump_workbook(sys.argv[1]):
+        for line in dump_workbook(args.workbook, by_column=args.by_column):
             print(line)
     except Exception as e:
-        print(f"xlsx_textconv: cannot read {sys.argv[1]}: {e}", file=sys.stderr)
+        print(f"xlsx_textconv: cannot read {args.workbook}: {e}", file=sys.stderr)
         return 1
     return 0
 
