@@ -132,7 +132,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetR
     width: 200,
   },
   [ProjectReadsetsColumnID.SAMPLE_NAME]: {
-    title: "Sample Name",
+    title: "Potato Name",
     dataIndex: "sample_name",
     sorter: true,
     width: 200,

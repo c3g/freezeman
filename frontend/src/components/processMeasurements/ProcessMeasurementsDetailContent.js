@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link, useParams } from "react-router-dom";
@@ -51,7 +52,7 @@ const ProcessMeasurementsDetailContent = ({
 
   const isLoading = !isLoaded || processMeasurement.isFetching;
   const title =
-    `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name].filter(Boolean).join(' - ')}`;
+    `Potato Process ${[id, processMeasurement && potatoify(protocolsByID[processMeasurement.protocol]?.name)].filter(Boolean).join(' - ')}`;
 
   return <>
     <AppPageHeader title={title} />
@@ -65,12 +66,12 @@ const ProcessMeasurementsDetailContent = ({
                 <Link to={`/processes/${processMeasurement.process}`}>{processMeasurement.process}</Link>
               }
             </Descriptions.Item>
-            <Descriptions.Item label="Applied To Sample" span={2}>
+            <Descriptions.Item label="Applied To Potato" span={2}>
               <Link to={`/samples/${processMeasurement.source_sample}`}>
                 {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
               </Link>
             </Descriptions.Item>
-            <Descriptions.Item label="Sample Created (If Applicable)" span={2}>
+            <Descriptions.Item label="Potato Created (If Applicable)" span={2}>
               {processMeasurement.child_sample &&
                 <Link to={`/samples/${processMeasurement.child_sample}`}>
                   {withSample(samplesByID, processMeasurement.child_sample, sample => sample.name, "Loading...")}
@@ -86,8 +87,8 @@ const ProcessMeasurementsDetailContent = ({
         <TabPane tab="Properties" key="properties" style={{ marginTop: 8 }}>
           <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
           {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
-          <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
-          {processMeasurement?.properties?.length === 0 && <>No sample specific properties associated with the protocol.</>}
+          <Title level={3} style={{ marginTop: '20px' }}>Potato Process Properties</Title>
+          {processMeasurement?.properties?.length === 0 && <>No potato specific properties associated with the protocol.</>}
           {processMeasurement?.properties?.length > 0 &&
             <>
               <ProcessProperties

@@ -64,7 +64,7 @@ const IndividualsDetailContent = () => {
               individual={individual && individual ? individual.individual : {}}
             />
           </Tabs.TabPane>
-          <Tabs.TabPane tab="Associated Samples" key="samples">
+          <Tabs.TabPane tab="Associated Potatoes" key="samples">
             {individual && individual.individual.id && (
               <IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
             )}

@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { List, Typography } from 'antd'
 import React from 'react'
 import { LabworkStepGroup } from '../../../modules/labwork/models'
@@ -19,7 +20,7 @@ const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStep
 
 	return (
 		<div style={{ padding: '1rem' }}>
-			{renderNamedGroup && <Title level={5}>{group.name}</Title>}
+			{renderNamedGroup && <Title level={5}>{potatoify(group.name)}</Title>}
 			<List
 				size="small"
 				dataSource={listData}

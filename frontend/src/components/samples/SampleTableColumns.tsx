@@ -321,7 +321,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 	},
 	[SampleColumnID.SAMPLE_COUNT]: {
 		columnID: SampleColumnID.SAMPLE_COUNT,
-		title: 'Samples in pool',
+		title: 'Potatoes in pool',
 		dataIndex: ['sample', 'id'],
 		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
@@ -371,7 +371,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 	[SampleColumnID.ID]: {
 		type: FILTER_TYPE.INPUT_OBJECT_ID,
 		key: UNDEFINED_FILTER_KEY,
-		label: 'Sample ID',
+		label: 'Potato ID',
 	},
 	[SampleColumnID.KIND]: {
 		type: FILTER_TYPE.SELECT,
@@ -475,7 +475,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 	[SampleColumnID.SAMPLE_COUNT]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
-		label: "Samples in pool",
+		label: "Potatoes in pool",
 	},
 	[SampleColumnID.QUEUED_STEPS]: {
 		type: FILTER_TYPE.INPUT,

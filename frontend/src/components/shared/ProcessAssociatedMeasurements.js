@@ -17,7 +17,7 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
 const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
   return [
     {
-      title: "Sample Process ID",
+      title: "Potato Process ID",
       dataIndex: "id",
       sorter: true,
       width: 175,
@@ -25,7 +25,7 @@ const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
           <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.id}</Link>
     },
     {
-      title: "Sample",
+      title: "Potato",
       dataIndex: "source_sample__name",
       sorter: true,
       render: (_, processMeasurement) => {
@@ -120,7 +120,7 @@ const ProcessAssociatedMeasurements = ({
   if (sample_property_types.length > 0) {
     return <PaginatedList {...props}/>
   } else {
-    return <>No sample specific properties associated with the protocol.</>
+    return <>No potato specific properties associated with the protocol.</>
   }
 }
 

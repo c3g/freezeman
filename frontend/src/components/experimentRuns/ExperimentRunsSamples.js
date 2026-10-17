@@ -19,7 +19,7 @@ const renderSample = (sample, sampleKind) => {
             <CheckCircleTwoTone twoToneColor="#52c41a" />
          }
          {' '}
-        <b>{sample.name}</b> sample ({sampleKind}){' '}
+        <b>{sample.name}</b> potato ({sampleKind}){' '}
         {sample.coordinates &&
           `@ ${sample.coordinates}`
         }
@@ -93,7 +93,7 @@ const ExperimentRunsSamples = ({
                   {sample ?
                       renderSample(sample, sampleKindsByID[sample.sample_kind]?.name) :
                       <>
-                        <Link to={`/samples/${sampleId}`}> Sample </Link> {' '}
+                        <Link to={`/samples/${sampleId}`}> Potato </Link> {' '}
                         <Text type="secondary">
                           loading...
                         </Text>

@@ -142,7 +142,7 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
 
   return (
     <>
-      <Button type='primary' icon={<SyncOutlined spin={waitResponse}/>} disabled={!canExecute} onClick={onButtonClick} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+      <Button type='primary' icon={<SyncOutlined spin={waitResponse}/>} disabled={!canExecute} onClick={onButtonClick} title='Execute the step automation with currently selected potatoes.'>Execute Automation</Button>
       {ExtraDataForm[step.name]}
     </>
   )

@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { Button, Descriptions, Popconfirm, Space, Spin, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
@@ -81,7 +82,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
         if (order && study && workflow) {
             const step = workflow.steps_order.find(step_order => step_order.order === order)
             if (step) {
-                return  `${order} - ${step.step_name}`
+                return  `${order} - ${potatoify(step.step_name)}`
             }
         }
         return null
@@ -92,7 +93,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
             <FlexBar>
                 <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
                 <Space>
-                    {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain samples or that have been initiated cannot be removed.</Typography.Text>}
+                    {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain potatoes or that have been initiated cannot be removed.</Typography.Text>}
                     <Popconfirm
                         title={`Are you sure you want to remove study ${study?.letter}? This removal cannot be undone.`}
                         onConfirm={() => handleRemoveStudy(studyId)}
@@ -119,7 +120,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                 // Display the "Samples" title with a spinner until data is ready.
                 // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)
                 <Space align='baseline'>
-                    <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+                    <Title level={4} style={{ marginTop: '1.5rem' }}>Potatoes</Title>
                     { !studySamples && <Spin spinning={true}/> }
                 </Space>
             }

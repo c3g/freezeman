@@ -10,7 +10,7 @@ textarea:-webkit-autofill:hover textarea:-webkit-autofill:focus,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-box-shadow: 0 0 0px 1000px #fbf3dc inset !important;
 }
 
 .table-column-numbers {
@@ -126,4 +126,8 @@ abbr.--time {
 .ant-layout-sider-collapsed .App__spin {
   width: 0 !important;
   opacity: 0;
+}
+/* Furrowed-field stripes in the main content area */
+.ant-layout-content {
+  background-image: repeating-linear-gradient(0deg, rgba(160, 112, 60, 0.05) 0, rgba(160, 112, 60, 0.05) 2px, transparent 2px, transparent 28px);
 }

@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
@@ -169,7 +170,7 @@ function useStudySteps(sampleIDs: readonly Sample["id"][]) {
                     content={
                       <>
                         <div>Study: {studyLetter}</div>
-                        <div>Step: {stepOrder.step_name}</div>
+                        <div>Step: {potatoify(stepOrder.step_name)}</div>
                       </>
                     }
                   >

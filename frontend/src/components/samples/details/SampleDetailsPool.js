@@ -45,7 +45,7 @@ const getTableColumns = (sampleKinds) => {
             }               
         },
         {
-          title: "Parent Sample Name",
+          title: "Parent Potato Name",
           dataIndex: "parent_sample_name",
           sorter: true,
           render: (_, pooledSample) => {
@@ -128,7 +128,7 @@ const getTableColumns = (sampleKinds) => {
 
 const SampleDetailsPool = ({sample}) => {
     // Only display the pooled samples table if the sample is actually a pool.
-    // Otherwise, just display a message saying that there are no pooled samples to display.
+    // Otherwise, just display a message saying that there are no pooled potatoes to display.
     return (
         sample.is_pool ?
             <PooledSamples sample={sample}/>
@@ -139,7 +139,7 @@ const SampleDetailsPool = ({sample}) => {
 
 export const NoPooledSamples = () => {
     return (
-        <div>This is not a pooled sample.</div>
+        <div>This is not a pooled potato.</div>
     )
 }
 

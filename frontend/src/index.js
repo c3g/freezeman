@@ -12,6 +12,9 @@ import "./utils/platform";
 import { setStore } from "./utils/withItem.js";
 import App from "./components/app/App";
 
+import { ConfigProvider } from "antd";
+import { potatoTheme } from "./styles/potatoTheme";
+
 import "./styles/global.css";
 import "./styles/antd-adjustments.scss";
 
@@ -26,7 +29,9 @@ root.render(
   <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <BrowserRouter>
-          <App />
+          <ConfigProvider theme={potatoTheme}>
+            <App />
+          </ConfigProvider>
         </BrowserRouter>
       </PersistGate>
     </Provider>

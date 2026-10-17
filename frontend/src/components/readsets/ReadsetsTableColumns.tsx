@@ -38,7 +38,7 @@ export function useReadsetColumnDefinitions({ renderReleaseStatus = defaultRende
         },
         [ReadsetColumnID.SAMPLE_NAME]: {
             columnID: ReadsetColumnID.SAMPLE_NAME,
-            title: "Sample name",
+            title: "Potato name",
             dataIndex: ['readset', 'sample_name'],
             sorter: true,
             render: (_, { readset }) => {
@@ -100,7 +100,7 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetFilterID]: FilterDescripti
     [ReadsetFilterID.SAMPLE_NAME]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
-        label: "Sample Name",
+        label: "Potato Name",
     },
     [ReadsetFilterID.RELEASE_STATUS]: {
         type: FILTER_TYPE.SELECT,

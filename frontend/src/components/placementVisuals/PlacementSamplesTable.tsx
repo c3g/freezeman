@@ -135,7 +135,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
         const columns: ColumnsType<PlacementSample> = []
         if (sourceOrDestination === 'source') {
             columns.push({
-                title: 'Sample',
+                title: 'Potato',
                 dataIndex: 'name',
                 key: 'name',
             })
@@ -160,7 +160,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
             })
         } else {
             columns.push({
-                title: 'Sample',
+                title: 'Potato',
                 dataIndex: 'name',
                 key: 'name'
             })

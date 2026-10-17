@@ -12,7 +12,7 @@ import ResetPasswordForm from "./ResetPasswordForm"
 const containerStyle = {
   width: "100%",
   height: "100%",
-  backgroundColor: "#001529"
+  backgroundColor: "#3b2a1a"
 }
 
 const cardStyle: React.CSSProperties = {
@@ -23,8 +23,8 @@ const cardStyle: React.CSSProperties = {
   transform: "translate(-50%, -50%)",
   maxWidth: "396px",
   width: "100%",
-  backgroundColor: "#e6e6e6",
-  boxShadow: "rgb(53 138 254) 1px 1px 17px 1px",
+  backgroundColor: "#fbf3dc",
+  boxShadow: "rgb(91 140 42) 1px 1px 17px 1px",
   borderRadius: 10,
 }
 
@@ -49,6 +49,7 @@ const LoginPage = () => {
   return (
     <div style={containerStyle}>
       <Card style={cardStyle}>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Potato_tubers_in_pail.jpg/330px-Potato_tubers_in_pail.jpg" alt="Potatoes in a pail" style={{ width: "100%", borderRadius: 10, marginBottom: 16 }} />
         <Routes>
           <Route path="/" element={<LoginForm login={login} isFetching={isFetching} />}/>
           <Route path="/forgot-password" element={<ResetPasswordForm />}/>

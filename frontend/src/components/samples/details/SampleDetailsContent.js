@@ -141,7 +141,7 @@ const SampleDetailsContent = () => {
   return (
     <>
       <AppPageHeader
-        title={`Sample ${sample.name || id}`}
+        title={`Potato ${sample.name || id}`}
         extra={
           isLoaded ? (
             <Space>

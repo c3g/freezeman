@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { Collapse, List, Table, Typography } from 'antd'
 import React from 'react'
 import { Workflow } from '../../models/frontend_models'
@@ -34,7 +35,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 			<Collapse accordion items={[
 				{
 					key: 'step-names',
-					label: workflow.name,
+					label: potatoify(workflow.name),
 					children: <List
 						dataSource={stepNames}
 						size="small"
@@ -42,7 +43,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 							return <List.Item key={`${item.stepOrder}-${item.stepName}`}>
 								<span>
 									<Text strong={true} style={{fontSize: 16, marginRight: "0.6rem"}}>{item.stepOrder}</Text>
-									<Text>{item.stepName}</Text>
+									<Text>{potatoify(item.stepName)}</Text>
 								</span>
 							</List.Item>
 						}}

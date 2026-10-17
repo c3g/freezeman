@@ -109,7 +109,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
 								<ProjectOverview project={project} />
 							</TabPane>
-							<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
+							<TabPane tab="Associated Potatoes" key="samples" style={tabStyle}>
 								<ProjectsAssociatedSamples projectID={project.id} />
 							</TabPane>	
 							{studies.map(study => {

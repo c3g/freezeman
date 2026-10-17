@@ -31,7 +31,9 @@ const About = () => {
             <Row>
                 <Col {...COL_LAYOUT}>
                     <Card title="Information" size="large">
-                      FreezeMan
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Potato_tubers.jpg/330px-Potato_tubers.jpg" alt="Potatoes" style={{ width: "100%", borderRadius: 10, marginBottom: 8 }} />
+                      <br/>
+                      PotatoMan: Because every spud deserves a home. 🥔
                       <br/>
                       {version && `Version ${version}`}
                       <br/>

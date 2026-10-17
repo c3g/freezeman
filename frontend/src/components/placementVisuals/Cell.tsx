@@ -154,7 +154,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     return (
         <Popover
             content={<>
-                <div>{`Sample(s): ${samples.map((s) => s.name).join(", ")}`}</div>
+                <div>{`Potato(es): ${samples.map((s) => s.name).join(", ")}`}</div>
                 <div>{`Coords: ${coordinates}`}</div>
                 {placedFrom.length > 0 ? <div>{'From: '}{placedFrom.map((placedFrom) => typeof placedFrom === 'object'
                     ? `${placedFrom.fromContainer.name}@${placedFrom.coordinates}`

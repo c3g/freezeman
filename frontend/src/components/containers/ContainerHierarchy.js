@@ -94,7 +94,7 @@ const renderSample = (sample, sampleKind) => {
             <CheckCircleTwoTone twoToneColor="#52c41a" />
          }
          {' '}
-        <b>{sample.name}</b> sample ({sampleKind}){' '}
+        <b>{sample.name}</b> potato ({sampleKind}){' '}
         {sample.coordinate && <>
           {`@ `}
           <WithCoordinateRenderComponent objectID={sample.coordinate} render={coordinate => coordinate.name} placeholder={"Loading..."} />
@@ -174,7 +174,7 @@ const ContainerHierarchy = ({container, listChildren}) => {
                 {sample ?
                     renderSample(sample, sampleKind, coordinatesByID) :
                     <span style={entryStyle}>
-                      <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}
+                      <Link to={`/samples/${sampleId}`} onClick={onClick}> Potato </Link> {' '}
                       <Text type="secondary">
                         loading...
                       </Text>

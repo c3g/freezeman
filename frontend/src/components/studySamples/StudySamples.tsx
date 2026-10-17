@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { Collapse, Space, Switch, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -78,25 +79,25 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	return (
 		<>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-				<Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+				<Title level={4} style={{ marginTop: '1.5rem' }}>Potatoes</Title>
 				<Space>
 					<Text>Hide empty steps</Text>
 					<Switch 
 						checked={hideEmptySteps}
 						onChange={handleHideEmptySteps}
-						title='Hide steps for which there are no ready or completed samples'
+						title='Hide steps for which there are no ready or completed potatoes'
 					/>
 					<RefreshButton
 						refreshing={refreshing}
 						onRefresh={handleRefresh}
-						title={'Update with the latest state of the samples in the lab'}
+						title={'Update with the latest state of the potatoes in the lab'}
 					/>
 				</Space>
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
 					const countString = `${step.completed.count + step.removed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
-					const countTitle = `${step.completed.count + step.removed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
+					const countTitle = `${step.completed.count + step.removed.count} of ${step.ready.count + step.completed.count + step.removed.count} potatoes are completed`					
 					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study after completing this step` : `${step.removed.count} samples were removed from study after completing this step`
 
 					// Call StepPanel as a function because the child of Collapse must be a CollapsePanel, not a StepPanel
@@ -106,7 +107,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 							header={
 								<Space align="baseline">
 									<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
-									<Title level={5}>{step.stepName}</Title>
+									<Title level={5}>{potatoify(step.stepName)}</Title>
 								</Space>
 							}
 							showArrow={true}

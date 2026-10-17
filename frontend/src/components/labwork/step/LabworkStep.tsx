@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
 import React, { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -116,7 +117,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						dispatch(flushSamplesAtStep(step.id))
 						const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
 						notification.info({
-							message: `Automation completed with success. Moving samples to next step.`,
+							message: `Automation completed with success. Moving potatoes to next step.`,
 							key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
 							duration: 5
 						})
@@ -330,7 +331,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
-	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.items.length} ${stepSamples.selectedSamples.items.length === 1 ? "sample" : "samples"} selected)`
+	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.items.length} ${stepSamples.selectedSamples.items.length === 1 ? "potato" : "potatoes"} selected)`
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -343,7 +344,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						options={stepSamples.prefill.templates.map(template => {
 							return {
 								value: template.id,
-								label: template.description
+								label: potatoify(template.description)
 							}
 						})}
 						onChange={value => {
@@ -355,7 +356,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Button type='default' title={"Manage sample queueing to the current step."} onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.QUEUED_STEPS}=${step.name}`, stepSamples.selectedSamples.items)}>
+			<Button type='default' title={"Manage potato queueing to the current step."} onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.QUEUED_STEPS}=${step.name}`, stepSamples.selectedSamples.items)}>
 				Manage Workflow
 			</Button>
 			{!isAutomationStep &&
@@ -372,7 +373,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			<RefreshButton
 				refreshing={isRefreshing}
 				onRefresh={handleRefresh}
-				title='Refresh the list of samples'
+				title='Refresh the list of potatoes'
 			/>
 		</Space>
 	)
@@ -380,7 +381,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const tabItems = useMemo<NonNullable<ComponentProps<typeof Tabs>['items']>>(() => [
 		{
 			key: GROUPED_SAMPLES_TAB_KEY,
-			label: 'Samples',
+			label: 'Potatoes',
 			children: <LabworkStepOverview
 							step={step}
 							refreshing={isRefreshing}
@@ -411,7 +412,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		},
 		...(step.needs_placement ? [{
 			key: PLACEMENT_TAB_KEY,
-			label: <Tooltip title="Place selected samples">Placement</Tooltip>,
+			label: <Tooltip title="Place selected potatoes">Placement</Tooltip>,
 			children: <Placement
 							stepID={step.id}
 							sampleIDs={stepSamples.selectedSamples.items}
@@ -422,7 +423,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	return (
 		<>
-			<AppPageHeader title={step.name} extra={buttonBar} />
+			<AppPageHeader title={potatoify(step.name)} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyOnHidden tabBarExtraContent={
 						<Space>
@@ -446,7 +447,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 								placement={'rightTop'}
 								onConfirm={() => handleClearSelection()}
 							>
-								<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all samples'>Clear Selection</Button>
+								<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all potatoes'>Clear Selection</Button>
 							</Popconfirm>
 						</Space>
 					}

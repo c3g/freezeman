@@ -9,8 +9,8 @@ import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectBiosamplesByID } from '../../selectors'
 import { AppDispatch } from '../../store'
 
-export const CONCORDANCE_WARNING_MESSAGE = "Tested readset data failed to match corresponding sample identity."
-export const CONTAMINATION_WARNING_MESSAGE = "Tested readset data matched other sample identity. Possible contamination or Mix-up."
+export const CONCORDANCE_WARNING_MESSAGE = "Tested readset data failed to match corresponding potato identity."
+export const CONTAMINATION_WARNING_MESSAGE = "Tested readset data matched other potato identity. Possible contamination or Mix-up."
 
 export class ConcordanceWarningValues {
     readset_id: FMSId
@@ -101,7 +101,7 @@ export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById: BiosampleById): { [key
     },
     [IdentityConcordanceColumnID.SAMPLE_ALIAS]: {
         columnID: IdentityConcordanceColumnID.SAMPLE_ALIAS,
-        title: 'Sample',
+        title: 'Potato',
         dataIndex: 'biosample_id',
         key: 'biosample_id',
         render: (biosample_id: Biosample['id']) => biosamplesById[biosample_id] ? biosamplesById[biosample_id].alias : "Unknown",
@@ -130,7 +130,7 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById: BiosampleById): { [k
     },
     [IdentityContaminationColumnID.TESTED_SAMPLE_ALIAS]: {
         columnID: IdentityContaminationColumnID.TESTED_SAMPLE_ALIAS,
-        title: 'Tested Sample',
+        title: 'Tested Potato',
         dataIndex: 'tested_biosample_id',
         key: 'tested_biosample_id',
         render: (tested_biosample_id: FMSSampleIdentityMatch['tested_biosample_id']) => biosamplesById[tested_biosample_id] ? biosamplesById[tested_biosample_id].alias : "Unknown",
@@ -138,7 +138,7 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById: BiosampleById): { [k
     },
     [IdentityContaminationColumnID.MATCHED_SAMPLE_ALIAS]: {
         columnID: IdentityContaminationColumnID.MATCHED_SAMPLE_ALIAS,
-        title: 'Matched Sample',
+        title: 'Matched Potato',
         dataIndex: 'matched_biosample_id',
         key: 'matched_biosample_id',
         render: (matched_biosample_id: FMSSampleIdentityMatch['matched_biosample_id']) => biosamplesById[matched_biosample_id] ? biosamplesById[matched_biosample_id].alias : "Unknown",

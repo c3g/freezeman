@@ -46,7 +46,7 @@ const getTableColumns = (protocols) => [
           <Tag variant="outlined">{protocols?.itemsByID[processMeasurement.protocol]?.name}</Tag>,
     },
     {
-      title: "Source Sample",
+      title: "Source Potato",
       dataIndex: "source_sample__name",
       sorter: true,
       render: (_, processMeasurement) => {
@@ -58,7 +58,7 @@ const getTableColumns = (protocols) => [
       }
     },
     {
-      title: "Generated Sample",
+      title: "Generated Potato",
       dataIndex: "lineage__child__name",
       sorter: true,
       render: (_, processMeasurement) => {

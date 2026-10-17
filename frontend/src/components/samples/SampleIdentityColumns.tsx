@@ -26,7 +26,7 @@ export enum SampleIdentityColumnID {
 export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID, SampleIdentityColumn> = {
     [SampleIdentityColumnID.ID]: {
         columnID: SampleIdentityColumnID.ID,
-        title: "Sample ID",
+        title: "Potato ID",
         dataIndex: ["identity", "id"],
         width: 150,
         sorter: true,
@@ -110,7 +110,7 @@ export function BiosampleIDToAlias({ biosampleID }: { biosampleID: FMSId }): Rea
 export const SAMPLE_IDENTITY_COLUMN_FILTERS: Partial<Record<SampleIdentityColumnID, FilterDescription>> = {
     [SampleIdentityColumnID.ID]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
-        label: "Sample Identity ID",
+        label: "Potato Identity ID",
         key: UNDEFINED_FILTER_KEY,
     },
     [SampleIdentityColumnID.BIOSAMPLE]: {

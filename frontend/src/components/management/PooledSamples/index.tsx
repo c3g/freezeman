@@ -82,13 +82,13 @@ const ROW_KEY = "id"
 
 const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSample> = {
   [PooledSampleColumnID.ALIAS]: {
-    title: "Sample Alias",
+    title: "Potato Alias",
     dataIndex: "alias",
     key: PooledSampleColumnID.ALIAS,
     sorter: { multiple: 1 },
   },
   [PooledSampleColumnID.NAME]: {
-    title: "Sample/Pool Name",
+    title: "Potato/Pool Name",
     dataIndex: "pool_name",
     key: PooledSampleColumnID.NAME,
     render: (_: any, record: FMSPooledSample) => (
@@ -130,8 +130,8 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
 } as const
 
 const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
-  [PooledSampleColumnID.ALIAS]: { placeholder: "Sample Alias" },
-  [PooledSampleColumnID.NAME]: { placeholder: "Sample Name" },
+  [PooledSampleColumnID.ALIAS]: { placeholder: "Potato Alias" },
+  [PooledSampleColumnID.NAME]: { placeholder: "Potato Name" },
   [PooledSampleColumnID.CONTAINER_BARCODE]: { placeholder: "Container Barcode" },
   [PooledSampleColumnID.COORDINATES]: { placeholder: "Coordinates" },
   [PooledSampleColumnID.PROJECT]: { placeholder: "Project Name" },

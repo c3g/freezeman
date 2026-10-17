@@ -167,7 +167,7 @@ function renderSample(sample, sampleKindsByID) {
           <Tag variant="outlined" style={tagStyle}>{sampleKind}</Tag>{' '}
         </>
       }
-      <Text type="secondary">sample</Text>{' '}
+      <Text type="secondary">potato</Text>{' '}
     </Option>
   );
 }

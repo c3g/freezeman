@@ -104,7 +104,7 @@ const getMenuItems = (user, logOut) => [
 ]
 
 const DEV_QC_BACKGROUND =
-  "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)"
+  "repeating-linear-gradient(45deg, #3b2a1a, #3b2a1a 10px, #5b8c2a 10px, #5b8c2a 20px)"
 
 const colorStyle = {
   color: "white",
@@ -221,7 +221,7 @@ const App = ({ userID, usersByID, logOut }) => {
           {
             url: "/management/sample-rename",
             icon: <BarcodeOutlined />,
-            text: "Rename Sample",
+            text: "Rename Potato",
             key: "sample-rename",
           },
         ],
@@ -235,7 +235,7 @@ const App = ({ userID, usersByID, logOut }) => {
       {
         url: "/samples",
         icon: <ExperimentOutlined />,
-        text: "Samples",
+        text: "Potatoes",
         key: "samples",
       },
       {
@@ -353,8 +353,9 @@ const App = ({ userID, usersByID, logOut }) => {
               >
                 <Title style={titleStyle} className="App__title">
                   <div style={{ marginRight: "0.25rem", paddingRight: "0.25rem" }}>
-                    <b>F</b>
-                    <span>reeze</span>
+                    <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f954.png" alt="potato" style={{ height: "1.2em", marginRight: "0.3em", verticalAlign: "text-bottom" }} />
+                    <b>P</b>
+                    <span>otato</span>
                     <b>M</b>
                     <span>an</span>
                     {env !== "PROD" && (

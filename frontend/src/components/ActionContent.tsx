@@ -1,3 +1,4 @@
+import { potatoify } from "../utils/potatoify"
 import React, {useCallback, useEffect, useMemo} from "react";
 import {useParams} from "react-router-dom";
 import {Dropdown, Button, MenuProps, ButtonProps} from "antd";
@@ -81,7 +82,7 @@ export default function ActionContent({templateType}: { templateType: keyof type
       ? action.template.map((template, i) => ({
         key: i,
         onClick: () => window.location.assign(template.file),
-        label: template.description
+        label: potatoify(template.description)
       }))
       : [{ key: 'loading', label: 'Loading...' }]
   }
@@ -121,7 +122,7 @@ export default function ActionContent({templateType}: { templateType: keyof type
 
   return <>
     <AppPageHeader
-      title={action.name}
+      title={potatoify(action.name)}
       extra={extra}
     />
     <PageContent>

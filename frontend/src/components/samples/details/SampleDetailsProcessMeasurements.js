@@ -14,7 +14,7 @@ const mapStateToProps = state => ({
 const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, protocolsByID,}) => {
     const columns = [
       {
-        title: 'Sample Process ID',
+        title: 'Potato Process ID',
         dataIndex: 'id',
         key: 'id',
         render: (id, _) =>

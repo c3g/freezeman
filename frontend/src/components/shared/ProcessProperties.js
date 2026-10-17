@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import React from "react";
 import {connect} from "react-redux";
 
@@ -46,7 +47,7 @@ const ProcessProperties = ({
 
   return (
     <>
-     <Title level={5} style={{marginTop: "20px"}}> {protocolName} </Title>
+     <Title level={5} style={{marginTop: "20px"}}> {potatoify(protocolName)} </Title>
       {propertiesAreLoaded ?
         <Table columns={columns} dataSource={data} pagination={false} className="table-min-width"/>
           :

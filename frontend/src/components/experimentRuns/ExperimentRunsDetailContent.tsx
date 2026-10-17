@@ -151,7 +151,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 						})}
 					</TabPane>
 
-					<TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples">
+					<TabPane tab={`Potatoes (${container ? container.samples.length : ''})`} key="samples">
 						<ExperimentRunsSamples container={container} experimentRun={experimentRun} />
 					</TabPane>
 
