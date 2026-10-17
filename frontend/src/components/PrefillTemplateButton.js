@@ -1,3 +1,4 @@
+import { potatoify } from "../utils/potatoify"
 import React, {useState} from "react";
 import {downloadFromFile} from "../utils/download";
 import {Button, Modal} from "antd";
@@ -49,7 +50,7 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
   }
   return (
     <Button variant={"outlined"} icon={rest.icon || <DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
-        { rest.description ?  rest.description : 'Prefill Template' }
+        { rest.description ?  potatoify(rest.description) : 'Prefill Template' }
     </Button>
   )
 }

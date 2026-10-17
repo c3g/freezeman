@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
 
 import { Typography, Card, Space, Button, Popover } from 'antd';
@@ -63,7 +64,7 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                             data: {
                                 source: edge.source_sample.toString(),
                                 target: edge.child_sample.toString(),
-                                protocol_name: edge.protocol_name,
+                                protocol_name: potatoify(edge.protocol_name),
                                 id: edge.id.toString()
                             }
                         })

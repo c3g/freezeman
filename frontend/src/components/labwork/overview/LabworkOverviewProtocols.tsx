@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { Collapse, Space, Switch, Typography } from 'antd'
 import React, { useMemo } from 'react'
 import { useAppDispatch } from '../../../hooks'
@@ -72,7 +73,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 			<Collapse items={sortedProtocols.map((protocol) => {
 				return {
 					key: protocol.id,
-					label: protocol.name,
+					label: potatoify(protocol.name),
 					extra: <Title level={4}>{protocol.count}</Title>,
 					children: <LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptySections}/>
 				}

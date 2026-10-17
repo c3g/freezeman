@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { Select } from 'antd'
 import { DefaultOptionType } from 'antd/lib/select'
 import React, { useEffect, useState } from 'react'
@@ -16,7 +17,7 @@ const WorkflowStepSelector = ({ workflow, startStep, endStep, onChange }: Workfl
 
 	useEffect(() => {
 		if (workflow) {
-			const options = workflow.steps_order.map((step, index) => ({ value: index + 1, label: step.step_name }))
+			const options = workflow.steps_order.map((step, index) => ({ value: index + 1, label: potatoify(step.step_name) }))
 			setStepOptions(options)
 		} else {
 			setStepOptions([])

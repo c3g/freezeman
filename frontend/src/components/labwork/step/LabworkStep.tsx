@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
 import React, { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -343,7 +344,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						options={stepSamples.prefill.templates.map(template => {
 							return {
 								value: template.id,
-								label: template.description
+								label: potatoify(template.description)
 							}
 						})}
 						onChange={value => {
@@ -422,7 +423,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	return (
 		<>
-			<AppPageHeader title={step.name} extra={buttonBar} />
+			<AppPageHeader title={potatoify(step.name)} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyOnHidden tabBarExtraContent={
 						<Space>

@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { Button, Descriptions, Popconfirm, Space, Spin, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
@@ -81,7 +82,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
         if (order && study && workflow) {
             const step = workflow.steps_order.find(step_order => step_order.order === order)
             if (step) {
-                return  `${order} - ${step.step_name}`
+                return  `${order} - ${potatoify(step.step_name)}`
             }
         }
         return null

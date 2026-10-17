@@ -1,3 +1,4 @@
+import { potatoify } from "../utils/potatoify"
 import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
@@ -85,7 +86,7 @@ function DashboardPage() {
             <Button key={template.id} style={QUICK_ACCESS_BUTTON_STYLE} onClick={() => navigate(`/samples/actions/${template.id}/`)} styles={{ root: { height: 'fit-content' } }}>
                 <Flex vertical={false} align={"center"} gap={"small"}>
                     <ExperimentOutlined style={QUICK_ACCESS_ICON_STYLE} />
-                    <div style={QUICK_ACCESS_TEXT_STYLE}>{template.name}</div>
+                    <div style={QUICK_ACCESS_TEXT_STYLE}>{potatoify(template.name)}</div>
                 </Flex>
             </Button>
         )) ?? []

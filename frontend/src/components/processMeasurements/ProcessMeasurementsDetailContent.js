@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link, useParams } from "react-router-dom";
@@ -51,7 +52,7 @@ const ProcessMeasurementsDetailContent = ({
 
   const isLoading = !isLoaded || processMeasurement.isFetching;
   const title =
-    `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name].filter(Boolean).join(' - ')}`;
+    `Potato Process ${[id, processMeasurement && potatoify(protocolsByID[processMeasurement.protocol]?.name)].filter(Boolean).join(' - ')}`;
 
   return <>
     <AppPageHeader title={title} />

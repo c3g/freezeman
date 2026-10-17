@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
 import { fetchSamples } from "../../modules/cache/cache"
@@ -199,7 +200,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
       if (sampleSelectionCount > MAX_SELECTION) {
         Modal.warning({
           title: "Warning",
-          content: `You cannot ${WORKFLOW_ACTIONS.join("/")} more than ${MAX_SELECTION} samples.`,
+          content: `You cannot ${WORKFLOW_ACTIONS.join("/")} more than ${MAX_SELECTION} potatoes.`,
         })
       } else {
         setOpenForAction(actionName)
@@ -234,7 +235,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
                     key={action}
                     title={
                       skipBlocked
-                        ? `Cannot skip: every selected sample must be queued at a non-mandatory step, and no more than ${MAX_SELECTION} samples can be selected.`
+                        ? `Cannot skip: every selected potato must be queued at a non-mandatory step, and no more than ${MAX_SELECTION} potatoes can be selected.`
                         : ""
                     }
                   >
@@ -247,7 +248,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
                   </Tooltip>
                 )
               })}
-              {`${sampleSelectionCount} Samples Selected`}
+              {`${sampleSelectionCount} Potatoes Selected`}
             </Space>
           }
           paginationProps={{ simple: true }}
@@ -538,7 +539,7 @@ function WorkflowOptions({
                       title: "Error queuing potatoes to workflow",
                       description: errors
                         ? `${errors[0]}${errors[0].endsWith(".") ? "" : "."}${errors.length > 1 ? " And " + (errors.length - 1) + " more errors..." : ""}`
-                        : `Could not queue samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
+                        : `Could not queue potatoes to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,
                       duration: 10,
                     }),
                   )
@@ -546,7 +547,7 @@ function WorkflowOptions({
               }
             }}
           >
-            {step.order} - {step.step_name}
+            {step.order} - {potatoify(step.step_name)}
           </Button>
         </Tooltip>,
       )

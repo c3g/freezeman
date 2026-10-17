@@ -1,3 +1,4 @@
+import { potatoify } from "../../utils/potatoify"
 import React, { useEffect, useMemo, useState } from "react"
 import { Form, Modal, Select, Typography } from "antd"
 import api from "../../utils/api"
@@ -169,7 +170,7 @@ export default function LinkSamplesToStudy({
           >
             {stepsOrder.map((stepOrder) => (
               <Select.Option key={stepOrder.order} value={stepOrder.order}>
-                {`${stepOrder.order} - ${stepOrder.step_name}`}
+                {`${stepOrder.order} - ${potatoify(stepOrder.step_name)}`}
               </Select.Option>
             ))}
           </Select>

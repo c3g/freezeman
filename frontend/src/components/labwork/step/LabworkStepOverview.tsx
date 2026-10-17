@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { Collapse, Typography, Button, Space, Tag, Tooltip, notification } from "antd"
 import React, { useState, useEffect, useCallback, useMemo, ComponentProps } from "react"
 import { ExportOutlined } from "@ant-design/icons"
@@ -149,7 +150,7 @@ const LabworkStepOverview = ({
         const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
         notification.error({
           message:
-            `Too many samples selected. Keep selection under ` + MAX_STEP_SAMPLE_SELECTION + `.`,
+            `Too many potatoes selected. Keep selection under ` + MAX_STEP_SAMPLE_SELECTION + `.`,
           key: TOO_MANY_SELECTED_NOTIFICATION_KEY,
           duration: 5,
         })
@@ -216,7 +217,7 @@ const LabworkStepOverview = ({
               <Space>
                 {route && group.id != null && (
                   <Tooltip
-                    title={`Go to ${route.pageName} page of ${group.name}`}
+                    title={`Go to ${route.pageName} page of ${potatoify(group.name)}`}
                     styles={{ root: { maxWidth: "none", pointerEvents: "none" } }}
                   >
                     <Link
@@ -227,12 +228,12 @@ const LabworkStepOverview = ({
                       <Button
                         size="small"
                         icon={<ExportOutlined />}
-                        aria-label={`Go to ${route.pageName} page of ${group.name}`}
+                        aria-label={`Go to ${route.pageName} page of ${potatoify(group.name)}`}
                       />
                     </Link>
                   </Tooltip>
                 )}
-                {group.name}
+                {potatoify(group.name)}
               </Space>
             ),
             extra: ButtonsSelectAndClear,

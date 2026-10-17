@@ -1,3 +1,4 @@
+import { potatoify } from "../../../utils/potatoify"
 import { InfoCircleOutlined } from "@ant-design/icons"
 import { Alert, Space, Typography } from "antd"
 import React, { useState, useCallback, useEffect, useMemo } from "react"
@@ -111,7 +112,7 @@ export function LabworkSelection({
         <Alert
           type="warning"
           message="Selection has changed"
-          description={`Some potatoes were removed from the selection because they are no longer at the ${step.name} step.`}
+          description={`Some potatoes were removed from the selection because they are no longer at the ${potatoify(step.name)} step.`}
           closable={true}
           showIcon={true}
           onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
