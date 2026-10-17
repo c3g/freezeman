@@ -78,18 +78,18 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	return (
 		<>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-				<Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+				<Title level={4} style={{ marginTop: '1.5rem' }}>Potatoes</Title>
 				<Space>
 					<Text>Hide empty steps</Text>
 					<Switch 
 						checked={hideEmptySteps}
 						onChange={handleHideEmptySteps}
-						title='Hide steps for which there are no ready or completed samples'
+						title='Hide steps for which there are no ready or completed potatoes'
 					/>
 					<RefreshButton
 						refreshing={refreshing}
 						onRefresh={handleRefresh}
-						title={'Update with the latest state of the samples in the lab'}
+						title={'Update with the latest state of the potatoes in the lab'}
 					/>
 				</Space>
 			</div>

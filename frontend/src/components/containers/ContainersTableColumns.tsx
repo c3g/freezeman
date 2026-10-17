@@ -86,7 +86,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 	},
 	[ContainerColumnID.SAMPLES]: {
 		columnID: ContainerColumnID.SAMPLES,
-		title: 'Sample(s)',
+		title: 'Potato(es)',
 		dataIndex: ['container', 'samples'],
 		sorter: false,
 		width: LARGE_COLUMN_WIDTH,
@@ -182,7 +182,7 @@ export const CONTAINER_COLUMN_FILTERS: { [key in ContainerFilterID]: FilterDescr
 	[ContainerFilterID.SAMPLES]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
-		label: "Sample name",
+		label: "Potato name",
 	},
 	[ContainerFilterID.KIND]: {
 		type: FILTER_TYPE.SELECT,

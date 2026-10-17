@@ -195,14 +195,14 @@ const LabworkStepOverview = ({
               </Tag>
               <Button
                 disabled={loading || group.count === 0 || selectedCount === group.count}
-                title="Select group samples"
+                title="Select group potatoes"
                 onClick={() => handleSelectGroup(sample_ids)}
               >
                 Select All
               </Button>
               <Button
                 disabled={loading || selectedCount === 0}
-                title="Deselect group samples"
+                title="Deselect group potatoes"
                 onClick={() => handleClearGroup(sample_ids)}
               >
                 Clear Selection

@@ -18,7 +18,7 @@ function WorkflowDefintions({workflows}: WorkflowDefinitionsProps) {
 			<PageContent>
 				<Space style={{marginBottom: '1em'}}>
 					<InfoCircleOutlined/>
-					<Typography.Text italic>This reference lists the workflows supported by Freezeman.</Typography.Text>
+					<Typography.Text italic>This reference lists the workflows supported by Potatoman.</Typography.Text>
 				</Space>
 				<WorkflowCollapsableList workflows={workflows} />
 			</PageContent>

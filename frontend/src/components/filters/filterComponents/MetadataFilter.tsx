@@ -81,7 +81,7 @@ const MetadataFilter = ({ description, value, setFilter }: MetadataFilterProps) 
 												value={metadataName}
 											/>
 										</Form.Item>
-										<Tooltip title="Leave the value field empty to search for any sample with the given metadata field.">
+										<Tooltip title="Leave the value field empty to search for any potato with the given metadata field.">
 											<QuestionCircleOutlined />
 										</Tooltip>
 										<Form.Item name={[name, 'value']}>

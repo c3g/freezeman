@@ -147,7 +147,7 @@ function Details() {
         <Card>
             <Space direction={"vertical"} size={"small"}>
                 <Text>
-                    Click on node to change the active sample.
+                    Click on node to change the active potato.
                 </Text>
                 <Text>
                     Click on edge to visit the process.

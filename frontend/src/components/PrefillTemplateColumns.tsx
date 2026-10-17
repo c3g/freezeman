@@ -163,10 +163,10 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
 
     return (
         <>
-            <Button type='primary' disabled={!canPrefill || isPrefilling} onClick={onButtonClick} title='Download a prefilled template with the selected samples'>{isPrefilling ? "Prefilling..." : "Prefill Template"}</Button>
+            <Button type='primary' disabled={!canPrefill || isPrefilling} onClick={onButtonClick} title='Download a prefilled template with the selected potatoes'>{isPrefilling ? "Prefilling..." : "Prefill Template"}</Button>
             <Modal title={"Optional Column Prefilling"} open={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate} width={'45rem'}>
                 <Typography.Paragraph>
-                    Select the columns you would like to prefill with a value for all samples.
+                    Select the columns you would like to prefill with a value for all potatoes.
                 </Typography.Paragraph>
                 <Form
                     form={form}

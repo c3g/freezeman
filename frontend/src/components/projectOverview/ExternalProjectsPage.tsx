@@ -159,7 +159,7 @@ const ExternalProjectsPage = () => {
         render: (principalInvestigator: string | null) => principalInvestigator || "",
       },
       {
-        title: "Freezeman Projects",
+        title: "Potatoman Projects",
         dataIndex: "projects",
         key: "projects",
         width: 140,

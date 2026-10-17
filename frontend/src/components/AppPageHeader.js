@@ -2,8 +2,8 @@ import React from "react";
 import { Row, Col, Typography, ConfigProvider, Space } from "antd";
 
 const style = {
-  backgroundColor: "rgba(0, 0, 0, 0.03)",
-  borderBottom: "1px solid #ccc",
+  backgroundColor: "#fbf3dc",
+  borderBottom: "1px solid #e8d9a8",
   padding: "1em",
 };
 

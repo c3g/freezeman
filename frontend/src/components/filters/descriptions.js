@@ -4,7 +4,7 @@ export const SAMPLE_FILTERS = {
   id: {
     type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
-    label: "Sample ID",
+    label: "Potato ID",
   },
   derived_samples__sample_kind__name: {
     type: FILTER_TYPE.SELECT,
@@ -193,7 +193,7 @@ export const CONTAINER_FILTERS = {
   samples: {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
-    label: "Sample name",
+    label: "Potato name",
   },
   comment: {
     type: FILTER_TYPE.INPUT,
@@ -262,12 +262,12 @@ export const PROCESS_MEASUREMENT_FILTERS = {
   source_sample__name: {
     type: FILTER_TYPE.INPUT,
     key: "source_sample__name",
-    label: "Source Sample",
+    label: "Source Potato",
   },
   lineage__child__name: {
     type: FILTER_TYPE.INPUT,
     key: "lineage__child__name",
-    label: "Generated Sample",
+    label: "Generated Potato",
   },
   execution_date: {
     type: FILTER_TYPE.DATE_RANGE,
@@ -388,12 +388,12 @@ export const PROJECT_FILTERS = {
   project_derived_by_samples__sample__name: {
     type: FILTER_TYPE.INPUT,
     key: "project_derived_by_samples__sample__name",
-    label: "Samples",
+    label: "Potatoes",
   },
   project_derived_by_samples__sample__id: {
     type: FILTER_TYPE.SELECT,
     key: "project_derived_by_samples__sample__id",
-    label: "Samples ID",
+    label: "Potatoes ID",
     mode: "multiple",
   },
 }
@@ -551,7 +551,7 @@ export const READSET_FILTERS = {
   sample_name: {
     type: FILTER_TYPE.INPUT,
     key: "sample_name",
-    label: "Sample Name",
+    label: "Potato Name",
   },
   release_status: {
     type: FILTER_TYPE.SELECT,
@@ -617,7 +617,7 @@ export const DATASET_FILE_FILTERS = {
   sample_name: {
     type: FILTER_TYPE.INPUT,
     key: "readset__sample_name",
-    label: "Sample Name",
+    label: "Potato Name",
   },
   release_status: {
     type: FILTER_TYPE.SELECT,
@@ -653,7 +653,7 @@ export const POOLED_SAMPLES_FILTERS = {
   parent_sample_name: {
     type: FILTER_TYPE.INPUT,
     key: "parent_sample_name",
-    label: "Parent Sample Name",
+    label: "Parent Potato Name",
   },
   alias: {
     type: FILTER_TYPE.INPUT,

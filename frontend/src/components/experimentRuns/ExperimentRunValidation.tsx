@@ -248,9 +248,9 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
         return acc
     }, new Set<string>())
 
-    let title = 'Reads Per Sample'
+    let title = 'Reads Per Potato'
     if (lane.readsPerSample) {
-        title = `Reads Per Sample (${lane.readsPerSample.sampleReads.length})`
+        title = `Reads Per Potato (${lane.readsPerSample.sampleReads.length})`
     }
 
     const layoutStyle = {

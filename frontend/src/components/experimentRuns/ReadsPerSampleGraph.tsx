@@ -46,8 +46,8 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 				dispatch(
 					notifyError({
 						id: 'RUN_VALIDATION:CANNOT_RETRIEVE_SAMPLE',
-						title: 'Failed to retrieve sample',
-						description: 'The sample cannot be displayed due to an error.',
+						title: 'Failed to retrieve potato',
+						description: 'The potato cannot be displayed due to an error.',
 					})
 				)
 			}

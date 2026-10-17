@@ -154,11 +154,11 @@ const IndividualEditContent = () => {
             <Input disabled={individual && individual.is_generic}/>
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}
-            extra="Individual name given by the client. Use if client name duplicates an existing individual name in Freezeman." >
+            extra="Individual name given by the client. Use if client name duplicates an existing individual name in Potatoman." >
             <Input/>
           </Form.Item>
           <Form.Item label="Taxon" {...props("taxon")} rules={requiredRules}
-            extra="Taxon identifying the individual. Add taxon to Freezeman if missing from the list." >
+            extra="Taxon identifying the individual. Add taxon to Potatoman if missing from the list." >
             <Select
               showSearch
               allowClear
@@ -195,7 +195,7 @@ const IndividualEditContent = () => {
             <Input/>
           </Form.Item>
           <Form.Item label="Mother" {...props("mother")}
-            extra="Mother of the individual. Must be an existing female individual in Freezeman." >
+            extra="Mother of the individual. Must be an existing female individual in Potatoman." >
             <Select
               showSearch
               allowClear
@@ -206,7 +206,7 @@ const IndividualEditContent = () => {
             />
           </Form.Item>
           <Form.Item label="Father" {...props("father")}
-            extra="Father of the individual. Must be an existing male individual in Freezeman." >
+            extra="Father of the individual. Must be an existing male individual in Potatoman." >
             <Select
               showSearch
               allowClear

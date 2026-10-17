@@ -335,7 +335,7 @@ export const LIBRARY_COLUMN_FILTERS: { [key: string]: FilterDescription } = {
   [LibraryColumnID.ID]: {
     type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: UNDEFINED_FILTER_KEY,
-    label: "Sample ID",
+    label: "Potato ID",
   },
   [LibraryColumnID.NAME]: {
     type: FILTER_TYPE.INPUT,

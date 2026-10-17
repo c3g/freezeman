@@ -65,7 +65,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 					<RefreshButton 
 						refreshing={refreshing} 
 						onRefresh={handleLabworkRefresh}
-						title='Update with the latest state of the samples in the lab'
+						title='Update with the latest state of the potatoes in the lab'
 					/>
 				</Space>
 			</div>

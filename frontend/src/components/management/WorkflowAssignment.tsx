@@ -256,7 +256,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
       )}
       {openForAction && (
         <Drawer
-          title={`${toTitleCase(openForAction)} ${sampleSelectionCount} Samples`}
+          title={`${toTitleCase(openForAction)} ${sampleSelectionCount} Potatoes`}
           placement="right"
           size="large"
           onClose={collapseRightPanel}
@@ -355,10 +355,10 @@ function WorkflowOptions({
   const result = useMemo(() => {
     const result: JSX.Element[] = []
     if (sampleCount === 0)
-      return <div key={"sampleCount"}>{`Please select at least one sample to ${actionName}.`}</div>
+      return <div key={"sampleCount"}>{`Please select at least one potato to ${actionName}.`}</div>
     if (commonProjects === undefined) return <Spin>Loading projects...</Spin>
     if (commonProjects.length === 0)
-      return <div key={"commonProjects"}>{`The selected samples don't share any project.`}</div>
+      return <div key={"commonProjects"}>{`The selected potatoes don't share any project.`}</div>
     result.push(
       <Select
         key={"project-select"}
@@ -441,16 +441,16 @@ function WorkflowOptions({
                     dispatch(
                       notifySuccess({
                         id: NOTIFICATION_KEY,
-                        title: "Samples dequeued from workflow",
-                        description: `Successfully dequeued ${samplesRemovedCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                        title: "Potatoes dequeued from workflow",
+                        description: `Successfully dequeued ${samplesRemovedCount} potatoes from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
                       }),
                     )
                   } else {
                     dispatch(
                       notifyWarning({
                         id: NOTIFICATION_KEY,
-                        title: "Some samples dequeued from workflow",
-                        description: `Only dequeued ${samplesRemovedCount} out of ${sampleCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                        title: "Some potatoes dequeued from workflow",
+                        description: `Only dequeued ${samplesRemovedCount} out of ${sampleCount} potatoes from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
                       }),
                     )
                   }
@@ -459,7 +459,7 @@ function WorkflowOptions({
                   dispatch(
                     notifyError({
                       id: NOTIFICATION_KEY,
-                      title: `Error dequeing samples at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
+                      title: `Error dequeing potatoes at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
                       description: e.data,
                       duration: 10,
                     }),
@@ -480,9 +480,9 @@ function WorkflowOptions({
                     dispatch(
                       notifyError({
                         id: NOTIFICATION_KEY,
-                        title: "Samples skip failed",
+                        title: "Potatoes skip failed",
                         description:
-                          "Sample selection is outdated. Please close this panel and try again.",
+                          "Potato selection is outdated. Please close this panel and try again.",
                       }),
                     )
                   } else {
@@ -494,8 +494,8 @@ function WorkflowOptions({
                     dispatch(
                       notifySuccess({
                         id: NOTIFICATION_KEY,
-                        title: "Samples skipped in workflow",
-                        description: `Successfully skipped ${skipCount} samples from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
+                        title: "Potatoes skipped in workflow",
+                        description: `Successfully skipped ${skipCount} potatoes from study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}."`,
                       }),
                     )
                   }
@@ -504,7 +504,7 @@ function WorkflowOptions({
                   dispatch(
                     notifyError({
                       id: NOTIFICATION_KEY,
-                      title: `Error skipping samples at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
+                      title: `Error skipping potatoes at step ${step.step_name} of study ${selectedStudy.letter} (${workflow.name}).`,
                       description: error.data,
                       duration: 10,
                     }),
@@ -525,8 +525,8 @@ function WorkflowOptions({
                   dispatch(
                     notifySuccess({
                       id: NOTIFICATION_KEY,
-                      title: "Samples queued to workflow",
-                      description: `Successfully queued samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}"`,
+                      title: "Potatoes queued to workflow",
+                      description: `Successfully queued potatoes to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}"`,
                     }),
                   )
                   refresh()
@@ -535,7 +535,7 @@ function WorkflowOptions({
                   dispatch(
                     notifyError({
                       id: NOTIFICATION_KEY,
-                      title: "Error queuing samples to workflow",
+                      title: "Error queuing potatoes to workflow",
                       description: errors
                         ? `${errors[0]}${errors[0].endsWith(".") ? "" : "."}${errors.length > 1 ? " And " + (errors.length - 1) + " more errors..." : ""}`
                         : `Could not queue samples to study ${selectedStudy.letter} (workflow "${workflow.name}") at step "${step.step_name}" for project "${selectedProject.name}".`,

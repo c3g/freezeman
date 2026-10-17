@@ -81,7 +81,7 @@ export default function LinkSamplesToStudy({
 
   return (
     <Modal
-      title={`Link ${sampleCount} Sample${sampleCount > 1 ? "s" : ""} to Study`}
+      title={`Link ${sampleCount} Potato${sampleCount > 1 ? "es" : ""} to Study`}
       open={open}
       okButtonProps={{
         disabled: !(sampleCount > 0 && study && stepOrder),
@@ -104,8 +104,8 @@ export default function LinkSamplesToStudy({
                 dispatch(
                   notifySuccess({
                     id: NOTIFICATION_ID,
-                    title: "Samples linked to study",
-                    description: `Successfully linked samples to study ${study.letter} at step "${stepOrder.step_name}"`,
+                    title: "Potatoes linked to study",
+                    description: `Successfully linked potatoes to study ${study.letter} at step "${stepOrder.step_name}"`,
                   }),
                 )
                 if (handleSuccess) {
@@ -113,7 +113,7 @@ export default function LinkSamplesToStudy({
                 }
               },
               ({ data }: { data: Record<string, string[]> }) => {
-                let description = `Failed to link samples to study ${study.letter} at step "${stepOrder.step_name}": `
+                let description = `Failed to link potatoes to study ${study.letter} at step "${stepOrder.step_name}": `
                 if (data) {
                   for (const key in data) {
                     const errors = data[key]
@@ -128,7 +128,7 @@ export default function LinkSamplesToStudy({
                 dispatch(
                   notifyError({
                     id: NOTIFICATION_ID,
-                    title: "Failed to link samples to study",
+                    title: "Failed to link potatoes to study",
                     description,
                   }),
                 )

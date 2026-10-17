@@ -134,7 +134,7 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                 <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
                 <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
                 <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
-                <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
+                <Descriptions.Item label="Potato Kind">{sampleKind}</Descriptions.Item>
                 <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
                 <Descriptions.Item label="Concentration (ng/µL)">
                     {sample.concentration == null

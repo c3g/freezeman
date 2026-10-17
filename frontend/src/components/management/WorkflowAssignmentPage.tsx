@@ -13,7 +13,7 @@ export function WorkflowAssignmentPage() {
   const initialExceptSampleIDs = useAppSelector(selectWorkflowAssignmentState).initialExceptedSampleIDs
 
   return (<>
-        <AppPageHeader title="Manage Assignment of Samples to Study Workflows" />
+        <AppPageHeader title="Manage Assignment of Potatoes to Study Workflows" />
         <PageContent>
             <WorkflowAssignment initialExceptedSampleIDs={initialExceptSampleIDs} />
         </PageContent>

@@ -34,7 +34,7 @@ export function getSampleCategoryFilterSetting(category: SampleCategory, isPoole
 		value,
 		description: {
 			key: isPooledFilterKey,
-			label: 'Pooled Samples',
+			label: 'Pooled Potatoes',
 			type: FILTER_TYPE.SELECT
 		}
 	}
@@ -63,7 +63,7 @@ function SampleCategoryChooser({
 
 	return (
 		<Radio.Group disabled={disabled} value={sampleCategory} onChange={evt => {handleSampleCategoryChange(evt.target.value)}}>
-         <Radio.Button value={SampleCategory.SAMPLES}> {samplesLabel ?? 'Samples'} </Radio.Button>
+         <Radio.Button value={SampleCategory.SAMPLES}> {samplesLabel ?? 'Potatoes'} </Radio.Button>
          <Radio.Button value={SampleCategory.POOLS}> Pools </Radio.Button>
          <Radio.Button value={SampleCategory.ALL}> All </Radio.Button>
       </Radio.Group>

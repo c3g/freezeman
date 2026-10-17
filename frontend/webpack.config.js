@@ -52,7 +52,7 @@ module.exports = (env, argv) => ({
 
   plugins: [
     new HtmlWebpackPlugin({
-      title: "FreezeMan",
+      title: "PotatoMan",
       favicon: "./src/static/favicon-16x16.png",
       template: path.resolve(__dirname, "./src/template.html"),
       hash: true,

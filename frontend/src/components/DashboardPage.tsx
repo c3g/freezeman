@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import { Button, Card, ConfigProvider, Divider, Flex, Select, Spin } from "antd";
+import { Button, Card, ConfigProvider, Divider, Flex, Select, Spin, Typography } from "antd";
 import SimpleExperimentRunTable, { ExperimentRunColumnID } from "./experimentRuns/SimpleExperimentRunTable";
 import { DefaultOptionType } from "antd/es/select";
 import './DashboardPage.scss'
@@ -93,6 +93,10 @@ function DashboardPage() {
 
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
+        <Flex align="center" justify="center" gap="middle" style={{ padding: "12px", background: "#e8d9a8" }}>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Potato_tubers.jpg/330px-Potato_tubers.jpg" alt="Potatoes" style={{ height: 64, borderRadius: 10 }} />
+            <Typography.Title level={4} style={{ margin: 0 }}>Welcome to PotatoMan 🥔</Typography.Title>
+        </Flex>
         <PageContent>
             <Flex vertical={false} gap={"1em"} align={"center"} justify={"start"} style={{ width: '100%' }}>
                 <Button style={QUICK_ACCESS_BUTTON_STYLE} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
@@ -239,7 +243,7 @@ function DashboardCard({ title, children, ...props }: DashboardCardProps) {
                     },
                 }}
             >
-               <Card title={title} size={"small"} style={{ width: '49%', height: CARD_HEIGHT }} styles={{ root: { border: '2px solid var(--ant-blue-3)' } }} className={'card-in-dashboard'} {...props}>
+               <Card title={title} size={"small"} style={{ width: '49%', height: CARD_HEIGHT }} styles={{ root: { border: '2px solid #5b8c2a' } }} className={'card-in-dashboard'} {...props}>
                         {children}
                </Card>
         </ConfigProvider>

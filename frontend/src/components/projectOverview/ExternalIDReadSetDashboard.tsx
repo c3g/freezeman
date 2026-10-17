@@ -67,7 +67,7 @@ function ExternalIDReadSetDashboard({ parentProjectId }: { parentProjectId: numb
             <Card size="small" styles={{ body: { padding: "8px 12px" } }}>
               <Statistic
                 groupSeparator=" "
-                title="Samples"
+                title="Potatoes"
                 value={summary.total_samples}
                 prefix={<TeamOutlined style={iconStyle("#13c2c2", "#e6fffb")} />}
               />

@@ -161,7 +161,7 @@ function SamplesListContent() {
   return (
     <>
       <AppPageHeader
-        title="Samples"
+        title="Potatoes"
         extra={[
           <AddButton key="add" url="/samples/add" />,
           <ActionDropdown key="actions" urlBase={"/samples"} actions={templateActions} />,

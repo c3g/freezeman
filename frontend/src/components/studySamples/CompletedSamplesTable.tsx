@@ -11,7 +11,7 @@ import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../config'
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
 const SOURCE_SAMPLE : CompletedSampleColumn = {
-	title: 'Source Sample',
+	title: 'Source Potato',
 	dataIndex: 'sampleID',
 	render: (sampleID) => {
 		return (
@@ -24,7 +24,7 @@ const SOURCE_SAMPLE : CompletedSampleColumn = {
 }
 
 const GENERATED_SAMPLE : CompletedSampleColumn = {
-	title: 'Generated Sample',
+	title: 'Generated Potato',
 	dataIndex: 'generatedSampleID',
 	render: (sampleID) => {
 		if (sampleID) {
@@ -44,7 +44,7 @@ const PROCESS_ID : CompletedSampleColumn = {
 }
 
 const PROCESS_MEASUREMENT_ID : CompletedSampleColumn = {
-	title: 'Sample Process ID',
+	title: 'Potato Process ID',
 	dataIndex: 'processMeasurementID',
 	render: (measurementID) => <Link to={`/process-measurements/${measurementID}`}>{measurementID}</Link>
 }

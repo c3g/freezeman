@@ -245,7 +245,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
    */
 
   const title = isAdding ?
-    'Add Sample' :
+    'Add Potato' :
     `Update Sample ${sample?.name}`
 
   const props = name =>
@@ -277,7 +277,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
         >
           <Item label="Name" {...props("name")} rules={requiredRules.concat(nameWithoutDotRules)}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ]. Space not allowed."
-            extra="Name given to a sample." >
+            extra="Name given to a potato." >
             <Input />
           </Item>
           <Item label="Alias" {...props("alias")} rules={nameWithoutDotRules}
@@ -285,7 +285,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
-          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}
+          <Item label="Potato Kind" {...props("sample_kind")} rules={requiredRules}
             extra="Biosample nature." >
             <Select
               options={sampleKindOptions}
@@ -294,7 +294,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             />
           </Item>
           <Item label="Tissue Source" {...props("tissue_source")}
-            extra="Sample kind before extraction." >
+            extra="Potato kind before extraction." >
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -304,7 +304,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             />
           </Item>
           <Item label="Individual" {...props("individual")}
-            extra="Individual or identifiable source of a sample." >
+            extra="Individual or identifiable source of a potato." >
             <Select
               showSearch
               allowClear
@@ -315,7 +315,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             />
           </Item>
           <Item label="Container" {...props("container")} rules={requiredRules}
-            extra="Container holding the sample." >
+            extra="Container holding the potato." >
             <Select
               showSearch
               allowClear
@@ -326,7 +326,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             />
           </Item>
           <Item label="Coordinates" {...props("coordinate")}
-            extra="Coordinates of the sample in the container, if applicable." >
+            extra="Coordinates of the potato in the container, if applicable." >
             <Select
               showSearch
               allowClear
@@ -387,11 +387,11 @@ const SampleEditContent = ({ sample, isAdding}) => {
             <InputNumber step={0.001} />
           </Item>
           <Item label="Exp. Group" {...props("experimental_group")}
-            extra="Comma separated list of experimental groups to associate sample to experimental or control conditions." >
+            extra="Comma separated list of experimental groups to associate potato to experimental or control conditions." >
             <Select mode="tags" />
           </Item>
           <Item label="Collection Site" {...props("collection_site")}
-            extra="Location of the sample collection." >
+            extra="Location of the potato collection." >
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
@@ -399,7 +399,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
             />
           </Item>
           <Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}
-            extra="Date the sample was received from the client or was created in the lab." >
+            extra="Date the potato was received from the client or was created in the lab." >
             <DatePicker />
           </Item>
           <Item label="Comment" {...props("comment")}>

@@ -111,7 +111,7 @@ export function LabworkSelection({
         <Alert
           type="warning"
           message="Selection has changed"
-          description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
+          description={`Some potatoes were removed from the selection because they are no longer at the ${step.name} step.`}
           closable={true}
           showIcon={true}
           onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}

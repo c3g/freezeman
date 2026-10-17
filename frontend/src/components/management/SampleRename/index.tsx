@@ -40,14 +40,14 @@ export function SampleRename() {
     <PooledSamples
       columns={columns}
       tableHeight={TABLE_HEIGHT}
-      title={"Rename Sample"}
+      title={"Rename Potato"}
       actionUrlBase={"/management/sample-rename"}
       templateAction={templateAction}
       templatePrefill={templatePrefill}
       parentComponentID={"SampleRename"}
       beforeTable={
         <Alert
-          title="Pools cannot be renamed using this tool. Only individual and pooled samples."
+          title="Pools cannot be renamed using this tool. Only individual and pooled potatoes."
           type="warning"
         />
       }

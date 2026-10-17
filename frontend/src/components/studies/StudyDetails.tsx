@@ -92,7 +92,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
             <FlexBar>
                 <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
                 <Space>
-                    {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain samples or that have been initiated cannot be removed.</Typography.Text>}
+                    {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain potatoes or that have been initiated cannot be removed.</Typography.Text>}
                     <Popconfirm
                         title={`Are you sure you want to remove study ${study?.letter}? This removal cannot be undone.`}
                         onConfirm={() => handleRemoveStudy(studyId)}
@@ -119,7 +119,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                 // Display the "Samples" title with a spinner until data is ready.
                 // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)
                 <Space align='baseline'>
-                    <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+                    <Title level={4} style={{ marginTop: '1.5rem' }}>Potatoes</Title>
                     { !studySamples && <Spin spinning={true}/> }
                 </Space>
             }
