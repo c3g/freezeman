@@ -51,8 +51,7 @@ description: Procedures for the FreezeMan repo: backend venv and dependencies, m
 
 - The dump creates database `fms` and role `admin`. Expect harmless "already exists" errors. Do not create database `fms` before the restore.
 - The dump can replace the `postgres` password. Container: run `ALTER ROLE postgres PASSWORD 'postgres'`. Host: run `ALTER ROLE postgres PASSWORD '<previous>'`.
-- The dump can replace the `admin` role settings. For development, run `ALTER ROLE admin WITH PASSWORD 'admin'; ALTER ROLE admin CREATEDB;` (`CREATEDB` is for the pytest databases).
-- The user sets the `admin` Django password.
+- The dump can replace the `admin` role settings. Run `ALTER ROLE admin WITH PASSWORD 'admin'; ALTER ROLE admin CREATEDB;` (`CREATEDB` is for the pytest databases).
 
 ### Python conventions
 
