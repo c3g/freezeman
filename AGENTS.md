@@ -58,14 +58,12 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 - If the commit has no Co-Authored-By line but you wrote the haiku, add `Haiku by <your model name>` on the last line, as plain text and not a trailer, so GitHub does not list you as co-author.
 
 ### Squash merge
-- GitHub squashes each PR into one commit on the default branch. Per-commit messages must not pile up in that commit.
-- Repo setting (one time, by a repo admin): Settings → General → Pull Requests → Allow squash merging → Default commit message = "Pull request title and description". Then the PR title becomes the subject and the PR description becomes the body.
+- GitHub squashes each PR into one commit on the default branch. The PR title becomes the subject and the PR description becomes the body. Per-commit messages must not pile up in that commit.
 - When you open or update a PR, write the PR title and description as the final squash commit message:
   - Title: same rules as a commit subject.
   - Description: Goal, Changes, Notes for the whole branch, not per commit. Do not list merge commits from the default branch.
   - Add one haiku for the whole branch.
   - End with one `Co-Authored-By` line per distinct co-author found in the branch commits (`git log origin/<default>..HEAD --format='%(trailers:key=Co-Authored-By,valueonly)' | sort -u`).
-- If the repo setting is not set, give the user the same message in a fenced block. Tell the user to paste it into the squash-merge dialog on GitHub and to delete the generated text.
 - Local squash: only when the user asks. Show each command and wait for approval before you run it:
   1. If the working tree has uncommitted changes, stop and ask the user.
   2. Merge the remote default branch first (see "Git" above).
