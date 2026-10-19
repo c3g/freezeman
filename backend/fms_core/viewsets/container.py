@@ -166,7 +166,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         containers_data = Container.objects.all()
 
-        # The kind filters apply with or without q.
+        # QueryViewSet.search has no kind filters. The location dropdown needs them with or without q.
+        # Example: GET ?q=rack&parent=true without the filter also returns tubes, which cannot hold a container.
         if is_parent:
             kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
             containers_data = containers_data.filter(kind__in=kinds)
@@ -174,19 +175,25 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
             kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
             containers_data = containers_data.filter(kind__in=kinds)
 
-        # An empty or missing q skips fzy, because the fzy score of an empty needle is undefined.
+        # QueryViewSet.search returns [] for an empty q. Here an empty q lists all containers.
+        # Example: GET ?q=&sample_holding=true (dropdown opened, nothing typed) would show no options.
+        # fzy is skipped because fzy('', haystack) casts -INFINITY to int32, which is undefined in C.
         if search_input:
             if is_exact_match:
-                # Exact match is case-sensitive on barcode and name, with no fuzzy scoring.
+                # QueryViewSet.search has no exact match. The edit forms use it to load the saved container.
+                # Example: GET ?q=BOX-1&exact_match=true with fuzzy scoring also returns BOX-10 and BOX-1A.
                 exact_query = Q(barcode=search_input) | Q(name=search_input)
-                # id is an integer. Django raises ValueError when q is not numeric.
-                if search_input.isdigit():
+                # id is an integer. Example: GET ?q=BOX-1&exact_match=true with Q(id=q) raises ValueError (HTTP 500).
+                # re.ASCII instead of str.isdigit(): isdigit() accepts "²", and int("²") fails.
+                # Example: GET ?q=²&exact_match=true with isdigit() gives HTTP 500.
+                if re.fullmatch(r"\d+", search_input, re.ASCII):
                     exact_query |= Q(id=search_input)
                 containers_data = containers_data.filter(exact_query).order_by("id")
             else:
                 # The best score of the three fields ranks the container.
                 # An exact, case-insensitive match scores INT32_MAX, so it comes first.
-                # id is cast to text because fzy compares strings.
+                # QueryViewSet.search scores text columns only. Users also search by container id.
+                # Example: GET ?q=1234 with FZY(q, F("id")) renders "id"::cstring, and PostgreSQL rejects the cast (HTTP 500).
                 containers_data = containers_data.annotate(
                     score=Greatest(
                         FZY(search_input, F("barcode")),
@@ -197,7 +204,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 # fzy returns 0 for a non-match and can return a negative score for a very weak match.
                 # Keep only score > 0, as QueryViewSet.search does.
                 containers_data = containers_data.filter(score__gt=0)
-                # Order by id after the score so that pagination stays stable on equal scores.
+                # QueryViewSet.search uses order_by("-score")[:100]. This endpoint is paginated.
+                # Example: GET ?q=box&offset=100 with [:100] returns no results.
+                # Example: GET ?q=box&offset=100 without "id" can repeat or skip containers that have equal scores.
                 containers_data = containers_data.order_by("-score", "id")
         else:
             containers_data = containers_data.order_by("id")
