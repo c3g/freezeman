@@ -30,6 +30,7 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 ### Safety
 - Ask before destructive git commands: `git reset --hard`, `git clean`, etc.
 - Ask before long or expensive tasks: whole projects, full test suites, large containers, etc.
+- Do not send requests to `*.genome.mcgill.ca` hosts without user approval. These hosts are production and QC servers. The rule applies to `curl`, web fetch tools, scripts, tests and app runs that use configs with these hosts. Ask first, and name the host and the endpoint.
 - Remove small temporary tests and containers afterward.
 
 ### Coding
