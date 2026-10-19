@@ -73,4 +73,9 @@ Freezer management system for tracking biological samples in a lab. License: LGP
   6. Compare `git diff backup/<branch> HEAD`. If it is not empty, stop and tell the user.
   7. Run `git push --force-with-lease`. Tell the user that this rewrites the remote branch.
   8. After the PR merges, tell the user that they can delete `backup/<branch>`.
+
+### Local notes
+- `AGENTS.local.md` holds private notes for one developer. Git ignores it.
+- If `AGENTS.local.md` exists and is not already loaded, read it at session start.
+- Do not commit `AGENTS.local.md` or `CLAUDE.local.md`.
 <!-- END shared dev-conventions -->
