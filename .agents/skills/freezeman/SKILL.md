@@ -52,6 +52,12 @@ description: Procedures for the FreezeMan repo: backend venv and dependencies, m
   Creating `fzy` in `template1` gives every new database, such as the pytest one, the extension. If you run `podman rm freezeman-pg`, repeat these steps. The data volume stays.
 - Restore a `pg_dumpall` backup: `podman exec -i freezeman-pg psql -U postgres -d postgres < backup.sql`. If role `admin` exists, the restore reports "role admin already exists".
 
+#### Fresh database without a restore (both setups)
+
+- If you do not restore a backup, create database `fms` with owner `admin`: `CREATE DATABASE fms OWNER admin;` (run it as `postgres`).
+- Since PostgreSQL 15, only the database owner can create objects in schema `public`. If `postgres` owns `fms`, `migrate` fails with `permission denied for schema public`. To fix an existing empty `fms`, run `ALTER DATABASE fms OWNER TO admin;`.
+- Then run `manage.py migrate`. Ask first, as for any `migrate`.
+
 #### After a restore (both setups)
 
 - The dump creates database `fms` and role `admin`. Expect harmless "already exists" errors. Do not create database `fms` before the restore.
