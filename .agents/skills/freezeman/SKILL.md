@@ -16,6 +16,11 @@ description: Procedures for the FreezeMan repo: backend venv and dependencies, m
 
 - Choose the setup. If no database setup exists and the task needs one, ask the user: host PostgreSQL or Podman container. If a setup exists (`podman ps -a` shows `freezeman-pg`, or `pg_isready -h 127.0.0.1` succeeds), use it and do not ask.
 - Both setups need: Postgres 15 or later, the `fzy` extension, role `admin` (`LOGIN CREATEDB`, password `admin`), port 5432 on `127.0.0.1`.
+- Both setups build `fzy` from `backend/dependencies/pg_fzy`. It is a submodule with its own nested submodule, `fzy_native`. If `pg_fzy` or `pg_fzy/fzy_native` is empty, check out both from the repo root. The `.gitmodules` files use `git://` URLs, which GitHub no longer serves, so rewrite them to HTTPS for this command:
+  ```
+  git -c url.https://github.com/.insteadOf=git://github.com/ submodule update --init --recursive backend/dependencies/pg_fzy
+  ```
+  Without `fzy_native`, `make` fails because `fzy_native/src/match.c` is missing.
 
 #### Host PostgreSQL
 
