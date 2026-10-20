@@ -7,6 +7,7 @@ Container images and podman-compose configuration for FreezeMan:
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 18 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on gunicorn, port 8000 (internal)                        |
+| `scheduler`| `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `web`      | `localhost/freezeman-web`     | nginx: built frontend, Django static files, `/media/`, proxies `/api/` |
 | `frontend` | dev only                      | webpack-dev-server, port 9000                                   |
 
@@ -161,15 +162,22 @@ Run the stack as an unprivileged user (e.g. `django`), not as root.
   sudo loginctl enable-linger django
   ```
 
+  This is the only systemd setting the stack needs. Rootless podman needs the
+  user manager for its runtime directory and for healthchecks, which podman runs
+  as systemd timers that it creates itself.
+
 ### Start on boot
 
-podman-compose itself does not start anything at boot. All services use
-`restart: always`. Podman's `podman-restart` service restarts every container
-with that policy at boot:
+podman-compose itself does not start anything at boot, and `restart: always`
+does not apply after a reboot. Add a user crontab line (`crontab -e`, as the
+deployment user, with linger enabled). `cronie` is installed by default on Rocky 9:
 
-```bash
-systemctl --user enable --now podman-restart.service   # as the deployment user, with linger enabled
+```cron
+@reboot XDG_RUNTIME_DIR=/run/user/$(id -u) PATH=$HOME/.local/bin:/usr/bin:/bin cd ~/freezeman/oci && podman-compose up -d
 ```
+
+Cron has no `XDG_RUNTIME_DIR` and a short `PATH`, so the line sets both.
+`$HOME/.local/bin` covers a pip-installed `podman-compose`.
 
 Alternative: Quadlet (systemd units in `~/.config/containers/systemd/`), which
 Podman on Rocky 9 supports. It is the method Red Hat recommends for long-running
@@ -225,40 +233,15 @@ for it: `podman unshare chown -R 1000:1000 /data/freezeman/triggers`.
 
 ### Daily report data (replaces the cron entry)
 
-`~/.config/systemd/user/freezeman-report.service`:
-
-```ini
-[Unit]
-Description=FreezeMan prepare_report_data
-
-[Service]
-Type=oneshot
-WorkingDirectory=%h/freezeman/oci
-ExecStart=/usr/bin/podman-compose exec -T backend python manage.py prepare_report_data
-```
-
-`exec` runs in the already running `backend` container. Avoid `run` here: it
-also brings up the service's dependencies, which can recreate containers.
-
-Adjust the `podman-compose` path to `%h/.local/bin/podman-compose` if it was installed with pip.
-
-`~/.config/systemd/user/freezeman-report.timer`:
-
-```ini
-[Unit]
-Description=Daily FreezeMan report data
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-```
+The `scheduler` service runs `python manage.py prepare_report_data` every day.
+Set the time in `.env`: `FMS_REPORT_TIME` (`HH:MM`, default `02:00`) in the time
+zone `TZ` (`America/Montreal`). Logs go to the `reports` volume (`~/reports/log/`
+in the container). A failed run is printed to the service log, and the next run
+still happens. It does not start in development (profile `scheduler`).
 
 ```bash
-systemctl --user daemon-reload
-systemctl --user enable --now freezeman-report.timer
+podman-compose logs scheduler                                                    # next run time and output
+podman-compose exec -T backend python manage.py prepare_report_data              # run it now
 ```
 
 ### Moving data from the existing PostgreSQL 15 server
@@ -297,7 +280,7 @@ With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 
 | Topic | Where | Notes |
 |---|---|---|
-| `restart: always` + `podman-restart.service` | `compose.yaml` | podman-compose has no boot integration of its own. Prefer Quadlet units (or `podman kube play` via a `.kube` Quadlet) in the long term. |
+| `restart: always` + crontab `@reboot` | `compose.yaml` | podman-compose has no boot integration of its own, so a user crontab line starts the stack (see "Start on boot"). Prefer Quadlet units (or `podman kube play` via a `.kube` Quadlet) in the long term. |
 | `migrate` failure does not block `backend` | `compose.yaml` | podman-compose treats `service_completed_successfully` as "stopped" and ignores the exit code (still true in 1.5 and 1.6). Check `podman-compose logs migrate` after each deploy. Kubernetes Jobs and Helm hooks do report failure. |
 | Healthchecks | `compose.yaml` | Rootless podman runs them through systemd user timers. They need a real user session (see "Run rootless as a dedicated user"). Without one the containers never become healthy, and `up` can hang waiting on `service_healthy`. |
 

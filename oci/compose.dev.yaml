@@ -74,5 +74,9 @@ services:
     # The production nginx image is not used in development.
     profiles: ["prod"]
 
+  scheduler:
+    # The daily report job does not run in development.
+    profiles: ["scheduler"]
+
 volumes:
   frontend_node_modules:

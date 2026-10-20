@@ -11,8 +11,8 @@
 # (plain `up -d` only recreates containers when this file's resolved config changes).
 #
 # Rocky 9 notes (see README.md, "Rocky 9 notes"):
-#   - restart: always relies on `systemctl --user enable podman-restart.service`
-#     for start on boot; Quadlet units are the longer-term replacement.
+#   - restart: always does not start containers at boot. A user crontab line
+#     `@reboot ... podman-compose up -d` does (see "Start on boot").
 #   - podman-compose does not check migrate's exit code; check its logs.
 
 name: freezeman
@@ -86,6 +86,20 @@ services:
         condition: service_completed_successfully
     restart: always
 
+  # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
+  scheduler:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    env_file: .env
+    environment: *backend-env
+    command: ["fms-scheduler"]
+    volumes:
+      # The command writes its logs to ~/reports/log/
+      - reports:/home/fms/reports
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: always
+
   web:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
     build:
@@ -112,3 +126,4 @@ volumes:
   media:
   triggers:
   automations_work:
+  reports:
