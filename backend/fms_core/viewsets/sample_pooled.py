@@ -1,4 +1,4 @@
-from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef
+from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q
 from rest_framework import viewsets
 from fms_core.models import DerivedBySample, Sample
 from ._constants import (
@@ -76,21 +76,17 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
 
         self.queryset = self.queryset.annotate(
             parent_sample_name=Subquery(
-                DerivedBySample.objects
-                .filter(sample__parent_of=OuterRef("sample"))
-                .filter(derived_sample=OuterRef("derived_sample"))
-                .values_list("sample__name", flat=True)[:1]
+                DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True)).values_list("sample__name", flat=True)[:1]
             )
         )
 
         self.queryset = self.queryset.annotate(
             parent_sample_id=Subquery(
-                DerivedBySample.objects
-                .filter(sample__parent_of=OuterRef("sample"))
-                .filter(derived_sample=OuterRef("derived_sample"))
-                .values_list("sample__id", flat=True)[:1]
+                DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True)).values_list("sample_id", flat=True)[:1]
             )
         )
+
+        return self.queryset
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
