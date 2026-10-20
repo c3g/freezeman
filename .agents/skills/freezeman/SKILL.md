@@ -1,6 +1,6 @@
 ---
 name: freezeman
-description: Procedures for the FreezeMan repo: backend venv and dependencies, manage.py, Postgres setup (host or container) and fzy, backup restore, Python conventions, migrations, frontend build and verification, deployment reference. Use for any backend, database, migration, test, frontend build or release/deployment task in this repository.
+description: Procedures for the FreezeMan repo: backend venv and dependencies, manage.py, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, frontend build and verification, deployment reference. Use for any backend, database, migration, test, frontend build or release/deployment task in this repository.
 ---
 
 ## Backend
@@ -11,6 +11,12 @@ description: Procedures for the FreezeMan repo: backend venv and dependencies, m
 - `manage.py test` runs pytest. It uses a `test_fms_*` database per worker and drops it at the end.
 - Ask before running `migrate` or anything touching a database other than a throwaway one.
 - If there is no system time zone data, install the `tzdata` package into the venv with the same install command (pip or uv) as above. Do not add it to `requirements.txt`.
+
+### Users
+
+- Do not use `manage.py createsuperuser` and do not suggest it. FreezeMan customizes user creation: `UserSerializer.create` (`backend/fms_core/serializers.py`) also creates the `FreezemanUser` row (profile `Default`). `createsuperuser` skips that row, and the app fails for that user.
+- Create users on the Users page as an existing admin (`POST /api/users/`).
+- If a fresh database has no usable admin, ask the user. Give this fix as the option: after `createsuperuser`, run in `manage.py shell`: `FreezemanUser.objects.create(user=User.objects.get(username="<name>"), profile=Profile.objects.get(name="Default"))`.
 
 ### Database
 
