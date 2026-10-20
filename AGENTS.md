@@ -53,8 +53,7 @@ Freezer management system for tracking biological samples in a lab. License: LGP
   - Subject: imperative, max 72 characters, state the result.
   - Body, in ASD-STE100 style with bullet/numbered points:
     1. Goal: why the change is necessary (problem, ticket, or request).
-    2. Changes: what changed, grouped by intent. Do not repeat the diff line by line.
-    3. Notes (if applicable): non-obvious decisions, rejected alternatives, known limits, follow-up work.
+    2. Notes (if applicable): non-obvious decisions, rejected alternatives, known limits, follow-up work.
 - After your actual commit message, add a haiku that describes the commit. Put the haiku above the Co-Authored-By line, so the Co-Authored-By line stays last.
 - If the commit has no Co-Authored-By line but you wrote the haiku, add `Haiku by <your model name>` on the last line, as plain text and not a trailer, so GitHub does not list you as co-author.
 
