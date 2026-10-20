@@ -2,13 +2,14 @@
 #
 # Targets:
 #   backend-dev    Django runserver; expects the repository bind-mounted at /src
-#   backend-prod   Django served by gunicorn, source baked in
+#   backend-prod   Django served by uwsgi, source baked in
 #   frontend-dev   webpack-dev-server; expects the repository bind-mounted at /src
-#   web            nginx serving the built frontend + Django static files, proxying /api
+#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 #
 # The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
 # because the code reads ../VERSION relative to backend/ and frontend/.
 
+# Major versions match DEPLOYMENT.md (Python 3.14, Node 24, uwsgi 2.0, PostgreSQL 15).
 ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
 ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
 ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
@@ -29,17 +30,19 @@ RUN apt-get update \
  && install -d -o fms -g fms /home/fms/reports
 COPY --chmod=755 oci/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
 COPY --chmod=755 oci/backend/scheduler.sh /usr/local/bin/fms-scheduler
+COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 WORKDIR /src/backend
 ENTRYPOINT ["fms-entrypoint"]
 
 FROM python-base AS backend-deps
+ARG UWSGI_VERSION=2.0.31
 RUN apt-get update \
  && apt-get install -y --no-install-recommends gcc libc6-dev libpq-dev \
  && rm -rf /var/lib/apt/lists/*
 RUN python -m venv /opt/venv
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r /tmp/requirements.txt
+    pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
 
 FROM python-base AS backend-dev
 # fms/info.py reads commit information from the bind-mounted .git
@@ -65,7 +68,6 @@ RUN apt-get update \
 WORKDIR /src/frontend
 
 FROM node-base AS frontend-dev
-ENV FMS_API_PROXY_TARGET=http://backend:8000
 EXPOSE 9000
 # Reinstall dependencies only when package-lock.json is newer than the installed tree.
 CMD ["sh", "-c", "if [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then npm ci; fi && exec npx webpack serve --mode development --host 0.0.0.0 --port 9000 --allowed-hosts all"]
@@ -106,7 +108,7 @@ COPY backend/ /src/backend/
 COPY --from=build-info /build_info.json /src/backend/fms/build_info.json
 ENV FMS_ENV=PROD \
     FMS_DEBUG=False \
-    WEB_CONCURRENCY=3
+    UWSGI_PROCESSES=3
 # Writable locations; media, triggers and automations_work are volumes in compose.yaml.
 # The backend directory itself stays writable for fms.log, which settings.py
 # writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
@@ -115,9 +117,9 @@ RUN python manage.py collectstatic --noinput \
  && chown -R fms:fms media triggers automations_work tmp \
  && chown fms:fms /src/backend
 USER fms
-EXPOSE 8000
-# Worker count comes from WEB_CONCURRENCY (gunicorn default)
-CMD ["gunicorn", "fms.wsgi:application", "--bind", "0.0.0.0:8000", "--timeout", "300", "--access-logfile", "-"]
+# 8000: uwsgi protocol for nginx. 8001: plain HTTP for probes.
+EXPOSE 8000 8001
+CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
 FROM ${NGINX_IMAGE} AS web
 ENV BACKEND_UPSTREAM=backend:8000

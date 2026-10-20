@@ -2,12 +2,12 @@
 # Only variables defined in the environment are substituted, so nginx's own
 # $uri, $host, ... are left untouched.
 
-# Keep the scheme set by an outer TLS proxy (host nginx, Ingress); fall back to
-# our own when accessed directly. Django uses it for absolute URLs
-# (request.build_absolute_uri), see FMS_BEHIND_PROXY in backend/fms/settings.py.
-map $http_x_forwarded_proto $fms_forwarded_proto {
-    default $http_x_forwarded_proto;
-    ""      $scheme;
+# HTTPS=on makes uwsgi set wsgi.url_scheme=https, so Django builds https URLs
+# (request.build_absolute_uri) behind an outer TLS proxy (host nginx, Ingress)
+# without SECURE_PROXY_SSL_HEADER. Direct access falls back to our own $https.
+map $http_x_forwarded_proto $fms_https {
+    https   on;
+    default $https;
 }
 
 server {
@@ -38,13 +38,10 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://${BACKEND_UPSTREAM};
-        # $http_host keeps the port (e.g. :8080) in absolute URLs Django builds
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $fms_forwarded_proto;
-        proxy_read_timeout 300s;
+        include uwsgi_params;
+        uwsgi_param HTTPS $fms_https if_not_empty;
+        uwsgi_pass ${BACKEND_UPSTREAM};
+        uwsgi_read_timeout 300s;
     }
 
     location = /favicon.ico {

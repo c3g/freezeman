@@ -28,8 +28,6 @@ x-backend-env: &backend-env
   PG_PASSWORD: ${POSTGRES_PASSWORD}
   PG_HOST: db
   PG_PORT: "5432"
-  # Only reachable through the web container, which sets X-Forwarded-Proto
-  FMS_BEHIND_PROXY: "True"
 
 services:
   db:
@@ -42,8 +40,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      # Parent of PGDATA for every postgres image version (18+: 18/docker, older: data)
-      - pgdata:/var/lib/postgresql
+      # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
@@ -76,7 +74,8 @@ services:
       - automations_work:/src/backend/automations_work
     healthcheck:
       # Same endpoint as a Kubernetes readinessProbe (see fms/health.py); fails unless HTTP 200.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready/', timeout=5)"]
+      # Port 8001 is the plain HTTP socket of uwsgi, 8000 only speaks the uwsgi protocol.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health/ready/', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3

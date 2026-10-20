@@ -17,8 +17,6 @@ x-dev-backend: &dev-backend
   environment:
     FMS_ENV: LOCAL
     FMS_DEBUG: "True"
-    # Port 8000 is published directly, without the nginx in front
-    FMS_BEHIND_PROXY: "False"
   userns_mode: keep-id
   restart: "no"
 
@@ -44,6 +42,8 @@ services:
       - ../backend/automations_work:/src/backend/automations_work:z
     ports:
       - "8000:8000"
+      # Published here because the frontend shares this network namespace
+      - "9000:9000"
     healthcheck:
       disable: true
 
@@ -55,7 +55,6 @@ services:
       target: frontend-dev
     environment:
       FMS_ENV: LOCAL
-      FMS_API_PROXY_TARGET: http://backend:8000
       # The keep-id user's home directory does not exist in the image
       NPM_CONFIG_CACHE: /tmp/.npm
     userns_mode: keep-id
@@ -64,8 +63,9 @@ services:
       # Linux dependencies installed by the container, separate from the host's node_modules
       # (":U" chowns the volume to the container user)
       - frontend_node_modules:/src/frontend/node_modules:U
-    ports:
-      - "9000:9000"
+    # Shares the backend network namespace, so webpack reaches the API at
+    # localhost:8000 as outside containers (webpack.config.js is unchanged).
+    network_mode: "service:backend"
     depends_on:
       - backend
     restart: "no"
