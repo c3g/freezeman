@@ -15,7 +15,7 @@ __all__ = [
     "VERSION",
 ]
 
-# Container images have no git repository; docker/Containerfile writes the commit info to this file instead.
+# Container images have no git repository; oci/Containerfile writes the commit info to this file instead.
 BUILD_INFO_PATH = Path(__file__).parent / "build_info.json"
 
 

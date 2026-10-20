@@ -1,6 +1,6 @@
 # FreezeMan, production-like stack.
 #
-#   cd docker && cp .env.example .env   # then edit .env
+#   cd oci && cp .env.example .env   # then edit .env
 #   podman-compose build
 #   podman-compose up -d
 #
@@ -36,7 +36,7 @@ services:
     image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
-      dockerfile: docker/db/Containerfile
+      dockerfile: oci/db/Containerfile
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -56,7 +56,7 @@ services:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
-      dockerfile: docker/Containerfile
+      dockerfile: oci/Containerfile
       target: backend-prod
     env_file: .env
     environment: *backend-env
@@ -90,7 +90,7 @@ services:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
-      dockerfile: docker/Containerfile
+      dockerfile: oci/Containerfile
       target: web
       args:
         FMS_ENV: ${FMS_ENV:-PROD}

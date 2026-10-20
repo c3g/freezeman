@@ -51,7 +51,7 @@ services:
     image: localhost/freezeman-frontend-dev:latest
     build:
       context: ..
-      dockerfile: docker/Containerfile
+      dockerfile: oci/Containerfile
       target: frontend-dev
     environment:
       FMS_ENV: LOCAL

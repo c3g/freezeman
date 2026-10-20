@@ -1,6 +1,6 @@
 # PostgreSQL with the fzy extension (backend/dependencies/pg_fzy).
 # Build context: repository root
-#   podman build -f docker/db/Containerfile .
+#   podman build -f oci/db/Containerfile .
 #
 # To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
 # (a new major version needs a dump and restore of existing data).
@@ -18,4 +18,4 @@ RUN make clean && make && make install DESTDIR=/out
 
 FROM ${POSTGRES_IMAGE}
 COPY --from=build /out/ /
-COPY --chmod=755 docker/db/initdb/ /docker-entrypoint-initdb.d/
+COPY --chmod=755 oci/db/initdb/ /docker-entrypoint-initdb.d/

@@ -26,7 +26,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends libpq5 \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --uid 1000 --create-home --shell /bin/sh fms
-COPY --chmod=755 docker/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
+COPY --chmod=755 oci/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
 WORKDIR /src/backend
 ENTRYPOINT ["fms-entrypoint"]
 
@@ -119,7 +119,7 @@ CMD ["gunicorn", "fms.wsgi:application", "--bind", "0.0.0.0:8000", "--timeout", 
 
 FROM ${NGINX_IMAGE} AS web
 ENV BACKEND_UPSTREAM=backend:8000
-COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
 COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
 EXPOSE 8080
