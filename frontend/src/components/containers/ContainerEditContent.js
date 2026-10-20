@@ -1,65 +1,74 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { connect } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Button, Form, Input, Select, Space } from "antd";
-const { Option } = Select;
-const { Item } = Form;
-const { TextArea } = Input;
+import React, { useCallback, useEffect, useState } from "react"
+import { connect } from "react-redux"
+import { useNavigate, useParams } from "react-router-dom"
+import { Alert, Button, Form, Input, Select, Space } from "antd"
+const { Option } = Select
+const { Item } = Form
+const { TextArea } = Input
 
-import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
-import * as Options from "../../utils/options";
-import { add, update } from "../../modules/containers/actions";
-import ContainersTableActions from '../../modules/containersTable/actions'
-import { container as EMPTY_CONTAINER } from "../../models/empty_models";
-import api, { withToken } from "../../utils/api";
-import { requiredRules, barcodeRules, nameRules } from "../../constants";
+import AppPageHeader from "../AppPageHeader"
+import PageContent from "../PageContent"
+import * as Options from "../../utils/options"
+import { add, update } from "../../modules/containers/actions"
+import ContainersTableActions from "../../modules/containersTable/actions"
+import { container as EMPTY_CONTAINER } from "../../models/empty_models"
+import api, { withToken } from "../../utils/api"
+import { requiredRules, barcodeRules, nameRules } from "../../constants"
 
 const searchContainers = (token, input, options) =>
-  withToken(token, api.containers.search)(input, options)
-    .then(res => res.data.results)
+  withToken(token, api.containers.search)(input, options).then((res) => res.data.results)
 
 const searchCoordinates = (token, input, options) =>
-  withToken(token, api.coordinates.search)(input, options)
-    .then(res => res.data.results)
+  withToken(token, api.coordinates.search)(input, options).then((res) => res.data.results)
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   token: state.auth.tokens.access,
   containerKinds: state.containerKinds.items,
   containersByID: state.containers.itemsByID,
-});
+})
 
 const refreshTable = ContainersTableActions.refreshPage
 
-const actionCreators = { add, update, refreshTable };
+const actionCreators = { add, update, refreshTable }
 
-const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, refreshTable }) => {
-  const history = useNavigate();
-  const { id } = useParams();
+const ContainerEditContent = ({
+  token,
+  containerKinds,
+  containersByID,
+  add,
+  update,
+  refreshTable,
+}) => {
+  const history = useNavigate()
+  const { id } = useParams()
   const isAdding = id === undefined
 
-  const container = containersByID[id];
+  const container = containersByID[id]
 
   /*
    * Location autocomplete
    */
 
-  const [locationOptions, setLocationOptions] = useState([]);
-  const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
+  const [locationOptions, setLocationOptions] = useState([])
+  const onFocusLocation = (ev) => {
+    onSearchLocation(ev.target.value)
+  }
   const onSearchLocation = (input, options) => {
-    searchContainers(token, input, { ...options, parent: true }).then(containers => {
+    searchContainers(token, input, { ...options, parent: true }).then((containers) => {
       setLocationOptions(containers.map(Options.renderContainer))
     })
   }
 
   /*
-    * Coordinate autocomplete
-    */
+   * Coordinate autocomplete
+   */
 
-  const [coordinateOptions, setCoordinateOptions] = useState([]);
-  const onFocusCoordinate = ev => { onSearchCoordinate(ev.target.value) }
+  const [coordinateOptions, setCoordinateOptions] = useState([])
+  const onFocusCoordinate = (ev) => {
+    onSearchCoordinate(ev.target.value)
+  }
   const onSearchCoordinate = (input, options) => {
-    searchCoordinates(token, input, options).then(coordinates => {
+    searchCoordinates(token, input, options).then((coordinates) => {
       setCoordinateOptions(coordinates.map(Options.renderCoordinate))
     })
   }
@@ -70,6 +79,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_CONTAINER : container))
   const [formErrors, setFormErrors] = useState({})
+  const [form] = Form.useForm()
 
   if (!isAdding && formData === undefined && container !== undefined) {
     const newData = deserialize(container)
@@ -87,15 +97,40 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
     setFormData(deserialize({ ...formData, ...values }))
   }
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const data = serialize(formData)
-    const action =
-      isAdding ?
-        add(data).then(container => { history(`/containers/${container.id}`) }) :
-        update(id, data).then(() => { history(`/containers/${id}`) })
-    action
-      .then(() => { setFormErrors({}) })
-      .catch(err => { setFormErrors(err.data || {}) })
+    const action = () => {
+      const promise = isAdding
+        ? add(data).then((container) => {
+            history(`/containers/${container.id}`)
+          })
+        : update(id, data).then(() => {
+            history(`/containers/${id}`)
+          })
+      return promise
+    }
+    if (!data.name) {
+      // If the name is not set replace it in the form by the barcode.
+      form.setFieldsValue({ name: data.barcode })
+    }
+    if (!data.location) {
+      // If the location is not set make sure the coordinate is reset.
+      data.coordinate = undefined
+      form.setFieldsValue({ coordinate: data.coordinate })
+    }
+    try {
+      await form.validateFields()
+    } catch (err) {
+      setFormErrors(err.data || {})
+      return
+    }
+    action()
+      .then(() => {
+        setFormErrors({})
+      })
+      .catch((err) => {
+        setFormErrors(err.data || {})
+      })
       .then(() => Promise.all([refreshTable()]))
   }
 
@@ -106,28 +141,28 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
    * Rendering
    */
 
-  const title = id === undefined ?
-    'Add Container' :
-    `Update Container ${container ? container.name : id}`
+  const title =
+    id === undefined ? "Add Container" : `Update Container ${container ? container.name : id}`
 
-  const props = name =>
-    !formErrors[name] ? { name } : {
-      name,
-      hasFeedback: true,
-      validateStatus: 'error',
-      help: formErrors[name],
-    }
+  const props = (name) =>
+    !formErrors[name]
+      ? { name }
+      : {
+          name,
+          hasFeedback: true,
+          validateStatus: "error",
+          help: formErrors[name],
+        }
 
   const isCoordRequired = formData?.location
 
   return (
     <>
-      <AppPageHeader
-        title={title}
-      />
+      <AppPageHeader title={title} />
       <PageContent>
         <Form
-          key={container ? 'with-container' : 'without-container'}
+          form={form}
+          key={container ? "with-container" : "without-container"}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 14 }}
           layout="horizontal"
@@ -144,22 +179,38 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           >
             <Input />
           </Item>
-          <Item label="Kind" {...props("kind")} rules={requiredRules}
-            extra="Format of the container." >
+          <Item
+            label="Kind"
+            {...props("kind")}
+            rules={requiredRules}
+            extra="Format of the container."
+          >
             <Select>
-              {containerKinds.map(kind =>
-                kind.is_run_container || <Option key={kind.id} value={kind.id}>{kind.id}</Option>
+              {containerKinds.map(
+                (kind) =>
+                  kind.is_run_container || (
+                    <Option key={kind.id} value={kind.id}>
+                      {kind.id}
+                    </Option>
+                  ),
               )}
             </Select>
           </Item>
-          <Item label="Name" {...props("name")}
+          <Item
+            label="Name"
+            {...props("name")}
+            rules={nameRules}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
-            extra="Unique name given to a container. (Default to barcode if empty)" >
+            extra="Unique name given to a container. (Default to barcode if empty)"
+          >
             <Input />
           </Item>
           <Item label="Location" style={{ margin: 0 }}>
-            <Item {...props("location")} style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}
-              extra="Parent container." >
+            <Item
+              {...props("location")}
+              style={{ display: "inline-block", width: "60%", marginRight: "1em" }}
+              extra="Parent container."
+            >
               <Select
                 showSearch
                 allowClear
@@ -169,8 +220,12 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
                 onFocus={onFocusLocation}
               />
             </Item>
-            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%' }}
-              extra="Coordinates within parent, if applicable." >
+            <Item
+              label="@"
+              {...props("coordinate")}
+              style={{ display: "inline-block", width: "38%" }}
+              extra="Coordinates within parent, if applicable."
+            >
               <Select
                 showSearch
                 allowClear
@@ -188,23 +243,21 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           <Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
           </Item>
-          {formErrors?.non_field_errors &&
+          {formErrors?.non_field_errors && (
             <Alert
               showIcon
               type="error"
-              style={{ marginBottom: '1em' }}
+              style={{ marginBottom: "1em" }}
               message="Validation error(s)"
               description={
                 <ul>
-                  {
-                    formErrors.non_field_errors.map(e =>
-                      <li key={e}>{e}</li>
-                    )
-                  }
+                  {formErrors.non_field_errors.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
                 </ul>
               }
             />
-          }
+          )}
           <Item>
             <Space>
               <Button type="primary" htmlType="submit">
@@ -216,17 +269,14 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
         </Form>
       </PageContent>
     </>
-  );
-};
-
+  )
+}
 
 function deserialize(values) {
-  if (!values)
-    return undefined
+  if (!values) return undefined
   const newValues = { ...values }
 
-  if (newValues.coordinate)
-    newValues.coordinate = Number(newValues.coordinate)
+  if (newValues.coordinate) newValues.coordinate = Number(newValues.coordinate)
 
   return newValues
 }
@@ -234,10 +284,9 @@ function deserialize(values) {
 function serialize(values) {
   const newValues = { ...values }
 
-  if (!newValues.coordinate)
-    newValues.coordinate = null
+  if (!newValues.coordinate) newValues.coordinate = null
 
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(ContainerEditContent);
+export default connect(mapStateToProps, actionCreators)(ContainerEditContent)

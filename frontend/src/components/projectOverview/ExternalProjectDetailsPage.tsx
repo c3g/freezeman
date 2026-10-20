@@ -1,10 +1,12 @@
-import { Alert, Tabs } from "antd"
+import { Alert, Descriptions, Tabs } from "antd"
 
-import React, { useCallback, useState, useEffect } from "react"
+import React, { useCallback, useState, useEffect, useMemo } from "react"
 
 import useHashURL from "../../hooks/useHashURL"
 import AppPageHeader from "../AppPageHeader"
+import EditButton from "../EditButton"
 import PageContent from "../PageContent"
+import TrackingFieldsContent from "../TrackingFieldsContent"
 
 import ProjectSubmissionsTab from "./ProjectSubmissionsTab"
 import ProjectReadSetsTab from "./ProjectReadSetsTab"
@@ -13,7 +15,7 @@ import api from "../../utils/api"
 
 import { useAppDispatch } from "../../hooks"
 import { useParams, useNavigate } from "react-router-dom"
-import { FMSParentProject, FMSProject } from "../../models/fms_api_models"
+import { FMSParentProject } from "../../models/fms_api_models"
 
 const MAX_PROJECT_NAME_LENGTH = 60
 
@@ -22,73 +24,55 @@ const parseParentProjectID = (parentProjectID: string): number => {
   return Number(parentProjectID)
 }
 
+const ExternalProjectOverview = ({ parentProject }: { parentProject: FMSParentProject | null }) => (
+  <>
+    <Descriptions bordered size="small" column={4} style={{ marginBottom: 24 }}>
+      <Descriptions.Item label="Name" span={4}>
+        {parentProject?.name}
+      </Descriptions.Item>
+      <Descriptions.Item label="External ID" span={2}>
+        {parentProject?.external_id}
+      </Descriptions.Item>
+      <Descriptions.Item label="Principal Investigator" span={2}>
+        {parentProject?.principal_investigator}
+      </Descriptions.Item>
+      <Descriptions.Item label="Requestor Name" span={2}>
+        {parentProject?.requestor_name}
+      </Descriptions.Item>
+      <Descriptions.Item label="Requestor Email" span={2}>
+        {parentProject?.requestor_email}
+      </Descriptions.Item>
+    </Descriptions>
+    <TrackingFieldsContent entity={parentProject} />
+  </>
+)
+
 const ExternalProjectDetailsPage = () => {
   const { parentProjectId: paramParentProjectId } = useParams()
   const navigate = useNavigate()
   const parentProjectId = paramParentProjectId ? parseParentProjectID(paramParentProjectId) : null
 
   const [parentProject, setParentProject] = useState<FMSParentProject | null>(null)
-  const [internalProjects, setInternalProjects] = useState<FMSProject[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const dispatch = useAppDispatch()
 
   // Charge depuis l’API le projet parent correspondant à l’ID reçu.
   const fetchParentProject = useCallback(
-    async (parentProjectId: number): Promise<FMSParentProject> => {
-      const response = await dispatch(api.parentProjects.get(parentProjectId))
-      return response.data
-    },
-    [dispatch],
-  )
-
-  // Charge les projets internes correspondant aux IDs associés au projet parent.
-  const fetchInternalProjectsByIDs = useCallback(
-    async (projectIDs: number[]): Promise<FMSProject[]> => {
-      if (projectIDs.length === 0) {
-        return []
-      }
-      const response = await dispatch(
-        api.projects.list(
-          {
-            id__in: projectIDs.join(","),
-            limit: 100000,
-          },
-          true,
-        ),
-      )
-
-      return response.data.results
-    },
-    [dispatch],
-  )
-
-  // Charge le projet parent et tous les projets internes qui lui sont associés.
-  const fetchParentProjectWithInternalProjects = useCallback(
     async (parentProjectId: number): Promise<void> => {
       try {
-        setIsLoading(true)
         setError(null)
-
-        const fetchedParentProject = await fetchParentProject(parentProjectId)
-        setParentProject(fetchedParentProject)
-
-        const internalProjectIDs = fetchedParentProject.projects ?? []
-        const fetchedInternalProjects = await fetchInternalProjectsByIDs(internalProjectIDs)
-        setInternalProjects(fetchedInternalProjects)
+        const response = await dispatch(api.parentProjects.get(parentProjectId))
+        setParentProject(response.data)
       } catch (requestError) {
         setParentProject(null)
-        setInternalProjects([])
 
         if (!(requestError instanceof Error && requestError.name === "AbortError")) {
           setError("Unable to fetch the external project")
         }
-      } finally {
-        setIsLoading(false)
       }
     },
-    [fetchParentProject, fetchInternalProjectsByIDs],
+    [dispatch],
   )
 
   useEffect(() => {
@@ -99,11 +83,12 @@ const ExternalProjectDetailsPage = () => {
       return
     }
 
-    fetchParentProjectWithInternalProjects(parentProjectId)
-  }, [parentProjectId, fetchParentProjectWithInternalProjects, navigate])
+    fetchParentProject(parentProjectId)
+  }, [parentProjectId, fetchParentProject, navigate])
 
-  const [activeKey, setActiveKey] = useHashURL("projects")
+  const [activeKey, setActiveKey] = useHashURL("overview")
   const externalID = parentProject?.external_id ?? ""
+  const internalProjectIDs = useMemo(() => parentProject?.projects ?? [], [parentProject])
 
   const projectName = parentProject?.name ?? ""
 
@@ -120,6 +105,11 @@ const ExternalProjectDetailsPage = () => {
             ? `Project Overview: ${displayedProjectName} (External ID: ${externalID})`
             : "Project Overview"
         }
+        extra={
+          parentProject && (
+            <EditButton url={`/external-projects-overview/${parentProject.id}/update`} />
+          )
+        }
       />
 
       <PageContent tabs>
@@ -132,14 +122,15 @@ const ExternalProjectDetailsPage = () => {
           type="card"
           items={[
             {
-              label: "Associated Freezeman Projects",
+              label: "Overview",
+              key: "overview",
+              children: <ExternalProjectOverview parentProject={parentProject} />,
+            },
+            {
+              label: `Projects (${internalProjectIDs.length})`,
               key: "projects",
-              children: (
-                <ProjectSubmissionsTab
-                  internalProjects={internalProjects}
-                  isLoading={isLoading}
-                  externalID={externalID}
-                />
+              children: parentProject && (
+                <ProjectSubmissionsTab projectIDs={internalProjectIDs} externalID={externalID} />
               ),
             },
             {

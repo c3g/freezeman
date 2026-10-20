@@ -41,6 +41,7 @@ import ProfilePage from "../profile/ProfilePage"
 import ProjectsPage from "../projects/ProjectsPage"
 import ExternalProjectsPage from "../projectOverview/ExternalProjectsPage"
 import ExternalProjectDetailsPage from "../projectOverview/ExternalProjectDetailsPage"
+import ExternalProjectEditPage from "../projectOverview/ExternalProjectEditPage"
 import SamplesPage from "../samples/SamplesPage"
 import UsersPage from "../users/UsersPage"
 
@@ -479,6 +480,14 @@ const App = ({ userID, usersByID, logOut }) => {
               element={
                 <PrivateNavigate>
                   <ExternalProjectDetailsPage />
+                </PrivateNavigate>
+              }
+            />
+            <Route
+              path="/external-projects-overview/:parentProjectId/update"
+              element={
+                <PrivateNavigate>
+                  <ExternalProjectEditPage />
                 </PrivateNavigate>
               }
             />

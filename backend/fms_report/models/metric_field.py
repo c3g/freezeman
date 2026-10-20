@@ -1,11 +1,11 @@
 from django.db import models
 from ._constants import REPORTING_NAME_FIELD_LENGTH, AggregationType, FieldDataType
-
+from fms_core.models.tracked_model import TrackedModel
 from .report import Report
 
 __all__ = ["MetricField"]
 
-class MetricField(models.Model):
+class MetricField(TrackedModel):
     name = models.CharField(default=None, max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Name of the field containing a report metric.")
     source = models.CharField(null=True, blank=True, max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Source of the field on another model for annotation.")
     report = models.ForeignKey(Report, on_delete=models.PROTECT, help_text="Report to which the field is related.", related_name="metric_fields")
