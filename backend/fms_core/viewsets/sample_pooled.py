@@ -1,4 +1,4 @@
-from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q
+from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q, F
 from rest_framework import viewsets
 from fms_core.models import DerivedBySample, Sample
 from ._constants import (
@@ -74,16 +74,14 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
             # ie. a parent sample that contains more than one derived sample.
             self.queryset = self.queryset.filter(is_pooled=True)
 
+        parent_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
+
         self.queryset = self.queryset.annotate(
-            parent_sample_name=Subquery(
-                DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True)).values_list("sample__name", flat=True)[:1]
-            )
+            parent_sample_name=Subquery(parent_sample_subquery.values_list("sample__name", flat=True))
         )
 
         self.queryset = self.queryset.annotate(
-            parent_sample_id=Subquery(
-                DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True)).values_list("sample_id", flat=True)[:1]
-            )
+            parent_sample_id=Subquery(parent_sample_subquery.values_list("sample_id", flat=True))
         )
 
         return self.queryset
