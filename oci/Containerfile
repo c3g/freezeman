@@ -29,7 +29,7 @@ RUN apt-get update \
  && useradd --uid 1000 --create-home --shell /bin/sh fms \
  && install -d -o fms -g fms /home/fms/reports
 COPY --chmod=755 oci/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
-COPY --chmod=755 oci/backend/scheduler.sh /usr/local/bin/fms-scheduler
+COPY --chmod=755 oci/backend/report.sh /usr/local/bin/fms-report
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 WORKDIR /src/backend
 ENTRYPOINT ["fms-entrypoint"]

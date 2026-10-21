@@ -86,11 +86,11 @@ services:
     restart: always
 
   # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
-  scheduler:
+  report:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
     environment: *backend-env
-    command: ["fms-scheduler"]
+    command: ["fms-report"]
     volumes:
       # The command writes its logs to ~/reports/log/
       - reports:/home/fms/reports

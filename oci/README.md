@@ -7,7 +7,7 @@ Container images and podman-compose configuration for FreezeMan:
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol, 8001 plain HTTP for probes (internal) |
-| `scheduler`| `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
+| `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
 | `web`      | `localhost/freezeman-web`     | nginx: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`) |
 | `frontend` | dev only                      | webpack-dev-server, port 9000                                   |
@@ -25,6 +25,7 @@ oci/
 ├── db/Containerfile           # postgres + fzy (context: repo root)
 ├── db/initdb/10-fzy.sh        # CREATE EXTENSION fzy in template1 and $POSTGRES_DB on first start
 ├── db/backup.sh              # daily pg_dumpall loop of the backup service
+├── backend/report.sh          # daily prepare_report_data loop of the report service
 ├── backend/entrypoint.sh      # creates writable dirs, waits for the database
 ├── backend/uwsgi.ini          # uwsgi settings, based on backend/example.uwsgi.ini
 ├── nginx/default.conf.template
@@ -289,14 +290,14 @@ for it: `podman unshare chown -R 1000:1000 /data/freezeman/triggers`.
 
 ### Daily report data (replaces the cron entry)
 
-The `scheduler` service runs `python manage.py prepare_report_data` every day.
+The `report` service runs `python manage.py prepare_report_data` every day.
 Set the time in `.env`: `FMS_REPORT_TIME` (`HH:MM`, default `02:00`) in the time
 zone `TZ` (`America/Montreal`). Logs go to the `reports` volume (`~/reports/log/`
 in the container). A failed run is printed to the service log, and the next run
-still happens. It does not start in development (profile `scheduler`).
+still happens. It does not start in development (profile `report`).
 
 ```bash
-podman-compose logs scheduler                                                    # next run time and output
+podman-compose logs report                                                    # next run time and output
 podman-compose exec -T backend python manage.py prepare_report_data              # run it now
 ```
 
