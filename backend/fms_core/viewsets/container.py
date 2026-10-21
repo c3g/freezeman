@@ -166,8 +166,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         containers_data = Container.objects.all()
 
-        # QueryViewSet.search has no kind filters. The location dropdown needs them with or without q.
-        # Example: GET ?q=rack&parent=true without the filter also returns tubes, which cannot hold a container.
+        # Without the kind filter, the dropdown offers containers that cannot hold the item.
         if is_parent:
             kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
             containers_data = containers_data.filter(kind__in=kinds)
@@ -175,25 +174,16 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
             kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
             containers_data = containers_data.filter(kind__in=kinds)
 
-        # QueryViewSet.search returns [] for an empty q. Here an empty q lists all containers.
-        # Example: GET ?q=&sample_holding=true (dropdown opened, nothing typed) would show no options.
-        # fzy is skipped because fzy('', haystack) casts -INFINITY to int32, which is undefined in C.
         if search_input:
             if is_exact_match:
-                # QueryViewSet.search has no exact match. The edit forms use it to load the saved container.
-                # Example: GET ?q=BOX-1&exact_match=true with fuzzy scoring also returns BOX-10 and BOX-1A.
+                # Without exact match, an edit form that loads BOX-1 also gets BOX-10.
                 exact_query = Q(barcode=search_input) | Q(name=search_input)
-                # id is an integer. Example: GET ?q=BOX-1&exact_match=true with Q(id=q) raises ValueError (HTTP 500).
-                # re.ASCII instead of str.isdigit(): isdigit() accepts "²", and int("²") fails.
-                # Example: GET ?q=²&exact_match=true with isdigit() gives HTTP 500.
+                # Without the ASCII digit check, a non-numeric q (including "²") on the integer id gives HTTP 500.
                 if re.fullmatch(r"\d+", search_input, re.ASCII):
                     exact_query |= Q(id=search_input)
                 containers_data = containers_data.filter(exact_query).order_by("id")
             else:
-                # The best score of the three fields ranks the container.
-                # An exact, case-insensitive match scores INT32_MAX, so it comes first.
-                # QueryViewSet.search scores text columns only. Users also search by container id.
-                # Example: GET ?q=1234 with FZY(q, F("id")) renders "id"::cstring, and PostgreSQL rejects the cast (HTTP 500).
+                # Without Cast, fzy on the integer id gives HTTP 500.
                 containers_data = containers_data.annotate(
                     score=Greatest(
                         FZY(search_input, F("barcode")),
@@ -201,15 +191,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                         FZY(search_input, Cast("id", CharField())),
                     )
                 )
-                # fzy returns 0 for a non-match and can return a negative score for a very weak match.
-                # Keep only score > 0, as QueryViewSet.search does.
+                # Without this filter, non-matches and very weak matches are returned.
                 containers_data = containers_data.filter(score__gt=0)
-                # QueryViewSet.search uses order_by("-score")[:100]. This endpoint is paginated.
-                # Example: GET ?q=box&offset=100 with [:100] returns no results.
-                # Example: GET ?q=box&offset=100 without "id" can repeat or skip containers that have equal scores.
+                # Without "id", containers with equal scores repeat or skip across pages.
                 containers_data = containers_data.order_by("-score", "id")
         else:
-            containers_data = containers_data.order_by("id")
+            containers_data = containers_data.none()
 
         page = self.paginate_queryset(containers_data)
         serializer = self.get_serializer(page, many=True)
