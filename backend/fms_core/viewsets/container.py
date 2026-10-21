@@ -166,7 +166,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         containers_data = Container.objects.all()
 
-        # Without the kind filter, the dropdown offers containers that cannot hold the item.
         if is_parent:
             kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
             containers_data = containers_data.filter(kind__in=kinds)
@@ -176,7 +175,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         if search_input:
             if is_exact_match:
-                # Without exact match, an edit form that loads BOX-1 also gets BOX-10.
                 exact_query = Q(barcode=search_input) | Q(name=search_input)
                 # Without the ASCII digit check, a non-numeric q (including "²") on the integer id gives HTTP 500.
                 if re.fullmatch(r"\d+", search_input, re.ASCII):
@@ -193,7 +191,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 )
                 # Without this filter, non-matches and very weak matches are returned.
                 containers_data = containers_data.filter(score__gt=0)
-                # Without "id", containers with equal scores repeat or skip across pages.
+                # Without ordering by "id", containers with equal scores repeat or skip across pages.
                 containers_data = containers_data.order_by("-score", "id")
         else:
             containers_data = containers_data.none()
