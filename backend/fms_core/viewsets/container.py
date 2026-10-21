@@ -191,7 +191,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 )
                 # Without this filter, non-matches and very weak matches are returned.
                 containers_data = containers_data.filter(score__gt=0)
-                # Without ordering by "id", containers with equal scores repeat or skip across pages.
+                # Without "id" as a tiebreaker, containers with equal scores can change order between page queries, and then repeat or skip across pages.
                 containers_data = containers_data.order_by("-score", "id")
         else:
             containers_data = containers_data.none()
