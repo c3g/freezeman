@@ -19,3 +19,4 @@ RUN make clean && make && make install DESTDIR=/out
 FROM ${POSTGRES_IMAGE}
 COPY --from=build /out/ /
 COPY --chmod=755 oci/db/initdb/ /docker-entrypoint-initdb.d/
+COPY --chmod=755 oci/db/backup.sh /usr/local/bin/fms-backup

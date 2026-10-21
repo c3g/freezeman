@@ -8,6 +8,7 @@ Container images and podman-compose configuration for FreezeMan:
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol, 8001 plain HTTP for probes (internal) |
 | `scheduler`| `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
+| `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
 | `web`      | `localhost/freezeman-web`     | nginx: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`) |
 | `frontend` | dev only                      | webpack-dev-server, port 9000                                   |
 
@@ -23,6 +24,7 @@ oci/
 ├── Containerfile              # backend-dev, backend-prod, frontend-dev, web targets (context: repo root)
 ├── db/Containerfile           # postgres + fzy (context: repo root)
 ├── db/initdb/10-fzy.sh        # CREATE EXTENSION fzy in template1 and $POSTGRES_DB on first start
+├── db/backup.sh              # daily pg_dumpall loop of the backup service
 ├── backend/entrypoint.sh      # creates writable dirs, waits for the database
 ├── backend/uwsgi.ini          # uwsgi settings, based on backend/example.uwsgi.ini
 ├── nginx/default.conf.template
@@ -83,7 +85,7 @@ podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql
 Releasing a new version:
 
 ```bash
-podman-compose exec -T db pg_dumpall -U admin > backup_release_vX.Y.Z.pgsql
+podman-compose exec backup fms-backup now
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
 podman-compose build
@@ -256,6 +258,29 @@ podman-compose logs scheduler                                                   
 podman-compose exec -T backend python manage.py prepare_report_data              # run it now
 ```
 
+### Database backups
+
+The `backup` service runs `pg_dumpall` every day at `FMS_BACKUP_TIME` (default `01:00`, in `TZ`)
+and writes `<YYYY-MM-DD>.pgsql.gz` into `FMS_BACKUP_DIR` on the host. It deletes files older than
+`FMS_BACKUP_KEEP_DAYS` (default 14, `0` keeps all). It does not start in development (profile `backup`).
+
+```bash
+# oci/.env
+FMS_BACKUP_DIR=/data/freezeman/backups
+
+mkdir -p /data/freezeman/backups      # podman does not create a missing bind-mount source
+podman-compose up -d backup
+podman-compose exec backup fms-backup now      # run one backup now
+
+# restore (into an empty database cluster)
+gunzip -c /data/freezeman/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
+```
+
+The container runs as root, which rootless podman maps to the deployment user, so that user owns the
+files. The bind mount uses `:z` for SELinux. The backup image is the `db` image, so `pg_dumpall` always
+matches the server version. Copy the directory off the host as well: a backup on the same disk does
+not protect against disk loss.
+
 ### Moving data from the existing PostgreSQL 15 server
 
 The container runs the same major version (15), so a plain dump and restore is enough.
@@ -319,6 +344,7 @@ The layout already maps onto Kubernetes objects:
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
 | `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes) |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
+| `backup`           | CronJob + PVC                                                     |
 | `web` port mapping | Ingress (TLS)                                                     |
 
 Notes:

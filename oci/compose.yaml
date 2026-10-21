@@ -99,6 +99,26 @@ services:
         condition: service_completed_successfully
     restart: always
 
+  # Daily pg_dumpall into FMS_BACKUP_DIR on the host, as <YYYY-MM-DD>.pgsql.gz, at FMS_BACKUP_TIME
+  # (a CronJob in Kubernetes). The directory must exist. Runs as root in the container,
+  # which rootless podman maps to the host user, so that user owns the files.
+  backup:
+    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
+    entrypoint: ["fms-backup"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-America/Montreal}
+      FMS_BACKUP_TIME: ${FMS_BACKUP_TIME:-01:00}
+      FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ${FMS_BACKUP_DIR:-./backups}:/backups:z
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
   web:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
     build:
