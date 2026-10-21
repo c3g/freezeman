@@ -339,11 +339,11 @@ pg_dump -U postgres -Fc fms > fms_before_containers.dump
 # new server, from oci/: start only the database, restore, then the rest
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-podman cp fms_before_containers.dump freezeman_db_1:/tmp/
-podman-compose exec db pg_restore -U admin -d fms --no-owner --no-acl /tmp/fms_before_containers.dump
+podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < fms_before_containers.dump
 podman-compose up -d
 ```
 
+`-T` keeps the binary dump intact. Without it, the pseudo-TTY changes the stream.
 The database is created on first start with `fzy` already enabled, so expect a
 harmless "extension fzy already exists" message during the restore. `--no-owner`
 assigns everything to `POSTGRES_USER`.
