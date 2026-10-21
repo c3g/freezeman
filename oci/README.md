@@ -205,9 +205,12 @@ Run the stack as an unprivileged user (e.g. `django`), not as root.
   automatically. Check with `grep django /etc/subuid`. Older accounts may need
   `sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 django`.
 - Log in as that user directly (`ssh` or `sudo machinectl shell django@`), not with
-  `sudo su - django`. With `su`, rootless podman lacks the systemd user session
-  and `XDG_RUNTIME_DIR` it expects. `machinectl` is in the `systemd-container`
-  package, which a minimal Rocky 9 install does not include.
+  `sudo su - django`. `su` starts no systemd user session and sets no `XDG_RUNTIME_DIR`.
+  Without them, healthchecks do not run, so `db`, `backend` and `web` never become
+  healthy and `podman-compose up` waits on `service_healthy`. Podman also falls back
+  to cgroupfs and puts its runtime files outside `/run/user/<uid>`.
+  `machinectl` is in the `systemd-container` package, which a minimal Rocky 9 install
+  does not include.
 - Rootless containers are stopped when the user's last session ends, unless lingering is enabled:
 
   ```bash
