@@ -45,12 +45,12 @@ const getTableColumns = (sampleKinds) => {
             }               
         },
         {
-          title: "Parent Sample Name",
-          dataIndex: "parent_sample_name",
+          title: "Root Sample Name",
+          dataIndex: "root_sample_name",
           sorter: true,
           render: (_, pooledSample) => {
               return (
-                  <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.parent_sample_name}</Link>
+                  <Link to={`/samples/${pooledSample.root_sample_id}`}>{pooledSample.root_sample_name}</Link>
               )
           }  
         },

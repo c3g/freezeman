@@ -29,7 +29,7 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
         *_list_keys(_pooled_sample_filterset_fields),
-        "parent_sample_name"
+        "root_sample_name"
     }
 
     ordering = ["id"]
@@ -74,14 +74,14 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
             # ie. a parent sample that contains more than one derived sample.
             self.queryset = self.queryset.filter(is_pooled=True)
 
-        parent_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
+        root_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
 
         self.queryset = self.queryset.annotate(
-            parent_sample_name=Subquery(parent_sample_subquery.values_list("sample__name", flat=True))
+            root_sample_name=Subquery(root_sample_subquery.values_list("sample__name", flat=True))
         )
 
         self.queryset = self.queryset.annotate(
-            parent_sample_id=Subquery(parent_sample_subquery.values_list("sample_id", flat=True))
+            root_sample_id=Subquery(root_sample_subquery.values_list("sample_id", flat=True))
         )
 
         return self.queryset
