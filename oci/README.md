@@ -387,9 +387,10 @@ The layout already maps onto Kubernetes objects:
 | `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
 | `migrate`          | Job (or Helm `pre-install`/`pre-upgrade` hook)                    |
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
-| `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes) |
+| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes) |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
 | `backup`           | CronJob + PVC                                                     |
+| `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + `reports` PVC at `/home/fms/reports` |
 | `web` port mapping | Ingress (TLS)                                                     |
 
 Notes:
@@ -407,6 +408,8 @@ Notes:
     httpGet: {path: /api/health/ready/, port: 8001}
     periodSeconds: 10
   ```
+- The `report` CronJob replaces the sleep loop in `fms-report`, so run `python manage.py prepare_report_data`
+  directly, not `fms-report`. Set `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
 - Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
   Expose only the `web` Service. Do not publish port 8001 outside the cluster.
