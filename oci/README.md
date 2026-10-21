@@ -63,10 +63,30 @@ All `podman-compose` commands below are run from `oci/`.
 
 ```bash
 podman-compose build
+
+# 1. Start only the database. Do not start the full stack yet: migrate runs as soon as db is healthy.
+podman-compose up -d db
+
+# 2. Wait for the server. -h 127.0.0.1: the first-start init server listens on the socket only,
+#    so a TCP check passes only when the real server is up.
+until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+
+# 3. Restore a backup that has accounts (a daily backup of this stack):
+gunzip -c <YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
+
+# 4. Start the full stack. migrate applies the migrations that the backup does not have.
 podman-compose up -d
 podman-compose logs migrate          # migrations applied?
-podman-compose exec backend python manage.py createsuperuser
 ```
+
+- `-d postgres`: the `pg_dumpall` script creates the roles and the database, then runs `\connect fms`.
+  psql must start in another database, so it starts in `postgres`. The messages "role admin already
+  exists", "database fms already exists" and "extension fzy already exists" are harmless.
+- For a dump from the old PostgreSQL 15 server, replace step 3 with the `pg_restore` commands in
+  [Moving data from the existing PostgreSQL 15 server](#moving-data-from-the-existing-postgresql-15-server).
+- For an initial setup with no backup, skip steps 1 to 3, then follow
+  [For reference only: first account on an empty database](#for-reference-only-first-account-on-an-empty-database).
+- Backups are described in [Database backups](#database-backups).
 
 Open `http://<host>:8080` (`FMS_HTTP_PORT`).
 
@@ -98,6 +118,25 @@ when the resolved compose configuration changed. A rebuilt image under the same
 tag, or an edit to a variable that reaches the containers only through
 `env_file: .env` (e.g. `FMS_EMAIL_HOST`), is otherwise silently not applied.
 `migrate` runs again whenever its container is recreated.
+
+### For reference only: first account on an empty database
+
+Do not use this for a normal deployment, which restores a backup that already has accounts.
+For an initial setup with an empty database, create the first account as below.
+`createsuperuser` does not create the `FreezemanUser` that the app expects for each `User`,
+so the second command adds it. Without it, `GET /api/users/` fails with a 500 error.
+
+```bash
+podman-compose exec backend python manage.py createsuperuser
+podman-compose exec -T backend python manage.py shell -c '
+from django.contrib.auth.models import User
+from fms_core.models import FreezemanUser, Profile
+profile = Profile.objects.get(name="Default")
+for user in User.objects.filter(freezeman_user__isnull=True):
+    FreezemanUser.objects.create(user=user, profile=profile)
+    print(f"Created FreezemanUser for {user.username}")
+'
+```
 
 ## Development
 
@@ -272,7 +311,8 @@ mkdir -p /data/freezeman/backups      # podman does not create a missing bind-mo
 podman-compose up -d backup
 podman-compose exec backup fms-backup now      # run one backup now
 
-# restore (into an empty database cluster)
+# restore (into an empty database cluster): start only db, restore, then `up -d`.
+# Order and wait loop: see "Production-like stack".
 gunzip -c /data/freezeman/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 ```
 
@@ -294,6 +334,7 @@ pg_dump -U postgres -Fc fms > fms_before_containers.dump
 
 # new server, from oci/: start only the database, restore, then the rest
 podman-compose up -d db
+until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
 podman cp fms_before_containers.dump freezeman_db_1:/tmp/
 podman-compose exec db pg_restore -U admin -d fms --no-owner --no-acl /tmp/fms_before_containers.dump
 podman-compose up -d
