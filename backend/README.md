@@ -144,7 +144,7 @@ python ./manage.py test -v 2
 
 ## Database diagram
 
-[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v5-5-6025783680d742080a3a31d7)
+[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v5-9-604aa285fcdcb6230b23c0e7)
 
 
 ## pg_fzy

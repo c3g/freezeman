@@ -50,7 +50,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):
         data = request.data
-        datasets, dataset_files, errors, _ = service.ingest_run_validation_report(data)
+        user_obj = request.user
+        datasets, dataset_files, errors, _ = service.ingest_run_validation_report(data, user_obj)
         if errors:
             transaction.set_rollback(True)
             return HttpResponseBadRequest("\n".join(errors))

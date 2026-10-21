@@ -18,13 +18,13 @@ export const get = (id: FMSId): NetworkActionThunk<any> => async (dispatch, getS
 	return dispatch(networkAction(GET, api.projects.get(id), { meta: { id } }))
 }
 
-export const add = (project: Partial<FMSProject>) : NetworkActionThunk<any> => async (dispatch, getState) => {
+export const add = (project: Partial<FMSProject>) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	if (getState().projects.isFetching) return
 
 	return dispatch(networkAction(ADD, api.projects.add(project), { meta: { ignoreError: 'APIError' } }))
 }
 
-export const update = (id: FMSId, project: Partial<FMSProject>): NetworkActionThunk<any> => async (dispatch, getState) => {
+export const update = (id: FMSId, project: Partial<FMSProject>) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	if (getState().projects.itemsByID[id].isFetching) return
 
 	return dispatch(networkAction(UPDATE, api.projects.update(project), { meta: { id, ignoreError: 'APIError' } }))

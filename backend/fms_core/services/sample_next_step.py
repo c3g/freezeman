@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Case, When, Q, F, BooleanField
 from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core._constants import WorkflowAction
@@ -15,9 +16,9 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
         `study_obj`: Study instance that will be associated to the sample.
         `order`: Positive integer indicating the insertion order of the sample in the workflow. Optional: defaults to the start
                  order of the study workflow.
-                 
+
     Returns:
-        Tuple containing the created SampleNextStep instance (if applicable, otherwise None), the error messages and the warning messages. 
+        Tuple containing the created SampleNextStep instance (if applicable, otherwise None), the error messages and the warning messages.
 
     """
     sample_next_step = None
@@ -36,13 +37,13 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
         order = study_obj.start
     elif order < study_obj.start or order > study_obj.end:
         errors.append(f"Order must be a positive integer between {study_obj.start} and {study_obj.end}.")
-    
+
     step_order = None
     try:
         step_order = StepOrder.objects.get(order=order, workflow=study_obj.workflow)
     except StepOrder.DoesNotExist:
         errors.append(f"No step found for the given order.")
-    
+
     # Queueing to study workflow implies an existing step order.
     if step_order and sample_obj and study_obj and not errors:
         if sample_obj.matches_sample_type(step_order.step.expected_sample_type):
@@ -65,14 +66,14 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
 
 def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     """
-    Deletes a SampleNextStep instance to indicate the removal of a sample from a workflow at a specific step. 
+    Deletes a SampleNextStep instance to indicate the removal of a sample from a workflow at a specific step.
     Args:
         `sample_obj`: Sample instance to be dequeued from the study workflow.
         `study_obj`: Study instance currently associated to the sample.
         `order`: Positive integer indicating the current position of the sample in the workflow.
-                 
+
     Returns:
-        Tuple containing a boolean stating whether the SampleNextStep instances was deleted or not, the error messages and the warning messages. 
+        Tuple containing a boolean stating whether the SampleNextStep instances was deleted or not, the error messages and the warning messages.
 
     """
     dequeued = False
@@ -86,11 +87,11 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
     if not isinstance(study_obj, Study):
         study_obj = None
         errors.append(f"A valid study instance must be provided.")
-    
+
     if not order:
         order = None
         errors.append(f"A step order must be provided.")
-    
+
     step_order=None
     # Dequeuing from a specific step
     if order is not None:
@@ -98,7 +99,7 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             step_order = StepOrder.objects.get(order=order, workflow=study_obj.workflow)
         except StepOrder.DoesNotExist:
             errors.append(f"No step found for the given order.")
-    
+
     # Dequeuing from study workflow by deleting the SampleNextStep instance
     if sample_obj and study_obj and not errors:
         try:
@@ -123,6 +124,25 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             errors.append(err)
     return dequeued, errors, warnings
 
+def skip_by_sample_next_step_by_study(sample_next_step_by_study: SampleNextStepByStudy) -> tuple[SampleNextStep | None, list[str], list[str]]:
+    errors = list[str]()
+    warnings = list[str]()
+
+    try:
+        if sample_next_step_by_study.step_order.mandatory:
+            errors.append(f"Step '{sample_next_step_by_study.step_order.step.name}' cannot be skipped in workflow '{sample_next_step_by_study.study.workflow.name}'.")
+        else:
+            sample_next_step, errors, warnings = _move_sample_to_next_step_by_study_step(
+                sample_next_step_by_study,
+                workflow_action=WorkflowAction.SKIP_STEP
+            )
+            return sample_next_step, errors, warnings
+    except Exception as err:
+        errors.append(err)
+
+    return sample_next_step_by_study.sample_next_step, errors, warnings
+
+
 def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
 
@@ -141,19 +161,19 @@ def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_hist
         if stepHistory:
             stepHistory.workflow_action = WorkflowAction.DEQUEUE_SAMPLE
             stepHistory.save()
-    
+
     return removed, errors, warnings
 
 def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: Study) -> Tuple[Union[int, None], List[str], List[str]]:
     """
-    Deletes a SampleNextStep instance to indicate the removal of a sample from a specified workflow at any step. 
-    Meaning that if the sample is queued in 2 different steps in the provided study, both instances will be deleted. 
+    Deletes a SampleNextStep instance to indicate the removal of a sample from a specified workflow at any step.
+    Meaning that if the sample is queued in 2 different steps in the provided study, both instances will be deleted.
     Args:
         `sample_obj`: Sample instance to be dequeued from the study workflow.
         `study_obj`: Study instance currently associated to the sample.
-                 
+
     Returns:
-        Tuple containing the number of SampleNextStep instances deleted, the error messages and the warning messages. 
+        Tuple containing the number of SampleNextStep instances deleted, the error messages and the warning messages.
 
     """
     num_deleted = 0
@@ -167,7 +187,7 @@ def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: 
     if not isinstance(study_obj, Study):
         study_obj = None
         errors.append(f"A valid study instance must be provided.")
-    
+
     # Dequeuing from study workflow by deleting the SampleNextStep instance
     if sample_obj and study_obj and not errors:
         try:
@@ -191,10 +211,10 @@ def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=N
     Args:
         `sample_obj`: Sample instance to look for.
         `study_obj`: Study instance where to look the sample in.
-        `order`: Positive integer indicating the current position in the workflow. Optional: If not specified then it will look at any step. 
-                 
+        `order`: Positive integer indicating the current position in the workflow. Optional: If not specified then it will look at any step.
+
     Returns:
-        Tuple containing a boolean stating whether the sample is queued in the study, the error messages and the warning messages. 
+        Tuple containing a boolean stating whether the sample is queued in the study, the error messages and the warning messages.
     """
     sample_is_queued = None
     errors = []
@@ -207,14 +227,14 @@ def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=N
     if not isinstance(study_obj, Study):
         study_obj = None
         errors.append(f"A valid study instance must be provided.")
-    
+
     step_order=None
     if order is not None:
         try:
             step_order = StepOrder.objects.get(order=order, workflow=study_obj.workflow)
         except StepOrder.DoesNotExist:
             errors.append(f"No step found for the given order.")
-    
+
     # Specify step_order in filter if it is provided
     filters = dict(
         sample=sample_obj,
@@ -233,9 +253,9 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
     Args:
         `sample_obj`: Sample instance to look for.
         `study_obj`: Study instance where to check if the sample has completed.
-                 
+
     Returns:
-        Tuple containing a boolean stating whether the sample has completed the workflow in the study, the error messages and the warning messages. 
+        Tuple containing a boolean stating whether the sample has completed the workflow in the study, the error messages and the warning messages.
     """
     samples_has_completed = None
     errors = []
@@ -256,7 +276,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
             errors.append(f"No step found for the given order.")
 
         qs_sample_generated_from_step_with_child = StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                                                              study=study_obj, 
+                                                                              study=study_obj,
                                                                               step_order=step_order)
         qs_sample_on_step_without_child = StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
                                                                      process_measurement__source_sample=sample_obj,
@@ -275,7 +295,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement | None = None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample | None = None, keep_current: bool = False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
     """
     Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
     A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -287,7 +307,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
         `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.NEXT_STEP
         `next_sample`: Sample generated during the current_step. Default to None in which case the current_sample will be the next_sample.
         `keep_current`: Boolean that is true if we are to keep the current sample next step. False by default, indicating removal.
-    
+
     Returns:
         Tuple containing the list of new SampleNextStep if any corresponding current SampleNextStep is found or None if an error occurs, errors and warnings.
     """
@@ -300,66 +320,107 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
 
     if not isinstance(current_sample, Sample):
         errors.append(f"A valid current sample instance must be provided.")
-    
+
     if not isinstance(workflow_action, WorkflowAction):
         errors.append(f"A valid workflow action instance must be provided.")
 
-    if not errors:
-        new_sample = next_sample if next_sample is not None else current_sample
-
-        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
-
-        for current_sample_next_step in current_sample_next_steps.all():
-            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
-                next_sample_next_step = None
-                study = sample_next_step_by_study.study
-                current_step_order = sample_next_step_by_study.step_order
-                next_step_order = current_step_order.next_step_order \
-                                  if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
-                                  else None
-                if next_step_order is not None:
-                    try:
-                        if SampleNextStep.objects.filter(step=next_step_order.step, sample=new_sample).exists():
-                            next_sample_next_step = SampleNextStep.objects.get(step=next_step_order.step, sample=new_sample)
-                            if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order).exists():
-                                SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
-                            elif new_sample.is_pool:
-                                warnings.append(("Sample {0} is already queued for step {1} "
-                                                "of study {2} of project {3}.", [new_sample.name, next_step_order.order if next_step_order is not None else '', study.letter, study.project.name]))
-                            else:
-                                errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
-                                              f"of study {study.letter} of project {study.project.name}.")
-                        else:
-                            next_sample_next_step = SampleNextStep.objects.create(step=next_step_order.step,
-                                                                                  sample=new_sample)
-                            if next_sample_next_step is not None:
-                                SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
-                                new_sample_next_steps.append(next_sample_next_step)
-                    except Exception as err:
-                        errors.append(f"Failed to create new sample next step instance.")
-                try:
-                    # Create the entry in StepHistory
-                    StepHistory.objects.create(study=study,
-                                               step_order=current_step_order,
-                                               process_measurement=process_measurement,
-                                               sample=current_sample,
-                                               workflow_action=workflow_action)
-                except Exception as err:
-                    errors.append(f"Failed to create StepHistory.")
-            try:
-                # Remove old sample next step once the new one is created
-                if not keep_current:
-                    for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all():
-                        sample_next_step_by_study.delete()
-                    current_sample_next_step.delete()
-            except Exception as err:
-                errors.append(f"Failed to remove old sample next step.")
-
-    # an error will return None, no matching current_sample_next_step will return []
     if errors:
-        new_sample_next_steps = None
+        return None, errors, warnings
+
+    current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
+
+    with transaction.atomic():
+        for current_sample_next_step in list(current_sample_next_steps.all()):
+            for sample_next_step_by_study in list(SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all()):
+                new_sample_next_step, this_errors, this_warnings = _move_sample_to_next_step_by_study_step(
+                    sample_next_step_by_study,
+                    workflow_action,
+                    process_measurement,
+                    next_sample,
+                    keep_current
+                )
+                if new_sample_next_step:
+                    new_sample_next_steps.append(new_sample_next_step)
+                errors.extend(this_errors)
+                warnings.extend(this_warnings)
+
+        # an error will return None, no matching current_sample_next_step will return []
+        if errors:
+            transaction.set_rollback(True)
+            new_sample_next_steps = None
 
     return new_sample_next_steps, errors, warnings
+
+def _move_sample_to_next_step_by_study_step(
+    sample_next_step_by_study: SampleNextStepByStudy,
+    workflow_action: WorkflowAction,
+    process_measurement: ProcessMeasurement | None = None,
+    next_sample: Sample | None = None,
+    keep_current: bool = False,
+) -> tuple[SampleNextStep | None, list[str], list[str]]:
+    resulting_sample_next_step: SampleNextStep | None = None
+    errors = list[str]()
+    warnings = list[str]()
+
+    current_sample_next_step = sample_next_step_by_study.sample_next_step
+    current_step = current_sample_next_step.step
+    current_sample = current_sample_next_step.sample
+
+    new_sample = next_sample if next_sample is not None else current_sample
+
+    next_sample_next_step = None
+    study = sample_next_step_by_study.study
+
+    current_step_order = sample_next_step_by_study.step_order
+    if current_step_order.mandatory and workflow_action == WorkflowAction.SKIP_STEP:
+        warnings.append(f"Step '{current_step.name}' cannot be skipped in workflow '{study.workflow.name}'.")
+        return current_sample_next_step, errors, warnings
+
+    next_step_order = current_step_order.next_step_order \
+                    if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
+                    else None
+
+    if next_step_order is not None:
+        try:
+            if SampleNextStep.objects.filter(step=next_step_order.step, sample=new_sample).exists():
+                next_sample_next_step = SampleNextStep.objects.get(step=next_step_order.step, sample=new_sample)
+                resulting_sample_next_step = next_sample_next_step
+                if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order).exists():
+                    SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
+                elif new_sample.is_pool:
+                    warnings.append(("Pooled sample {0} is already queued for step {1} "
+                                     "of study {2} of project {3}.", [new_sample.name, next_step_order.order if next_step_order is not None else '', study.letter, study.project.name]))
+                else:
+                    errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
+                                  f"of study {study.letter} of project {study.project.name}.")
+            else:
+                next_sample_next_step = SampleNextStep.objects.create(step=next_step_order.step,
+                                                                    sample=new_sample)
+                if next_sample_next_step is not None:
+                    SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
+                    resulting_sample_next_step = next_sample_next_step
+        except Exception as err:
+            errors.append(f"Failed to create new sample next step instance.")
+    try:
+        # Create the entry in StepHistory
+        StepHistory.objects.create(study=study,
+                                step_order=current_step_order,
+                                process_measurement=process_measurement,
+                                sample=current_sample,
+                                workflow_action=workflow_action)
+    except Exception as err:
+        errors.append(f"Failed to create StepHistory.")
+
+    try:
+        if not keep_current:
+            sample_next_step = sample_next_step_by_study.sample_next_step
+            sample_next_step_by_study.delete()
+            if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step).exists():
+                sample_next_step.delete()
+    except Exception as err:
+        errors.append(f"Failed to remove old sample next step.")
+
+    return resulting_sample_next_step, errors, warnings
 
 def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: Step) -> Tuple[Union[int, None], List[str], List[str]]:
     """
@@ -369,7 +430,7 @@ def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: 
     Args:
         sample: Sample instance that should be removed from workflows.
         step: The workflow step instance that matches the information on the template.
-    
+
     Returns:
         Tuple with the number of removed sample_next_step removed, errors, and warnings.
     """
@@ -414,7 +475,7 @@ def remove_sample_from_workflow(current_step: Step, current_sample: Sample, proc
         `current_sample`: Sample instance being processed.
         `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into StepHistory.
         `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.DEQUEUE_SAMPLE
-    
+
     Returns:
         Tuple containing the list of new SampleNextStep if any corresponding current SampleNextStep is found or None if an error occurs, errors and warnings.
     """
@@ -427,7 +488,7 @@ def remove_sample_from_workflow(current_step: Step, current_sample: Sample, proc
 
     if not isinstance(current_sample, Sample):
         errors.append(f"A valid current sample instance must be provided.")
-    
+
     if not isinstance(process_measurement, ProcessMeasurement):
         errors.append(f"A valid process measurement instance must be provided.")
 
@@ -472,7 +533,7 @@ def record_step_history(current_step: Step, current_sample: Sample, process_meas
         `current_sample`: Sample instance being processed.
         `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into StepHistory.
         `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.NEXT_STEP
-    
+
     Returns:
         Tuple containing the list of new StepHistory or None if an error occurs, errors and warnings.
     """
@@ -484,7 +545,7 @@ def record_step_history(current_step: Step, current_sample: Sample, process_meas
 
     if not isinstance(current_sample, Sample):
         errors.append(f"A valid current sample instance must be provided.")
-    
+
     if not isinstance(process_measurement, ProcessMeasurement):
         errors.append(f"A valid process measurement instance must be provided.")
 
@@ -513,7 +574,7 @@ def record_step_history(current_step: Step, current_sample: Sample, process_meas
 
     return new_step_histories, errors, warnings
 
-def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
+def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement | None = None, next_sample: Sample | None = None) -> Tuple[List[str], List[str]]:
     """
     Execute the workflow action listed in the template.
 
@@ -556,6 +617,13 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                            workflow_action=WorkflowAction.REPEAT_QC_STEP)
     elif workflow_action == WorkflowAction.IGNORE_WORKFLOW.label:
         warnings.append(("Sample {0} current process will not be recorded as part of a workflow.", [current_sample.name]))
+    elif workflow_action == WorkflowAction.SKIP_STEP.label:
+        _, errors, _ = move_sample_to_next_step(current_step=step,
+                                                current_sample=current_sample,
+                                                process_measurement=None,
+                                                workflow_action=WorkflowAction.SKIP_STEP,
+                                                next_sample=None,
+                                                keep_current=False)
     else:
         _, errors, _ = move_sample_to_next_step(current_step=step,
                                                 current_sample=current_sample,

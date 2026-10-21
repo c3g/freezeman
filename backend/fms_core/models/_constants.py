@@ -41,6 +41,7 @@ class SampleType(models.TextChoices):
     ANY = "ANY", "Any"
     UNEXTRACTED_SAMPLE = "UNEXTRACTED_SAMPLE", "Unextracted sample"
     EXTRACTED_SAMPLE = "EXTRACTED_SAMPLE", "Extracted sample"
+    EXTRACTED_SAMPLE_OR_LIBRARY = "EXTRACTED_SAMPLE_OR_LIBRARY", "Extracted sample or library"
     SAMPLE = "SAMPLE", "Sample"     # Not library implied
     LIBRARY = "LIBRARY", "Library"
     POOLED_LIBRARY = "POOL", "Pooled library"

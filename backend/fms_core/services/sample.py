@@ -219,6 +219,11 @@ def transfer_sample(process: Process,
         errors.append(f"Process for transfer is required.")
     if not sample_source:
         errors.append(f"Source sample for transfer is required.")
+    else:
+        try:
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
+        except sample_source.DoesNotExist:
+            errors.append(f"Source sample for transfer is required.")
     if not container_destination:
         errors.append(f"Destination container for transfer is required.")
 
@@ -327,6 +332,11 @@ def extract_sample(process: Process,
         errors.append(f"Process for extraction is required.")
     if not sample_source:
         errors.append(f"Source sample for extraction is required.")
+    else:
+        try:
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
+        except sample_source.DoesNotExist:
+            errors.append(f"Source sample for extraction is required.")
     if not container_destination:
         errors.append(f"Destination container for extraction is required.")
     if sample_kind_destination is None:
@@ -707,11 +717,17 @@ def prepare_library(process: Process,
     sample_destination = None
     errors = []
     warnings = []
+    
 
     if not process:
         errors.append(f"Process is required.")
     if not sample_source:
         errors.append(f"Source sample is required.")
+    else:
+        try:
+            sample_source.refresh_from_db() # costly, but prevent calculating on incorrect volume when reusing the same source sample.
+        except sample_source.DoesNotExist:
+            errors.append(f"Source sample is required.")
     if not container_destination:
         errors.append(f"Destination container is required.")
 

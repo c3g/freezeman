@@ -5,7 +5,7 @@ EXPECTED_HEADERS = [
     'Container Barcode',
     'Container Coordinates',
     'Index Name',
-    'Old Sample Name',
+    'Old Sample Name or Pool Name',
     'Old Sample Alias',
     'New Sample Name',
     'New Sample Alias',
@@ -17,7 +17,7 @@ def test_create_workbook():
     assert ws is not None
     assert ws.title == "SampleRename"
 
-    assert wb.headers_row_number() == 8
+    assert wb.headers_row_number() == 9
 
     # Check headers
     for col_num, expected_header in enumerate(EXPECTED_HEADERS, start=1):

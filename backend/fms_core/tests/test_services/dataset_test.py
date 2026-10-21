@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from fms_core.services.project import create_full_project
 from fms_core.services.dataset import (create_dataset,
                                        create_dataset_file,
                                        reset_dataset_content,
@@ -20,6 +21,7 @@ from fms_core.models import (
     Protocol,
     ExperimentRun,
     Project,
+    ParentProject,
     Dataset,
     DatasetFile,
     Readset,
@@ -54,7 +56,7 @@ class DatasetServicesTestCase(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553")
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", external_id="P031553", external_name="ClientProject")
         self.project_without_external = Project.objects.create(name="MY_PROJECT_NO_EXTERNAL")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
@@ -65,42 +67,63 @@ class DatasetServicesTestCase(TestCase):
                                                            start_date=self.start_date)
 
     def test_create_dataset(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1, metric_report_url=self.METRIC_REPORT_URL)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser,
+                                                   metric_report_url=self.METRIC_REPORT_URL)
         self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset)
 
         self.assertEqual(Dataset.objects.count(), 1)
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
         self.assertEqual(dataset.project.name, self.project.name)
     
     def test_create_dataset_without_metric_report(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser)
         self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset)
 
         self.assertEqual(Dataset.objects.count(), 1)
-        self.assertEqual(dataset.project.external_id, "P031553")
+        self.assertEqual(dataset.project.parent_project.external_id, "P031553")
         self.assertEqual(dataset.experiment_run.name, "test_run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.project.name, self.project.name)
         self.assertIsNone(dataset.metric_report_url)
 
     def test_create_dataset_without_replace(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
-        _, errors, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser)
+        _, errors, _ = create_dataset(project_id=self.project.id,
+                                      experiment_run_id=self.experiment_run.id,
+                                      lane=1,
+                                      user_obj=self.currentuser)
         self.assertTrue(errors)
     
     def test_create_dataset_with_replace(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser)
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
         dataset_file, errors, warnings = create_dataset_file(readset, file_path="file_path", size=3)
 
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1, metric_report_url=self.METRIC_REPORT_URL, replace=True)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser,
+                                                   metric_report_url=self.METRIC_REPORT_URL,
+                                                   replace=True)
         self.assertIsNotNone(dataset)
         self.assertCountEqual(errors, [])
         if dataset:
@@ -109,7 +132,11 @@ class DatasetServicesTestCase(TestCase):
             self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
 
     def test_reset_dataset_content(self):
-        dataset, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1, metric_report_url=self.METRIC_REPORT_URL)
+        dataset, _, _ = create_dataset(project_id=self.project.id,
+                                       experiment_run_id=self.experiment_run.id,
+                                       lane=1,
+                                       user_obj=self.currentuser,
+                                       metric_report_url=self.METRIC_REPORT_URL)
         readset = Readset.objects.create(name="My_Readset",
                                          sample_name="My",
                                          dataset=dataset,
@@ -124,7 +151,7 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(Readset.objects.count(), 1)
         self.assertEqual(Metric.objects.count(), 1)
 
-        errors, warnings = reset_dataset_content(dataset)
+        errors, warnings = reset_dataset_content(dataset=dataset, user_obj=self.currentuser)
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
@@ -135,7 +162,10 @@ class DatasetServicesTestCase(TestCase):
         
 
     def test_create_dataset_file(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser)
         readset = Readset.objects.create(name="My_Readset",
                                          sample_name="My",
                                          dataset=dataset,
@@ -155,7 +185,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertIsNone(dataset_file.readset.validation_status_timestamp)
 
     def test_create_dataset_file_with_validation_status_passed(self):
-        dataset, errors, warnings = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, errors, warnings = create_dataset(project_id=self.project.id,
+                                                   experiment_run_id=self.experiment_run.id,
+                                                   lane=1,
+                                                   user_obj=self.currentuser)
         readset = Readset.objects.create(name="My_Readset",
                                          sample_name="My",
                                          dataset=dataset,
@@ -175,7 +208,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset_file.readset.validated_by, self.currentuser)
 
     def test_set_experiment_run_lane_validation_status(self):
-        dataset, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, _, _ = create_dataset(project_id=self.project.id,
+                                       experiment_run_id=self.experiment_run.id,
+                                       lane=1,
+                                       user_obj=self.currentuser)
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
         dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path", size=3)
 
@@ -191,7 +227,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset_file.readset.validated_by, self.currentuser)
 
     def test_set_experiment_run_lane_validation_status_missing_external_project_id(self):
-        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk, experiment_run_id=self.experiment_run.pk, lane=1)
+        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk,
+                                       experiment_run_id=self.experiment_run.pk,
+                                       lane=1,
+                                       user_obj=self.currentuser)
         assert dataset is not None
 
         Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
@@ -209,7 +248,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(warnings, [])
 
     def test_set_dataset_release_status_missing_external_project_id(self):
-        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk, experiment_run_id=self.experiment_run.pk, lane=1)
+        dataset, _, _ = create_dataset(project_id=self.project_without_external.pk,
+                                       experiment_run_id=self.experiment_run.pk,
+                                       lane=1,
+                                       user_obj=self.currentuser)
         assert dataset is not None
 
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
@@ -223,7 +265,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(warnings, [])
 
     def test_get_experiment_run_lane_validation_status(self):
-        dataset, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, _, _ = create_dataset(project_id=self.project.id,
+                                       experiment_run_id=self.experiment_run.id,
+                                       lane=1,
+                                       user_obj=self.currentuser)
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
         dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path", size=3)
 
@@ -259,7 +304,10 @@ class DatasetServicesTestCase(TestCase):
                            ("readset_3", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R1_001.fastq.gz", 2451),
                                           ("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R2_001.fastq.gz", 41111)]),
                            ("readset_5", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_SR_CL_19T_174_639942/SR_CL_19T_174_639942_S7_L001_R1_001.fastq.gz", 3144)])]
-        dataset_obj, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset_obj, _, _ = create_dataset(project_id=self.project.id,
+                                           experiment_run_id=self.experiment_run.id,
+                                           lane=1,
+                                           user_obj=self.currentuser)
 
         for readset_name, files_info in TEST_READSETS_1:
             readset_obj = Readset.objects.create(name=readset_name, sample_name=readset_name, dataset=dataset_obj)

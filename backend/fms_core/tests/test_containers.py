@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..coordinates import alphas, ints
+from ..coordinates import alphas, ints, ROW_ORDINAL_COORDINATE_ALLOCATION
 from ..containers import CONTAINER_SPEC_96_WELL_PLATE, CONTAINER_SPEC_SITE
 
 
@@ -17,6 +17,7 @@ class AdminUtilsTestCase(TestCase):
             "children_ids": [],
             "is_source": False,
             "is_run_container": False,
+            "ordinal_coordinate_allocation": ROW_ORDINAL_COORDINATE_ALLOCATION,
         })
 
         self.assertTrue(CONTAINER_SPEC_SITE.is_source)

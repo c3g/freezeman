@@ -7,7 +7,7 @@ from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db import models
-from django.db.models import Max, Sum, Subquery, Q
+from django.db.models import Max, StringAgg, Sum, Subquery, Q, Value
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
@@ -35,6 +35,7 @@ from .models import (
     Process,
     ProcessMeasurement,
     Project,
+    ParentProject,
     Sample,
     SampleKind,
     SampleMetadata,
@@ -61,7 +62,7 @@ from .models import (
     FreezemanPermission
 )
 
-from .models._constants import ReleaseStatus
+from .models._constants import ReleaseStatus, ValidationStatus
 from .containers import CONTAINER_KIND_SPECS
 
 
@@ -71,6 +72,8 @@ __all__ = [
     "DatasetSerializer",
     "DatasetFileSerializer",
     "ReadsetSerializer",
+    "ReadsetReportingSerializer",
+    "ReadsetReportingExportSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "ExternalExperimentRunSerializer",
@@ -102,6 +105,7 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ParentProjectSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -122,7 +126,7 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
-    "DerivedSampleSerializer"
+    "DerivedSampleSerializer",
     "FreezemanPermissionSerializer",
 ]
 
@@ -596,15 +600,29 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    external_id = serializers.CharField(read_only=True, source="parent_project.external_id")
+    external_name = serializers.CharField(read_only=True, source="parent_project.name")
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = '__all__'
 
+
 class ProjectExportSerializer(serializers.ModelSerializer):
+    principal_investigator = serializers.CharField(read_only=True, source="parent_project.principal_investigator")
+    requestor_name = serializers.CharField(read_only=True, source="parent_project.requestor_name")
+    requestor_email = serializers.CharField(read_only=True, source="parent_project.requestor_email")
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
 
+class ParentProjectSerializer(serializers.ModelSerializer):
+    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    class Meta:
+        model = ParentProject
+        fields = '__all__'
 
 class IndexSetSerializer(serializers.ModelSerializer):
     index_count = serializers.SerializerMethodField()
@@ -687,7 +705,7 @@ class DatasetSerializer(serializers.ModelSerializer):
     validation_status = serializers.SerializerMethodField()
     latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
-    external_project_id = serializers.CharField(read_only=True, source="project.external_id")
+    external_project_id = serializers.CharField(read_only=True, source="project.parent_project.external_id")
     project_name = serializers.CharField(read_only=True, source="project.name")
     run_name = serializers.CharField(read_only=True, source="experiment_run.name")
 
@@ -735,12 +753,14 @@ class ReadsetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
@@ -763,15 +783,56 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
     def get_sample_source(self, obj: Readset):
+        coordinates = None
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
             return None
         else:
             container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
-            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            if container_spec is not None:
+                coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec, container_spec.ordinal_coordinates_allocation_axis)
             experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
             source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
             return source_sample
+
+class ReadsetReportingSerializer(serializers.ModelSerializer):
+    readset_id = serializers.BigIntegerField(read_only=True, source="id")
+    readset_name = serializers.CharField(read_only=True, source="name")
+
+    sample_name = serializers.CharField(read_only=True)
+    biosample_alias = serializers.CharField(read_only=True, source="derived_sample.biosample.alias")
+    cohort = serializers.CharField(read_only=True, source="derived_sample.biosample.individual.cohort")
+    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
+    run_name = serializers.CharField(read_only=True, source="dataset.experiment_run.name")
+    run_start_date = serializers.DateField(read_only=True, source="dataset.experiment_run.start_date")
+
+    readset_files = serializers.SerializerMethodField(read_only=True)
+
+    nb_reads = serializers.FloatField(read_only=True)
+    avg_qual = serializers.FloatField(read_only=True)
+    pf_read_alignment_rate = serializers.FloatField(read_only=True)
+    duplicate_rate = serializers.FloatField(read_only=True)
+    base_yield = serializers.FloatField(read_only=True, source="yield")
+
+    def get_readset_files(self, obj: Readset):
+        return list(obj.files.values_list("file_path", flat=True))
+
+    class Meta:
+        model = Readset
+        fields = (
+            "readset_id", "readset_name", "sample_name", "biosample_alias", "cohort", "library_type", "run_name", "run_start_date", "validation_status",
+            "nb_reads", "avg_qual", "pf_read_alignment_rate", "duplicate_rate", "base_yield",
+            "readset_files",
+        )
+
+class ReadsetReportingExportSerializer(ReadsetReportingSerializer):
+    validation_status = serializers.SerializerMethodField(read_only=True)
+
+    def get_readset_files(self, obj: Readset):
+        return obj.files.aggregate(readset_files=StringAgg("file_path", delimiter=Value(";")))['readset_files']
+
+    def get_validation_status(self, obj: Readset):
+        return ValidationStatus(obj.validation_status).name
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
@@ -971,7 +1032,7 @@ class StepOrderSerializer(serializers.ModelSerializer):
     step_name = serializers.CharField(read_only=True, source='step.name')
     class Meta:
         model = StepOrder
-        fields = ["id", "step_id", "step_name", "protocol_id", "order"]
+        fields = ["id", "step_id", "step_name", "protocol_id", "order", "mandatory"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps_order = serializers.SerializerMethodField(read_only=True)

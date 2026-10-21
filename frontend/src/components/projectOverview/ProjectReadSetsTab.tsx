@@ -1,0 +1,428 @@
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { FILTER_TYPE } from "../../constants"
+import { useAppDispatch } from "../../hooks"
+import { FMSId, FMSReadsetReporting } from "../../models/fms_api_models"
+import {
+  ColumnDefinitions,
+  createQueryParamsFromFilters,
+  createQueryParamsFromSortBy,
+  FetchRowData,
+  FilterDescriptions,
+  FilterKeys,
+  Filters,
+  newFilterDefinitionsToFilterSet,
+  SearchPropertiesDefinitions,
+  SortKeys,
+  useFilters,
+  usePaginatedDataProps,
+  useTableColumnsProps,
+  useTableSortByProps,
+} from "../../utils/tableHooks"
+import ExternalIDReadSetDashboard from "./ExternalIDReadSetDashboard"
+
+import { Button, ConfigProvider, Flex, Popover, Table } from "antd"
+import api from "../../utils/api"
+import FiltersBar from "../filters/filtersBar/FiltersBar"
+import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
+import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
+import ExportButton from "../ExportButton"
+
+interface ProjectReadSetsTabProps {
+  parentProjectId: number | null
+  externalID: string
+}
+
+function ProjectReadSetsTab({ parentProjectId }: ProjectReadSetsTabProps) {
+  if (!parentProjectId) return undefined
+  return (
+    <>
+      <ExternalIDReadSetDashboard parentProjectId={parentProjectId} />
+      <ProjectReadsetsTable parentProjectID={parentProjectId} />
+    </>
+  )
+}
+
+export default ProjectReadSetsTab
+
+enum ProjectReadsetsColumnID {
+  ID = "ID",
+  NAME = "NAME",
+  SAMPLE_NAME = "SAMPLE_NAME",
+  ALIAS = "ALIAS",
+  COHORT = "COHORT",
+  LIBRARY_TYPE = "LIBRARY_TYPE",
+  RUN_NAME = "RUN_NAME",
+  RUN_START_DATE = "RUN_START_DATE",
+  VALIDATION_STATUS = "VALIDATION_STATUS",
+  NUMBER_OF_READS = "NUMBER_OF_READS",
+  AVERAGE_QUALITY = "AVERAGE_QUALITY",
+  PF_READS_ALIGNMENT_RATE = "PF_READS_ALIGNMENT_RATE",
+  DUPLICATE_RATE = "DUPLICATE_ALIGNED",
+  READSET_FILES = "READSET_FILES",
+}
+
+const FILTER_KEYS: FilterKeys<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: "id",
+  [ProjectReadsetsColumnID.NAME]: "name",
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: "sample_name",
+  [ProjectReadsetsColumnID.ALIAS]: "derived_sample__biosample__alias",
+  [ProjectReadsetsColumnID.COHORT]: "derived_sample__biosample__individual__cohort",
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: "derived_sample__library__library_type__name",
+  [ProjectReadsetsColumnID.RUN_NAME]: "dataset__experiment_run__name",
+  [ProjectReadsetsColumnID.RUN_START_DATE]: "dataset__experiment_run__start_date",
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: "validation_status",
+}
+const SORT_KEYS: SortKeys<ProjectReadsetsColumnID> = FILTER_KEYS
+
+const VALIDATION_STATUS_NUMBER_TO_LABEL = {
+  "0": "Available",
+  "1": "Passed",
+  "2": "Failed",
+} as const
+
+const FILTER_DESCRIPTIONS: FilterDescriptions<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
+  [ProjectReadsetsColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: false },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    type: FILTER_TYPE.INPUT,
+    startsWith: false,
+    exactMatch: false,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: { type: FILTER_TYPE.DATE_RANGE },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    type: FILTER_TYPE.SELECT,
+    options: Object.entries(VALIDATION_STATUS_NUMBER_TO_LABEL).map(([k, v]) => ({
+      value: k,
+      label: v,
+    })),
+  },
+}
+
+const COLUMN_DEFINITIONS: ColumnDefinitions<ProjectReadsetsColumnID, FMSReadsetReporting> = {
+  [ProjectReadsetsColumnID.ID]: {
+    title: "Readset ID",
+    dataIndex: "readset_id",
+    sorter: true,
+    width: 150,
+  },
+  [ProjectReadsetsColumnID.NAME]: {
+    title: "Readset Name",
+    dataIndex: "readset_name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    title: "Sample Name",
+    dataIndex: "sample_name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    title: "Biosample Alias",
+    dataIndex: "biosample_alias",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    title: "Cohort",
+    dataIndex: "cohort",
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    title: "Library Type",
+    dataIndex: "library_type",
+    width: 150,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    title: "Run Name",
+    dataIndex: "run_name",
+    sorter: true,
+    width: 200,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: {
+    title: "Run Start Date",
+    dataIndex: "run_start_date",
+    sorter: true,
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    title: "Validation Status",
+    dataIndex: "validation_status",
+    render: (value: FMSReadsetReporting["validation_status"]) => {
+      return <LaneValidationStatus validationStatus={value} isValidationInProgress={false} />
+    },
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.NUMBER_OF_READS]: {
+    title: "nb_reads",
+    dataIndex: "nb_reads",
+    width: 125,
+    render: (value: FMSReadsetReporting["nb_reads"]) => value.toLocaleString("fr-CA"),
+  },
+  [ProjectReadsetsColumnID.AVERAGE_QUALITY]: {
+    title: "avg_qual",
+    dataIndex: "avg_qual",
+    width: 100,
+    render: (value: FMSReadsetReporting["avg_qual"]) => {
+      return value.toFixed(2)
+    },
+  },
+  [ProjectReadsetsColumnID.PF_READS_ALIGNMENT_RATE]: {
+    title: "pf_read_alignment_rate",
+    dataIndex: "pf_read_alignment_rate",
+    width: 175,
+  },
+  [ProjectReadsetsColumnID.DUPLICATE_RATE]: {
+    title: "duplicate_rate",
+    dataIndex: "duplicate_rate",
+    width: 150,
+  },
+  [ProjectReadsetsColumnID.READSET_FILES]: {
+    title: "Files (hover to see full path)",
+    dataIndex: "readset_files",
+    render: (readset_files: FMSReadsetReporting["readset_files"]) => {
+      return (
+        <>
+          {readset_files.map((s) => (
+            <CopyableReadsetFilePath key={s} file={s} />
+          ))}
+        </>
+      )
+    },
+    width: 250,
+  },
+}
+
+const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<ProjectReadsetsColumnID> = {
+  [ProjectReadsetsColumnID.ID]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ID]?.title as string,
+  },
+  [ProjectReadsetsColumnID.NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.SAMPLE_NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.SAMPLE_NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.ALIAS]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.ALIAS]?.title as string,
+  },
+  [ProjectReadsetsColumnID.COHORT]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.COHORT]?.title as string,
+  },
+  [ProjectReadsetsColumnID.LIBRARY_TYPE]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.LIBRARY_TYPE]?.title as string,
+  },
+  [ProjectReadsetsColumnID.RUN_NAME]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_NAME]?.title as string,
+  },
+  [ProjectReadsetsColumnID.RUN_START_DATE]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.RUN_START_DATE]?.title as string,
+  },
+  [ProjectReadsetsColumnID.VALIDATION_STATUS]: {
+    placeholder: COLUMN_DEFINITIONS[ProjectReadsetsColumnID.VALIDATION_STATUS]?.title as string,
+  },
+}
+
+function ProjectReadsetsTable({ parentProjectID }: { parentProjectID: FMSId }) {
+  const dispatch = useAppDispatch()
+  const fetchProjectReadsets = useCallback<
+    FetchRowData<ProjectReadsetsColumnID, FMSReadsetReporting>
+  >(
+    async ({ pageNumber, pageSize, filters, sortBy }) => {
+      const response = await dispatch(
+        api.projectReadsets.list(
+          {
+            ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+            ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+            dataset__project__parent_project__id__in: parentProjectID,
+            offset: (pageNumber - 1) * pageSize,
+            limit: pageSize,
+          },
+          {
+            abort: true,
+            requestID: "ProjectReadsetsTable.fetchReadsets",
+          },
+        ),
+      )
+      return {
+        total: response.data.count,
+        data: response.data.results,
+      }
+    },
+    [dispatch, parentProjectID],
+  )
+
+  const defaultPageSize = 5
+
+  const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
+    defaultPageSize,
+    fetchRowData: fetchProjectReadsets,
+  })
+
+  const DEBOUNCE_DELAY = 500
+  const debouncedOnSort = useCallback(
+    (newSortBy: Partial<Record<ProjectReadsetsColumnID, "ascend" | "descend">>) => {
+      fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [tableSortByProps, { sortBy }] = useTableSortByProps<
+    ProjectReadsetsColumnID,
+    FMSReadsetReporting
+  >(debouncedOnSort)
+
+  const debouncedOnFilter = useCallback(
+    (newFilters: Filters<ProjectReadsetsColumnID>) => {
+      fetchRowData({ filters: newFilters, pageNumber: 1 }, DEBOUNCE_DELAY)
+    },
+    [fetchRowData],
+  )
+  const [filters, setFilters] = useFilters<ProjectReadsetsColumnID>({}, debouncedOnFilter)
+
+  const tableColumnsProps = useTableColumnsProps<ProjectReadsetsColumnID, FMSReadsetReporting>({
+    filters,
+    setFilters,
+    filterDescriptions: FILTER_DESCRIPTIONS,
+    columnDefinitions: COLUMN_DEFINITIONS,
+    searchPropertyDefinitions: SEARCH_DEFINITIONS,
+    sortBy,
+  })
+
+  const filterSet = useMemo(
+    () =>
+      Object.entries(filters).reduce(
+        (acc, [columnID, filterValue]) => {
+          const filterDescription = FILTER_DESCRIPTIONS[columnID as ProjectReadsetsColumnID]
+          if (!filterDescription) {
+            return acc
+          }
+          return {
+            ...acc,
+            ...newFilterDefinitionsToFilterSet(
+              columnID as ProjectReadsetsColumnID,
+              filterValue,
+              filterDescription,
+              SEARCH_DEFINITIONS[columnID as ProjectReadsetsColumnID],
+            ),
+          }
+        },
+        {} as ReturnType<typeof newFilterDefinitionsToFilterSet>,
+      ),
+    [filters],
+  )
+
+  useEffect(() => {
+    fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
+  }, [fetchRowData])
+
+  const exportFunctions = useCallback(async () => {
+    return (
+      await dispatch(
+        api.projectReadsets.listExport({
+          ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+          ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+          dataset__project__parent_project__id__in: parentProjectID,
+          format: "csv",
+        }),
+      )
+    ).data
+  }, [dispatch, filters, parentProjectID, sortBy])
+
+  return (
+    <>
+      <Flex justify={"flex-end"} gap={"small"} align={"center"}>
+        <ExportButton
+          exportType={"To CSV"}
+          exportFunction={exportFunctions}
+          filename={`Project_Readsets`}
+          itemsCount={totalCount}
+        />
+        <FiltersBar
+          filters={filterSet}
+          clearFilters={() => {
+            setFilters({})
+          }}
+        />
+      </Flex>
+      <ConfigProvider
+        theme={{
+          components: {
+            Table: {
+              cellPaddingBlock: 4,
+              cellPaddingInline: 8,
+            },
+          },
+        }}
+      >
+        <Table<FMSReadsetReporting>
+          {...tableDataProps}
+          {...tableSortByProps}
+          {...tableColumnsProps}
+          rowKey={"id"}
+          bordered
+          pagination={paginationProps}
+          scroll={{ x: "100%", y: "40vh" }}
+          tableLayout={"fixed"}
+        />
+      </ConfigProvider>
+    </>
+  )
+}
+
+function CopyableReadsetFilePath({ file }: { file: string }) {
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false)
+
+  const handleCopy = async (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation()
+    await navigator.clipboard.writeText(file)
+    setCopiedToClipboard(true)
+
+    setTimeout(() => {
+      setCopiedToClipboard(false)
+    }, 2000)
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <Popover content={file} mouseEnterDelay={0} mouseLeaveDelay={0} destroyOnHidden={true}>
+        <span
+          style={{
+            overflowX: "hidden",
+            textWrap: "nowrap",
+            textOverflow: "ellipsis",
+            direction: "rtl",
+            width: "17em",
+          }}
+        >
+          {file}
+        </span>
+      </Popover>
+      <Button
+        type="text"
+        size="small"
+        onClick={handleCopy}
+        icon={copiedToClipboard ? <CheckCircleTwoTone twoToneColor="#52c41a" /> : <CopyOutlined />}
+      />
+    </div>
+  )
+}

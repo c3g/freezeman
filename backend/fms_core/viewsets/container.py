@@ -105,23 +105,39 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         coordinates = None
 
         try:
-            if container['name'] and Container.objects.filter(name=container['name']).exists():
-                raise ValidationError({"name": f"Container with name {container['name']} already exists."})
-            if not container['name'] and Container.objects.filter(name=container['barcode']).exists():
-                raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
+            if container.get("name") and Container.objects.filter(name=container['name']).exists():
+                raise ValidationError({"name": f"Container with name {container.get("name", "")} already exists."})
+            if not container.get("name") and Container.objects.filter(name=container.get("barcode")).exists():
+                raise ValidationError({"barcode": f"Container with name {container.get("barcode", "")} already exists. Missing container name, barcode will replace container name."})
             container = remove_empty_str_from_dict(container)
-            if container['location']:
+            if container.get("location"):
                 try:
-                    container_parent = Container.objects.get(id=container['location'])
+                    container_parent = Container.objects.get(id=container.get("location"))
                 except Exception as err:
-                    raise ValidationError({"location": f"Failed to find parent container with ID {container['location']}."})
-            if container['coordinate']:
+                    raise ValidationError({"location": f"Failed to find parent container with ID {container.get("location", "")}."})
+            if container.get("coordinate"):
                 try:
-                    coordinates = Coordinate.objects.get(id=container['coordinate']).name
+                    coordinates = Coordinate.objects.get(id=container.get("coordinate")).name
                 except Exception as err:
-                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container['coordinate']}."})
-            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=coordinates, container_parent=container_parent, creation_comment=container['comment'])
-            serializer = ContainerSerializer(container_obj)
+                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container.get("coordinate")}."})
+            container_obj, errors, warnings = create_container(barcode=container.get("barcode"), kind=container.get("kind"), name=container.get("name"), coordinates=coordinates, container_parent=container_parent, creation_comment=container.get("comment"))
+            if container_obj is None and errors:
+                patterns = [
+                    (r"^Invalid coordinates \S+ specified for coordinate system \S+$", "coordinate"),
+                    (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate"),
+                    (r"^Cannot specify coordinates in non-specified container$", "location")
+                ]
+                parsed_errors = defaultdict(str)
+                for error in errors:
+                    for pattern, field in patterns:
+                        if re.fullmatch(pattern, error):
+                            if parsed_errors[field]:
+                                parsed_errors[field] = parsed_errors[field] + ", " + error
+                            else:
+                                parsed_errors[field] = error
+                raise ValidationError(parsed_errors or {"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
+            else:
+                serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
         

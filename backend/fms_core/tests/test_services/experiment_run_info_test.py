@@ -14,7 +14,7 @@ from fms_core.template_importer.importers import (
     )
 from fms_core.services.experiment_run_info import generate_run_info
 from fms_core.tests.test_template_importers._utils import load_template
-from fms_core.services.project import create_project
+from fms_core.services.project import create_full_project, create_parent_project
 
 from fms_core.models import Biosample, ExperimentRun, IndexSet, Index
 
@@ -29,10 +29,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         ContentType.objects.clear_cache()
 
-        self.project, _, _ = create_project(name=PROJECT_NAME)
-        self.project.external_name = EXTERNAL_PROJECT_NAME
-        self.project.external_id = EXTERNAL_PROJECT_ID
-        self.project.save()
+        self.project, _, _ = create_full_project(name=PROJECT_NAME, external_id=EXTERNAL_PROJECT_ID, external_name=EXTERNAL_PROJECT_NAME)
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v5_3_0.xlsx')
 

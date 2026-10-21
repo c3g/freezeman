@@ -1,11 +1,11 @@
 from django.db import models
-
+from fms_core.models.tracked_model import TrackedModel
 from fms_core.models._constants import STANDARD_NAME_FIELD_LENGTH
 from fms_core.models import ExperimentRun, DerivedSample, Process, Biosample, Readset, Project
 
 __all__ = ["ProductionData"]
 
-class ProductionData(models.Model):
+class ProductionData(TrackedModel):
     readset = models.OneToOneField(Readset, on_delete=models.PROTECT, related_name="production_data", help_text="Readset for current data row.")
     sequencing_date = models.DateField(help_text="Date the library was sequenced.")
     library_creation_date = models.DateField(null=True, blank=True, help_text="Date the library was created.")

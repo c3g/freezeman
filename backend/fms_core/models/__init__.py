@@ -53,6 +53,7 @@ from .freezeman_user import FreezemanUser
 from .profile import Profile
 from .freezeman_permission import FreezemanPermission
 from .freezeman_permission_by_user import FreezemanPermissionByUser
+from .parent_project import ParentProject
 
 __all__ = [
     "Biosample",
@@ -109,4 +110,5 @@ __all__ = [
     "Profile",
     "FreezemanPermission",
     "FreezemanPermissionByUser",
+    "ParentProject",
 ]

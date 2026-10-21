@@ -57,7 +57,7 @@ def rename_experiment_run_steps(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('fms_core', '0079_v5_8_0_data'),
+        ('fms_core', '0080_v5_8_0_data'),
     ]
 
     operations = [

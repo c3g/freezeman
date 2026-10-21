@@ -26,6 +26,7 @@ from .viewsets import (
     VersionViewSet,
     RevisionViewSet,
     ProjectViewSet,
+    ReadsetReportingViewSet,
     SequenceViewSet,
     TaxonViewSet,
     SampleLineageViewSet,
@@ -49,6 +50,7 @@ from .viewsets import (
     SampleIdentityMatchViewSet,
     ProfileViewSet,
     DerivedSampleViewSet,
+    ParentProjectViewSet,
 )
 
 __all__ = ["router"]
@@ -61,6 +63,7 @@ router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
+router.register(r"readset-reporting", ReadsetReportingViewSet, basename="readset-reporting")
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"sample-metadata", SampleMetadataViewSet, basename="sample-metadata")
 router.register(r"protocols", ProtocolViewSet)
@@ -102,3 +105,4 @@ router.register(r"reports", ReportViewSet, basename="reports")
 router.register(r"sample-identities", SampleIdentityViewSet)
 router.register(r"sample-identity-matches", SampleIdentityMatchViewSet)
 router.register(r"profiles", ProfileViewSet, basename="profiles")
+router.register(r"parent-projects", ParentProjectViewSet)

@@ -1,8 +1,10 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from fms_core.models import Readset
 from fms_core.services.dataset import create_dataset
 from fms_core.services.readset import create_readset
+from fms_core.services.project import create_full_project
 from fms_core.models._constants import ReleaseStatus, ValidationStatus, INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_core.models import (
     RunType,
@@ -13,13 +15,13 @@ from fms_core.models import (
     Process,
     Protocol,
     ExperimentRun,
-    Project,
     Readset
 )
 from fms_core.tests.constants import create_container
 
 class ReadsetServicesTestCase(TestCase):
     def setUp(self) -> None:
+        self.currentuser = User.objects.get(username="biobankadmin")
         self.start_date = "2025-04-07"
         self.experiment_name = "test_run"
         self.run_type_name = "Illumina"
@@ -42,7 +44,7 @@ class ReadsetServicesTestCase(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
-        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553")
+        self.project, _, _ = create_full_project(name="MY_NAME_IS_PROJECT", external_id="P031553", external_name="ClientProject")
 
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
@@ -52,7 +54,10 @@ class ReadsetServicesTestCase(TestCase):
                                                            start_date=self.start_date)
 
     def test_create_readset(self):
-        dataset, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+        dataset, _, _ = create_dataset(project_id=self.project.id,
+                                       experiment_run_id=self.experiment_run.id,
+                                       lane=1,
+                                       user_obj=self.currentuser)
         readset, errors, warnings = create_readset(dataset=dataset,
                                                    name="SampleName_RunName",
                                                    sample_name="SampleName",

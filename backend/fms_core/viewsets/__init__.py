@@ -20,6 +20,7 @@ from .sample_metadata import SampleMetadataViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
+from .readset_reporting import ReadsetReportingViewSet
 from .sequence import SequenceViewSet
 from .library import LibraryViewSet
 from .platform import PlatformViewSet
@@ -46,6 +47,7 @@ from .sample_identity import SampleIdentityViewSet
 from .sample_identity_match import SampleIdentityMatchViewSet
 from .profile import ProfileViewSet
 from .derived_sample import DerivedSampleViewSet
+from .parent_project import ParentProjectViewSet
 
 __all__ = [
     "BiosampleViewSet",
@@ -70,6 +72,7 @@ __all__ = [
     "UserViewSet",
     "VersionViewSet",
     "ProjectViewSet",
+    "ReadsetReportingViewSet",
     "SequenceViewSet",
     "LibraryViewSet",
     "PlatformViewSet",
@@ -96,4 +99,5 @@ __all__ = [
     "SampleIdentityMatchViewSet",
     "ProfileViewSet",
     "DerivedSampleViewSet",
+    "ParentProjectViewSet",
 ]
