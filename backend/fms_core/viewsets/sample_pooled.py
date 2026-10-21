@@ -1,4 +1,4 @@
-from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef
+from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q, F
 from rest_framework import viewsets
 from fms_core.models import DerivedBySample, Sample
 from ._constants import (
@@ -29,7 +29,7 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
         *_list_keys(_pooled_sample_filterset_fields),
-        "parent_sample_name"
+        "root_sample_name"
     }
 
     ordering = ["id"]
@@ -74,23 +74,17 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
             # ie. a parent sample that contains more than one derived sample.
             self.queryset = self.queryset.filter(is_pooled=True)
 
+        root_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
+
         self.queryset = self.queryset.annotate(
-            parent_sample_name=Subquery(
-                DerivedBySample.objects
-                .filter(sample__parent_of=OuterRef("sample"))
-                .filter(derived_sample=OuterRef("derived_sample"))
-                .values_list("sample__name", flat=True)[:1]
-            )
+            root_sample_name=Subquery(root_sample_subquery.values_list("sample__name", flat=True))
         )
 
         self.queryset = self.queryset.annotate(
-            parent_sample_id=Subquery(
-                DerivedBySample.objects
-                .filter(sample__parent_of=OuterRef("sample"))
-                .filter(derived_sample=OuterRef("derived_sample"))
-                .values_list("sample__id", flat=True)[:1]
-            )
+            root_sample_id=Subquery(root_sample_subquery.values_list("sample_id", flat=True))
         )
+
+        return self.queryset
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
