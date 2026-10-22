@@ -1,6 +1,6 @@
 ---
 name: freezeman-frontend
-description: "Procedures and conventions for the FreezeMan frontend (React, Redux, Ant Design): layout of frontend/src, dev server, TypeScript and JavaScript rules, tables, API calls, verification. Use for any frontend work in this repository."
+description: "Procedures and conventions for the FreezeMan frontend (React, Redux, Ant Design): layout of frontend/src, TypeScript and JavaScript rules, tables, API calls, verification. Use when you change or examine code in frontend/src. To only start the dev server or run checks, use the Quick commands in AGENTS.md."
 ---
 
 ## Stack

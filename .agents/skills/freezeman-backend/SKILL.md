@@ -1,6 +1,6 @@
 ---
 name: freezeman-backend
-description: "Procedures for the FreezeMan backend: venv and dependencies, manage.py, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, deployment reference. Use for any backend, database, migration, test or release/deployment task in this repository."
+description: "Procedures for the FreezeMan backend: venv and dependencies, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, deployment reference. Use when you change or examine backend code or tests, set up or restore the database, write migrations, or do release/deployment work. To only start the server or run tests, use the Quick commands in AGENTS.md."
 ---
 
 ## Backend

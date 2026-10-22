@@ -11,14 +11,29 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 - `fms.log*` files are git-ignored: do not read or commit them.
 - Ignore root `package.json`
 
+## Quick commands
+
+Run these from the project root. They do not need a skill.
+
+- Database: if container `freezeman-pg` exists and is stopped, run `podman start freezeman-pg`. If no database exists, read the backend skill.
+- Backend venv: if `backend/env` does not exist, run `(cd backend && python3.14 -m venv env && env/bin/python -m pip install -r requirements.txt)`. Without `python3.14`, run `(cd backend && uv venv --python 3.14 env && uv pip install --python env/bin/python -r requirements.txt)`. If the install fails, read the backend skill.
+- Backend server: `(cd backend && env/bin/python manage.py runserver)` (port 8000).
+- Backend tests: `(cd backend && env/bin/python manage.py test <path>)`. Ask before the full suite.
+- Frontend server: `(cd frontend && npm start)` (port 9000, proxies `/api` to port 8000). If `frontend/node_modules` does not exist, run `(cd frontend && npm install)` first.
+- Frontend checks: `(cd frontend && npx tsc --noEmit --skipLibCheck)` and `(cd frontend && npx eslint <files>)`.
+- Pending migrations (the server warns at start): ask the user, then run `(cd backend && env/bin/python manage.py migrate)`.
+- Run servers in the background.
+
 ## Git
 
 - Never commit on master and qc branches
 
 ## Skills
 
-- Before backend, database, migration, test or deployment work, read `.agents/skills/freezeman-backend/SKILL.md`.
-- Before frontend work, read `.agents/skills/freezeman-frontend/SKILL.md`.
+Load a skill only when the task changes or examines files in its domain. To only run or check the app, use "Quick commands".
+
+- Backend code, tests to write or fix, database setup or restore, migrations, users, deployment: read `.agents/skills/freezeman-backend/SKILL.md`.
+- Frontend code (`frontend/src`): read `.agents/skills/freezeman-frontend/SKILL.md`.
 
 <!-- BEGIN shared dev-conventions -->
 ## Dev Conventions
