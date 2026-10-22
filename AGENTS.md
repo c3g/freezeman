@@ -40,10 +40,11 @@ Run servers in the background.
 
 ## Skills
 
-Load `freezeman-backend` or `freezeman-frontend` only to change code in its directory or to research that code in depth. To run, build or package the app, the "Backend" and "Frontend" sections above are sufficient. This rule applies only to these two skills.
+Load `freezeman-backend` or `freezeman-frontend` only to change code in its directory or to research that code in depth. To run, build or package the app, the "Backend" and "Frontend" sections above are sufficient. To run the container stack, `oci/README.md` is sufficient. This rule applies only to these three skills.
 
 - Backend code (`backend/`), venv or database setup, migrations, users: read `.agents/skills/freezeman-backend/SKILL.md`.
 - Frontend code (`frontend/src`): read `.agents/skills/freezeman-frontend/SKILL.md`.
+- Containers (`oci/`, Containerfiles, compose files, `.containerignore`), container deployment plans: read `.agents/skills/freezeman-oci/SKILL.md`.
 
 <!-- BEGIN shared dev-conventions -->
 ## Dev Conventions
