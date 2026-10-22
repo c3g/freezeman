@@ -118,8 +118,8 @@ RUN python manage.py collectstatic --noinput \
  && chown -R fms:fms media triggers automations_work tmp \
  && chown fms:fms /src/backend
 USER fms
-# 8000: uwsgi protocol for nginx. 8001: plain HTTP for probes.
-EXPOSE 8000 8001
+# 8000: uwsgi protocol for nginx.
+EXPOSE 8000
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
 FROM ${NGINX_IMAGE} AS web

@@ -48,11 +48,6 @@ services:
     volumes:
       # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: always
 
   # One-shot: apply migrations, then exit (a Job in Kubernetes).
@@ -67,7 +62,7 @@ services:
     command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     restart: "no"
 
   backend:
@@ -88,14 +83,6 @@ services:
       - ${FMS_SOCKET_DIR:-../backend}:/run/fms
       - triggers:/src/backend/triggers
       - automations_work:/src/backend/automations_work
-    healthcheck:
-      # Same endpoint as a Kubernetes readinessProbe (see fms/health.py); fails unless HTTP 200.
-      # Port 8001 is the plain HTTP socket of uwsgi, 8000 only speaks the uwsgi protocol.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health/ready/', timeout=5)"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -132,7 +119,7 @@ services:
       - ${FMS_BACKUP_DIR:-./backups}:/backups:z
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     restart: always
 
   # One-shot: copy the built frontend and the Django static files into host directories that the
@@ -170,11 +157,11 @@ services:
       - label=disable
     volumes:
       - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro
-    # nginx exits if "backend" does not resolve at startup; the condition (and
-    # restart: always, as a fallback) makes sure it does.
+    # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
+    # and restart: always is the fallback if the name does not resolve yet.
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
     restart: always
 
 volumes:

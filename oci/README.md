@@ -23,7 +23,7 @@ Container images and podman-compose configuration for FreezeMan:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
-| `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol, 8001 plain HTTP for probes (internal) |
+| `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
 | `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
 | `assets`   | `localhost/freezeman-web`     | One-shot: copies the built frontend and the Django static files into host directories for the host nginx, then exits |
@@ -61,12 +61,6 @@ Related files outside `oci/`:
   Images contain no `.git`. Without this change `git show` returns an empty string on master,
   the tuple unpacking raises `ValueError` at import, and Django does not start.
   Without the file, info.py runs git as before, so behavior outside containers is the same.
-- `backend/fms/health.py`, `backend/fms/tests.py` and one line in `backend/fms/settings.py`
-  (`HealthCheckMiddleware`, first in `MIDDLEWARE`): the compose healthchecks and Kubernetes probes
-  need an endpoint that answers without login and without a valid `Host`. Probes use the container
-  IP as `Host`, which is not in `ALLOWED_HOSTS`, so the middleware must be first.
-  `/api/health/live/` = the process answers. `/api/health/ready/` = the database also answers.
-  The tests cover both and check that other paths still validate the host.
 
 ## Prerequisites
 
@@ -91,7 +85,7 @@ mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media
 ```bash
 podman-compose build
 
-# 1. Start only the database. Do not start the full stack yet: migrate runs as soon as db is healthy.
+# 1. Start only the database. Do not start the full stack yet: migrate runs as soon as db starts.
 podman-compose up -d db
 
 # 2. Wait for the server. -h 127.0.0.1: the first-start init server listens on the socket only,
@@ -307,7 +301,7 @@ Run these steps as `django` (`sudo su - django`) after IT finishes [ROCKY.md](RO
 
    ```bash
    ls -l /data/freezeman/backend/fms.sock          # srw-rw-rw- ... django django
-   curl -sf https://<host>/api/health/ready/       # HTTP 200
+   curl -sfo /dev/null -w '%{http_code}\n' https://<host>/   # 200
    ```
 
    The host firewall needs no change. No container publishes a port.
@@ -337,7 +331,7 @@ Design choices:
 - `assets` runs as root in the container. Rootless podman maps it to `django`, so `django` owns the copied files.
 - `chmod-socket = 666` in `backend/uwsgi.ini` (active only when `FMS_UWSGI_SOCKET` is set). The nginx user is not the owner
   of the socket and needs write access. Each local user can then reach uwsgi directly.
-- uwsgi still listens on port 8000 (uwsgi protocol) and port 8001 (probes) in the container network, for the
+- uwsgi still listens on port 8000 (uwsgi protocol) in the container network, for the
   `web` service and Kubernetes.
 
 Diagnostics:
@@ -486,24 +480,10 @@ The layout already maps onto Kubernetes objects:
 
 Notes:
 - The unix socket and the `assets` service exist only for the host nginx. Kubernetes uses `web` and the TCP port 8000.
-- Probes: `/api/health/live/` (process answers) for the livenessProbe and
-  `/api/health/ready/` (database reachable too) for the readinessProbe, on port 8001
-  (plain HTTP socket of uwsgi; port 8000 only speaks the uwsgi protocol).
-  Neither needs authentication or an `ALLOWED_HOSTS` entry for the pod IP.
-  Don't use the readiness endpoint for liveness: a database outage would restart every backend pod.
-
-  ```yaml
-  livenessProbe:
-    httpGet: {path: /api/health/live/, port: 8001}
-    periodSeconds: 30
-  readinessProbe:
-    httpGet: {path: /api/health/ready/, port: 8001}
-    periodSeconds: 10
-  ```
 - The `report` CronJob replaces the sleep loop in `fms-report`, so run `python manage.py prepare_report_data`
   directly, not `fms-report`. Set `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
 - Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
-  Expose only the `web` Service. Do not publish port 8001 outside the cluster.
+  Expose only the `web` Service.
 - `podman kube generate <container...>` produces a first draft of the YAML. `podman kube play`
   runs Kubernetes YAML directly on Rocky 9, which can be used to test the manifests before a cluster exists.

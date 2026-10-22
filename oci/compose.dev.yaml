@@ -46,8 +46,6 @@ services:
       - "8000:8000"
       # Published here because the frontend shares this network namespace
       - "9000:9000"
-    healthcheck:
-      disable: true
 
   frontend:
     image: localhost/freezeman-frontend-dev:latest

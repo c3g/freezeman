@@ -11,9 +11,10 @@ mkdir -p \
   "${FMS_RELEASED_FILES_PATH:-triggers/lims-release-info}" \
   "${FMS_AUTOMATIONS_WORK_PATH:-automations_work}"
 
-# Wait for PostgreSQL. compose's `depends_on: condition: service_healthy` already
-# orders startup, but not for `podman-compose run --no-deps`, a db restart, or
-# Kubernetes (no depends_on; keep this unless an initContainer replaces it).
+# Wait for PostgreSQL. compose's `depends_on: condition: service_started` orders only the
+# start of the db container, not its readiness, so this wait is necessary. It also covers
+# `podman-compose run --no-deps`, a db restart, and Kubernetes (no depends_on; keep this
+# unless an initContainer replaces it).
 timeout="${FMS_DB_WAIT_SECONDS:-60}"
 until python -c "
 import os, psycopg2

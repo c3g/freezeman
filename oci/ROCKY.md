@@ -67,7 +67,7 @@ grep '^django:' /etc/subuid /etc/subgid            # one line in each file
 
 ### 3. Linger
 
-Required: `sudo su - django` starts no systemd user session. Without linger, healthchecks never run and FreezeMan never starts.
+Required: `sudo su - django` starts no systemd user session. Rootless podman needs the systemd user manager (cgroup manager `systemd`). Without linger, the manager does not run and FreezeMan never starts.
 
 ```bash
 sudo loginctl enable-linger django                 # no other change in /etc/systemd is necessary
@@ -81,7 +81,6 @@ The team runs `podman system migrate` after this.
 ## Acceptance checks
 
 Run `sudo su - django`, then run this block. The first two lines make the checks independent of the team setup.
-The healthcheck test pulls `docker.io/library/alpine:3`, so the host must reach `docker.io`.
 
 ```bash
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
@@ -94,12 +93,6 @@ loginctl show-user django -p Linger                # Linger=yes
 systemctl --user is-system-running                 # running or degraded (not a bus error)
 podman info --format '{{.Host.CgroupManager}}'     # systemd
 podman info --format '{{.Host.NetworkBackend}}'    # netavark
-
-# Healthchecks need the systemd user manager
-podman run -d --name hc-test --health-cmd true --health-interval 5s docker.io/library/alpine:3 sleep 60
-sleep 10
-podman inspect --format '{{.State.Health.Status}}' hc-test      # healthy
-podman rm -f hc-test
 ```
 
 ## Undo
