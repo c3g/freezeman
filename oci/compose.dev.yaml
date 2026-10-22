@@ -33,6 +33,8 @@ services:
       - ..:/src:z
 
   backend:
+    # compose.yaml adds FMS_UWSGI_SOCKET, the /run/fms mount and label=disable for the host nginx.
+    # runserver ignores them, so they stay.
     <<: *dev-backend
     volumes:
       - ..:/src:z
@@ -69,6 +71,10 @@ services:
     depends_on:
       - backend
     restart: "no"
+
+  assets:
+    # The host nginx files are not copied in development.
+    profiles: ["prod"]
 
   web:
     # The production nginx image is not used in development.

@@ -1,8 +1,15 @@
 # FreezeMan, production-like stack.
 #
 #   cd oci && cp .env.example .env   # then edit .env
+#   mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media
 #   podman-compose build
 #   podman-compose up -d
+#
+# The default services feed the host nginx of DEPLOYMENT.md: "assets" copies the frontend
+# and the static files into host directories, "backend" writes the media files and the uwsgi
+# unix socket (see README.md, "Host nginx"). For a test without a host nginx, add the
+# container nginx (service "web", published on FMS_HTTP_PORT):
+#   podman-compose --profile web up -d
 #
 # Development: see compose.dev.yaml and README.md.
 #
@@ -10,9 +17,8 @@
 #   podman-compose up -d --force-recreate
 # (plain `up -d` only recreates containers when this file's resolved config changes).
 #
-# Rocky 9 notes (see ROCKY.md, "Rocky 9 notes"):
-#   - restart: always does not start containers at boot. A user crontab line
-#     `@reboot ... podman-compose up -d` does (see ROCKY.md, "Start on boot").
+# Notes:
+#   - restart: always does not start containers at boot. Run `podman-compose up -d` after a reboot.
 #   - podman-compose does not check migrate's exit code; check its logs.
 
 name: freezeman
@@ -67,9 +73,19 @@ services:
   backend:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
-    environment: *backend-env
+    environment:
+      <<: *backend-env
+      # uwsgi also listens on this unix socket, for the host nginx (uwsgi.ini)
+      FMS_UWSGI_SOCKET: /run/fms/fms.sock
+    # The host nginx reads the media files and the socket. Without label=disable, SELinux
+    # (enforcing on Rocky) blocks nginx; ":z" would relabel them, so it is not used.
+    # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
+    userns_mode: keep-id:uid=1000,gid=1000
+    security_opt:
+      - label=disable
     volumes:
-      - media:/src/backend/media
+      - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media
+      - ${FMS_SOCKET_DIR:-../backend}:/run/fms
       - triggers:/src/backend/triggers
       - automations_work:/src/backend/automations_work
     healthcheck:
@@ -119,7 +135,11 @@ services:
         condition: service_healthy
     restart: always
 
-  web:
+  # One-shot: copy the built frontend and the Django static files into host directories that the
+  # host nginx serves (DEPLOYMENT.md paths), then exit. Runs as root in the container, which
+  # rootless podman maps to the host user, so that user owns the files. It also builds the
+  # web image, which "web" reuses.
+  assets:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
@@ -127,12 +147,29 @@ services:
       target: web
       args:
         FMS_ENV: ${FMS_ENV:-PROD}
+    user: "0"
+    entrypoint: ["fms-export-assets"]
+    # The host nginx reads the files: keep the label of the parent directory (see backend).
+    security_opt:
+      - label=disable
+    volumes:
+      - ${FMS_FRONTEND_DIST_DIR:-../frontend/dist}:/out/dist
+      - ${FMS_STATIC_DIR:-../backend/staticfiles}:/out/static
+    restart: "no"
+
+  # nginx in a container: for tests without a host nginx, and the model for Kubernetes.
+  # Not needed when the host nginx serves FreezeMan.
+  web:
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    profiles: ["web"]
     environment:
       BACKEND_UPSTREAM: backend:8000
     ports:
       - "${FMS_HTTP_PORT:-8080}:8080"
+    security_opt:
+      - label=disable
     volumes:
-      - media:/var/www/media:ro
+      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro
     # nginx exits if "backend" does not resolve at startup; the condition (and
     # restart: always, as a fallback) makes sure it does.
     depends_on:
@@ -142,7 +179,6 @@ services:
 
 volumes:
   pgdata:
-  media:
   triggers:
   automations_work:
   reports:

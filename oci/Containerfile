@@ -4,7 +4,8 @@
 #   backend-dev    Django runserver; expects the repository bind-mounted at /src
 #   backend-prod   Django served by uwsgi, source baked in
 #   frontend-dev   webpack-dev-server; expects the repository bind-mounted at /src
-#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
+#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi.
+#                  Also supplies those files to the host nginx (fms-export-assets, "assets" service)
 #
 # The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
 # because the code reads ../VERSION relative to backend/ and frontend/.
@@ -124,6 +125,7 @@ CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 FROM ${NGINX_IMAGE} AS web
 ENV BACKEND_UPSTREAM=backend:8000
 COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --chmod=755 oci/nginx/export-assets.sh /usr/local/bin/fms-export-assets
 COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
 COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
 EXPOSE 8080

@@ -8,7 +8,8 @@ Contents:
 - [Development](#development)
 - [Production deployment](#production-deployment)
   - [Deployment user setup](#deployment-user-setup)
-  - [Reverse proxy and TLS](#reverse-proxy-and-tls)
+  - [Host nginx](#host-nginx)
+  - [Cutover from the classic setup](#cutover-from-the-classic-setup)
   - [Daily report data (replaces the cron entry)](#daily-report-data-replaces-the-cron-entry)
   - [Database backups](#database-backups)
   - [Moving data from the existing PostgreSQL 15 server](#moving-data-from-the-existing-postgresql-15-server)
@@ -25,7 +26,8 @@ Container images and podman-compose configuration for FreezeMan:
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol, 8001 plain HTTP for probes (internal) |
 | `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
-| `web`      | `localhost/freezeman-web`     | nginx: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`) |
+| `assets`   | `localhost/freezeman-web`     | One-shot: copies the built frontend and the Django static files into host directories for the host nginx, then exits |
+| `web`      | `localhost/freezeman-web`     | Profile `web`. nginx in a container: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`). For tests without a host nginx |
 | `frontend` | dev only                      | webpack-dev-server, port 9000                                   |
 
 The stack runs the same software as `DEPLOYMENT.md` (same major versions):
@@ -44,7 +46,8 @@ oci/
 ├── backend/report.sh          # daily prepare_report_data loop of the report service
 ├── backend/entrypoint.sh      # creates writable dirs, waits for the database
 ├── backend/uwsgi.ini          # uwsgi settings, based on backend/example.uwsgi.ini
-├── nginx/default.conf.template
+├── nginx/default.conf.template  # config of the web service
+├── nginx/export-assets.sh     # copies the frontend and static files out of the web image (assets service)
 ├── compose.yaml               # production-like stack
 ├── compose.dev.yaml           # development override
 ├── ROCKY.md                   # Rocky Linux 9.6 host requirements (for IT)
@@ -79,6 +82,12 @@ All `podman-compose` commands below are run from `oci/`.
 
 ## Production-like stack
 
+Podman does not create a missing bind-mount source. Create the host directories first (once):
+
+```bash
+mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media
+```
+
 ```bash
 podman-compose build
 
@@ -106,7 +115,16 @@ podman-compose logs migrate          # migrations applied?
   [For reference only: first account on an empty database](#for-reference-only-first-account-on-an-empty-database).
 - Backups are described in [Database backups](#database-backups).
 
-Open `http://<host>:8080` (`FMS_HTTP_PORT`).
+The default `up -d` does not start a web server. The `assets` service writes the frontend to `../frontend/dist`
+and the static files to `../backend/staticfiles`. The `backend` service writes the media files to `../backend/media`
+and the uwsgi socket to `../backend/fms.sock`. A host nginx serves these (see [Host nginx](#host-nginx)).
+
+For a local test without a host nginx, start the container nginx too, then open `http://localhost:8080`
+(`FMS_HTTP_PORT`):
+
+```bash
+podman-compose --profile web up -d
+```
 
 Useful commands:
 
@@ -135,7 +153,8 @@ podman-compose logs migrate
 when the resolved compose configuration changed. A rebuilt image under the same
 tag, or an edit to a variable that reaches the containers only through
 `env_file: .env` (e.g. `FMS_EMAIL_HOST`), is otherwise silently not applied.
-`migrate` runs again whenever its container is recreated.
+`migrate` runs again whenever its container is recreated. `assets` also runs again and replaces the
+files in `../frontend/dist` and `../backend/staticfiles`. `/static/` and `/` are briefly empty during the copy.
 
 ### For reference only: first account on an empty database
 
@@ -181,7 +200,10 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec backend pytest
 
 ## Production deployment
 
-IT prepares the host with [ROCKY.md](ROCKY.md). Then do the steps in [Deployment user setup](#deployment-user-setup).
+IT prepares the host with [ROCKY.md](ROCKY.md). It installs `podman` and `podman-compose`, sets the subuid and subgid range
+and enables linger for `django`. The host nginx keeps the config of `DEPLOYMENT.md`: the containers supply the files and
+the socket that this config expects (see [Host nginx](#host-nginx)).
+Then do the steps in [Deployment user setup](#deployment-user-setup).
 
 ### Deployment user setup
 
@@ -210,35 +232,47 @@ Run these steps as `django` (`sudo su - django`) after IT finishes [ROCKY.md](RO
    podman system migrate
    ```
 
-3. Install podman-compose for `django` only. This changes no system Python package and needs no root.
+3. Check podman-compose. If `podman-compose --version` works (IT installed it), skip this step.
+   Otherwise install it in a virtual environment of `django`. This changes no system Python package and needs no root.
 
    ```bash
-   python3 -m ensurepip --user
-   python3 -m pip install --user 'podman-compose==1.5.0'
+   python3 -m venv ~/.local/share/podman-compose
+   ~/.local/share/podman-compose/bin/pip install 'podman-compose==1.5.0'
+   mkdir -p ~/.local/bin
+   ln -sf ~/.local/share/podman-compose/bin/podman-compose ~/.local/bin/podman-compose
    podman-compose --version            # podman-compose version 1.5.0
    ```
 
-   `~/.local/bin` must be in `PATH`. The Rocky default `~/.bashrc` adds it. If `ensurepip` fails, ask IT
-   to install `python3-pip` (`sudo dnf install -y python3-pip`).
+   `~/.local/bin` must be in `PATH`. The Rocky default `~/.bashrc` adds it.
 
-4. Run git without a host git. Add a shell function to `~/.bash_profile` that runs git from the
-   `docker.io/alpine/git` image. Rootless podman maps the container root to `django`, so `django` owns
-   the files. `:z` relabels the current directory for SELinux, so run `git` only inside `/data`,
-   never in `$HOME`.
+4. Only if `git --version` fails: run git without a host git. Add a shell function to `~/.bash_profile` that runs
+   git from the `docker.io/alpine/git` image. Rootless podman maps the container root to `django`, so `django` owns
+   the files. The function uses `--security-opt label=disable` and not `:z`. `:z` on `/data` relabels the tree
+   to `container_file_t`, and the host nginx can then not read `frontend/dist`.
 
    ```bash
    cat >> ~/.bash_profile <<'EOF'
 
    # git without host git: runs the alpine/git image in the current directory.
    git() {
-       podman run --rm -v "$PWD":"$PWD":z -w "$PWD" docker.io/alpine/git:2.54.0 "$@"
+       podman run --rm --security-opt label=disable -v "$PWD":"$PWD" -w "$PWD" docker.io/alpine/git:2.54.0 "$@"
    }
    EOF
    ```
 
-   Start a new login shell. Then clone FreezeMan at `/data/freezeman`, so the stack files are in
-   `/data/freezeman/oci`. The clone needs a real `.git` directory and the submodules.
-   See [Prerequisites](#prerequisites).
+   Start a new login shell. The stack files must be in `/data/freezeman/oci`. The checkout needs a real `.git`
+   directory and the submodules. See [Prerequisites](#prerequisites).
+
+   If `/data/freezeman` exists (the classic setup), use it:
+
+   ```bash
+   cd /data/freezeman
+   git fetch
+   git checkout <tag>
+   git submodule update --init --recursive
+   ```
+
+   On a new host, clone it:
 
    ```bash
    cd /data
@@ -266,44 +300,77 @@ Run these steps as `django` (`sudo su - django`) after IT finishes [ROCKY.md](RO
    See [Logs](#logs).
 
 6. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
+   Create the host nginx directories too: `mkdir -p /data/freezeman/frontend/dist /data/freezeman/backend/staticfiles /data/freezeman/backend/media`.
 7. Start the stack by hand as `django` after each reboot: `cd /data/freezeman/oci && podman-compose up -d`.
-8. Check the port. FreezeMan must listen on `127.0.0.1:8080` only:
+   Boot start is manual until the team decides on a boot method.
+8. Check the socket and the site. The `backend` service creates the socket, and the host nginx connects to it:
 
    ```bash
-   ss -ltn | grep 8080                             # 127.0.0.1:8080 only
+   ls -l /data/freezeman/backend/fms.sock          # srw-rw-rw- ... django django
+   curl -sf https://<host>/api/health/ready/       # HTTP 200
    ```
 
-   The host firewall needs no change.
+   The host firewall needs no change. No container publishes a port.
 
-### Reverse proxy and TLS
+### Host nginx
 
-Rootless containers cannot bind ports below 1024, so nginx listens on 8080.
-Recommended: keep the host nginx (from `DEPLOYMENT.md`) for TLS and the
-certificate. Point it at the container, and publish the container port on
-loopback only. The host nginx must send `X-Forwarded-Proto`: the container
-nginx turns `X-Forwarded-Proto: https` into the uwsgi parameter `HTTPS=on`, and
-Django then builds `https://` links (e.g. the template download URLs from
-`request.build_absolute_uri`).
+The host nginx keeps the config of `DEPLOYMENT.md` (TLS, certificate and locations). The containers supply what
+this config expects, so the host nginx needs no change. With the repository at `/data/freezeman`:
 
-```bash
-# oci/.env
-FMS_HTTP_PORT=127.0.0.1:8080
-```
+| Host nginx location | Host path | Supplied by |
+|---|---|---|
+| `/` (`root`) | `/data/freezeman/frontend/dist/` | `assets` (copy from the `web` image) |
+| `/static/` (`alias`) | `/data/freezeman/backend/staticfiles/` | `assets` |
+| `/media/` (`alias`) | `/data/freezeman/backend/media/` | `backend` (bind mount) |
+| `/api/` (`uwsgi_pass unix:`) | `/data/freezeman/backend/fms.sock` | `backend` (uwsgi unix socket in a bind mount) |
 
-```nginx
-# host nginx, replaces the old root/alias/uwsgi locations
-location / {
-    proxy_pass http://127.0.0.1:8080;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 300s;
-    client_max_body_size 100m;
-}
-```
+The paths in `compose.yaml` are relative to `oci/`, so they match this table when the repository is at `/data/freezeman`.
+To use other paths, set `FMS_FRONTEND_DIST_DIR`, `FMS_STATIC_DIR`, `FMS_MEDIA_DIR` and `FMS_SOCKET_DIR` in `.env`.
 
-For SELinux on Rocky 9, see [SELinux boolean](ROCKY.md#4-selinux-boolean) in `ROCKY.md`.
-For the firewall, check the port as in [Deployment user setup](#deployment-user-setup), step 8.
+Design choices:
+
+- `security_opt: label=disable` on `backend` and `assets`. The host nginx runs in the SELinux domain `httpd_t`. The
+  `:z` option relabels a path to `container_file_t`, and `httpd_t` can then not read it. With `label=disable` the files
+  keep the label of their parent directory, as in the classic setup. Do not add `:z` to a path that the host nginx reads.
+- `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files and the
+  socket, and `django` owns them on the host.
+- `assets` runs as root in the container. Rootless podman maps it to `django`, so `django` owns the copied files.
+- `chmod-socket = 666` in `backend/uwsgi.ini` (active only when `FMS_UWSGI_SOCKET` is set). The nginx user is not the owner
+  of the socket and needs write access. Each local user can then reach uwsgi directly.
+- uwsgi still listens on port 8000 (uwsgi protocol) and port 8001 (probes) in the container network, for the
+  `web` service and Kubernetes.
+
+Diagnostics:
+
+| Symptom | Likely cause |
+|---|---|
+| 502 on `/api/` | No socket (`backend` is not running or `FMS_SOCKET_DIR` is wrong) or an SELinux (AVC) denial |
+| 403 or 404 on `/` or `/static/` | `assets` did not run (check `podman-compose logs assets`) or the files have a wrong label |
+
+Check the socket as `django`: `ls -l /data/freezeman/backend/fms.sock`. To look for an AVC denial, IT runs
+`sudo ausearch -m avc -c nginx -ts recent`.
+
+Not tested: on Rocky 9 it is not known whether `httpd_t` can connect to a socket that a `label=disable` container creates.
+The classic setup works with an uwsgi that SELinux does not confine. Test this on a Rocky 9 host or VM before the
+cutover. If AVC denials occur, the fix needs a SELinux change by IT.
+
+The container nginx (`--profile web`) is for tests. It does not replace the host nginx.
+
+### Cutover from the classic setup
+
+Do these steps once, as `django`, on the host that runs the classic setup (uwsgi, host PostgreSQL).
+
+1. Back up the database and the media files: `pg_dumpall > backup_before_containers.pgsql` and
+   `cp -a /data/freezeman/backend/media /data/freezeman/backend/media.bak`.
+2. Stop the old uwsgi. Find the master with `ps -u django -o pid,args | grep uwsgi`, then `kill <master PID>`.
+   The old socket file `fms.sock` goes away with it (`vacuum`). If it stays, delete it.
+3. Remove the `prepare_report_data` line from the `django` crontab (`crontab -e`). The `report` service replaces it.
+4. Get the release and prepare `.env` and the directories (see [Deployment user setup](#deployment-user-setup), steps 4 and 6).
+   The old media files stay in `/data/freezeman/backend/media`, where the new `backend` service uses them.
+5. Restore the data: see [Moving data from the existing PostgreSQL 15 server](#moving-data-from-the-existing-postgresql-15-server).
+6. Run `podman-compose build`, then `podman-compose up -d`. Check the socket and the site (step 8 of the setup).
+
+To go back, stop the stack (`podman-compose down`), delete `backend/fms.sock` and start the old uwsgi again.
 
 ### Daily report data (replaces the cron entry)
 
@@ -365,13 +432,9 @@ The database is created on first start with `fzy` already enabled, so expect a
 harmless "extension fzy already exists" message during the restore. `--no-owner`
 assigns everything to `POSTGRES_USER`.
 
-Copy the old uploaded files (and trigger folders, unless they are bind-mounted
-host paths) into the volumes:
-
-```bash
-podman cp /data/freezeman/backend/media/. freezeman_backend_1:/src/backend/media/
-podman-compose exec -u root backend chown -R fms:fms /src/backend/media
-```
+The media files need no copy on the deployment host: the `backend` service uses the host directory
+`FMS_MEDIA_DIR` (default `../backend/media`) itself. On another host, copy the old uploaded files into that directory.
+Copy the trigger folders into the `triggers` volume, unless they are bind-mounted host paths.
 
 ### Logs
 
@@ -400,6 +463,8 @@ With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 ## Portability notes
 
 - `:z` on bind mounts: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
+  Exception: paths that the host nginx reads (`frontend/dist`, `backend/staticfiles`, `backend/media`, the socket directory).
+  They use `security_opt: label=disable` instead, because `:z` makes them unreadable for the host nginx.
 - Fully qualified image names (`docker.io/library/...`): RHEL-family systems enforce
   short-name resolution, and fully qualified names avoid prompts on any registry setup.
 - `x-podman: in_pod: false`: `userns_mode: keep-id` (development) cannot be used for containers inside a pod.
@@ -413,13 +478,14 @@ The layout already maps onto Kubernetes objects:
 | `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
 | `migrate`          | Job (or Helm `pre-install`/`pre-upgrade` hook)                    |
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
-| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes) |
+| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media` is a bind-mounted directory |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
 | `backup`           | CronJob + PVC                                                     |
 | `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + `reports` PVC at `/home/fms/reports` |
 | `web` port mapping | Ingress (TLS)                                                     |
 
 Notes:
+- The unix socket and the `assets` service exist only for the host nginx. Kubernetes uses `web` and the TCP port 8000.
 - Probes: `/api/health/live/` (process answers) for the livenessProbe and
   `/api/health/ready/` (database reachable too) for the readinessProbe, on port 8001
   (plain HTTP socket of uwsgi; port 8000 only speaks the uwsgi protocol).
