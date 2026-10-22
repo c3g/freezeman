@@ -10,9 +10,9 @@
 #   podman-compose up -d --force-recreate
 # (plain `up -d` only recreates containers when this file's resolved config changes).
 #
-# Rocky 9 notes (see README.md, "Rocky 9 notes"):
+# Rocky 9 notes (see ROCKY.md, "Rocky 9 notes"):
 #   - restart: always does not start containers at boot. A user crontab line
-#     `@reboot ... podman-compose up -d` does (see "Start on boot").
+#     `@reboot ... podman-compose up -d` does (see ROCKY.md, "Start on boot").
 #   - podman-compose does not check migrate's exit code; check its logs.
 
 name: freezeman
