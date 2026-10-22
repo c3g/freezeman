@@ -31,7 +31,7 @@ oci/
 ├── nginx/default.conf.template
 ├── compose.yaml               # production-like stack
 ├── compose.dev.yaml           # development override
-├── ROCKY.md                   # Rocky Linux 9 host setup
+├── ROCKY.md                   # Rocky Linux 9.6 host requirements (for IT)
 └── .env.example               # copy to .env
 ```
 
@@ -165,7 +165,41 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec backend pytest
 
 ## Production deployment
 
-To set up a Rocky Linux 9 host (packages, rootless user, SELinux, firewall), see [ROCKY.md](ROCKY.md).
+IT prepares the host with [ROCKY.md](ROCKY.md). Then do the steps in [Deployment user setup](#deployment-user-setup).
+
+### Deployment user setup
+
+Run these steps as `django` (`sudo su - django`) after IT finishes [ROCKY.md](ROCKY.md) and the acceptance checks pass.
+
+1. Point podman at the systemd user manager. `sudo su - django` and cron start no systemd user session.
+   Linger keeps the manager running, and these lines set the variables only when they are empty. A real
+   login (`ssh`) keeps the values from logind. Cron jobs that use `bash --login -c` read this file too.
+
+   ```bash
+   cp ~/.bash_profile ~/.bash_profile.bak
+   cat >> ~/.bash_profile <<'EOF'
+
+   # Rootless podman: `sudo su - django` and cron start no systemd user session.
+   # Linger keeps the user manager running. These lines point podman at it.
+   export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+   export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
+   EOF
+   ```
+
+   Start a new login shell, then check that `podman info --format '{{.Host.CgroupManager}}'` prints `systemd`.
+
+2. Only if the EPEL `podman-compose` is too old or broken: ask IT to run `sudo dnf remove -y podman-compose`
+   and `sudo dnf install -y python3-pip`. Then install the current release for `django` only. This changes no
+   system Python package:
+
+   ```bash
+   pip3 install --user podman-compose
+   ```
+
+3. Clone FreezeMan at `/data/freezeman`, so the stack files are in `/data/freezeman/oci`. The clone needs
+   a real `.git` directory and the submodules. See [Prerequisites](#prerequisites).
+4. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
+5. Start the stack by hand as `django` after each reboot: `cd /data/freezeman/oci && podman-compose up -d`.
 
 ### Reverse proxy and TLS
 
@@ -194,7 +228,8 @@ location / {
 }
 ```
 
-For SELinux and firewalld on Rocky 9, see [ROCKY.md](ROCKY.md#ports-selinux-and-firewall).
+For SELinux and firewalld on Rocky 9, see [SELinux boolean](ROCKY.md#5-selinux-boolean) and
+[Firewall](ROCKY.md#7-firewall) in `ROCKY.md`.
 
 ### Daily report data (replaces the cron entry)
 
@@ -266,8 +301,27 @@ podman-compose exec -u root backend chown -R fms:fms /src/backend/media
 
 ### Logs
 
-Container output goes to podman's log driver: `podman-compose logs backend`. For journald on Rocky 9,
-see [ROCKY.md](ROCKY.md#logs).
+Container output goes to podman's log driver: `podman-compose logs backend`.
+
+On Rocky 9, podman uses the `journald` log driver by default. `podman logs` and `podman-compose logs` read
+it, and the host journal handles rotation. We ask IT for a persistent journal
+([ROCKY.md](ROCKY.md#4-persistent-journal)). This is our choice, not a technical necessity: the logs
+survive a reboot, and journald keeps a journal for each user, so `django` reads its own container logs.
+
+```bash
+podman info --format '{{.Host.LogDriver}}'                 # journald
+journalctl --user CONTAINER_NAME=freezeman_backend_1       # logs of one container
+```
+
+A container keeps the log driver it had at creation. If the containers exist already, recreate them once:
+
+```bash
+cd /data/freezeman/oci && podman-compose up -d --force-recreate
+```
+
+The journal limits (for example `SystemMaxUse`) are in `/etc/systemd/journald.conf` and apply to the
+whole host.
+
 With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 `/src/backend/fms.log` inside the container.
 
