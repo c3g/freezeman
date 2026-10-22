@@ -230,8 +230,8 @@ journal of the host. Ask the team that reads the logs first.
 
 ## Ready to continue: checklist
 
-Run these checks as `django`. If all pass, continue with the [README.md Prerequisites](README.md#prerequisites)
-and then [Production-like stack](README.md#production-like-stack).
+Run these checks as `django`. If all pass, continue with [README.md](README.md). Read it from the top, then
+follow "Prerequisites" and "Production-like stack".
 
 - `podman --version` prints 5.4 or later. `podman-compose --version` prints 1.5.0 or later.
 - `grep django /etc/subuid /etc/subgid` prints one line for each file.
