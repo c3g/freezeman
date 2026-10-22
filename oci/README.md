@@ -1,5 +1,21 @@
 # FreezeMan containers
 
+Contents:
+
+- [Prerequisites](#prerequisites)
+- [Production-like stack](#production-like-stack)
+  - [For reference only: first account on an empty database](#for-reference-only-first-account-on-an-empty-database)
+- [Development](#development)
+- [Production deployment](#production-deployment)
+  - [Deployment user setup](#deployment-user-setup)
+  - [Reverse proxy and TLS](#reverse-proxy-and-tls)
+  - [Daily report data (replaces the cron entry)](#daily-report-data-replaces-the-cron-entry)
+  - [Database backups](#database-backups)
+  - [Moving data from the existing PostgreSQL 15 server](#moving-data-from-the-existing-postgresql-15-server)
+  - [Logs](#logs)
+- [Portability notes](#portability-notes)
+- [Path to Kubernetes](#path-to-kubernetes)
+
 Container images and podman-compose configuration for FreezeMan:
 
 | Service    | Image                         | What it runs                                                    |
@@ -188,18 +204,76 @@ Run these steps as `django` (`sudo su - django`) after IT finishes [ROCKY.md](RO
 
    Start a new login shell, then check that `podman info --format '{{.Host.CgroupManager}}'` prints `systemd`.
 
-2. Only if the EPEL `podman-compose` is too old or broken: ask IT to run `sudo dnf remove -y podman-compose`
-   and `sudo dnf install -y python3-pip`. Then install the current release for `django` only. This changes no
-   system Python package:
+2. Run `podman system migrate` once, so podman reads the subuid range from IT. It prints nothing.
 
    ```bash
-   pip3 install --user podman-compose
+   podman system migrate
    ```
 
-3. Clone FreezeMan at `/data/freezeman`, so the stack files are in `/data/freezeman/oci`. The clone needs
-   a real `.git` directory and the submodules. See [Prerequisites](#prerequisites).
-4. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
-5. Start the stack by hand as `django` after each reboot: `cd /data/freezeman/oci && podman-compose up -d`.
+3. Install podman-compose for `django` only. This changes no system Python package and needs no root.
+
+   ```bash
+   python3 -m ensurepip --user
+   python3 -m pip install --user 'podman-compose==1.5.0'
+   podman-compose --version            # podman-compose version 1.5.0
+   ```
+
+   `~/.local/bin` must be in `PATH`. The Rocky default `~/.bashrc` adds it. If `ensurepip` fails, ask IT
+   to install `python3-pip` (`sudo dnf install -y python3-pip`).
+
+4. Run git without a host git. Add a shell function to `~/.bash_profile` that runs git from the
+   `docker.io/alpine/git` image. Rootless podman maps the container root to `django`, so `django` owns
+   the files. `:z` relabels the current directory for SELinux, so run `git` only inside `/data`,
+   never in `$HOME`.
+
+   ```bash
+   cat >> ~/.bash_profile <<'EOF'
+
+   # git without host git: runs the alpine/git image in the current directory.
+   git() {
+       podman run --rm -v "$PWD":"$PWD":z -w "$PWD" docker.io/alpine/git:2.54.0 "$@"
+   }
+   EOF
+   ```
+
+   Start a new login shell. Then clone FreezeMan at `/data/freezeman`, so the stack files are in
+   `/data/freezeman/oci`. The clone needs a real `.git` directory and the submodules.
+   See [Prerequisites](#prerequisites).
+
+   ```bash
+   cd /data
+   git clone --recurse-submodules https://github.com/c3g/freezeman.git /data/freezeman
+   ```
+
+   Another option is to clone on another host and copy the tree with `.git`, for example
+   `tar -c freezeman | ssh django@<host> tar -x -C /data`.
+
+5. Keep container logs in files. Podman on Rocky 9 uses the `journald` driver by default. Set the
+   `k8s-file` driver for `django`:
+
+   ```bash
+   mkdir -p ~/.config/containers
+   cat >> ~/.config/containers/containers.conf <<'EOF'
+   [containers]
+   log_driver = "k8s-file"
+   log_size_max = 52428800
+   EOF
+
+   podman info --format '{{.Host.LogDriver}}'      # k8s-file
+   ```
+
+   If `containers.conf` exists already, merge the two lines into its `[containers]` section.
+   See [Logs](#logs).
+
+6. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
+7. Start the stack by hand as `django` after each reboot: `cd /data/freezeman/oci && podman-compose up -d`.
+8. Check the port. FreezeMan must listen on `127.0.0.1:8080` only:
+
+   ```bash
+   ss -ltn | grep 8080                             # 127.0.0.1:8080 only
+   ```
+
+   The host firewall needs no change.
 
 ### Reverse proxy and TLS
 
@@ -228,8 +302,8 @@ location / {
 }
 ```
 
-For SELinux and firewalld on Rocky 9, see [SELinux boolean](ROCKY.md#5-selinux-boolean) and
-[Firewall](ROCKY.md#7-firewall) in `ROCKY.md`.
+For SELinux on Rocky 9, see [SELinux boolean](ROCKY.md#4-selinux-boolean) in `ROCKY.md`.
+For the firewall, check the port as in [Deployment user setup](#deployment-user-setup), step 8.
 
 ### Daily report data (replaces the cron entry)
 
@@ -303,14 +377,13 @@ podman-compose exec -u root backend chown -R fms:fms /src/backend/media
 
 Container output goes to podman's log driver: `podman-compose logs backend`.
 
-On Rocky 9, podman uses the `journald` log driver by default. `podman logs` and `podman-compose logs` read
-it, and the host journal handles rotation. We ask IT for a persistent journal
-([ROCKY.md](ROCKY.md#4-persistent-journal)). This is our choice, not a technical necessity: the logs
-survive a reboot, and journald keeps a journal for each user, so `django` reads its own container logs.
+On the deployment host, `django` sets the `k8s-file` log driver in `~/.config/containers/containers.conf`
+([Deployment user setup](#deployment-user-setup), step 5). `podman logs` and `podman-compose logs` read the
+log file of each container. `log_size_max` limits the size of each file. The logs stay until the container
+is removed. `podman-compose up -d --force-recreate` and `podman-compose down` delete them.
 
 ```bash
-podman info --format '{{.Host.LogDriver}}'                 # journald
-journalctl --user CONTAINER_NAME=freezeman_backend_1       # logs of one container
+podman info --format '{{.Host.LogDriver}}'                 # k8s-file
 ```
 
 A container keeps the log driver it had at creation. If the containers exist already, recreate them once:
@@ -319,8 +392,7 @@ A container keeps the log driver it had at creation. If the containers exist alr
 cd /data/freezeman/oci && podman-compose up -d --force-recreate
 ```
 
-The journal limits (for example `SystemMaxUse`) are in `/etc/systemd/journald.conf` and apply to the
-whole host.
+If the logs must survive a container recreate, ask IT for a persistent journal and use the `journald` driver.
 
 With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 `/src/backend/fms.log` inside the container.
