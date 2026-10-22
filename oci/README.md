@@ -165,7 +165,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec backend pytest
 
 ## Production deployment
 
-To set up a Rocky Linux 9 host (packages, rootless user, start on boot, SELinux, firewall), see [ROCKY.md](ROCKY.md).
+To set up a Rocky Linux 9 host (packages, rootless user, SELinux, firewall), see [ROCKY.md](ROCKY.md).
 
 ### Reverse proxy and TLS
 
