@@ -5,7 +5,7 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 ## Layout
 
 - `backend/`: Django project (Python 3.14, Postgres 15+).
-  - `dependencies/pg_fzy`: git submodule, Postgres `fzy` extension (needs `make`; not in migrations). See the `freezeman` skill, "Database" section.
+  - `dependencies/pg_fzy`: git submodule, Postgres `fzy` extension (needs `make`; not in migrations). See the `freezeman-backend` skill, "Database" section.
 - `frontend/`: Node 24.x.
 - `VERSION` holds the release version.
 - `fms.log*` files are git-ignored: do not read or commit them.
@@ -15,9 +15,10 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 
 - Never commit on master and qc branches
 
-## Skill
+## Skills
 
-- Before backend, database, migration, frontend build/verify or deployment work, read `.agents/skills/freezeman/SKILL.md`.
+- Before backend, database, migration, test or deployment work, read `.agents/skills/freezeman-backend/SKILL.md`.
+- Before frontend work, read `.agents/skills/freezeman-frontend/SKILL.md`.
 
 <!-- BEGIN shared dev-conventions -->
 ## Dev Conventions

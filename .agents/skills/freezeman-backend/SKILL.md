@@ -1,6 +1,6 @@
 ---
-name: freezeman
-description: Procedures for the FreezeMan repo: backend venv and dependencies, manage.py, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, frontend build and verification, deployment reference. Use for any backend, database, migration, test, frontend build or release/deployment task in this repository.
+name: freezeman-backend
+description: "Procedures for the FreezeMan backend: venv and dependencies, manage.py, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, deployment reference. Use for any backend, database, migration, test or release/deployment task in this repository."
 ---
 
 ## Backend
@@ -82,10 +82,6 @@ description: Procedures for the FreezeMan repo: backend venv and dependencies, m
 ### Migrations
 
 - At most one per release, merged by hand into the existing unreleased one (not `squashmigrations`), named `vX_Y_Z` with underscores, e.g. `0082_v5_9_0.py`.
-
-## Frontend
-
-- There are no frontend tests. Verify with `npx tsc --noEmit --skipLibCheck`, plus `npx eslint <files>`. Don't use `prettier`.
 
 ## Deployment (reference only)
 
