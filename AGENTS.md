@@ -4,25 +4,35 @@ Freezer management system for tracking biological samples in a lab. License: LGP
 
 ## Layout
 
-- `backend/`: Django project (Python 3.14, Postgres 15+).
-  - `dependencies/pg_fzy`: git submodule, Postgres `fzy` extension (needs `make`; not in migrations). See the `freezeman-backend` skill, "Database" section.
-- `frontend/`: Node 24.x.
-- `VERSION` holds the release version.
-- `fms.log*` files are git-ignored: do not read or commit them.
-- Ignore root `package.json`
+- `VERSION`: release version.
+- `DEPLOYMENT.md`: production server reference. Never run its steps locally.
+- `fms.log*`: git-ignored. Do not read or commit them.
+- Ignore the root `package.json`.
 
-## Quick commands
+## Backend (`backend/`)
 
-Run these from the project root. They do not need a skill.
+Django project, Python 3.14, PostgreSQL 15+ with the `fzy` extension. Production runs it on uwsgi behind nginx (`example.uwsgi.ini`, `example.nginx.conf`).
 
-- Database: if container `freezeman-pg` exists and is stopped, run `podman start freezeman-pg`. If no database exists, read the backend skill.
-- Backend venv: if `backend/env` does not exist, run `(cd backend && python3.14 -m venv env && env/bin/python -m pip install -r requirements.txt)`. Without `python3.14`, run `(cd backend && uv venv --python 3.14 env && uv pip install --python env/bin/python -r requirements.txt)`. If the install fails, read the backend skill.
-- Backend server: `(cd backend && env/bin/python manage.py runserver)` (port 8000).
-- Backend tests: `(cd backend && env/bin/python manage.py test <path>)`. Ask before the full suite.
-- Frontend server: `(cd frontend && npm start)` (port 9000, proxies `/api` to port 8000). If `frontend/node_modules` does not exist, run `(cd frontend && npm install)` first.
-- Frontend checks: `(cd frontend && npx tsc --noEmit --skipLibCheck)` and `(cd frontend && npx eslint <files>)`.
-- Pending migrations (the server warns at start): ask the user, then run `(cd backend && env/bin/python manage.py migrate)`.
-- Run servers in the background.
+- `manage.py`, `requirements.txt` (venv in `backend/env`).
+- `fms/`: Django project (settings, URLs). `fms_core/`: main app (models, API, templates). `fms_report/`: report app.
+- `dependencies/pg_fzy`: git submodule, source of the `fzy` extension.
+- `templates/`, `static/`, `media/`, `docs/`, `README.md`.
+
+Commands (run in `backend/`):
+- `env/bin/python manage.py runserver` (port 8000).
+- `env/bin/python manage.py migrate`. Ask first.
+- `env/bin/python manage.py test <path>`. Ask before the full suite.
+
+## Frontend (`frontend/`)
+
+React app, Node 24.x, webpack. Source in `src/`.
+
+Commands (run in `frontend/`):
+- `npm ci` (or `npm install` to change dependencies).
+- `npm start`: dev server, port 9000, proxies `/api` to port 8000.
+- `npm run build`: production build.
+
+Run servers in the background.
 
 ## Git
 
@@ -30,9 +40,9 @@ Run these from the project root. They do not need a skill.
 
 ## Skills
 
-Load a skill only when the task changes or examines files in its domain. To only run or check the app, use "Quick commands".
+Load `freezeman-backend` or `freezeman-frontend` only to change code in its directory or to research that code in depth. To run, build or package the app, the "Backend" and "Frontend" sections above are sufficient. This rule applies only to these two skills.
 
-- Backend code, tests to write or fix, database setup or restore, migrations, users, deployment: read `.agents/skills/freezeman-backend/SKILL.md`.
+- Backend code (`backend/`), venv or database setup, migrations, users: read `.agents/skills/freezeman-backend/SKILL.md`.
 - Frontend code (`frontend/src`): read `.agents/skills/freezeman-frontend/SKILL.md`.
 
 <!-- BEGIN shared dev-conventions -->

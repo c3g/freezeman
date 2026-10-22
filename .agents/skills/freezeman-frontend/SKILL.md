@@ -1,12 +1,12 @@
 ---
 name: freezeman-frontend
-description: "Procedures and conventions for the FreezeMan frontend (React, Redux, Ant Design): layout of frontend/src, TypeScript and JavaScript rules, tables, API calls, verification. Use when you change or examine code in frontend/src. To only start the dev server or run checks, use the Quick commands in AGENTS.md."
+description: "Details of the FreezeMan frontend (React, Redux, Ant Design): layout of frontend/src, TypeScript rules, tables, API calls, checks. Use only to change or research code in frontend/src. To run, build or package the frontend, AGENTS.md is sufficient."
 ---
 
 ## Stack
 
 - React with React Router, Redux Toolkit (plus `redux-persist` for `auth`), Ant Design 6, webpack, TypeScript mixed with older JavaScript.
-- Dev server: `npm start` in `frontend/`, port 9000. It proxies `/api` and `/static/*_templates` to the backend on `localhost:8000`. `FMS_ENV` in `frontend/.env` (see `example.env`) sets the DEV/QC/PROD banner.
+- `FMS_ENV` in `frontend/.env` (see `example.env`) sets the DEV/QC/PROD banner. The dev server also proxies `/static/*_templates` to the backend.
 
 ## Conventions
 
@@ -39,4 +39,4 @@ description: "Procedures and conventions for the FreezeMan frontend (React, Redu
 
 ## Verification
 
-- There are no frontend tests. Verify with `npx tsc --noEmit --skipLibCheck`, plus `npx eslint <files>`. Don't use `prettier`.
+- There are no frontend tests. Run these in `frontend/`: `npx tsc --noEmit --skipLibCheck`, plus `npx eslint <files>`. Do not use `prettier`.

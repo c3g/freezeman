@@ -1,15 +1,16 @@
 ---
 name: freezeman-backend
-description: "Procedures for the FreezeMan backend: venv and dependencies, Postgres setup (host or container) and fzy, backup restore, users, Python conventions, migrations, deployment reference. Use when you change or examine backend code or tests, set up or restore the database, write migrations, or do release/deployment work. To only start the server or run tests, use the Quick commands in AGENTS.md."
+description: "Details of the FreezeMan Django backend: venv and dependencies, local Postgres and fzy, backup restore, users, Python conventions, migrations. Use only to change or research code in backend/. To run or package the backend, AGENTS.md is sufficient."
 ---
 
 ## Backend
 
-- Venv: `backend/env`. If it does not exist, create it from `backend/` with `python3.14 -m venv env`. Run `backend/env/bin/python manage.py ...` or activate it.
+- Venv: `backend/env`. If it does not exist, create it from `backend/` with `python3.14 -m venv env && env/bin/python -m pip install -r requirements.txt`. Without `python3.14`, run `uv venv --python 3.14 env && uv pip install --python env/bin/python -r requirements.txt`. If the install fails, check the database and system libraries.
+- Database: if container `freezeman-pg` exists and is stopped, run `podman start freezeman-pg`. If no database exists, see "Database" below.
 - `backend/requirements.txt` is the source of truth. Install with `env/bin/python -m pip install -r requirements.txt`. If the venv has no `pip` (a `uv`-made venv), use `uv pip install --python env/bin/python -r requirements.txt`. Do not use `uv add` or `uv sync`.
 - To add a dependency, install it into the venv, then update `requirements.txt` from `env/bin/python -m pip freeze` (or `uv pip freeze --python env/bin/python`). Keep only the packages that production needs. Remove local-only packages, for example `tzdata`, debuggers, linters and type checkers.
 - `manage.py test` runs pytest. It uses a `test_fms_*` database per worker and drops it at the end.
-- Ask before running `migrate` or anything touching a database other than a throwaway one.
+- Ask before anything that touches a database other than a throwaway one.
 - If there is no system time zone data, install the `tzdata` package into the venv with the same install command (pip or uv) as above. Do not add it to `requirements.txt`.
 
 ### Users
@@ -82,8 +83,3 @@ description: "Procedures for the FreezeMan backend: venv and dependencies, Postg
 ### Migrations
 
 - At most one per release, merged by hand into the existing unreleased one (not `squashmigrations`), named `vX_Y_Z` with underscores, e.g. `0082_v5_9_0.py`.
-
-## Deployment (reference only)
-
-- `DEPLOYMENT.md` targets the production server. Never run its `yum`, `systemctl`, nginx, uwsgi, `pg_hba.conf` or build-from-source steps locally.
-- Use it to answer questions, and add new release steps under "Specific deployments".
