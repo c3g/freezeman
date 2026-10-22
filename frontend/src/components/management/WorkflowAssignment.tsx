@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
+import { SyncOutlined } from '@ant-design/icons'
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
 import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
@@ -294,6 +295,8 @@ function WorkflowOptions({
 
   const [sampleCount, setSampleCount] = useState<number>()
 
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
   const [commonProjects, setCommonProjects] = useState<FMSProject[]>()
   const [selectedProject, setSelectedProject] = useState<NonNullable<typeof commonProjects>[0]>()
 
@@ -415,10 +418,15 @@ function WorkflowOptions({
           }
         >
           <Button
-            className="left-aligned-ant-btn"
+            block
+            style={{ justifyContent: "space-between", textAlign: "left" }}
+            loading={isLoading}
+            icon= {isLoading ? <SyncOutlined spin /> : <></>}
+            iconPlacement="end"
             disabled={step.mandatory && actionName == "skip"}
             type="primary"
             onClick={async () => {
+              setIsLoading(true)
               const NOTIFICATION_KEY = `LabworkSamples_${selectedStudy.id}_${step.order}` as const
               if (actionName == "dequeue") {
                 try {
@@ -434,7 +442,7 @@ function WorkflowOptions({
                   const removed = (
                     await dispatch(
                       api.sampleNextStepByStudy.removeList(sampleIDs, selectedStudy.id, step.order),
-                    )
+                    ).finally(() => setIsLoading(false))
                   ).data
                   const samplesRemovedCount = removed.length
                   if (samplesRemovedCount == sampleCount) {
@@ -489,7 +497,7 @@ function WorkflowOptions({
                     const skipCount = (
                       await dispatch(
                         api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, step.order),
-                      )
+                      ).finally(() => setIsLoading(false))
                     ).data
                     dispatch(
                       notifySuccess({
@@ -521,7 +529,7 @@ function WorkflowOptions({
                       step.order,
                       serializeFilterParamsWithDescriptions(filters),
                     ),
-                  )
+                  ).finally(() => setIsLoading(false))
                   dispatch(
                     notifySuccess({
                       id: NOTIFICATION_KEY,
@@ -559,6 +567,7 @@ function WorkflowOptions({
     dispatch,
     exceptedSampleIDs,
     filters,
+    isLoading,
     refresh,
     sampleCount,
     selectedProject,
