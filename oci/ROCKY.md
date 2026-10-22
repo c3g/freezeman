@@ -36,6 +36,7 @@ Run the commands as a user with `sudo`. Each item has a command, a check and the
 Required: the container engine, the compose tool and the clone tool.
 
 ```bash
+rpm -q epel-release; dnf repolist --enabled | grep -i crb     # record the output, for Undo
 sudo dnf install -y podman git epel-release
 sudo dnf config-manager --set-enabled crb          # EPEL packages can need CRB
 sudo dnf install -y podman-compose
@@ -51,12 +52,19 @@ Required: rootless containers need a range of user ids for `django`.
 
 ```bash
 # Check
-grep django /etc/subuid /etc/subgid                # one line in each file
+grep '^django:' /etc/subuid /etc/subgid            # one line in each file
+```
 
-# Only if a line is missing
-sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 django
-# then, as django:
-podman system migrate
+Only if a line is missing, add a range.
+Pick a free range of 65536 ids that overlaps none of the ranges in use, for example the next block after the highest existing end.
+`useradd` gives the first regular user `100000-165535`. `usermod` accepts an overlapping range without error.
+
+```bash
+cat /etc/subuid /etc/subgid                        # ranges already in use
+sudo usermod --add-subuids <START>-<END> --add-subgids <START>-<END> django     # for example 165536-231071
+
+# Check
+grep '^django:' /etc/subuid /etc/subgid            # one line in each file
 ```
 
 ### 3. Linger
@@ -70,13 +78,23 @@ sudo loginctl enable-linger django                 # no other change in /etc/sys
 loginctl show-user django -p Linger                # Linger=yes
 ```
 
+Only if step 2 added a line, run as `django` (`sudo su - django`) so that podman reads the new range:
+
+```bash
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
+podman system migrate                              # no output
+```
+
 ### 4. Persistent journal
 
 Podman sends container logs to journald by default.
 A persistent journal keeps them after a reboot and gives `django` its own journal to read them.
 
 ```bash
-sudo mkdir -p /var/log/journal && sudo systemctl restart systemd-journald
+sudo mkdir -p /var/log/journal
+sudo systemd-tmpfiles --create --prefix /var/log/journal
+sudo systemctl restart systemd-journald
 
 # Check
 ls -d /var/log/journal                             # /var/log/journal
@@ -86,7 +104,7 @@ Another option is a log file in the home directory of `django`, which the team w
 
 ### 5. SELinux boolean
 
-Required: the host nginx runs in the SELinux domain `httpd_t`. With the default policy, `httpd_t` cannot open outbound TCP connections.
+Required: the host nginx runs in the SELinux domain `httpd_t`. With the default policy, `httpd_t` cannot connect to most TCP ports, including 8080.
 Without this boolean, SELinux blocks the connection from the host nginx to the `web` container on `127.0.0.1:8080`.
 
 ```bash
@@ -103,8 +121,12 @@ ps -eZ | grep nginx                                # system_u:system_r:httpd_t:s
 # Diagnose, only if nginx answers 502 Bad Gateway after FreezeMan is up.
 # Without the boolean, the nginx error log shows:
 #   connect() to 127.0.0.1:8080 failed (13: Permission denied)
-sudo ausearch -m avc -c nginx -ts recent           # no output after the boolean is on
+sudo ausearch -m avc -c nginx -ts recent           # <no matches> after the boolean is on
 ```
+
+Port 8080 has the label `http_cache_port_t` (`semanage port -l | grep -w 8080`).
+The narrower boolean `httpd_can_network_relay` can be enough for a reverse proxy to it.
+This is to be tested. If nginx still gets `Permission denied`, use `httpd_can_network_connect`.
 
 ### 6. Host nginx
 
@@ -150,10 +172,11 @@ sudo nginx -T | grep -E 'uwsgi_pass|alias'                 # no output
 ### 7. Firewall
 
 Required: do not open port 8080. FreezeMan listens on `127.0.0.1:8080` only.
+FreezeMan binds `127.0.0.1` only, so this check is a safeguard, not a requirement for FreezeMan to work.
 
 ```bash
 # Check
-sudo firewall-cmd --list-ports                     # 8080/tcp is not in the list
+sudo firewall-cmd --list-all-zones | grep -n 8080  # no output
 ```
 
 ## Acceptance checks
@@ -167,7 +190,8 @@ export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus
 
 podman --version                                   # podman version 5.4 or later
 podman-compose --version                           # 1.5.0 or later
-grep django /etc/subuid /etc/subgid                # one line in each file
+rpm -q podman-compose                              # podman-compose-1.5.0-2 or later
+grep '^django:' /etc/subuid /etc/subgid            # one line in each file
 loginctl show-user django -p Linger                # Linger=yes
 systemctl --user is-system-running                 # running or degraded (not a bus error)
 podman info --format '{{.Host.CgroupManager}}'     # systemd
@@ -187,15 +211,15 @@ Also run as a user with `sudo`:
 
 ```bash
 sudo nginx -t                                      # syntax is ok, test is successful
-sudo firewall-cmd --list-ports                     # 8080/tcp is not in the list
+sudo firewall-cmd --list-all-zones | grep -n 8080  # no output
 ```
 
 ## Undo
 
 | Item | Undo command |
 |---|---|
-| 1. Packages | `sudo dnf remove podman podman-compose epel-release`, `sudo dnf config-manager --set-disabled crb` |
-| 2. subuid and subgid | `sudo usermod --del-subuids 100000-165535 --del-subgids 100000-165535 django` |
+| 1. Packages | `sudo dnf remove podman podman-compose epel-release`, `sudo dnf config-manager --set-disabled crb`. Run them only if they were not present before step 1 |
+| 2. subuid and subgid | `sudo usermod --del-subuids <START>-<END> --del-subgids <START>-<END> django`, with the range added in step 2 |
 | 3. Linger | `sudo loginctl disable-linger django` |
 | 4. Persistent journal | `sudo rm -r /var/log/journal && sudo systemctl restart systemd-journald`. This deletes the stored journal of the host. Ask the log owners first |
 | 5. SELinux boolean | `sudo setsebool -P httpd_can_network_connect 0` |
