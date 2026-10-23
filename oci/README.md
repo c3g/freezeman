@@ -15,6 +15,7 @@ Contents:
     - [Transition from the classic setup](#transition-from-the-classic-setup)
     - [Start, stop and restart](#start-stop-and-restart)
     - [Update to a new release](#update-to-a-new-release)
+    - [Automatic update (QC)](#automatic-update-qc)
     - [Database backups](#database-backups)
     - [Daily report data](#daily-report-data)
     - [Logs](#logs)
@@ -346,6 +347,53 @@ podman-compose logs migrate
 
 `build` makes the `db`, `backend`, `backup` and `assets` images. It does not make `web`: see
 [Test the production stack locally](#test-the-production-stack-locally).
+
+#### Automatic update (QC)
+
+Use this only on a QC or dev host. `autoupdate.py` checks a branch of GitHub. If the branch has a new commit, it
+pulls the commit, rebuilds the images, **deletes the database**, restores a dump and recreates the stack.
+The QC host then always starts from the same data. Production keeps the manual steps of
+[Update to a new release](#update-to-a-new-release). The script stops if `FMS_ENV` is `PROD`.
+
+Before the first run:
+
+- Put the checkout on the followed branch, with no local changes. The script stops if it is on another branch
+  or if a tracked file has changes. It never overwrites local work.
+- Get a production dump. `.pgsql.gz` and `.pgsql` (`pg_dumpall`, the files of the `backup` service) restore with
+  `psql`, as in [Database backups](#database-backups). `.dump` (`pg_dump -Fc`) restores with `pg_restore`,
+  as in [Transition from the classic setup](#transition-from-the-classic-setup). Other extensions stop the script.
+
+Add a line to the crontab of `django` (`crontab -e`). The example checks every 10 minutes:
+
+```cron
+*/10 * * * * /data/freezeman/oci/autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz >> /data/freezeman/oci/logs/autoupdate.log 2>&1
+```
+
+- Add `--profile web` to build and start the container nginx too. The option can be repeated.
+- If the host uses an HTTP proxy, cron does not have it. Run the command as
+  `bash --login -c '<command>'`, so `~/.bash_profile` exports the proxy (see [Proxy](#proxy)).
+- If the host has no cron (the host is a container), add `--interval 600` and start the command, as `django`,
+  from the init of the outer container, like `start.py`. The script then checks every 600 seconds and never exits.
+  Redirect its output to `logs/autoupdate.log`.
+- The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [Logs](#logs) rotates it.
+
+What one run does:
+
+1. Take the lock `logs/autoupdate.lock`. If another run holds it, exit.
+2. Stop if `FMS_ENV` is `PROD`, if the checkout is not on `--branch` or if it has local changes.
+3. Run `git fetch` and read `origin/<branch>`. If this commit is the last one in `logs/autoupdate.state`, stop.
+4. Fast-forward the checkout (`git merge --ff-only`) and update the submodules.
+5. Run `podman-compose build`. If it fails, the old containers keep running.
+6. Run `podman-compose down`, delete the volume `freezeman_pgdata` and start `db`. Wait for it, then restore the dump.
+7. Run `podman-compose up -d --force-recreate`. `migrate` applies the migrations that the dump does not have.
+   `assets` copies the new frontend.
+
+- The site is down from `down` until the end of `up -d --force-recreate`. This time includes the restore.
+- A commit that fails is not tried again. The script waits for a new commit. To try the same commit again, or to
+  deploy the commit that is already deployed, run the script with `--force`.
+- `logs/autoupdate.state` holds the last commit, `ok` and the time (JSON). Delete it to deploy at the next run.
+- The restore does not stop on errors, because the dump gives harmless "already exists" messages. The log shows the
+  exit code of the restore. Read the output of `psql` or `pg_restore` above it.
 
 #### Database backups
 
