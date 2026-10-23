@@ -14,10 +14,6 @@ description: "General rules for FreezeMan containers: podman over Docker, OCI fi
 
 - Use `podman`, `podman-compose` and `buildah`. Do not use `docker` or `docker compose` commands in files, docs or advice.
 - Write for rootless podman. Do not require root, `sudo` or a Docker daemon.
-- Rootless limits:
-  - A container cannot bind a host port below 1024.
-  - Healthchecks and lingering need a real systemd user session (not `su`).
-  - A bind mount needs the correct owner. Use `podman unshare chown`.
 - Do not add Docker-only features (for example Docker Swarm keys or `docker buildx` options). If a feature works only in Docker, tell the user.
 
 ## OCI conventions
@@ -34,10 +30,10 @@ description: "General rules for FreezeMan containers: podman over Docker, OCI fi
 ## Production target: Rocky Linux 9.6
 
 - The production server runs Rocky Linux 9.6. Podman and podman-compose are not installed on it yet. Do not assume they exist.
-- Target the versions that Rocky 9.6 ships: podman 5.4 and buildah 1.39 (AppStream), podman-compose 1.5 from EPEL 9 (needs CRB). Do not use newer features.
+- Target the versions that Rocky 9.6 ships: podman 5.4 and buildah 1.39 (AppStream), podman-compose 1.5. Do not use newer features.
 - SELinux is enforcing. Firewalld is active.
-- podman-compose has no boot integration. Quadlet is the long-term option. Ask the user before you choose a boot method.
-- Do not run setup steps on production or QC hosts. Do not send requests to `*.genome.mcgill.ca` without approval (AGENTS.md "Safety").
+- podman-compose has no boot integration. Ask the user before you choose a boot method.
+- Assume the worst case that production target is also container (thus missing systemd).
 
 ## Local checks
 
