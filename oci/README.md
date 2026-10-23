@@ -56,7 +56,7 @@ this config expects, so the host nginx needs no change. With the repository at `
 | `/api/` (`uwsgi_pass unix:`) | `/data/freezeman/backend/fms.sock` | `backend` (uwsgi unix socket in a bind mount) |
 
 The paths in `compose.yaml` are relative to `oci/`, so they match this table when the repository is at `/data/freezeman`.
-To use other paths, set `FMS_FRONTEND_DIST_DIR`, `FMS_STATIC_DIR`, `FMS_MEDIA_DIR` and `FMS_SOCKET_DIR` in `.env`.
+To use other paths, set `FMS_FRONTEND_DIST_DIR`, `FMS_STATIC_DIR`, `FMS_MEDIA_DIR`, `FMS_SOCKET_DIR` and `FMS_TRIGGERS_DIR` in `.env`.
 
 The container nginx (`--profile web`) is for tests. It does not replace the host nginx.
 
@@ -266,7 +266,7 @@ The container runs the same PostgreSQL major version (15), so a plain dump and r
    These commands name roles of the old server, which do not exist in the container database.
    `POSTGRES_USER` owns all objects, so it needs no grants.
 
-7. Copy the trigger folders into the `triggers` volume, unless they are bind-mounted host paths.
+7. Copy the trigger folders into the host directory `FMS_TRIGGERS_DIR` (default `../backend/triggers`).
    The media files need no copy: the `backend` service uses the host directory `FMS_MEDIA_DIR`
    (default `../backend/media`) itself. On another host, copy the old uploaded files into that directory.
 8. Check the socket and the site. The `backend` service creates the socket, and the host nginx connects to it:
@@ -573,7 +573,7 @@ The layout already maps onto Kubernetes objects:
 | `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
 | `migrate`          | Job (or Helm `pre-install`/`pre-upgrade` hook)                    |
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
-| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media` is a bind-mounted directory |
+| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media` and `triggers` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
 | `backup`           | CronJob + PVC                                                     |
 | `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + `reports` PVC at `/home/fms/reports` |

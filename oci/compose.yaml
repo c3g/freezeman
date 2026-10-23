@@ -93,7 +93,7 @@ services:
     volumes:
       - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media
       - ${FMS_SOCKET_DIR:-../backend}:/run/fms
-      - triggers:/src/backend/triggers
+      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers
       - automations_work:/src/backend/automations_work
     depends_on:
       migrate:
@@ -198,6 +198,5 @@ services:
 
 volumes:
   pgdata:
-  triggers:
   automations_work:
   reports:
