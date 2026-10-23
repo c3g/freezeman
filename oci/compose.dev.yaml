@@ -1,0 +1,106 @@
+# Development override: one idle "dev" container with Python 3.14 (venv) and Node 24, and the
+# source bind-mounted from the host. It starts no server. Enter it and start runserver,
+# npm start and migrate by hand. Works with podman-compose on any OS (on macOS/Windows
+# inside `podman machine`).
+#
+#   podman-compose -f compose.yaml -f compose.dev.yaml up -d
+#   podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
+#
+# Frontend: http://localhost:9000   Backend: http://localhost:8000
+# VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and README.md.
+#
+# The repository is mounted at /src so backend/fms/info.py and
+# frontend/webpack.config.js find ../VERSION and .git as they do outside
+# containers. ":z" relabels the mounts for SELinux (Rocky/RHEL/Fedora) and is
+# ignored elsewhere. userns_mode: keep-id keeps files written into the
+# repository (fms.log, migrations, uploads) owned by the host user.
+
+# Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
+# environment of "dev", so npm ci and pip run through the proxy when compose starts without
+# the shell proxy (VS Code).
+x-proxy: &proxy
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  dev:
+    image: localhost/freezeman-dev:latest
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: dev
+      args:
+        <<: *proxy
+    env_file: .env
+    environment:
+      <<: *proxy
+      FMS_ENV: LOCAL
+      FMS_DEBUG: "True"
+      PG_DATABASE: ${POSTGRES_DB}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_HOST: db
+      PG_PORT: "5432"
+      # psql in this container reads these (README.md: "Database access")
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    userns_mode: keep-id
+    volumes:
+      - ..:/src:z
+      # Repository directories instead of the named volumes of the production services
+      - ../backend/media:/src/backend/media:z
+      - ../backend/triggers:/src/backend/triggers:z
+      - ../backend/automations_work:/src/backend/automations_work:z
+      # Linux dependencies installed by the container, separate from the host's node_modules
+      # (":U" chowns the volume to the container user)
+      - frontend_node_modules:/src/frontend/node_modules:U
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/dev.log
+    # The entrypoint waits until the database accepts connections.
+    depends_on:
+      db:
+        condition: service_started
+    restart: "no"
+
+  migrate:
+    # The developer runs the migrations by hand in "dev".
+    profiles: ["prod"]
+
+  backend:
+    # The developer runs runserver by hand in "dev".
+    profiles: ["prod"]
+
+  assets:
+    # The host nginx files are not copied in development.
+    profiles: ["prod"]
+
+  web:
+    # The production nginx image is not used in development.
+    profiles: ["prod"]
+
+  report:
+    # The daily report job does not run in development.
+    profiles: ["report"]
+
+  backup:
+    # The daily database backup does not run in development.
+    profiles: ["backup"]
+
+volumes:
+  frontend_node_modules:

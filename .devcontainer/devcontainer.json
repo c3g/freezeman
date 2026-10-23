@@ -1,0 +1,21 @@
+{
+  "name": "FreezeMan",
+  "dockerComposeFile": ["../oci/compose.yaml", "../oci/compose.dev.yaml"],
+  "service": "dev",
+  "runServices": ["db", "dev"],
+  "workspaceFolder": "/src",
+  "overrideCommand": false,
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

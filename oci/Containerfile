@@ -1,0 +1,155 @@
+# FreezeMan application images. Build context: repository root.
+#
+# Targets:
+#   dev            Idle development container with the venv, Python 3.14 and Node 24; expects the
+#                  repository bind-mounted at /src. The developer starts runserver and npm by hand
+#   backend-prod   Django served by uwsgi, source baked in
+#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
+#   assets         Python image that copies those files into host directories for the host nginx
+#                  (fms-export-assets, "assets" service). The web image has no Python
+#
+# The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
+# because the code reads ../VERSION relative to backend/ and frontend/.
+
+# Major versions match DEPLOYMENT.md (Python 3.14, Node 24, uwsgi 2.0, PostgreSQL 15).
+ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
+ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
+ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
+
+
+############
+# Backend  #
+############
+
+FROM ${PYTHON_IMAGE} AS python-base
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/opt/venv/bin:$PATH
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libpq5 \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --uid 1000 --create-home --shell /bin/sh fms \
+ && install -d -o fms -g fms /home/fms/reports
+COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
+COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
+COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
+WORKDIR /src/backend
+ENTRYPOINT ["fms-entrypoint"]
+
+FROM python-base AS backend-deps
+ARG UWSGI_VERSION=2.0.31
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+RUN python -m venv /opt/venv
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
+
+#############
+# Frontend  #
+#############
+
+FROM ${NODE_IMAGE} AS node-runtime
+
+FROM node-runtime AS node-base
+# webpack.config.js shells out to git for the commit hash, branch and date
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+WORKDIR /src/frontend
+
+FROM node-base AS frontend-build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+COPY VERSION /src/VERSION
+COPY frontend/ ./
+ARG FMS_ENV=PROD
+ENV FMS_ENV=${FMS_ENV}
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    npm run build
+
+# Commit information for backend/fms/info.py, which has no git repository at runtime.
+FROM node-base AS build-info
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    cd /src \
+ && printf '{"commit_date": "%s", "commit_full_hash": "%s", "commit_small_hash": "%s", "commit_tagged_version": "%s", "branch": "%s"}\n' \
+      "$(git show --quiet --format=%cI)" \
+      "$(git show --quiet --format=%H)" \
+      "$(git show --quiet --format=%h)" \
+      "$(git describe --tags 2>/dev/null || true)" \
+      "$(git branch --show-current)" \
+      > /build_info.json \
+ && cat /build_info.json
+
+
+#####################
+# Development image #
+#####################
+
+# Both toolchains in one image, so that one container (and the editor in it) sees the venv and
+# node_modules. Defined after the backend and frontend stages, which it copies from.
+FROM python-base AS dev
+# fms/info.py and webpack.config.js read commit information from the bind-mounted .git
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git postgresql-client ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+COPY --from=backend-deps /opt/venv /opt/venv
+# Node comes from NODE_IMAGE, so the version follows that ARG.
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+# keep-id runs the container as the host UID, which has no passwd entry and no home directory.
+# VS Code Server and npm need a writable home.
+RUN install -d -m 1777 /home/dev
+ENV HOME=/home/dev \
+    NPM_CONFIG_CACHE=/home/dev/.npm
+# Shells and editor terminals start in the repository root, like the Dev Container workspace folder.
+WORKDIR /src
+ENTRYPOINT ["fms-entrypoint"]
+EXPOSE 8000 9000
+CMD ["sleep", "infinity"]
+
+
+#####################
+# Production images #
+#####################
+
+FROM python-base AS backend-prod
+COPY --from=backend-deps /opt/venv /opt/venv
+COPY VERSION /src/VERSION
+COPY backend/ /src/backend/
+COPY --from=build-info /build_info.json /src/backend/fms/build_info.json
+ENV FMS_ENV=PROD \
+    FMS_DEBUG=False \
+    UWSGI_PROCESSES=3
+# Writable locations; media, triggers and automations_work are bind mounts in compose.yaml.
+# The backend directory itself stays writable for fms.log, which settings.py
+# writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
+RUN python manage.py collectstatic --noinput \
+ && mkdir -p media/uploads/templates triggers automations_work tmp \
+ && chown -R fms:fms media triggers automations_work tmp \
+ && chown fms:fms /src/backend
+USER fms
+# 8000: uwsgi protocol for nginx.
+EXPOSE 8000
+CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
+
+FROM ${NGINX_IMAGE} AS web
+ENV BACKEND_UPSTREAM=backend:8000
+COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
+COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
+EXPOSE 8080
+
+# Copies the files of the web image into the host directories of the host nginx. A separate image,
+# because the nginx image has no Python.
+FROM ${PYTHON_IMAGE} AS assets
+COPY --from=frontend-build /src/frontend/dist /srv/fms/html
+COPY --from=backend-prod /src/backend/staticfiles /srv/fms/static
+COPY --chmod=755 oci/assets/export-assets.py /usr/local/bin/fms-export-assets
+ENTRYPOINT ["fms-export-assets"]

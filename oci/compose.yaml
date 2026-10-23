@@ -1,0 +1,231 @@
+# FreezeMan, production-like stack.
+#
+#   cd oci && cp .env.example .env   # then edit .env
+#   mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media logs
+#   podman-compose build
+#   podman-compose up -d
+#
+# The default services feed the host nginx of DEPLOYMENT.md: "assets" copies the frontend
+# and the static files into host directories, "backend" writes the media files and the uwsgi
+# unix socket (see README.md, "Host nginx"). For a test without a host nginx, add the
+# container nginx (service "web", published on FMS_HTTP_PORT):
+#   podman-compose --profile web up -d
+#
+# Development: see compose.dev.yaml and README.md.
+#
+# After rebuilding images or editing .env, apply with
+#   podman-compose up -d --force-recreate
+# (plain `up -d` only recreates containers when this file's resolved config changes).
+#
+# Notes:
+#   - restart: always restarts a container that exits while podman runs. It does not start
+#     containers at boot. `start.py` does that (README.md: "Start the stack at boot").
+#   - Each service writes its log to ${FMS_LOG_DIR}/<service>.log (default: logs/ in this directory,
+#     as an absolute path). The file stays after `down` and `--force-recreate`. The path must be
+#     absolute: a relative path breaks `podman restart` from another directory.
+#   - podman-compose does not check migrate's exit code; check its logs.
+
+name: freezeman
+
+x-podman:
+  # Plain bridge network with service-name DNS, like Kubernetes Services.
+  # (Pods would also conflict with userns_mode in compose.dev.yaml.)
+  in_pod: false
+
+x-backend-env: &backend-env
+  PG_DATABASE: ${POSTGRES_DB}
+  PG_USER: ${POSTGRES_USER}
+  PG_PASSWORD: ${POSTGRES_PASSWORD}
+  PG_HOST: db
+  PG_PORT: "5432"
+
+# Proxy for the image builds (apt, pip, npm). Compose reads the shell first, then .env, so a
+# developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
+# lists the service names, so traffic between the containers never goes through the proxy.
+# Build arguments only: podman keeps the predefined proxy arguments out of the image.
+x-proxy: &proxy
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
+services:
+  db:
+    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/db/Containerfile
+      args:
+        <<: *proxy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
+      - pgdata:/var/lib/postgresql/data
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/db.log
+    restart: always
+
+  # One-shot: apply migrations, then exit (a Job in Kubernetes).
+  migrate:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: backend-prod
+      args:
+        <<: *proxy
+    env_file: .env
+    environment: *backend-env
+    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
+    depends_on:
+      db:
+        condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/migrate.log
+    restart: "no"
+
+  backend:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    env_file: .env
+    environment:
+      <<: *backend-env
+      # uwsgi also listens on this unix socket, for the host nginx (uwsgi.ini)
+      FMS_UWSGI_SOCKET: /run/fms/fms.sock
+    # The host nginx reads the media files and the socket. Without label=disable, SELinux
+    # (enforcing on Rocky) blocks nginx; ":z" would relabel them, so it is not used.
+    # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
+    userns_mode: keep-id:uid=1000,gid=1000
+    security_opt:
+      - label=disable
+    volumes:
+      - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media
+      - ${FMS_SOCKET_DIR:-../backend}:/run/fms
+      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers
+      # Same path on both sides when set: .env also reaches the container (settings.py reads it).
+      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/backend.log
+    restart: always
+
+  # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
+  report:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    env_file: .env
+    environment: *backend-env
+    command: ["fms-report"]
+    # keep-id: the log files belong to the host user, as uid 1000 (the image user fms), like backend.
+    userns_mode: keep-id:uid=1000,gid=1000
+    volumes:
+      # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
+      # keeps it next to the service logs (<service>.log).
+      - ${FMS_LOG_DIR:-${PWD}/logs}:/home/fms/reports/log
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/report.log
+    restart: always
+
+  # Daily pg_dumpall into FMS_BACKUP_DIR on the host, as <YYYY-MM-DD>.pgsql.gz, at FMS_BACKUP_TIME
+  # (a CronJob in Kubernetes). The directory must exist. Runs as root in the container,
+  # which rootless podman maps to the host user, so that user owns the files.
+  backup:
+    image: localhost/freezeman-backup:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/db/Containerfile
+      target: backup
+      args:
+        <<: *proxy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-America/Montreal}
+      FMS_BACKUP_TIME: ${FMS_BACKUP_TIME:-01:00}
+      FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ${FMS_BACKUP_DIR:-./backups}:/backups:z
+    depends_on:
+      db:
+        condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/backup.log
+    restart: always
+
+  # One-shot: copy the built frontend and the Django static files into host directories that the
+  # host nginx serves (DEPLOYMENT.md paths), then exit. Runs as root in the container, which
+  # rootless podman maps to the host user, so that user owns the files.
+  assets:
+    image: localhost/freezeman-assets:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: assets
+      args:
+        <<: *proxy
+        FMS_ENV: ${FMS_ENV:-PROD}
+    user: "0"
+    # The host nginx reads the files: keep the label of the parent directory (see backend).
+    security_opt:
+      - label=disable
+    volumes:
+      - ${FMS_FRONTEND_DIST_DIR:-../frontend/dist}:/out/dist
+      - ${FMS_STATIC_DIR:-../backend/staticfiles}:/out/static
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/assets.log
+    restart: "no"
+
+  # nginx in a container: for tests without a host nginx, and the model for Kubernetes.
+  # Not needed when the host nginx serves FreezeMan.
+  web:
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: web
+      args:
+        <<: *proxy
+        FMS_ENV: ${FMS_ENV:-PROD}
+    profiles: ["web"]
+    environment:
+      BACKEND_UPSTREAM: backend:8000
+    ports:
+      - "${FMS_HTTP_PORT:-8080}:8080"
+    security_opt:
+      - label=disable
+    volumes:
+      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro
+    # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
+    # and restart: always is the fallback if the name does not resolve yet.
+    depends_on:
+      backend:
+        condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/web.log
+    restart: always
+
+volumes:
+  pgdata:

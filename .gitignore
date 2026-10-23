@@ -11,3 +11,5 @@ fms.log*
 .coverage
 TODO.txt
 
+oci/backups/
+oci/logs/
