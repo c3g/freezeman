@@ -39,12 +39,26 @@ x-backend-env: &backend-env
   PG_HOST: db
   PG_PORT: "5432"
 
+# Proxy for the image builds (apt, pip, npm). Compose reads the shell first, then .env, so a
+# developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
+# lists the service names, so traffic between the containers never goes through the proxy.
+# Build arguments only: podman keeps the predefined proxy arguments out of the image.
+x-proxy: &proxy
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
 services:
   db:
     image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: oci/db/Containerfile
+      args:
+        <<: *proxy
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -65,6 +79,8 @@ services:
       context: ..
       dockerfile: oci/Containerfile
       target: backend-prod
+      args:
+        <<: *proxy
     env_file: .env
     environment: *backend-env
     command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
@@ -135,6 +151,8 @@ services:
       context: ..
       dockerfile: oci/db/Containerfile
       target: backup
+      args:
+        <<: *proxy
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -163,6 +181,7 @@ services:
       dockerfile: oci/Containerfile
       target: assets
       args:
+        <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
     user: "0"
     # The host nginx reads the files: keep the label of the parent directory (see backend).
@@ -186,6 +205,7 @@ services:
       dockerfile: oci/Containerfile
       target: web
       args:
+        <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
     profiles: ["web"]
     environment:

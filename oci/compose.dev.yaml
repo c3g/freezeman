@@ -15,6 +15,17 @@
 # ignored elsewhere. userns_mode: keep-id keeps files written into the
 # repository (fms.log, migrations, uploads) owned by the host user.
 
+# Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
+# environment of "dev", so npm ci and pip run through the proxy when compose starts without
+# the shell proxy (VS Code).
+x-proxy: &proxy
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
 services:
   db:
     ports:
@@ -26,8 +37,11 @@ services:
       context: ..
       dockerfile: oci/Containerfile
       target: dev
+      args:
+        <<: *proxy
     env_file: .env
     environment:
+      <<: *proxy
       FMS_ENV: LOCAL
       FMS_DEBUG: "True"
       PG_DATABASE: ${POSTGRES_DB}

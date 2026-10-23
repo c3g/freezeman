@@ -8,6 +8,7 @@ Contents:
 - [Prerequisites](#prerequisites)
   - [Production](#production-1)
   - [Development](#development-1)
+  - [Proxy](#proxy)
 - [Usage](#usage)
   - [Production](#production-2)
     - [One-time setup as django](#one-time-setup-as-django)
@@ -98,6 +99,31 @@ Development works on any OS with podman and podman-compose. The `:z` SELinux lab
 - Optional: VS Code with the [Dev Containers extension](https://code.visualstudio.com/docs/devcontainers/containers).
   The editor runs in the `dev` container, so the language servers see the venv and `node_modules`.
   See [Dev Container](#dev-container).
+
+### Proxy
+
+Do this section only if your host reaches the internet through an HTTP proxy (for example the lab dev server).
+Without a proxy, skip it. The stack then works as before. Production has no proxy: leave the variables unset there.
+
+- Export the proxy in the shell, for example in `~/.bashrc` or `~/.profile`. Use the uppercase names:
+
+  ```bash
+  export HTTP_PROXY=http://<proxy-host>:<port>
+  export HTTPS_PROXY=http://<proxy-host>:<port>
+  export NO_PROXY=localhost,127.0.0.1
+  ```
+
+- Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
+- The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
+  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy (VS Code Dev Containers).
+  Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
+- `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
+  You do not add them.
+- The proxy values are build arguments of podman and stay out of the images. Only `dev` has them in its environment.
+- Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
+  `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
+- Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.
+  If the host has no direct route to the SMTP server, leave `FMS_EMAIL_HOST` unset. Emails then go to the console.
 
 ## Usage
 
