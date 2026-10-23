@@ -127,7 +127,7 @@ COPY --from=build-info /build_info.json /src/backend/fms/build_info.json
 ENV FMS_ENV=PROD \
     FMS_DEBUG=False \
     UWSGI_PROCESSES=3
-# Writable locations; media, triggers and automations_work are volumes in compose.yaml.
+# Writable locations; media, triggers and automations_work are bind mounts in compose.yaml.
 # The backend directory itself stays writable for fms.log, which settings.py
 # writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
 RUN python manage.py collectstatic --noinput \

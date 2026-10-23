@@ -94,7 +94,8 @@ services:
       - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media
       - ${FMS_SOCKET_DIR:-../backend}:/run/fms
       - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers
-      - automations_work:/src/backend/automations_work
+      # Same path on both sides when set: .env also reaches the container (settings.py reads it).
+      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -198,5 +199,4 @@ services:
 
 volumes:
   pgdata:
-  automations_work:
   reports:
