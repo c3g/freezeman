@@ -355,8 +355,8 @@ podman-compose logs migrate
 
 The `report` service replaces the cron entry. It runs `python manage.py prepare_report_data` every day.
 Set the time in `.env`: `FMS_REPORT_TIME` (`HH:MM`, default `02:00`) in the time
-zone `TZ` (`America/Montreal`). Logs go to the `reports` volume (`~/reports/log/`
-in the container). A failed run is printed to the service log, and the next run
+zone `TZ` (`America/Montreal`). The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
+(`~/reports/log/` in the container is a bind mount of that directory). A failed run is printed to the service log, and the next run
 still happens. It does not start in development (profile `report`).
 
 ```bash
@@ -573,10 +573,10 @@ The layout already maps onto Kubernetes objects:
 | `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
 | `migrate`          | Job (or Helm `pre-install`/`pre-upgrade` hook)                    |
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
-| `media`, `triggers`, `automations_work`, `reports` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
+| `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
 | `backup`           | CronJob + PVC                                                     |
-| `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + `reports` PVC at `/home/fms/reports` |
+| `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
 | `web` port mapping | Ingress (TLS)                                                     |
 
 Notes:

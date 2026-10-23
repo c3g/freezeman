@@ -111,9 +111,12 @@ services:
     env_file: .env
     environment: *backend-env
     command: ["fms-report"]
+    # keep-id: the log files belong to the host user, as uid 1000 (the image user fms), like backend.
+    userns_mode: keep-id:uid=1000,gid=1000
     volumes:
-      # The command writes its logs to ~/reports/log/
-      - reports:/home/fms/reports
+      # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
+      # keeps it next to the service logs (<service>.log).
+      - ${FMS_LOG_DIR:-${PWD}/logs}:/home/fms/reports/log
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -199,4 +202,3 @@ services:
 
 volumes:
   pgdata:
-  reports:
