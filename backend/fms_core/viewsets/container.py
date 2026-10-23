@@ -1,7 +1,8 @@
 import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Prefetch
+from django.db.models import Q, F, Prefetch, CharField
+from django.db.models.functions import Cast, Greatest, Lower
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -27,7 +28,7 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys, FZY
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
@@ -139,7 +140,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
-        
+
         return Response(serializer.data)
 
     def get_renderer_context(self):
@@ -169,7 +170,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
-        Searches for parent containers that match the given query
+        Searches for containers that match the given query.
+        Without exact_match, the closest fuzzy (fzy) match on barcode, name or id comes first.
         """
         search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
@@ -178,24 +180,41 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         qs_except_kinds = _request.GET.get("except_kinds")
         except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
-        if search_input is not None:
+        containers_data = Container.objects.all()
+
+        if is_parent:
+            kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+        if is_sample_holding:
+            kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+
+        if search_input:
             if is_exact_match:
-                query = Q(barcode=search_input)
-                query.add(Q(name=search_input), Q.OR)
-                query.add(Q(id=search_input), Q.OR)
+                exact_query = Q(barcode=search_input) | Q(name=search_input)
+                # Without the ASCII digit check, a non-numeric q (including "²") on the integer id gives HTTP 500.
+                if re.fullmatch(r"\d+", search_input, re.ASCII):
+                    exact_query |= Q(id=search_input)
+                containers_data = containers_data.filter(exact_query).order_by("id")
             else:
-                query = Q(barcode__icontains=search_input)
-                query.add(Q(name__icontains=search_input), Q.OR)
-                query.add(Q(id__icontains=search_input), Q.OR)
-            if is_parent:
-                kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            if is_sample_holding:
-                kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            containers_data = Container.objects.filter(query)
+                # fzy is smart-case: a lowercase letter in q matches both cases, but an uppercase letter in q matches only the same uppercase letter.
+                # Example: GET /api/containers/search/?q=BOX with FZY(q, F("barcode")) does not return box-1.
+                # Lowercasing q and the fields makes every query case-insensitive.
+                fuzzy_input = search_input.lower()
+                # Without Cast, fzy on the integer id gives HTTP 500.
+                containers_data = containers_data.annotate(
+                    score=Greatest(
+                        FZY(fuzzy_input, Lower("barcode")),
+                        FZY(fuzzy_input, Lower("name")),
+                        FZY(fuzzy_input, Cast("id", CharField())),
+                    )
+                )
+                # Without this filter, non-matches and very weak matches are returned.
+                containers_data = containers_data.filter(score__gt=0)
+                # Without "id" as a tiebreaker, containers with equal scores can change order between page queries, and then repeat or skip across pages.
+                containers_data = containers_data.order_by("-score", "-id")
         else:
-            containers_data = Container.objects.all()
+            containers_data = containers_data.none()
 
         page = self.paginate_queryset(containers_data)
         serializer = self.get_serializer(page, many=True)
@@ -239,5 +258,5 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         Lists all django_reversion Version objects associated with a container.
         """
         return versions_detail(self.get_object())
-    
-    
+
+
