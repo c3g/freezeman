@@ -19,6 +19,7 @@ Django project, Python 3.14, PostgreSQL 15+ with the `fzy` extension. Production
 - `templates/`, `static/`, `media/`, `docs/`, `README.md`.
 
 Commands (run in `backend/`):
+- `env/bin/python manage.py collectstatic --noinput`: copies static files to `staticfiles/`. Run it before `runserver`, before a production run (uwsgi), and after each change to the templates in `fms_core/static/submission_templates/`.
 - `env/bin/python manage.py runserver` (port 8000).
 - `env/bin/python manage.py migrate`. Ask first.
 - `env/bin/python manage.py test <path>`. Ask before the full suite.
