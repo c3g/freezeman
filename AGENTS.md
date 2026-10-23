@@ -82,6 +82,9 @@ Load `freezeman-backend` or `freezeman-frontend` only to change code in its dire
   - Body, in ASD-STE100 style with bullet/numbered points:
     1. Goal: why the change is necessary (problem, ticket, or request).
     2. Notes (if applicable): non-obvious decisions, rejected alternatives, known limits, follow-up work.
+- Before each commit, ask the user whether you are a co-author of the commit. Ask again for each commit. Do not reuse an earlier answer.
+  - If the user says yes, add your `Co-Authored-By` line as the last line.
+  - If the user says no, do not add a `Co-Authored-By` line for you.
 - After your actual commit message, add a haiku that describes the commit. Put the haiku above the Co-Authored-By line, so the Co-Authored-By line stays last.
 - If the commit has no Co-Authored-By line but you wrote the haiku, add `Haiku by <your model name>` on the last line, as plain text and not a trailer, so GitHub does not list you as co-author.
 
