@@ -35,6 +35,12 @@ services:
       PG_PASSWORD: ${POSTGRES_PASSWORD}
       PG_HOST: db
       PG_PORT: "5432"
+      # psql in this container reads these (README.md: "Database access")
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
     userns_mode: keep-id
     volumes:
       - ..:/src:z
@@ -48,6 +54,10 @@ services:
     ports:
       - "8000:8000"
       - "9000:9000"
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/dev.log
     # The entrypoint waits until the database accepts connections.
     depends_on:
       db:

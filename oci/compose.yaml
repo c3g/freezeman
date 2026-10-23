@@ -1,7 +1,7 @@
 # FreezeMan, production-like stack.
 #
 #   cd oci && cp .env.example .env   # then edit .env
-#   mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media
+#   mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media logs
 #   podman-compose build
 #   podman-compose up -d
 #
@@ -18,7 +18,11 @@
 # (plain `up -d` only recreates containers when this file's resolved config changes).
 #
 # Notes:
-#   - restart: always does not start containers at boot. Run `podman-compose up -d` after a reboot.
+#   - restart: always restarts a container that exits while podman runs. It does not start
+#     containers at boot. `start.sh` does that (README.md: "Start the stack at boot").
+#   - Each service writes its log to ${FMS_LOG_DIR}/<service>.log (default: logs/ in this directory,
+#     as an absolute path). The file stays after `down` and `--force-recreate`. The path must be
+#     absolute: a relative path breaks `podman restart` from another directory.
 #   - podman-compose does not check migrate's exit code; check its logs.
 
 name: freezeman
@@ -48,6 +52,10 @@ services:
     volumes:
       # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
       - pgdata:/var/lib/postgresql/data
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/db.log
     restart: always
 
   # One-shot: apply migrations, then exit (a Job in Kubernetes).
@@ -63,6 +71,10 @@ services:
     depends_on:
       db:
         condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/migrate.log
     restart: "no"
 
   backend:
@@ -86,6 +98,10 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/backend.log
     restart: always
 
   # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
@@ -100,6 +116,10 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/report.log
     restart: always
 
   # Daily pg_dumpall into FMS_BACKUP_DIR on the host, as <YYYY-MM-DD>.pgsql.gz, at FMS_BACKUP_TIME
@@ -120,6 +140,10 @@ services:
     depends_on:
       db:
         condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/backup.log
     restart: always
 
   # One-shot: copy the built frontend and the Django static files into host directories that the
@@ -142,6 +166,10 @@ services:
     volumes:
       - ${FMS_FRONTEND_DIST_DIR:-../frontend/dist}:/out/dist
       - ${FMS_STATIC_DIR:-../backend/staticfiles}:/out/static
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/assets.log
     restart: "no"
 
   # nginx in a container: for tests without a host nginx, and the model for Kubernetes.
@@ -162,6 +190,10 @@ services:
     depends_on:
       backend:
         condition: service_started
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/web.log
     restart: always
 
 volumes:
