@@ -41,8 +41,8 @@ is `UWSGI_VERSION` in `Containerfile`. uwsgi settings are in `backend/uwsgi.ini`
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
 | `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
-| `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
-| `assets`   | `localhost/freezeman-web`     | One-shot: copies the built frontend and the Django static files into host directories for the host nginx, then exits |
+| `backup`   | `localhost/freezeman-backup`  | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
+| `assets`   | `localhost/freezeman-assets`  | One-shot: copies the built frontend and the Django static files into host directories for the host nginx, then exits |
 | `web`      | `localhost/freezeman-web`     | Profile `web`. nginx in a container: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`). For tests without a host nginx |
 
 The host nginx keeps the config of `DEPLOYMENT.md` (TLS, certificate and locations). The containers supply what
@@ -50,7 +50,7 @@ this config expects, so the host nginx needs no change. With the repository at `
 
 | Host nginx location | Host path | Supplied by |
 |---|---|---|
-| `/` (`root`) | `/data/freezeman/frontend/dist/` | `assets` (copy from the `web` image) |
+| `/` (`root`) | `/data/freezeman/frontend/dist/` | `assets` (copy from the `assets` image) |
 | `/static/` (`alias`) | `/data/freezeman/backend/staticfiles/` | `assets` |
 | `/media/` (`alias`) | `/data/freezeman/backend/media/` | `backend` (bind mount) |
 | `/api/` (`uwsgi_pass unix:`) | `/data/freezeman/backend/fms.sock` | `backend` (uwsgi unix socket in a bind mount) |
@@ -132,7 +132,7 @@ Run these steps as `django` (`sudo su - django`).
       containers in `XDG_RUNTIME_DIR`. Two shells with different values do not see the same containers.
       A shell opened with `sudo su - django` does not set the variable. The lines below set it only when it is
       empty and `/run/user/<uid>` exists. Cron jobs that use
-      `bash --login -c` read this file too. `start.sh` (step 8) applies the same rule.
+      `bash --login -c` read this file too. `start.py` (step 8) applies the same rule.
 
       ```bash
       cp ~/.bash_profile ~/.bash_profile.bak
@@ -218,12 +218,12 @@ Run these steps as `django` (`sudo su - django`).
    of `django` (`crontab -e`):
 
    ```cron
-   @reboot /data/freezeman/oci/start.sh >> /data/freezeman/oci/logs/boot.log 2>&1
+   @reboot /data/freezeman/oci/start.py >> /data/freezeman/oci/logs/boot.log 2>&1
    ```
 
-   `start.sh` sets `XDG_RUNTIME_DIR` as in step 1, then runs `podman-compose up -d` in `oci/`. At boot it waits up
+   `start.py` sets `XDG_RUNTIME_DIR` as in step 1, then runs `podman-compose up -d` in `oci/`. At boot it waits up
    to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)). This step needs a cron
-   daemon (`cronie` on Rocky) and no root. If the host is a container, it has no cron. Start `start.sh`, as
+   daemon (`cronie` on Rocky) and no root. If the host is a container, it has no cron. Start `start.py`, as
    `django`, from the init of the outer container instead.
 
 Then start the stack: see [Start, stop and restart](#start-stop-and-restart).
@@ -318,6 +318,9 @@ podman-compose up -d --force-recreate
 podman-compose logs migrate
 ```
 
+`build` makes the `db`, `backend`, `backup` and `assets` images. It does not make `web`: see
+[Test the production stack locally](#test-the-production-stack-locally).
+
 #### Database backups
 
 The `backup` service runs `pg_dumpall` every day at `FMS_BACKUP_TIME` (default `01:00`, in `TZ`)
@@ -347,8 +350,8 @@ podman-compose logs migrate
   psql must start in another database, so it starts in `postgres`. The messages "role admin already
   exists", "database fms already exists" and "extension fzy already exists" are harmless.
 - The container runs as root, which rootless podman maps to the deployment user, so that user owns the
-  files. The bind mount uses `:z` for SELinux. The backup image is the `db` image, so `pg_dumpall` always
-  matches the server version.
+  files. The bind mount uses `:z` for SELinux. The `backup` image has the same PostgreSQL base image as the
+  `db` image (`POSTGRES_IMAGE`), so `pg_dumpall` always matches the server version.
 - Copy the directory off the host as well: a backup on the same disk does not protect against disk loss.
 
 #### Daily report data
@@ -507,6 +510,7 @@ Then start the stack and the container nginx, which replaces the host nginx:
 ```bash
 mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media logs
 podman-compose build
+podman-compose --profile web build     # podman-compose does not build the services of an inactive profile
 podman-compose up -d
 podman-compose --profile web up -d
 ```

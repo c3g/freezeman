@@ -4,8 +4,9 @@
 #   dev            Idle development container with the venv, Python 3.14 and Node 24; expects the
 #                  repository bind-mounted at /src. The developer starts runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   web           nginx serving the built frontend + Django static files, passing /api to uwsgi.
-#                  Also supplies those files to the host nginx (fms-export-assets, "assets" service)
+#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
+#   assets         Python image that copies those files into host directories for the host nginx
+#                  (fms-export-assets, "assets" service). The web image has no Python
 #
 # The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
 # because the code reads ../VERSION relative to backend/ and frontend/.
@@ -29,8 +30,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --uid 1000 --create-home --shell /bin/sh fms \
  && install -d -o fms -g fms /home/fms/reports
-COPY --chmod=755 oci/backend/entrypoint.sh /usr/local/bin/fms-entrypoint
-COPY --chmod=755 oci/backend/report.sh /usr/local/bin/fms-report
+COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
+COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 WORKDIR /src/backend
 ENTRYPOINT ["fms-entrypoint"]
@@ -108,9 +109,8 @@ RUN install -d -m 1777 /home/dev
 ENV HOME=/home/dev \
     NPM_CONFIG_CACHE=/home/dev/.npm
 # Shells and editor terminals start in the repository root, like the Dev Container workspace folder.
-# fms-entrypoint creates its directories relative to /src/backend, so the wrapper changes there first.
 WORKDIR /src
-ENTRYPOINT ["sh", "-c", "cd /src/backend && exec fms-entrypoint \"$@\"", "--"]
+ENTRYPOINT ["fms-entrypoint"]
 EXPOSE 8000 9000
 CMD ["sleep", "infinity"]
 
@@ -142,7 +142,14 @@ CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 FROM ${NGINX_IMAGE} AS web
 ENV BACKEND_UPSTREAM=backend:8000
 COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY --chmod=755 oci/nginx/export-assets.sh /usr/local/bin/fms-export-assets
 COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
 COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
 EXPOSE 8080
+
+# Copies the files of the web image into the host directories of the host nginx. A separate image,
+# because the nginx image has no Python.
+FROM ${PYTHON_IMAGE} AS assets
+COPY --from=frontend-build /src/frontend/dist /srv/fms/html
+COPY --from=backend-prod /src/backend/staticfiles /srv/fms/static
+COPY --chmod=755 oci/assets/export-assets.py /usr/local/bin/fms-export-assets
+ENTRYPOINT ["fms-export-assets"]

@@ -19,7 +19,7 @@
 #
 # Notes:
 #   - restart: always restarts a container that exits while podman runs. It does not start
-#     containers at boot. `start.sh` does that (README.md: "Start the stack at boot").
+#     containers at boot. `start.py` does that (README.md: "Start the stack at boot").
 #   - Each service writes its log to ${FMS_LOG_DIR}/<service>.log (default: logs/ in this directory,
 #     as an absolute path). The file stays after `down` and `--force-recreate`. The path must be
 #     absolute: a relative path breaks `podman restart` from another directory.
@@ -130,8 +130,11 @@ services:
   # (a CronJob in Kubernetes). The directory must exist. Runs as root in the container,
   # which rootless podman maps to the host user, so that user owns the files.
   backup:
-    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
-    entrypoint: ["fms-backup"]
+    image: localhost/freezeman-backup:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/db/Containerfile
+      target: backup
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -152,18 +155,16 @@ services:
 
   # One-shot: copy the built frontend and the Django static files into host directories that the
   # host nginx serves (DEPLOYMENT.md paths), then exit. Runs as root in the container, which
-  # rootless podman maps to the host user, so that user owns the files. It also builds the
-  # web image, which "web" reuses.
+  # rootless podman maps to the host user, so that user owns the files.
   assets:
-    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-assets:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: oci/Containerfile
-      target: web
+      target: assets
       args:
         FMS_ENV: ${FMS_ENV:-PROD}
     user: "0"
-    entrypoint: ["fms-export-assets"]
     # The host nginx reads the files: keep the label of the parent directory (see backend).
     security_opt:
       - label=disable
@@ -180,6 +181,12 @@ services:
   # Not needed when the host nginx serves FreezeMan.
   web:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: web
+      args:
+        FMS_ENV: ${FMS_ENV:-PROD}
     profiles: ["web"]
     environment:
       BACKEND_UPSTREAM: backend:8000

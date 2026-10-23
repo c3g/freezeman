@@ -1,6 +1,7 @@
 # PostgreSQL with the fzy extension (backend/dependencies/pg_fzy).
 # Build context: repository root
-#   podman build -f oci/db/Containerfile .
+#   podman build -f oci/db/Containerfile .                    (server, the default target)
+#   podman build -f oci/db/Containerfile --target backup .    (fms-backup, Python without the server)
 #
 # To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
 # (a new major version needs a dump and restore of existing data).
@@ -16,7 +17,15 @@ WORKDIR /src
 # Compile from source; the binaries in pg_fzy/static target older PostgreSQL versions.
 RUN make clean && make && make install DESTDIR=/out
 
+# The server image has no Python, so the backup job has its own image. The same base keeps
+# pg_dumpall in step with the server version. python3-minimal lacks gzip and shutil.
+FROM ${POSTGRES_IMAGE} AS backup
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 \
+ && rm -rf /var/lib/apt/lists/*
+COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
+ENTRYPOINT ["fms-backup"]
+
 FROM ${POSTGRES_IMAGE}
 COPY --from=build /out/ /
-COPY --chmod=755 oci/db/initdb/ /docker-entrypoint-initdb.d/
-COPY --chmod=755 oci/db/backup.sh /usr/local/bin/fms-backup
+COPY oci/db/initdb/ /docker-entrypoint-initdb.d/
