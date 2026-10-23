@@ -1,10 +1,13 @@
-# Development override: source bind-mounted from the host, Django runserver
-# and webpack-dev-server with live reload. Works with podman-compose on any OS
-# (on macOS/Windows inside `podman machine`).
+# Development override: one idle "dev" container with Python 3.14 (venv) and Node 24, and the
+# source bind-mounted from the host. It starts no server. Enter it and start runserver,
+# npm start and migrate by hand. Works with podman-compose on any OS (on macOS/Windows
+# inside `podman machine`).
 #
-#   podman-compose -f compose.yaml -f compose.dev.yaml up
+#   podman-compose -f compose.yaml -f compose.dev.yaml up -d
+#   podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 #
 # Frontend: http://localhost:9000   Backend: http://localhost:8000
+# VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and README.md.
 #
 # The repository is mounted at /src so backend/fms/info.py and
 # frontend/webpack.config.js find ../VERSION and .git as they do outside
@@ -12,63 +15,52 @@
 # ignored elsewhere. userns_mode: keep-id keeps files written into the
 # repository (fms.log, migrations, uploads) owned by the host user.
 
-x-dev-backend: &dev-backend
-  image: localhost/freezeman-backend-dev:latest
-  environment:
-    FMS_ENV: LOCAL
-    FMS_DEBUG: "True"
-  userns_mode: keep-id
-  restart: "no"
-
 services:
   db:
     ports:
       - "5432:5432"
 
-  migrate:
-    <<: *dev-backend
-    build:
-      target: backend-dev
-    volumes:
-      - ..:/src:z
-
-  backend:
-    # compose.yaml adds FMS_UWSGI_SOCKET, the /run/fms mount and label=disable for the host nginx.
-    # runserver ignores them, so they stay.
-    <<: *dev-backend
-    volumes:
-      - ..:/src:z
-      # Replace the named volumes from compose.yaml with the repository directories
-      - ../backend/media:/src/backend/media:z
-      - ../backend/triggers:/src/backend/triggers:z
-      - ../backend/automations_work:/src/backend/automations_work:z
-    ports:
-      - "8000:8000"
-      # Published here because the frontend shares this network namespace
-      - "9000:9000"
-
-  frontend:
-    image: localhost/freezeman-frontend-dev:latest
+  dev:
+    image: localhost/freezeman-dev:latest
     build:
       context: ..
       dockerfile: oci/Containerfile
-      target: frontend-dev
+      target: dev
+    env_file: .env
     environment:
       FMS_ENV: LOCAL
-      # The keep-id user's home directory does not exist in the image
-      NPM_CONFIG_CACHE: /tmp/.npm
+      FMS_DEBUG: "True"
+      PG_DATABASE: ${POSTGRES_DB}
+      PG_USER: ${POSTGRES_USER}
+      PG_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_HOST: db
+      PG_PORT: "5432"
     userns_mode: keep-id
     volumes:
       - ..:/src:z
+      # Repository directories instead of the named volumes of the production services
+      - ../backend/media:/src/backend/media:z
+      - ../backend/triggers:/src/backend/triggers:z
+      - ../backend/automations_work:/src/backend/automations_work:z
       # Linux dependencies installed by the container, separate from the host's node_modules
       # (":U" chowns the volume to the container user)
       - frontend_node_modules:/src/frontend/node_modules:U
-    # Shares the backend network namespace, so webpack reaches the API at
-    # localhost:8000 as outside containers (webpack.config.js is unchanged).
-    network_mode: "service:backend"
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    # The entrypoint waits until the database accepts connections.
     depends_on:
-      - backend
+      db:
+        condition: service_started
     restart: "no"
+
+  migrate:
+    # The developer runs the migrations by hand in "dev".
+    profiles: ["prod"]
+
+  backend:
+    # The developer runs runserver by hand in "dev".
+    profiles: ["prod"]
 
   assets:
     # The host nginx files are not copied in development.

@@ -1,10 +1,10 @@
 # FreezeMan application images. Build context: repository root.
 #
 # Targets:
-#   backend-dev    Django runserver; expects the repository bind-mounted at /src
+#   dev            Idle development container with the venv, Python 3.14 and Node 24; expects the
+#                  repository bind-mounted at /src. The developer starts runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   frontend-dev   webpack-dev-server; expects the repository bind-mounted at /src
-#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi.
+#   web           nginx serving the built frontend + Django static files, passing /api to uwsgi.
 #                  Also supplies those files to the host nginx (fms-export-assets, "assets" service)
 #
 # The layout mirrors the repository (/src/backend, /src/frontend, /src/VERSION)
@@ -45,33 +45,19 @@ COPY backend/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
 
-FROM python-base AS backend-dev
-# fms/info.py reads commit information from the bind-mounted .git
-RUN apt-get update \
- && apt-get install -y --no-install-recommends git postgresql-client \
- && rm -rf /var/lib/apt/lists/* \
- && git config --system --add safe.directory '*'
-COPY --from=backend-deps /opt/venv /opt/venv
-EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-
 #############
 # Frontend  #
 #############
 
-FROM ${NODE_IMAGE} AS node-base
+FROM ${NODE_IMAGE} AS node-runtime
+
+FROM node-runtime AS node-base
 # webpack.config.js shells out to git for the commit hash, branch and date
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory '*'
 WORKDIR /src/frontend
-
-FROM node-base AS frontend-dev
-EXPOSE 9000
-# Reinstall dependencies only when package-lock.json is newer than the installed tree.
-CMD ["sh", "-c", "if [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then npm ci; fi && exec npx webpack serve --mode development --host 0.0.0.0 --port 9000 --allowed-hosts all"]
 
 FROM node-base AS frontend-build
 COPY frontend/package.json frontend/package-lock.json ./
@@ -96,6 +82,37 @@ RUN --mount=type=bind,source=.git,target=/src/.git \
       "$(git branch --show-current)" \
       > /build_info.json \
  && cat /build_info.json
+
+
+#####################
+# Development image #
+#####################
+
+# Both toolchains in one image, so that one container (and the editor in it) sees the venv and
+# node_modules. Defined after the backend and frontend stages, which it copies from.
+FROM python-base AS dev
+# fms/info.py and webpack.config.js read commit information from the bind-mounted .git
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git postgresql-client ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+COPY --from=backend-deps /opt/venv /opt/venv
+# Node comes from NODE_IMAGE, so the version follows that ARG.
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+# keep-id runs the container as the host UID, which has no passwd entry and no home directory.
+# VS Code Server and npm need a writable home.
+RUN install -d -m 1777 /home/dev
+ENV HOME=/home/dev \
+    NPM_CONFIG_CACHE=/home/dev/.npm
+# Shells and editor terminals start in the repository root, like the Dev Container workspace folder.
+# fms-entrypoint creates its directories relative to /src/backend, so the wrapper changes there first.
+WORKDIR /src
+ENTRYPOINT ["sh", "-c", "cd /src/backend && exec fms-entrypoint \"$@\"", "--"]
+EXPOSE 8000 9000
+CMD ["sleep", "infinity"]
 
 
 #####################

@@ -6,6 +6,8 @@ Contents:
 - [Production-like stack](#production-like-stack)
   - [For reference only: first account on an empty database](#for-reference-only-first-account-on-an-empty-database)
 - [Development](#development)
+  - [Dev Container](#dev-container)
+  - [Other editors](#other-editors)
 - [Production deployment](#production-deployment)
   - [Deployment user setup](#deployment-user-setup)
   - [Host nginx](#host-nginx)
@@ -28,7 +30,7 @@ Container images and podman-compose configuration for FreezeMan:
 | `backup`   | `localhost/freezeman-db`      | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
 | `assets`   | `localhost/freezeman-web`     | One-shot: copies the built frontend and the Django static files into host directories for the host nginx, then exits |
 | `web`      | `localhost/freezeman-web`     | Profile `web`. nginx in a container: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`). For tests without a host nginx |
-| `frontend` | dev only                      | webpack-dev-server, port 9000                                   |
+| `dev`      | `localhost/freezeman-dev`     | Dev only. Idle container with the venv, Python 3.14 and Node 24. You start runserver and webpack by hand. Replaces `backend` and `frontend` in development |
 
 The stack runs the same software as `DEPLOYMENT.md` (same major versions):
 Python 3.14, Node 24, uwsgi 2.0 behind nginx, PostgreSQL 15. The PostgreSQL version is the
@@ -39,7 +41,7 @@ Files:
 
 ```
 oci/
-├── Containerfile              # backend-dev, backend-prod, frontend-dev, web targets (context: repo root)
+├── Containerfile              # dev, backend-prod, web targets (context: repo root)
 ├── db/Containerfile           # postgres + fzy (context: repo root)
 ├── db/initdb/10-fzy.sh        # CREATE EXTENSION fzy in template1 and $POSTGRES_DB on first start
 ├── db/backup.sh              # daily pg_dumpall loop of the backup service
@@ -49,13 +51,14 @@ oci/
 ├── nginx/default.conf.template  # config of the web service
 ├── nginx/export-assets.sh     # copies the frontend and static files out of the web image (assets service)
 ├── compose.yaml               # production-like stack
-├── compose.dev.yaml           # development override
+├── compose.dev.yaml           # development override (service dev)
 ├── ROCKY.md                   # Rocky Linux 9.6 host requirements (for IT)
 └── .env.example               # copy to .env
 ```
 
 Related files outside `oci/`:
 
+- `.devcontainer/devcontainer.json`: runs the editor inside the `dev` service (see [Dev Container](#dev-container)).
 - `.containerignore`: build context exclusions. The build context is the repository root, so the file must be there.
 - `backend/fms/info.py`: reads `fms/build_info.json`, which the image build writes.
   Images contain no `.git`. Without this change `git show` returns an empty string on master,
@@ -174,23 +177,67 @@ for user in User.objects.filter(freezeman_user__isnull=True):
 Works on any OS with podman and podman-compose (macOS and Windows through
 `podman machine`); the `:z` SELinux labels are ignored where SELinux is absent.
 
+The dev stack has two containers: `db` and `dev`. `dev` has Python 3.14 (venv in `/opt/venv`)
+and Node 24, and it runs nothing by itself. You start the servers by hand.
+
 ```bash
-podman-compose -f compose.yaml -f compose.dev.yaml up
+podman-compose -f compose.yaml -f compose.dev.yaml up -d
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
 
-- Frontend with live reload: `http://localhost:9000` (proxies `/api` to the backend; the
-  frontend container shares the backend network namespace, so port 9000 is published by `backend`)
-- Django runserver: `http://localhost:8000`, auto-reloads on code changes
+In the `dev` shell:
+
+```bash
+# First start and after each new migration:
+cd /src/backend && python manage.py migrate && python manage.py createinitialrevisions
+
+# Backend: http://localhost:8000, reloads on code changes
+cd /src/backend && python manage.py runserver 0.0.0.0:8000
+
+# Frontend with live reload: http://localhost:9000 (proxies /api to port 8000)
+cd /src/frontend && npm ci && npm start -- --host 0.0.0.0
+```
+
+- Use `0.0.0.0`: the published port connects to the container IP, not to the container loopback.
+  The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
+- Run the servers in two shells (or in the background).
 - PostgreSQL: `localhost:5432`
-- The repository is bind-mounted at `/src`; files the containers write (`fms.log`,
+- The repository is bind-mounted at `/src`; files the container writes (`fms.log`,
   migrations, uploads) are owned by your host user (`userns_mode: keep-id`).
 - Container `node_modules` live in a named volume, separate from the host's.
+- The production services `migrate`, `backend`, `assets` and `web` have the profile `prod`
+  in development, so `up -d` does not start them.
 
 Tests (the test database is created from `template1`, which already has `fzy`):
 
 ```bash
-podman-compose -f compose.yaml -f compose.dev.yaml exec backend pytest
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && pytest'
 ```
+
+The `dev` shell starts in `/src`.
+
+### Dev Container
+
+`.devcontainer/devcontainer.json` runs the editor inside `dev`, so the language servers see
+the venv (`/opt/venv/bin/python`) and `node_modules`. It uses the same compose files and
+starts `db` and `dev`. It starts no server: use a terminal in the editor, as above.
+
+1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
+2. For podman, set these VS Code user settings: `"dev.containers.dockerPath": "podman"` and
+   `"dev.containers.dockerComposePath": "podman-compose"`.
+3. Open the repository in VS Code and run "Dev Containers: Reopen in Container".
+
+The Dev Containers extension with `podman-compose` has known quirks. If "Reopen in Container" fails,
+use `exec dev bash` as above.
+
+### Other editors
+
+The venv and `node_modules` are in the container, not on the host, so a host editor does not
+resolve imports. Choose one:
+
+- Run the editor in the container (see [Dev Container](#dev-container)).
+- Create a host venv (`backend/env`) and run `npm ci` on the host, as in the classic setup.
+  The host `node_modules` and the container volume are separate.
 
 ## Production deployment
 
