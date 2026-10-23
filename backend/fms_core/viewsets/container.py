@@ -2,7 +2,7 @@ import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
 from django.db.models import Q, F, Prefetch, CharField
-from django.db.models.functions import Cast, Greatest
+from django.db.models.functions import Cast, Greatest, Lower
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -140,7 +140,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
-        
+
         return Response(serializer.data)
 
     def get_renderer_context(self):
@@ -197,12 +197,16 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                     exact_query |= Q(id=search_input)
                 containers_data = containers_data.filter(exact_query).order_by("id")
             else:
+                # fzy is smart-case: a lowercase letter in q matches both cases, but an uppercase letter in q matches only the same uppercase letter.
+                # Example: GET /api/containers/search/?q=BOX with FZY(q, F("barcode")) does not return box-1.
+                # Lowercasing q and the fields makes every query case-insensitive.
+                fuzzy_input = search_input.lower()
                 # Without Cast, fzy on the integer id gives HTTP 500.
                 containers_data = containers_data.annotate(
                     score=Greatest(
-                        FZY(search_input, F("barcode")),
-                        FZY(search_input, F("name")),
-                        FZY(search_input, Cast("id", CharField())),
+                        FZY(fuzzy_input, Lower("barcode")),
+                        FZY(fuzzy_input, Lower("name")),
+                        FZY(fuzzy_input, Cast("id", CharField())),
                     )
                 )
                 # Without this filter, non-matches and very weak matches are returned.
@@ -254,5 +258,5 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         Lists all django_reversion Version objects associated with a container.
         """
         return versions_detail(self.get_object())
-    
-    
+
+
