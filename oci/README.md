@@ -113,13 +113,17 @@ Development works on any OS with podman and podman-compose. The `:z` SELinux lab
 Do this section only if your host reaches the internet through an HTTP proxy (for example the lab dev server).
 Without a proxy, skip it. The stack then works as before. Production has no proxy: leave the variables unset there.
 
-- Export the proxy in the shell, for example in `~/.bashrc` or `~/.profile`. Use the uppercase names:
+- Give the proxy to the `podman-compose` command. Use the uppercase names. Set them before the command, so
+  they apply only to this command and not to other commands of the shell:
 
   ```bash
-  export HTTP_PROXY=http://<proxy-host>:<port>
-  export HTTPS_PROXY=http://<proxy-host>:<port>
-  export NO_PROXY=localhost,127.0.0.1
+  HTTP_PROXY=http://<proxy-host>:<port> \
+  HTTPS_PROXY=http://<proxy-host>:<port> \
+  NO_PROXY=localhost,127.0.0.1 \
+  podman-compose build
   ```
+
+  Do the same for `podman pull` and `podman-compose up`.
 
 - Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
 - The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
@@ -127,7 +131,15 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
   Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
 - `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
   You do not add them.
-- The proxy values are build arguments of podman and stay out of the images. Only `dev` has them in its environment.
+- The proxy values are build arguments of podman and stay out of the images. They can still reach the environment
+  of running containers:
+  - `dev` always gets them from `compose.dev.yaml`.
+  - Values in `.env` also reach `migrate`, `backend` and `report`, through `env_file: .env`.
+  - Values in the environment of the command also reach every container. Podman copies the proxy variables of its own
+    environment into each container (`http_proxy = true`, the default of `containers.conf`).
+
+  Only in `dev` does `NO_PROXY` get the service names. The other services do not need them, because they reach `db`
+  over the PostgreSQL protocol and not over HTTP.
 - Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
   `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
 - Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.
@@ -387,8 +399,8 @@ Add a line to the crontab of `django` (`crontab -e`). The example checks every 1
 ```
 
 - Add `--profile web` to build and start the container nginx too. The option can be repeated.
-- If the host uses an HTTP proxy, cron does not have it. Run the command as
-  `bash --login -c '<command>'`, so `~/.bash_profile` exports the proxy (see [Proxy](#proxy)).
+- If the host uses an HTTP proxy, cron does not have it. Set the proxy variables before the command in the
+  crontab line, as in [Proxy](#proxy): `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... /data/freezeman/oci/autoupdate.py ...`
 - If the host has no cron (the host is a container), add `--interval 600` and start the command, as `django`,
   from the init of the outer container, like `start.py`. The script then checks every 600 seconds and never exits.
   Redirect its output to `logs/autoupdate.log`.
