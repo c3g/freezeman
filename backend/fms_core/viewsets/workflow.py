@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.db.models import Prefetch
 
 from fms_core.models import Workflow, StepOrder
-from fms_core.serializers import WorkflowSerializer
+from fms_core.serializers import WorkflowSerializer, StepOrderSerializer
 from fms_core.services.step_order import valid_step_orders_for_study_queueing
 
 from ._constants import _workflow_filterset_fields
@@ -35,17 +35,15 @@ class WorkflowViewSet(viewsets.ModelViewSet):
         Returns:
             Response containing the list of valid step order ids
         """
-        print("Mooo")
         errors = []
-        sample_ids: int = request.GET.get('sample_ids')
+        sample_ids: list[int] = [int(sample_id) for sample_id in request.GET.get('sample_ids').split(",")] if request.GET.get('sample_ids') is not None else []
+
         try:
-            step_order_ids = StepOrder.objects.filter(workflow_id=pk).all()
+            step_orders = [step_order for step_order in StepOrder.objects.filter(workflow_id=pk).all()]
         except Exception as err:
             raise err
-
-        results, errors, _ = valid_step_orders_for_study_queueing(candidate_sample_ids=sample_ids, tested_step_order_ids=step_order_ids)
-        print(results)
+        results, errors, _ = valid_step_orders_for_study_queueing(candidate_sample_ids=sample_ids, tested_step_orders=step_orders)
         if results is not None:
-            return Response(data=results, status=status.HTTP_200_OK)
+            return Response(data=StepOrderSerializer(results, many=True).data, status=status.HTTP_200_OK)
         else:
             raise errors
