@@ -339,13 +339,13 @@ function WorkflowOptions({
       ).data.results
 
       setWorkflowByStudy(
-        workflows.reduce<typeof workflowByStudy>((acc, curr) => {
-          const study = studies.find((s) => s.workflow_id === curr.id)
-          if (study) {
-            acc = acc ?? {}
-            acc[study.id] = curr
+        studies.reduce<typeof workflowByStudy>((workflowByStudy, study) => {
+          const workflow = workflows.find((workflow) => workflow.id === study.workflow_id)
+          if (workflow) {
+            workflowByStudy = workflowByStudy ?? {}
+            workflowByStudy[study.id] = workflow
           }
-          return acc
+          return workflowByStudy
         }, {}),
       )
       setStudies(studies)
