@@ -71,7 +71,14 @@ The container nginx (`--profile web`) is for tests. It does not replace the host
 
 - The repository is bind-mounted at `/src`. Files that the container writes (`fms.log`, migrations, uploads)
   belong to your host user (`userns_mode: keep-id`).
-- Container `node_modules` live in a named volume, separate from the host's.
+- Container `node_modules` live in a named volume, separate from the host's. This gives you:
+  - No clash between the host and the container. `npm ci` installs binaries for one OS and architecture
+    (for example webpack and esbuild). The Linux container and a macOS or Windows host need different binaries.
+  - Faster installs and builds on macOS and Windows. `node_modules` has many small files, and a bind mount
+    is slow through the Podman VM.
+  - Correct file owners (`:U` gives the volume to the container user), and no container files in your checkout.
+
+  The host editor does not see this `node_modules`. Use the [Dev Container](#dev-container) if the editor needs it.
 - The production services `migrate`, `backend`, `assets` and `web` have the profile `prod` in development,
   so `up -d` does not start them. `report` and `backup` do not start either.
 
@@ -86,7 +93,7 @@ Do these steps for both environments:
 
 ### Production
 
-IT completes [ROCKY.md](ROCKY.md) and sends the output of the acceptance checks to the FreezeMan team.
+IT completes [ROCKY.md](ROCKY.md) and sends the output of the [acceptance checks](ROCKY.md#acceptance-checks) to the FreezeMan team.
 Then do the steps in [One-time setup as django](#one-time-setup-as-django).
 
 ### Development
@@ -132,7 +139,17 @@ Run all `podman-compose` commands from `oci/`.
 
 ### Production
 
-Do these steps after IT completes [ROCKY.md](ROCKY.md) and the acceptance checks pass.
+Do these steps after IT completes [ROCKY.md](ROCKY.md) and the [acceptance checks](ROCKY.md#acceptance-checks) pass.
+
+Choose the path for your host:
+
+| Host | Do these sections, in this order |
+|---|---|
+| New host, no data to keep | [One-time setup as django](#one-time-setup-as-django) (all steps), then [Start, stop and restart](#start-stop-and-restart) |
+| Host that runs the classic setup (uwsgi, host PostgreSQL) | [One-time setup as django](#one-time-setup-as-django) (steps 1 to 3), then [Transition from the classic setup](#transition-from-the-classic-setup) (it covers steps 4 to 7 of the setup), then [One-time setup as django](#one-time-setup-as-django) (step 8) |
+
+"One-time setup" prepares the host: podman, the release, the directories and the start at boot. It does not move data.
+"Transition" moves the database, the media files and the triggers from the classic setup to the containers, and switches the site over.
 
 #### One-time setup as django
 
@@ -198,7 +215,7 @@ Run these steps as `django` (`sudo su - django`).
 
    `~/.local/bin` must be in `PATH`. The Rocky default `~/.bashrc` adds it.
 
-4. Get the release. The stack files must be in `/data/freezeman/oci`. The checkout needs a real `.git`
+4. Get the release. The compose files and scripts (`compose.yaml`, `start.py`) must be in `/data/freezeman/oci`. The checkout needs a real `.git`
    directory and the submodules. See [Prerequisites](#prerequisites).
 
    If `/data/freezeman` exists (the classic setup), use it:
