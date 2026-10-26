@@ -48,7 +48,7 @@ is `UWSGI_VERSION` in `Containerfile`. uwsgi settings are in `backend/uwsgi.ini`
 | `web`      | `localhost/freezeman-web`     | Profile `web`. nginx in a container: built frontend, Django static files, `/media/`, passes `/api/` to uwsgi (`uwsgi_pass`). For tests without a host nginx |
 
 The host nginx keeps the config of `DEPLOYMENT.md` (TLS, certificate and locations). The containers supply what
-this config expects, so the host nginx needs no change. With the repository at `/data/freezeman`:
+this config expects, so the host nginx needs no change. The host server block also sets `client_max_body_size 50M` and `client_body_timeout 300s`, and the container nginx uses the same values. With the repository at `/data/freezeman`:
 
 | Host nginx location | Host path | Supplied by |
 |---|---|---|

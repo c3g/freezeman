@@ -14,7 +14,9 @@ server {
     listen 8080;
     server_name _;
 
-    client_max_body_size 100m;
+    # Same values as the production host nginx.
+    client_max_body_size 50m;
+    client_body_timeout 300s;
 
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
