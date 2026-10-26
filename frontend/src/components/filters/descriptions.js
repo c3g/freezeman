@@ -650,10 +650,10 @@ export const POOLED_SAMPLES_FILTERS = {
     key: "project__name",
     label: "Project Name",
   },
-  parent_sample_name: {
+  root_sample_name: {
     type: FILTER_TYPE.INPUT,
-    key: "parent_sample_name",
-    label: "Parent Sample Name",
+    key: "root_sample_name",
+    label: "Root Sample Name",
   },
   alias: {
     type: FILTER_TYPE.INPUT,

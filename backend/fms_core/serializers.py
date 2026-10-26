@@ -861,8 +861,8 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
     individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
-    parent_sample_id = serializers.CharField(read_only=True)
-    parent_sample_name = serializers.CharField(read_only=True)
+    root_sample_id = serializers.CharField(read_only=True)
+    root_sample_name = serializers.CharField(read_only=True)
     container_id = serializers.IntegerField(read_only=True, source='sample.container.id')
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
     parent_container_id = serializers.IntegerField(read_only=True, source='sample.container.location.id')
@@ -892,8 +892,8 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'library_type',
             'library_selection',
             'library_selection_target',
-            'parent_sample_id',
-            'parent_sample_name',
+            'root_sample_id',
+            'root_sample_name',
             'container_id',
             'container_barcode',
             'parent_container_id',
@@ -921,8 +921,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
     experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
-    parent_sample_id = serializers.CharField(read_only=True)
-    parent_sample_name = serializers.CharField(read_only=True)
+    root_sample_id = serializers.CharField(read_only=True)
+    root_sample_name = serializers.CharField(read_only=True)
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
     coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
@@ -979,8 +979,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
         model = DerivedBySample
         fields = [
             'alias',
-            'parent_sample_id',
-            'parent_sample_name',
+            'root_sample_id',
+            'root_sample_name',
             'container_barcode',
             'coordinates',
             'volume_ratio',
