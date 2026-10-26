@@ -80,8 +80,9 @@ export function renderContainer(c) {
   return {
     value: c.id,
     label: (
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        {c.barcode} ({c.name})<Text type="secondary">{c.kind}</Text>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {`${c.barcode} (${c.name}) [${c.id}]`}
+        <Text type="secondary">{c.kind}</Text>
       </div>
     ),
   }
