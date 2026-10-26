@@ -314,7 +314,7 @@ function WorkflowOptions({
       const sampleIDs = samples.map(({ id }) => id)
 
       const commonProjects = (
-        await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs }))
+        await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs.join(",") }))
       ).data.results
       commonProjects.sort((a, b) => a.name.localeCompare(b.name))
 
