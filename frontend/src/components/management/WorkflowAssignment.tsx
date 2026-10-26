@@ -3,7 +3,7 @@ import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
 import { SyncOutlined } from '@ant-design/icons'
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
-import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow } from "../../models/fms_api_models"
+import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow, FMSId } from "../../models/fms_api_models"
 import { notifyError, notifySuccess, notifyWarning } from "../../modules/notification/actions"
 import { Sample, Study } from "../../models/frontend_models"
 import {
@@ -294,6 +294,7 @@ function WorkflowOptions({
   const dispatch = useAppDispatch()
 
   const [sampleCount, setSampleCount] = useState<number>()
+  const [sampleIds, setSamplesIds] = useState<FMSId[]>([])
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -314,8 +315,9 @@ function WorkflowOptions({
           serializeFilterParamsWithDescriptions(filters),
         ),
       )
+      
       const sampleIDs = samples.map(({ id }) => id)
-
+      setSamplesIds(sampleIDs)
       const commonProjects = (
         await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs }))
       ).data.results
@@ -405,6 +407,10 @@ function WorkflowOptions({
     if (!selectedStudy) return result
 
     const workflow = workflowByStudy[selectedStudy.id]
+
+    const validStepOrderIds = dispatch(api.workflows.valid_step_orders_for_sample_queueing(workflow.id, sampleIds)).then((response) => response.data)
+
+    console.log(validStepOrderIds)
 
     for (const step of workflow.steps_order) {
       result.push(
