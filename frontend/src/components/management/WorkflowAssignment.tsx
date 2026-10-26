@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
 import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
@@ -300,7 +300,7 @@ function WorkflowOptions({
   const [studies, setStudies] = useState<FMSStudy[]>()
   const [selectedStudy, setSelectedStudy] = useState<NonNullable<typeof studies>[0]>()
 
-  const [workflowByStudy, setWorkflowByStudy] = useState<Record<Study["id"], FMSWorkflow>>()
+  const [workflowByStudy, setWorkflowByStudy] = useState<Record<Study["id"], FMSWorkflow | undefined>>()
 
   useEffect(() => {
     ;(async () => {
@@ -339,11 +339,11 @@ function WorkflowOptions({
       ).data.results
 
       setWorkflowByStudy(
-        workflows.reduce<typeof workflowByStudy>((acc, curr) => {
-          const study = studies.find((s) => s.workflow_id === curr.id)
-          if (study) {
+        studies.reduce<typeof workflowByStudy>((acc, study) => {
+          const workflow = workflows.find((workflow) => workflow.id === study.workflow_id)
+          if (workflow) {
             acc = acc ?? {}
-            acc[study.id] = curr
+            acc[study.id] = workflow
           }
           return acc
         }, {}),
@@ -390,7 +390,7 @@ function WorkflowOptions({
         options={studies
           .filter((c) => c.project_id == selectedProject.id)
           .map((study) => ({
-            label: `Study ${study.letter} - ${workflowByStudy[study.id].name}`,
+            label: `Study ${study.letter} - ${workflowByStudy[study.id]?.name}`,
             value: study.id,
           }))}
         onChange={(value) => {
@@ -402,6 +402,14 @@ function WorkflowOptions({
     if (!selectedStudy) return result
 
     const workflow = workflowByStudy[selectedStudy.id]
+
+    if (!workflow) {
+      // This shouldn't happen
+      result.push(<Fragment key={"workflow-undefined"}>
+        Could not find workflow for study {selectedStudy.letter}.
+      </Fragment>)
+      return result
+    }
 
     for (const step of workflow.steps_order) {
       result.push(
