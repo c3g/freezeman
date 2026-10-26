@@ -442,12 +442,14 @@ function WorkflowOptions({
       />,
     )
 
+    if (!selectedStepOrder) return result
+
     result.push(
       <Tooltip
         key={actionName + '-submit'}
         destroyOnHidden
         title={
-          selectedStepOrder && selectedStepOrder.mandatory && actionName == "skip"
+          selectedStepOrder.mandatory && actionName == "skip"
             ? `Cannot skip: '${selectedStepOrder.step_name}' is mandatory in workflow '${workflow.name}'.`
             : ""
         }
@@ -458,7 +460,7 @@ function WorkflowOptions({
           loading={isLoading}
           icon= {isLoading ? <SyncOutlined spin /> : <></>}
           iconPlacement="end"
-          disabled={!selectedStepOrder || (selectedStepOrder && selectedStepOrder.mandatory && actionName == "skip")}
+          disabled={selectedStepOrder && selectedStepOrder.mandatory && actionName == "skip"}
           type="primary"
           onClick={async () => {
             if (!selectedStepOrder) 
