@@ -46,4 +46,4 @@ class WorkflowViewSet(viewsets.ModelViewSet):
         if results is not None:
             return Response(data=StepOrderSerializer(results, many=True).data, status=status.HTTP_200_OK)
         else:
-            raise errors
+            return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
