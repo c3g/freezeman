@@ -132,15 +132,13 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
   Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
 - `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
   You do not add them.
-- The proxy values are build arguments of podman and stay out of the images. They can still reach the environment
-  of running containers:
-  - `dev` always gets them from `compose.dev.yaml`.
-  - Values in `.env` also reach `migrate`, `backend` and `report`, through `env_file: .env`.
-  - Values in the environment of the command also reach every container. Podman copies the proxy variables of its own
-    environment into each container (`http_proxy = true`, the default of `containers.conf`).
+- The proxy values are build arguments of podman and stay out of the images. At runtime, only `dev` gets the proxy
+  (from `compose.dev.yaml`). The other services (`db`, `migrate`, `backend`, `report`, `backup`, `assets`, `web`) get
+  empty proxy variables from `compose.yaml`. The empty values override the proxy that podman copies from its own
+  environment (`http_proxy = true`, the default of `containers.conf`) and the proxy values of `.env` (`env_file`).
+  These services make no outbound HTTP calls, so they do not need a proxy.
 
-  Only in `dev` does `NO_PROXY` get the service names. The other services do not need them, because they reach `db`
-  over the PostgreSQL protocol and not over HTTP.
+  Only in `dev` does `NO_PROXY` get the service names.
 - Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
   `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
 - Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.

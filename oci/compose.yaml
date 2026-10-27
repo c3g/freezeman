@@ -43,6 +43,8 @@ x-backend-env: &backend-env
 # developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
 # lists the service names, so traffic between the containers never goes through the proxy.
 # Build arguments only: podman keeps the predefined proxy arguments out of the image.
+# At runtime only "dev" (compose.dev.yaml) gets the proxy. The other services get no proxy
+# (see x-no-proxy).
 x-proxy: &proxy
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}
@@ -50,6 +52,17 @@ x-proxy: &proxy
   http_proxy: ${HTTP_PROXY:-}
   https_proxy: ${HTTPS_PROXY:-}
   no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
+# Runtime: no proxy. Podman copies the proxy of its own environment into each container
+# (containers.conf http_proxy = true), and env_file gives the .env values. Empty values
+# override both. Only "dev" (compose.dev.yaml) keeps the proxy.
+x-no-proxy: &no-proxy
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: ""
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
 
 services:
   db:
@@ -60,6 +73,7 @@ services:
       args:
         <<: *proxy
     environment:
+      <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -82,7 +96,8 @@ services:
       args:
         <<: *proxy
     env_file: .env
-    environment: *backend-env
+    environment:
+      <<: [*backend-env, *no-proxy]
     command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
     depends_on:
       db:
@@ -97,7 +112,7 @@ services:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
     environment:
-      <<: *backend-env
+      <<: [*backend-env, *no-proxy]
       # uwsgi also listens on this unix socket, for the host nginx (uwsgi.ini)
       FMS_UWSGI_SOCKET: /run/fms/fms.sock
     # The host nginx reads the media files and the socket. Without label=disable, SELinux
@@ -125,7 +140,8 @@ services:
   report:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
-    environment: *backend-env
+    environment:
+      <<: [*backend-env, *no-proxy]
     command: ["fms-report"]
     # keep-id: the log files belong to the host user, as uid 1000 (the image user fms), like backend.
     userns_mode: keep-id:uid=1000,gid=1000
@@ -154,6 +170,7 @@ services:
       args:
         <<: *proxy
     environment:
+      <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -195,6 +212,7 @@ services:
         <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
     user: "0"
+    environment: *no-proxy
     # The host nginx reads the files: keep the label of the parent directory (see backend).
     security_opt:
       - label=disable
@@ -220,6 +238,7 @@ services:
         FMS_ENV: ${FMS_ENV:-PROD}
     profiles: ["web"]
     environment:
+      <<: *no-proxy
       BACKEND_UPSTREAM: backend:8000
     ports:
       - "${FMS_HTTP_PORT:-8080}:8080"
