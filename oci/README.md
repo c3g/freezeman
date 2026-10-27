@@ -556,6 +556,14 @@ podman-compose logs -f backend
 tail -f /data/freezeman-oci/oci/logs/backend.log        # each line has a time stamp, the stream and the text
 ```
 
+Each service writes its time stamps in `TZ` (default `America/Montreal`). The `db` service sets the PostgreSQL
+`log_timezone` to `TZ` at each start. Django lines (`migrate`, `backend`) show the offset, for example `-0400`.
+The prefix that podman adds to each line uses the time zone of the host.
+
+The request log is `web.log` (nginx). uwsgi does not log requests (`disable-logging` in `backend/uwsgi.ini`),
+because it can write its times only in UTC. Each `web.log` line ends with `rt=` (total time) and `urt=` (time that
+uwsgi took), in seconds. `urt=` is `-` for files that nginx serves itself.
+
 The files grow without limit. Rotate them with `logrotate` (Rocky has the package: `rpm -q logrotate`) and the crontab of `django`, with no systemd:
 
 1. Create the configuration `~/.config/logrotate/freezeman.conf`. If you set `FMS_LOG_DIR`, change the path.
