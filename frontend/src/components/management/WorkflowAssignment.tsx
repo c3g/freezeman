@@ -365,9 +365,20 @@ function WorkflowOptions({
       }
      
       const workflow = workflowByStudy[selectedStudy.id]
-      const validStepOrders = await dispatch(api.workflows.validStepOrdersForSampleQueueing(workflow.id, sampleIds)).then((response) => response.data)
-
-      setValidStepOrders(validStepOrders)
+      
+      await dispatch(api.workflows.validStepOrdersForSampleQueueing(workflow.id, sampleIds))
+      .then(response => setValidStepOrders(response.data))
+      .catch(response => {
+        const errors = response.data.errors
+        dispatch(
+          notifyError({
+            id: "failed-valid-step-order",
+            title: `Error identifying valid step orders for selected samples on workflow ${workflow.name}.`,
+            description: errors,
+            duration: 10,
+          }),
+        )}
+      ) 
     })()
   }, [dispatch, selectedStudy])
 
