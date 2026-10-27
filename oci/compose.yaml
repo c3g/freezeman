@@ -71,6 +71,7 @@ services:
       context: ..
       dockerfile: oci/db/Containerfile
       args:
+        # apt-get installs the compiler and the PostgreSQL headers to build the fzy extension.
         <<: *proxy
     environment:
       <<: *no-proxy
@@ -94,6 +95,7 @@ services:
       dockerfile: oci/Containerfile
       target: backend-prod
       args:
+        # apt-get (libpq, gcc) and pip (requirements.txt, uwsgi) download packages.
         <<: *proxy
     env_file: .env
     environment:
@@ -168,6 +170,7 @@ services:
       dockerfile: oci/db/Containerfile
       target: backup
       args:
+        # apt-get installs python3 for the backup and notify scripts.
         <<: *proxy
     environment:
       <<: *no-proxy
@@ -209,6 +212,7 @@ services:
       dockerfile: oci/Containerfile
       target: assets
       args:
+        # apt-get (git), npm ci and pip download packages for the frontend build and collectstatic.
         <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
     user: "0"
@@ -234,6 +238,7 @@ services:
       dockerfile: oci/Containerfile
       target: web
       args:
+        # apt-get (git) and npm ci download packages for the frontend build that web copies.
         <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
     profiles: ["web"]

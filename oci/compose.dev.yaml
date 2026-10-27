@@ -38,6 +38,7 @@ services:
       dockerfile: oci/Containerfile
       target: dev
       args:
+        # apt-get (git, psql client), pip and npm download packages while the image builds.
         <<: *proxy
     env_file: .env
     environment:
