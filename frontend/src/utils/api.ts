@@ -729,7 +729,7 @@ function apiFetch<R extends ResponseWithData<any>>(
   }
 }
 
-export type QueryParams = Parameters<typeof qs>[0]
+export type QueryParams = Record<string, string | number>
 
 function get<R extends ResponseWithData<any>>(
   route: string,
