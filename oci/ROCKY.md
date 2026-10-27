@@ -24,6 +24,7 @@ Podman is the smallest-risk option: it uses the Rocky packages and adds no proce
 | 2 | [subuid and subgid](#2-subuid-and-subgid) ranges for `django` | Rootless containers need a range of user ids |
 | 3 | [Linger](#3-linger) for `django` | systemd-logind deletes `/run/user/<uid>` at the last logout of `django`, and podman keeps the state of the running containers there |
 | 4 | [Cron daemon](#4-cron-daemon) (`cronie`) | The `@reboot` line in the crontab of `django` starts the stack at boot |
+| 5 | [Host nginx](#5-host-nginx): HTTP location and upload limits | The host nginx passes HTTP to the `web` container on `127.0.0.1:8080` |
 
 ## Required setup
 
@@ -91,6 +92,43 @@ systemctl is-active crond                          # active
 
 The team runs `podman system migrate` after this, and sets up the boot start (see [README.md](README.md)).
 
+### 5. Host nginx
+
+Required: the HTTP server block passes requests to the `web` container, which listens on `127.0.0.1:8080`. HTTPS stays on the classic FreezeMan.
+
+The `location /` block is done (IT added it):
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+}
+```
+
+In the same HTTP server block, set the limits that the HTTPS block has. Without them, an upload over 1 MB fails with 413:
+
+```nginx
+client_max_body_size 50M;
+client_body_timeout 300s;
+```
+
+```bash
+# Check
+sudo nginx -T | grep -A3 'proxy_pass http://127.0.0.1:8080'
+sudo nginx -T | grep client_max_body_size
+```
+
+## SELinux
+
+SELinux is disabled on this host. No SELinux change is necessary now. If IT enables SELinux later, run
+`sudo setsebool -P httpd_can_network_connect 1`: the host nginx connects to port 8080. The `:z` bind mounts of the stack then relabel the container directories.
+
 ## Acceptance checks
 
 Run `sudo su - django`, then run this block.
@@ -103,6 +141,15 @@ loginctl show-user django -p Linger                # Linger=yes
 rpm -q cronie                                      # cronie-<version>
 systemctl is-active crond                          # active
 podman info --format '{{.Host.NetworkBackend}}'    # netavark
+getenforce                                         # Disabled
+sudo nginx -T | grep -A3 'proxy_pass http://127.0.0.1:8080'
+sudo nginx -T | grep client_max_body_size          # 50M
+```
+
+After the team starts the stack, run:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/     # 200
 ```
 
 ## Undo
@@ -113,3 +160,4 @@ podman info --format '{{.Host.NetworkBackend}}'    # netavark
 | 2. subuid and subgid | `sudo usermod --del-subuids <START>-<END> --del-subgids <START>-<END> django`, with the range added in step 2 |
 | 3. Linger | `sudo loginctl disable-linger django` |
 | 4. Cron daemon | `sudo systemctl disable --now crond` and `sudo dnf remove cronie`, only if step 4 installed `cronie` and no other job needs it |
+| 5. Host nginx | Remove the `location /` block (and the limits that step 5 added) from the HTTP server block, then `sudo nginx -t && sudo systemctl reload nginx` |

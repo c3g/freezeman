@@ -1,15 +1,12 @@
 # FreezeMan, production-like stack.
 #
 #   cd oci && cp .env.example .env   # then edit .env
-#   mkdir -p ../frontend/dist ../backend/staticfiles ../backend/media logs
+#   mkdir -p ../backend/media ../backend/triggers logs
 #   podman-compose build
 #   podman-compose up -d
 #
-# The default services feed the host nginx of DEPLOYMENT.md: "assets" copies the frontend
-# and the static files into host directories, "backend" writes the media files and the uwsgi
-# unix socket (see README.md, "Host nginx"). For a test without a host nginx, add the
-# container nginx (service "web", published on FMS_HTTP_PORT):
-#   podman-compose --profile web up -d
+# The default services include "web" (container nginx). The host nginx passes HTTP to
+# 127.0.0.1:${FMS_HTTP_PORT} (see README.md, "Host nginx").
 #
 # Development: see compose.dev.yaml and README.md.
 #
@@ -115,20 +112,14 @@ services:
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
-      # uwsgi also listens on this unix socket, for the host nginx (uwsgi.ini)
-      FMS_UWSGI_SOCKET: /run/fms/fms.sock
-    # The host nginx reads the media files and the socket. Without label=disable, SELinux
-    # (enforcing on Rocky) blocks nginx; ":z" would relabel them, so it is not used.
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
+    # django owns the files on the host.
     userns_mode: keep-id:uid=1000,gid=1000
-    security_opt:
-      - label=disable
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media
-      - ${FMS_SOCKET_DIR:-../backend}:/run/fms
-      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers
+      - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media:z
+      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers:z
       # Same path on both sides when set: .env also reaches the container (settings.py reads it).
-      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}
+      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}:z
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -202,35 +193,8 @@ services:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/backup.log
     restart: always
 
-  # One-shot: copy the built frontend and the Django static files into host directories that the
-  # host nginx serves (DEPLOYMENT.md paths), then exit. Runs as root in the container, which
-  # rootless podman maps to the host user, so that user owns the files.
-  assets:
-    image: localhost/freezeman-assets:${FMS_IMAGE_TAG:-latest}
-    build:
-      context: ..
-      dockerfile: oci/Containerfile
-      target: assets
-      args:
-        # apt-get (git), npm ci and pip download packages for the frontend build and collectstatic.
-        <<: *proxy
-        FMS_ENV: ${FMS_ENV:-PROD}
-    user: "0"
-    environment: *no-proxy
-    # The host nginx reads the files: keep the label of the parent directory (see backend).
-    security_opt:
-      - label=disable
-    volumes:
-      - ${FMS_FRONTEND_DIST_DIR:-../frontend/dist}:/out/dist
-      - ${FMS_STATIC_DIR:-../backend/staticfiles}:/out/static
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/assets.log
-    restart: "no"
-
-  # nginx in a container: for tests without a host nginx, and the model for Kubernetes.
-  # Not needed when the host nginx serves FreezeMan.
+  # nginx in a container: the production entry. The host nginx passes HTTP to it.
+  # Also the model for Kubernetes.
   web:
     image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
     build:
@@ -241,16 +205,14 @@ services:
         # apt-get (git) and npm ci download packages for the frontend build that web copies.
         <<: *proxy
         FMS_ENV: ${FMS_ENV:-PROD}
-    profiles: ["web"]
     environment:
       <<: *no-proxy
       BACKEND_UPSTREAM: backend:8000
+    # Only the host nginx can reach it. A developer in a VM or container sets FMS_HTTP_ADDR=0.0.0.0.
     ports:
-      - "${FMS_HTTP_PORT:-8080}:8080"
-    security_opt:
-      - label=disable
+      - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro
+      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro,z
     # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
     # and restart: always is the fallback if the name does not resolve yet.
     depends_on:

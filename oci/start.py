@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Start the stack. Run it from cron: `@reboot /data/freezeman/oci/start.py` (README.md).
+# Start the stack. Run it from cron: `@reboot /data/freezeman-oci/oci/start.py` (README.md).
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 # Send an alert email if `podman-compose up -d` fails or if a container is in a wrong state after CHECK_DELAY.
 import json
@@ -15,7 +15,7 @@ import notify
 CHECK_DELAY = 60
 PROJECT = "freezeman"
 # One-shot services: they must exit with 0. The other services must run.
-ONE_SHOT = ("migrate", "assets")
+ONE_SHOT = ("migrate",)
 
 
 # The fields of `podman ps --format json` that failed_containers() reads.

@@ -87,10 +87,6 @@ services:
     # The developer runs runserver by hand in "dev".
     profiles: ["prod"]
 
-  assets:
-    # The host nginx files are not copied in development.
-    profiles: ["prod"]
-
   web:
     # The production nginx image is not used in development.
     profiles: ["prod"]

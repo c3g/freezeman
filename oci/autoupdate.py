@@ -2,7 +2,7 @@
 # Update a QC/dev stack from a GitHub branch (README.md: "Automatic update (QC)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
 # the dump and recreate the stack. Never use it on production: it deletes the database.
-#   autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz [--profile web] [--interval 600] [--force]
+#   autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz [--interval 600] [--force]
 # Without --interval it checks once and exits (cron). With it, it checks every N seconds and never exits.
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 import argparse
@@ -177,7 +177,7 @@ def deploy(args: Args, profiles: list[str], state_path: str, commit: str, dump_c
         wait_for_database()
         restore_dump(args.dump, dump_command)
         log("Step: recreate the stack")
-        # migrate applies the migrations that the dump does not have. assets copies the new frontend.
+        # migrate applies the migrations that the dump does not have.
         run(["podman-compose", *profiles, "up", "-d", "--force-recreate"])
     except BaseException:
         # Do not retry the same commit in a loop: a new commit or --force starts the next try.
