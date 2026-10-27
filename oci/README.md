@@ -12,8 +12,11 @@ Contents:
   - [Proxy](#proxy)
 - [Usage](#usage)
   - [Production](#production-2)
-    - [One-time setup as django](#one-time-setup-as-django)
-    - [First start next to the classic setup](#first-start-next-to-the-classic-setup)
+    - [Set up the home of django](#set-up-the-home-of-django)
+    - [Get the release and create the directories](#get-the-release-and-create-the-directories)
+    - [First start](#first-start)
+    - [Start at boot](#start-at-boot)
+    - [To go back](#to-go-back)
     - [Switch to HTTPS (later)](#switch-to-https-later)
     - [Start, stop and restart](#start-stop-and-restart)
     - [Update to a new release](#update-to-a-new-release)
@@ -67,7 +70,7 @@ location / {
 ```
 
 - HTTPS stays on the classic setup (`DEPLOYMENT.md`). The two setups use separate directories, databases and media.
-  See [First start next to the classic setup](#first-start-next-to-the-classic-setup).
+  See [First start](#first-start).
 - `compose.yaml` binds the port to `127.0.0.1` only (`FMS_HTTP_ADDR`). Only the host nginx can reach it. The firewall needs no change.
   `FMS_HTTP_PORT` must match the `proxy_pass` port.
 - The `web` nginx turns `X-Forwarded-Proto: https` into `HTTPS=on` for uwsgi. On HTTP, Django builds `http` URLs.
@@ -106,7 +109,7 @@ Do these steps for both environments:
 ### Production
 
 IT completes [ROCKY.md](ROCKY.md) and sends the output of the [acceptance checks](ROCKY.md#acceptance-checks) to the FreezeMan team.
-Then do the steps in [One-time setup as django](#one-time-setup-as-django).
+Then do the steps in [Usage > Production](#production-2).
 
 ### Development
 
@@ -163,19 +166,20 @@ Run all `podman-compose` commands from `oci/`.
 
 Do these steps after IT completes [ROCKY.md](ROCKY.md) and the [acceptance checks](ROCKY.md#acceptance-checks) pass.
 
-Choose the path for your host:
+Do these sections in this order. On a new host with no data to keep, skip the steps marked **classic host**.
 
-| Host | Do these sections, in this order |
-|---|---|
-| New host, no data to keep | [One-time setup as django](#one-time-setup-as-django) (all steps), then [Start, stop and restart](#start-stop-and-restart) |
-| Host that runs the classic setup (uwsgi, host PostgreSQL) | [One-time setup as django](#one-time-setup-as-django) (steps 1 to 3), then [First start next to the classic setup](#first-start-next-to-the-classic-setup) (it covers steps 4 to 7 of the setup), then [One-time setup as django](#one-time-setup-as-django) (step 8) |
+1. [Set up the home of django](#set-up-the-home-of-django): podman configuration and podman-compose.
+2. [Get the release and create the directories](#get-the-release-and-create-the-directories): the checkout `/data/freezeman-oci`, `.env`, and the host directories.
+3. [First start](#first-start): build, restore the data of the classic setup (**classic host** only), start, check.
+4. [Start at boot](#start-at-boot): the `@reboot` line.
+5. [Switch to HTTPS (later)](#switch-to-https-later): only when the team decides that the stack replaces the classic setup.
 
-"One-time setup" prepares the host: podman, the release, the directories and the start at boot. It does not move data.
-"First start next to the classic setup" copies the database, the media files and the triggers of the classic setup into the containers. The classic setup keeps running and keeps HTTPS.
+The sections after these (start and stop, update, backups, logs, troubleshooting) are for daily use.
 
-#### One-time setup as django
+#### Set up the home of django
 
-Run these steps as `django` (`sudo su - django`).
+Run these steps as `django` (`sudo su - django`). They change only the home directory of `django`
+and the shell. They need no checkout and no data.
 
 1. Set up podman without systemd. The compose stack needs no systemd user manager and no D-Bus, so it also runs
    on a host that is a container. Make two changes.
@@ -198,7 +202,7 @@ Run these steps as `django` (`sudo su - django`).
       containers in `XDG_RUNTIME_DIR`. Two shells with different values do not see the same containers.
       A shell opened with `sudo su - django` does not set the variable. The lines below set it only when it is
       empty and `/run/user/<uid>` exists. Cron jobs that use
-      `bash --login -c` read this file too. `start.py` (step 8) applies the same rule.
+      `bash --login -c` read this file too. `start.py` ([Start at boot](#start-at-boot)) applies the same rule.
 
       ```bash
       cp ~/.bash_profile ~/.bash_profile.bak
@@ -237,7 +241,11 @@ Run these steps as `django` (`sudo su - django`).
 
    `~/.local/bin` must be in `PATH`. The Rocky default `~/.bashrc` adds it.
 
-4. Get the release. The compose files and scripts (`compose.yaml`, `start.py`) must be in `/data/freezeman-oci/oci`. The checkout needs a real `.git`
+#### Get the release and create the directories
+
+Run these steps as `django`.
+
+1. Get the release. The compose files and scripts (`compose.yaml`, `start.py`) must be in `/data/freezeman-oci/oci`. The checkout needs a real `.git`
    directory and the submodules. See [Prerequisites](#prerequisites). Use a new directory. Do not use `/data/freezeman`: the classic setup uses it.
 
    ```bash
@@ -245,7 +253,14 @@ Run these steps as `django` (`sudo su - django`).
    git clone --recurse-submodules https://github.com/c3g/freezeman.git /data/freezeman-oci
    ```
 
-5. Create the log directory. Each service writes its log to its own file in this directory (see [Logs](#logs)).
+2. Create `.env` and set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_ENV`. Add the other values that the next steps name.
+
+   ```bash
+   cd /data/freezeman-oci/oci
+   cp .env.example .env
+   ```
+
+3. Create the log directory. Each service writes its log to its own file in this directory (see [Logs](#logs)).
    `compose.yaml` sets the log driver and the file name of each service, so `containers.conf` needs no log
    setting. The files are on the host, outside the containers, so they stay after `podman-compose down` and
    `podman-compose up -d --force-recreate`. `podman-compose logs` still reads them. Podman does not create a
@@ -257,58 +272,45 @@ Run these steps as `django` (`sudo su - django`).
 
    The default is `logs/` in `oci/`. To use another directory, set `FMS_LOG_DIR` in `.env`. The path must be absolute.
 
-6. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
+4. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
 
    ```bash
    mkdir -p /data/freezeman-oci/backups
    ```
 
-7. Create the media and trigger directories. Podman does not create a missing bind-mount source.
+5. Create the media and trigger directories. Podman does not create a missing bind-mount source.
 
    ```bash
    mkdir -p /data/freezeman-oci/backend/media /data/freezeman-oci/backend/triggers
    ```
 
-8. Start the stack at boot. Containers do not start at boot by themselves. Add a `@reboot` line to the crontab
-   of `django` (`crontab -e`):
+#### First start
 
-   ```cron
-   @reboot /data/freezeman-oci/oci/start.py >> /data/freezeman-oci/oci/logs/boot.log 2>&1
-   ```
+Run these steps as `django`, in `oci/`. Steps marked **classic host** copy the data of the classic setup (uwsgi, host PostgreSQL).
+On a new host with no data to keep, skip them. The classic setup keeps running and keeps HTTPS: do not stop the classic uwsgi
+and do not change the classic crontab. The stack has its own copy of the data.
 
-   `start.py` sets `XDG_RUNTIME_DIR` as in step 1, then runs `podman-compose up -d` in `oci/`. At boot it waits up
-   to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)). This step needs a cron
-   daemon (`cronie` on Rocky) and no root. If `podman-compose up -d` fails, or a container is in a wrong state
-   after 60 seconds, `start.py` sends an email (see [Failure emails](#failure-emails)). If the host is a container, it has no cron. Start `start.py`, as
-   `django`, from the init of the outer container instead.
-
-Then start the stack: see [Start, stop and restart](#start-stop-and-restart).
-
-#### First start next to the classic setup
-
-Do these steps once, as `django`, on the host that runs the classic setup (uwsgi, host PostgreSQL).
-The container runs the same PostgreSQL major version (15), so a plain dump and restore is enough.
-The stack has its own copy of the data. The classic setup is not changed.
-
-1. Do not stop the classic uwsgi. Do not change the classic crontab.
-2. Do steps 4 to 7 of [One-time setup as django](#one-time-setup-as-django).
-3. Dump the classic database:
+1. **Classic host:** dump the classic database. The container runs the same PostgreSQL major version (15), so a plain dump and restore is enough.
 
    ```bash
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
-4. Build the images and restore the data. Start only the database: `migrate` runs as soon as `db` starts.
+2. Build the images:
 
    ```bash
    podman-compose build
+   ```
+
+3. Start only the database. `migrate` runs as soon as `db` starts, so do not start the other services yet. Wait until it is ready.
+   **Classic host:** restore the dump.
+
+   ```bash
    podman-compose up -d db
    # -h 127.0.0.1: the first-start init server listens on the socket only,
    # so a TCP check passes only when the real server is up.
    until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-   podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < fms_classic.dump
-   podman-compose up -d
-   podman-compose logs migrate          # migrations applied?
+   podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < fms_classic.dump    # classic host only
    ```
 
    `-T` keeps the binary dump intact. Without it, the pseudo-TTY changes the stream.
@@ -318,24 +320,46 @@ The stack has its own copy of the data. The classic setup is not changed.
    These commands name roles of the old server, which do not exist in the container database.
    `POSTGRES_USER` owns all objects, so it needs no grants.
 
-5. Copy the media files and the trigger folders of the classic setup:
+4. **Classic host:** copy the media files and the trigger folders:
 
    ```bash
    cp -a /data/freezeman/backend/media/. /data/freezeman-oci/backend/media/
    cp -a /data/freezeman/backend/triggers/. /data/freezeman-oci/backend/triggers/
    ```
 
-6. Check the stack and the two sites:
+5. Start all services and check the migrations:
+
+   ```bash
+   podman-compose up -d
+   podman-compose logs migrate          # migrations applied?
+   ```
+
+6. Check the stack and the sites:
 
    ```bash
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    curl -sfo /dev/null -w '%{http_code}\n' http://<host>/            # 200, through the host nginx
-   curl -sfo /dev/null -w '%{http_code}\n' https://<host>/           # 200, still the classic site
+   curl -sfo /dev/null -w '%{http_code}\n' https://<host>/           # 200, still the classic site (classic host)
    ```
 
-7. Note: a write over HTTP stays in the container database. It does not reach the HTTPS site.
+A write over HTTP stays in the container database. It does not reach the HTTPS site.
 
-To go back:
+#### Start at boot
+
+Containers do not start at boot by themselves. Run this step as `django`, after the first start works. Add a `@reboot` line to the crontab
+of `django` (`crontab -e`):
+
+```cron
+@reboot /data/freezeman-oci/oci/start.py >> /data/freezeman-oci/oci/logs/boot.log 2>&1
+```
+
+`start.py` sets `XDG_RUNTIME_DIR` as in step 1 of [Set up the home of django](#set-up-the-home-of-django), then runs `podman-compose up -d` in `oci/`. At boot it waits up
+to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)). This step needs a cron
+daemon (`cronie` on Rocky) and no root. If `podman-compose up -d` fails, or a container is in a wrong state
+after 60 seconds, `start.py` sends an email (see [Failure emails](#failure-emails)). If the host is a container, it has no cron. Start `start.py`, as
+`django`, from the init of the outer container instead.
+
+#### To go back
 
 1. Stop the stack (`podman-compose down`). `down` removes the containers. It deletes their podman state, but not the log files in `FMS_LOG_DIR` (see [Logs](#logs)).
 2. Remove the `@reboot` line from the crontab.
@@ -349,8 +373,8 @@ Do this when the team decides that the stack replaces the classic setup. The sta
 `FMS_HOST` stays the same, and Django sets no secure-cookie or `SECURE_PROXY_SSL_HEADER` setting today.
 
 1. Stop the writes to the classic site. Dump the classic database again. Delete the volume `freezeman_pgdata`
-   (`podman-compose down`, then `podman volume rm freezeman_pgdata`) and restore the new dump as in step 4 of
-   [First start next to the classic setup](#first-start-next-to-the-classic-setup). Copy the media files and the triggers
+   (`podman-compose down`, then `podman volume rm freezeman_pgdata`) and restore the new dump as in step 3 of
+   [First start](#first-start). Copy the media files and the triggers
    again with `cp -a`. This replaces the data of the HTTP trial.
 2. Stop the classic uwsgi. Remove the `prepare_report_data` line from the classic crontab. The `report` service replaces it.
 3. IT, in the HTTPS server block: replace the classic locations (`root`, `/static/`, `/media/`, `uwsgi_pass`) with the same
@@ -362,7 +386,7 @@ Do this when the team decides that the stack replaces the classic setup. The sta
 #### Start, stop and restart
 
 `restart: always` restarts a container that exits while podman runs. It does not start containers at boot.
-The `@reboot` line of [One-time setup as django](#one-time-setup-as-django), step 8, does that.
+The `@reboot` line of [Start at boot](#start-at-boot) does that.
 
 Run these commands in `oci/`. The last two are alternatives, not a sequence. Use one of them, not both.
 
@@ -406,7 +430,7 @@ Before the first run:
   or if a tracked file has changes. It never overwrites local work.
 - Get a production dump. `.pgsql.gz` and `.pgsql` (`pg_dumpall`, the files of the `backup` service) restore with
   `psql`, as in [Database backups](#database-backups). `.dump` (`pg_dump -Fc`) restores with `pg_restore`,
-  as in [First start next to the classic setup](#first-start-next-to-the-classic-setup). Other extensions stop the script.
+  as in [First start](#first-start). Other extensions stop the script.
 
 Add a line to the crontab of `django` (`crontab -e`). The example checks every 10 minutes:
 
