@@ -321,10 +321,17 @@ function WorkflowOptions({
       const sampleIDs = samples.map(({ id }) => id)
       setSampleIds(sampleIDs)
 
-      const commonProjects = (
-        await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs }))
+      const sampleProjects = (
+        await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs.join(",") }))
       ).data.results
-      commonProjects.sort((a, b) => a.name.localeCompare(b.name))
+      const commonProjects = (await Promise.all(sampleProjects.map(async project => {
+        return await dispatch(api.samples.list({ derived_by_samples__project__name: project.name, id__in: sampleIDs.join(",") }))
+        .then(response => {
+          return response.data.results.length === sampleIDs.length ? project : null // weak but potentially sufficient test
+        })
+      }))).filter(item => item != null)
+      
+      commonProjects.sort((a: FMSProject, b: FMSProject) => a.name.localeCompare(b.name))
       setCommonProjects(commonProjects)
       setSelectedProject(undefined)
     })()
