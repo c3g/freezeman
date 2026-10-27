@@ -8,6 +8,7 @@ instance/
 launch.json
 fms.log*
 .python-version
+__pycache__/
 .coverage
 TODO.txt
 
