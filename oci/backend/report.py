@@ -32,5 +32,5 @@ while True:
         notify.send_alert(
             "Report data failed",
             f"prepare_report_data exited with code {returncode}.\n\nLast output:\n{tail}\n"
-            "The logs are report_preparation.log and report.log in FMS_LOG_DIR.",
+            + "The logs are report_preparation.log and report.log in FMS_LOG_DIR.",
         )

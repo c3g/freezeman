@@ -32,14 +32,14 @@ os.environ["PGDATABASE"] = os.environ["POSTGRES_DB"]
 failure_reason = ""
 
 
-def fail(reason):
+def fail(reason: str) -> bool:
     global failure_reason
     failure_reason = reason
     print(reason, file=sys.stderr)
     return False
 
 
-def wait_for_database():
+def wait_for_database() -> bool:
     for _ in range(60):
         if subprocess.run(["pg_isready", "-q"]).returncode == 0:
             return True
@@ -47,7 +47,7 @@ def wait_for_database():
     return fail(f"Database {os.environ['PGHOST']} is not reachable")
 
 
-def delete_old_backups():
+def delete_old_backups() -> None:
     # Same rule as `find -mtime +(keep_days - 1)`: age in whole days is at least keep_days.
     limit = time.time() - keep_days * 86400
     patterns = ("*.pgsql.gz", "*.pgsql.gz.partial*")
@@ -58,7 +58,7 @@ def delete_old_backups():
                 print(f"Deleted old backup: {path}")
 
 
-def run_backup():
+def run_backup() -> bool:
     if not wait_for_database():
         return False
 
@@ -88,7 +88,7 @@ def run_backup():
     return True
 
 
-def run_and_alert():
+def run_and_alert() -> bool:
     global failure_reason
     failure_reason = ""
     try:
@@ -118,4 +118,4 @@ while True:
     now, run = next_run(backup_time)
     print(f"Next backup: {run:%Y-%m-%d %H:%M:%S %Z}", flush=True)
     time.sleep((run - now).total_seconds())
-    run_and_alert()
+    _ = run_and_alert()

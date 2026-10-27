@@ -15,7 +15,9 @@ import subprocess
 import sys
 import time
 import traceback
+from collections.abc import Mapping
 from datetime import datetime
+from typing import Optional, cast
 
 import hostenv
 import notify
@@ -33,29 +35,42 @@ class Abort(Exception):
     pass
 
 
-def log(message):
+class Args(argparse.Namespace):
+    # Same defaults as the parser in main(). The parser sets each attribute again.
+    def __init__(self) -> None:
+        super().__init__()
+        self.branch: str = ""
+        self.dump: str = ""
+        self.profile: list[str] = []
+        self.interval: Optional[int] = None
+        self.force: bool = False
+        # Set by update_once() when the commit is known, for the alert email.
+        self.commit: Optional[str] = None
+
+
+def log(message: str) -> None:
     print(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {message}", flush=True)
 
 
-def run(command, **kwargs):
+def run(command: list[str]) -> None:
     log("$ " + " ".join(command))
-    returncode, tail = notify.run_tail(command, **kwargs)
+    returncode, tail = notify.run_tail(command)
     if returncode != 0:
         raise subprocess.CalledProcessError(returncode, command, output=tail)
 
 
-def log_directory(env):
+def log_directory(env: Mapping[str, str]) -> str:
     return os.environ.get("FMS_LOG_DIR") or env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
 
 
-def clear_alert(log_dir):
+def clear_alert(log_dir: str) -> None:
     try:
         os.remove(os.path.join(log_dir, "autoupdate.alert"))
     except FileNotFoundError:
         pass
 
 
-def alert_failure(args, error):
+def alert_failure(args: Args, error: BaseException) -> None:
     """Send one email per distinct error. logs/autoupdate.alert holds the last error that was sent.
 
     Without it, a failed commit would send an email at each check (every --interval seconds or cron run).
@@ -83,12 +98,12 @@ def alert_failure(args, error):
         notify.send_alert("autoupdate.py failed", body, settings)
         os.makedirs(os.path.dirname(alert_path), exist_ok=True)
         with open(alert_path, "w") as alert_file:
-            alert_file.write(text)
+            _ = alert_file.write(text)
     except Exception as alert_error:
         print(f"Alert failed: {alert_error}", file=sys.stderr, flush=True)
 
 
-def restore_command(dump):
+def restore_command(dump: str) -> str:
     if dump.endswith((".pgsql.gz", ".pgsql")):
         return RESTORE_PSQL
     if dump.endswith(".dump"):
@@ -96,26 +111,26 @@ def restore_command(dump):
     raise Abort(f"Unknown dump type: {dump} (use .pgsql.gz, .pgsql or .dump)")
 
 
-def git(*args):
+def git(*args: str) -> str:
     return subprocess.run(["git", "-C", REPO_ROOT, *args], check=True, capture_output=True, text=True).stdout.strip()
 
 
-def read_state(path):
+def read_state(path: str) -> dict[str, object]:
     try:
         with open(path) as state_file:
-            return json.load(state_file)
+            return cast("dict[str, object]", json.load(state_file))
     except (OSError, ValueError):
         return {}
 
 
-def write_state(path, commit, ok):
+def write_state(path: str, commit: str, ok: bool) -> None:
     partial = path + ".partial"
     with open(partial, "w") as state_file:
         json.dump({"commit": commit, "ok": ok, "time": datetime.now().astimezone().isoformat(timespec="seconds")}, state_file)
     os.replace(partial, path)
 
 
-def wait_for_database():
+def wait_for_database() -> None:
     check = 'pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
     deadline = time.time() + DB_WAIT_SECONDS
     while time.time() < deadline:
@@ -125,7 +140,7 @@ def wait_for_database():
     raise Abort(f"The database is not ready after {DB_WAIT_SECONDS} s")
 
 
-def restore_dump(dump, command):
+def restore_dump(dump: str, command: str) -> None:
     log(f"Restore {dump}")
     # No ON_ERROR_STOP: the "already exists" messages of the README are harmless.
     with subprocess.Popen(["podman-compose", "exec", "-T", "db", "sh", "-c", command], stdin=subprocess.PIPE) as restore:
@@ -147,8 +162,8 @@ def restore_dump(dump, command):
     log(f"Restore exit code: {status}")
 
 
-def deploy(args, profiles, state_path, commit, dump_command):
-    git("merge", "--ff-only", f"origin/{args.branch}")
+def deploy(args: Args, profiles: list[str], state_path: str, commit: str, dump_command: str) -> None:
+    _ = git("merge", "--ff-only", f"origin/{args.branch}")
     run(["git", "-C", REPO_ROOT, "submodule", "update", "--init", "--recursive"])
     try:
         log("Step: build")
@@ -171,7 +186,7 @@ def deploy(args, profiles, state_path, commit, dump_command):
     write_state(state_path, commit, True)
 
 
-def update_once(args):
+def update_once(args: Args) -> None:
     args.commit = None
     hostenv.setup()
     env = hostenv.read_env(os.path.join(OCI_DIR, ".env"))
@@ -214,7 +229,7 @@ def update_once(args):
         clear_alert(log_dir)
 
 
-def report_failure(args, error):
+def report_failure(args: Args, error: BaseException) -> None:
     if isinstance(error, (Abort, subprocess.CalledProcessError)):
         print(f"Update failed: {error}", file=sys.stderr, flush=True)
     else:
@@ -222,16 +237,15 @@ def report_failure(args, error):
     alert_failure(args, error)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Update a QC/dev stack from a GitHub branch. It deletes the database.")
-    parser.add_argument("--branch", required=True, help="branch of origin to follow")
-    parser.add_argument("--dump", required=True, help="dump to restore: .pgsql.gz, .pgsql (pg_dumpall) or .dump (pg_dump -Fc)")
-    parser.add_argument("--profile", action="append", default=[], help="compose profile for build and up (repeatable)")
-    parser.add_argument("--interval", type=int, help="check every N seconds and never exit (default: check once)")
-    parser.add_argument("--force", action="store_true", help="deploy even if the commit is the last deployed one")
-    args = parser.parse_args()
+    _ = parser.add_argument("--branch", required=True, help="branch of origin to follow")
+    _ = parser.add_argument("--dump", required=True, help="dump to restore: .pgsql.gz, .pgsql (pg_dumpall) or .dump (pg_dump -Fc)")
+    _ = parser.add_argument("--profile", action="append", default=[], help="compose profile for build and up (repeatable)")
+    _ = parser.add_argument("--interval", type=int, help="check every N seconds and never exit (default: check once)")
+    _ = parser.add_argument("--force", action="store_true", help="deploy even if the commit is the last deployed one")
+    args = parser.parse_args(namespace=Args())
     args.dump = os.path.abspath(args.dump)
-    args.commit = None
 
     if args.interval is None:
         try:

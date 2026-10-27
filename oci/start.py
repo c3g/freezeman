@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import traceback
+from typing import TypedDict, cast
 
 import hostenv
 import notify
@@ -17,13 +18,21 @@ PROJECT = "freezeman"
 ONE_SHOT = ("migrate", "assets")
 
 
-def failed_containers():
+# The fields of `podman ps --format json` that failed_containers() reads.
+class Container(TypedDict, total=False):
+    Labels: dict[str, str]
+    State: str
+    ExitCode: int
+
+
+def failed_containers() -> list[str]:
     output = subprocess.run(
         ["podman", "ps", "-a", "--filter", f"label=com.docker.compose.project={PROJECT}", "--format", "json"],
         check=True, capture_output=True, text=True,
     ).stdout
-    failed = []
-    for container in json.loads(output or "[]"):
+    failed: list[str] = []
+    containers = cast("list[Container]", json.loads(output or "[]"))
+    for container in containers:
         labels = container.get("Labels") or {}
         service = labels.get("com.docker.compose.service", "?")
         state = container.get("State", "?")
@@ -36,8 +45,8 @@ def failed_containers():
     return failed
 
 
-def main():
-    settings = {}
+def main() -> int:
+    settings: dict[str, str] = {}
     try:
         hostenv.setup()
         settings = hostenv.settings()

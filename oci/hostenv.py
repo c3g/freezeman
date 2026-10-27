@@ -5,7 +5,7 @@ import os
 import time
 
 
-def setup():
+def setup() -> None:
     if not os.environ.get("XDG_RUNTIME_DIR"):
         # Rootless podman keeps its state in XDG_RUNTIME_DIR. Cron does not set it, so use the same rule
         # as ~/.bash_profile: all shells of the user then see the same containers.
@@ -29,8 +29,8 @@ def setup():
     os.environ["PWD"] = os.getcwd()
 
 
-def read_env(path):
-    values = {}
+def read_env(path: str) -> dict[str, str]:
+    values: dict[str, str] = {}
     if not os.path.isfile(path):
         return values
     with open(path) as env_file:
@@ -46,7 +46,7 @@ def read_env(path):
     return values
 
 
-def settings():
+def settings() -> dict[str, str]:
     # The shell wins over .env, as in compose.
     values = read_env(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
     values.update(os.environ)

@@ -7,17 +7,19 @@ import socket
 import subprocess
 import sys
 from collections import deque
+from collections.abc import Mapping
 from datetime import datetime
 from email.message import EmailMessage
+from typing import IO, Optional
 
 SMTP_TIMEOUT = 30
 
 
-def _setting(env, name, default=""):
+def _setting(env: Mapping[str, str], name: str, default: str = "") -> str:
     return (env.get(name) or default).strip()
 
 
-def send_alert(subject, body, env=None):
+def send_alert(subject: str, body: str, env: Optional[Mapping[str, str]] = None) -> None:
     """Email the FMS_ALERT_EMAILS recipients. Never raises: a failed alert must not stop the job.
 
     env is a dict of settings. If it is None, os.environ is used. The SMTP settings are the ones
@@ -29,7 +31,7 @@ def send_alert(subject, body, env=None):
         print(f"Alert email failed: {error}", file=sys.stderr, flush=True)
 
 
-def _send(subject, body, env):
+def _send(subject: str, body: str, env: Mapping[str, str]) -> None:
     host = _setting(env, "FMS_EMAIL_HOST")
     recipients = [address.strip() for address in _setting(env, "FMS_ALERT_EMAILS").split(",") if address.strip()]
     full_subject = f"[FreezeMan {_setting(env, 'FMS_ENV')} {_setting(env, 'FMS_HOST')}] {subject}".replace("  ", " ")
@@ -52,22 +54,24 @@ def _send(subject, body, env):
         # unless FMS_DEBUG is true. A missing FMS_DEBUG is true, an empty one is false.
         debug = _setting(env, "FMS_DEBUG", "True" if "FMS_DEBUG" not in env else "").lower() == "true"
         if not debug and _setting(env, "FMS_EMAIL_TLS"):
-            smtp.starttls()
+            _ = smtp.starttls()
         if user and password:
-            smtp.login(user, password)
-        smtp.send_message(message)
+            _ = smtp.login(user, password)
+        _ = smtp.send_message(message)
     print(f"Alert email sent to {', '.join(recipients)}: {full_subject}", flush=True)
 
 
-def run_tail(command, lines=50, **kwargs):
+def run_tail(command: list[str], lines: int = 50) -> tuple[int, str]:
     """Run a command and echo its output (stdout and stderr) to stdout, so the logs stay as before.
 
     Return (returncode, the last `lines` lines of the output).
     """
-    tail = deque(maxlen=lines)
-    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace", **kwargs) as process:
+    tail: deque[str] = deque(maxlen=lines)
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace") as process:
         assert process.stdout is not None
-        for line in process.stdout:
+        # typeshed types Popen.stdout as IO[Any]. text=True makes it IO[str].
+        output: IO[str] = process.stdout
+        for line in output:
             print(line, end="", flush=True)
             tail.append(line)
         returncode = process.wait()

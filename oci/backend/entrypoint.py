@@ -13,7 +13,7 @@ def env(name: str, default: str) -> str:
     return os.environ.get(name) or default
 
 
-def make_directories():
+def make_directories() -> None:
     # Fresh volumes (and Kubernetes PVCs) start empty: create the directories
     # Django writes into before handing over to the actual command.
     # Relative paths belong to the backend directory, whatever the current directory is.
@@ -28,7 +28,7 @@ def make_directories():
         os.makedirs(os.path.join(BACKEND_DIR, path), exist_ok=True)
 
 
-def wait_for_database():
+def wait_for_database() -> None:
     # Wait for PostgreSQL. compose's `depends_on: condition: service_started` orders only the
     # start of the db container, not its readiness, so this wait is necessary. It also covers
     # `podman-compose run --no-deps`, a db restart, and Kubernetes (no depends_on; keep this
@@ -54,7 +54,7 @@ def wait_for_database():
             time.sleep(1)
 
 
-def main():
+def main() -> None:
     make_directories()
     wait_for_database()
     os.execvp(sys.argv[1], sys.argv[1:])
