@@ -18,6 +18,7 @@ Contents:
     - [Automatic update (QC)](#automatic-update-qc)
     - [Database backups](#database-backups)
     - [Daily report data](#daily-report-data)
+    - [Failure emails](#failure-emails)
     - [Logs](#logs)
     - [Troubleshooting](#troubleshooting)
   - [Development](#development-2)
@@ -279,7 +280,8 @@ Run these steps as `django` (`sudo su - django`).
 
    `start.py` sets `XDG_RUNTIME_DIR` as in step 1, then runs `podman-compose up -d` in `oci/`. At boot it waits up
    to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)). This step needs a cron
-   daemon (`cronie` on Rocky) and no root. If the host is a container, it has no cron. Start `start.py`, as
+   daemon (`cronie` on Rocky) and no root. If `podman-compose up -d` fails, or a container is in a wrong state
+   after 60 seconds, `start.py` sends an email (see [Failure emails](#failure-emails)). If the host is a container, it has no cron. Start `start.py`, as
    `django`, from the init of the outer container instead.
 
 Then start the stack: see [Start, stop and restart](#start-stop-and-restart).
@@ -405,6 +407,7 @@ Add a line to the crontab of `django` (`crontab -e`). The example checks every 1
   from the init of the outer container, like `start.py`. The script then checks every 600 seconds and never exits.
   Redirect its output to `logs/autoupdate.log`.
 - The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [Logs](#logs) rotates it.
+- A failed run sends an email, one per distinct error: see [Failure emails](#failure-emails).
 
 What one run does:
 
@@ -456,6 +459,7 @@ podman-compose logs migrate
   files. The bind mount uses `:z` for SELinux. The `backup` image has the same PostgreSQL base image as the
   `db` image (`POSTGRES_IMAGE`), so `pg_dumpall` always matches the server version.
 - Copy the directory off the host as well: a backup on the same disk does not protect against disk loss.
+- A failed backup sends an email: see [Failure emails](#failure-emails).
 
 #### Daily report data
 
@@ -463,12 +467,46 @@ The `report` service replaces the cron entry. It runs `python manage.py prepare_
 Set the time in `.env`: `FMS_REPORT_TIME` (`HH:MM`, default `02:00`) in the time
 zone `TZ` (`America/Montreal`). The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
 (`~/reports/log/` in the container is a bind mount of that directory). A failed run is printed to the service log, and the next run
-still happens. It does not start in development (profile `report`).
+still happens, and an email is sent: see [Failure emails](#failure-emails). It does not start in development (profile `report`).
 
 ```bash
 podman-compose logs report                                                    # next run time and output
 podman-compose exec -T backend python manage.py prepare_report_data              # run it now
 ```
+
+#### Failure emails
+
+Four jobs run without a person. Each one sends an email when it fails. Before this, a failure wrote only a line to a log.
+
+| Job | Email is sent when |
+|---|---|
+| `backup` service (`db/backup.py`) | The database is not reachable after 60 s, `pg_dumpall` exits with an error, or the script raises an exception |
+| `report` service (`backend/report.py`) | `prepare_report_data` exits with a non-zero code |
+| `autoupdate.py` | An update fails (it aborts, a command fails, or another error occurs) |
+| `start.py` (cron `@reboot`) | `podman-compose up -d` exits with a non-zero code, or 60 s later (`CHECK_DELAY`) a container is in a wrong state: `migrate` or `assets` with a non-zero exit code, or any other service not `running` |
+
+Set the recipients in `.env`. The jobs use the SMTP settings of Django (`FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`,
+`FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS`) and one more variable:
+
+```bash
+# oci/.env
+FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
+```
+
+- If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, no email is sent. The job writes the alert subject to its log.
+- TLS follows the rule of Django (`EMAIL_USE_TLS` in `backend/fms/settings.py`): `starttls()` runs if `FMS_EMAIL_TLS` has any
+  non-empty value, even `False`, and `FMS_DEBUG` is not `true`. A missing `FMS_DEBUG` counts as `true`. An empty one counts as `false`. To turn TLS off, leave
+  `FMS_EMAIL_TLS` empty or unset.
+- If the email cannot be sent, the job prints the error to its log and continues.
+- The subject is `[FreezeMan <FMS_ENV> <FMS_HOST>] <job> failed`. The body has the error, the last 50 lines of output
+  where the job has them, the host name and the time.
+- `backup` and `report` send one email for each failed run (once a day at most). `backup` gets the SMTP settings from
+  `compose.yaml`. After a change of `.env`, run `podman-compose up -d --force-recreate`.
+- `autoupdate.py` sends one email for each distinct error. It keeps the error in `logs/autoupdate.alert`. The same error
+  at the next check sends nothing. A successful run, or a check with no new commit, deletes the file. A run that finds
+  the lock held by another run sends nothing.
+- `start.py` reads `.env` itself, because it runs on the host.
+- SMTP does not go through the proxy (see [Proxy](#proxy)).
 
 #### Logs
 

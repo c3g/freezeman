@@ -27,3 +27,27 @@ def setup():
     # compose.yaml builds the default log path from PWD, so set it.
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.environ["PWD"] = os.getcwd()
+
+
+def read_env(path):
+    values = {}
+    if not os.path.isfile(path):
+        return values
+    with open(path) as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            values[key.strip()] = value
+    return values
+
+
+def settings():
+    # The shell wins over .env, as in compose.
+    values = read_env(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+    values.update(os.environ)
+    return values

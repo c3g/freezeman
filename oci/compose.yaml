@@ -160,6 +160,17 @@ services:
       TZ: ${TZ:-America/Montreal}
       FMS_BACKUP_TIME: ${FMS_BACKUP_TIME:-01:00}
       FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
+      # Failure email (notify.py). It needs only the SMTP settings, not the Django secrets of .env.
+      FMS_ENV: ${FMS_ENV:-}
+      FMS_HOST: ${FMS_HOST:-}
+      FMS_DEBUG: ${FMS_DEBUG-True}
+      FMS_EMAIL_HOST: ${FMS_EMAIL_HOST:-}
+      FMS_EMAIL_PORT: ${FMS_EMAIL_PORT:-}
+      FMS_EMAIL_FROM: ${FMS_EMAIL_FROM:-}
+      FMS_EMAIL_USER: ${FMS_EMAIL_USER:-}
+      FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
+      FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
+      FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
     volumes:
       - ${FMS_BACKUP_DIR:-./backups}:/backups:z
     depends_on:

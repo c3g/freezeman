@@ -24,6 +24,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 \
  && rm -rf /var/lib/apt/lists/*
 COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
+# Failure emails: backup.py imports it from its own directory.
+COPY oci/notify.py /usr/local/bin/notify.py
 ENTRYPOINT ["fms-backup"]
 
 FROM ${POSTGRES_IMAGE}

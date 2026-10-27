@@ -32,6 +32,8 @@ RUN apt-get update \
  && install -d -o fms -g fms /home/fms/reports
 COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
 COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
+# Failure emails: report.py imports it from its own directory.
+COPY oci/notify.py /usr/local/bin/notify.py
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 WORKDIR /src/backend
 ENTRYPOINT ["fms-entrypoint"]

@@ -6,7 +6,10 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 from datetime import date, datetime, timedelta
+
+import notify
 
 # Daily pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz.
 # Replaces a host cron entry, so the job works the same under podman-compose
@@ -25,13 +28,23 @@ os.environ["PGPASSWORD"] = os.environ["POSTGRES_PASSWORD"]
 os.environ["PGDATABASE"] = os.environ["POSTGRES_DB"]
 
 
+# Why the last run_backup() failed, for the alert email.
+failure_reason = ""
+
+
+def fail(reason):
+    global failure_reason
+    failure_reason = reason
+    print(reason, file=sys.stderr)
+    return False
+
+
 def wait_for_database():
     for _ in range(60):
         if subprocess.run(["pg_isready", "-q"]).returncode == 0:
             return True
         time.sleep(1)
-    print(f"Database {os.environ['PGHOST']} is not reachable", file=sys.stderr)
-    return False
+    return fail(f"Database {os.environ['PGHOST']} is not reachable")
 
 
 def delete_old_backups():
@@ -64,9 +77,8 @@ def run_backup():
             raise
         status = dump.wait()
     if status != 0:
-        print(f"pg_dumpall failed with status {status}", file=sys.stderr)
         os.remove(partial)
-        return False
+        return fail(f"pg_dumpall failed with status {status}")
     os.replace(partial, target)
     size = subprocess.run(["du", "-h", target], capture_output=True, text=True, check=True).stdout.split()[0]
     print(f"Backup written: {target} ({size})")
@@ -74,6 +86,19 @@ def run_backup():
     if keep_days > 0:
         delete_old_backups()
     return True
+
+
+def run_and_alert():
+    global failure_reason
+    failure_reason = ""
+    try:
+        ok = run_backup()
+    except Exception:
+        ok = fail(traceback.format_exc())
+    if not ok:
+        print("Backup failed", file=sys.stderr, flush=True)
+        notify.send_alert("Backup failed", f"The daily pg_dumpall backup failed.\n\n{failure_reason}\nThe log is backup.log in FMS_LOG_DIR (podman-compose logs backup).")
+    return ok
 
 
 def next_run(hhmm: str) -> tuple[datetime, datetime]:
@@ -87,11 +112,10 @@ def next_run(hhmm: str) -> tuple[datetime, datetime]:
 
 
 if len(sys.argv) > 1 and sys.argv[1] == "now":
-    sys.exit(0 if run_backup() else 1)
+    sys.exit(0 if run_and_alert() else 1)
 
 while True:
     now, run = next_run(backup_time)
     print(f"Next backup: {run:%Y-%m-%d %H:%M:%S %Z}", flush=True)
     time.sleep((run - now).total_seconds())
-    if not run_backup():
-        print("Backup failed", file=sys.stderr, flush=True)
+    run_and_alert()

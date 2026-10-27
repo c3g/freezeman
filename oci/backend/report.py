@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
-import subprocess
 import sys
 import time
 from datetime import datetime, timedelta
+
+import notify
 
 # Daily prepare_report_data. Replaces a host cron entry or systemd timer, so the
 # job works the same under podman-compose and Kubernetes (a CronJob can replace
@@ -25,5 +26,11 @@ while True:
     now, run = next_run(report_time)
     print(f"Next prepare_report_data run: {run:%Y-%m-%d %H:%M:%S %Z}", flush=True)
     time.sleep((run - now).total_seconds())
-    if subprocess.run([sys.executable, "manage.py", "prepare_report_data"]).returncode != 0:
+    returncode, tail = notify.run_tail([sys.executable, "manage.py", "prepare_report_data"])
+    if returncode != 0:
         print("prepare_report_data failed", file=sys.stderr, flush=True)
+        notify.send_alert(
+            "Report data failed",
+            f"prepare_report_data exited with code {returncode}.\n\nLast output:\n{tail}\n"
+            "The logs are report_preparation.log and report.log in FMS_LOG_DIR.",
+        )

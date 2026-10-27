@@ -14,9 +14,11 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 from datetime import datetime
 
 import hostenv
+import notify
 
 PGDATA_VOLUME = "freezeman_pgdata"
 DB_WAIT_SECONDS = 120
@@ -37,24 +39,53 @@ def log(message):
 
 def run(command, **kwargs):
     log("$ " + " ".join(command))
-    return subprocess.run(command, check=True, **kwargs)
+    returncode, tail = notify.run_tail(command, **kwargs)
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, command, output=tail)
 
 
-def read_env(path):
-    values = {}
-    if not os.path.isfile(path):
-        return values
-    with open(path) as env_file:
-        for line in env_file:
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            value = value.strip()
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                value = value[1:-1]
-            values[key.strip()] = value
-    return values
+def log_directory(env):
+    return os.environ.get("FMS_LOG_DIR") or env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
+
+
+def clear_alert(log_dir):
+    try:
+        os.remove(os.path.join(log_dir, "autoupdate.alert"))
+    except FileNotFoundError:
+        pass
+
+
+def alert_failure(args, error):
+    """Send one email per distinct error. logs/autoupdate.alert holds the last error that was sent.
+
+    Without it, a failed commit would send an email at each check (every --interval seconds or cron run).
+    """
+    if isinstance(error, (Abort, subprocess.CalledProcessError)):
+        text = f"{type(error).__name__}: {error}"
+    else:
+        text = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+    try:
+        settings = hostenv.settings()
+        alert_path = os.path.join(log_directory(settings), "autoupdate.alert")
+        try:
+            with open(alert_path) as alert_file:
+                if alert_file.read() == text:
+                    return
+        except OSError:
+            pass
+        body = f"autoupdate.py failed on branch {args.branch}.\n\nError: {text}\n"
+        if args.commit:
+            body += f"\nCommit: {args.commit}\n"
+        output = getattr(error, "output", None)
+        if output:
+            body += f"\nLast output:\n{output}\n"
+        body += "\nThe script does not retry this commit. See logs/autoupdate.log. No other email follows for the same error."
+        notify.send_alert("autoupdate.py failed", body, settings)
+        os.makedirs(os.path.dirname(alert_path), exist_ok=True)
+        with open(alert_path, "w") as alert_file:
+            alert_file.write(text)
+    except Exception as alert_error:
+        print(f"Alert failed: {alert_error}", file=sys.stderr, flush=True)
 
 
 def restore_command(dump):
@@ -141,9 +172,10 @@ def deploy(args, profiles, state_path, commit, dump_command):
 
 
 def update_once(args):
+    args.commit = None
     hostenv.setup()
-    env = read_env(os.path.join(OCI_DIR, ".env"))
-    log_dir = os.environ.get("FMS_LOG_DIR") or env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
+    env = hostenv.read_env(os.path.join(OCI_DIR, ".env"))
+    log_dir = log_directory(env)
     os.makedirs(log_dir, exist_ok=True)
     state_path = os.path.join(log_dir, "autoupdate.state")
 
@@ -169,14 +201,25 @@ def update_once(args):
         log(f"Check origin/{args.branch}")
         run(["git", "-C", REPO_ROOT, "fetch", "origin", f"+refs/heads/{args.branch}:refs/remotes/origin/{args.branch}"])
         commit = git("rev-parse", f"origin/{args.branch}")
+        args.commit = commit
         if read_state(state_path).get("commit") == commit and not args.force:
             log(f"No new commit ({commit[:12]})")
+            clear_alert(log_dir)
             return
 
         profiles = [part for name in args.profile for part in ("--profile", name)]
         log(f"Deploy {commit[:12]}")
         deploy(args, profiles, state_path, commit, dump_command)
         log(f"Done: {commit[:12]}")
+        clear_alert(log_dir)
+
+
+def report_failure(args, error):
+    if isinstance(error, (Abort, subprocess.CalledProcessError)):
+        print(f"Update failed: {error}", file=sys.stderr, flush=True)
+    else:
+        traceback.print_exception(type(error), error, error.__traceback__)
+    alert_failure(args, error)
 
 
 def main():
@@ -188,19 +231,20 @@ def main():
     parser.add_argument("--force", action="store_true", help="deploy even if the commit is the last deployed one")
     args = parser.parse_args()
     args.dump = os.path.abspath(args.dump)
+    args.commit = None
 
     if args.interval is None:
         try:
             update_once(args)
-        except (Abort, subprocess.CalledProcessError) as error:
-            print(f"Update failed: {error}", file=sys.stderr, flush=True)
+        except Exception as error:
+            report_failure(args, error)
             sys.exit(1)
         return
     while True:
         try:
             update_once(args)
-        except (Abort, subprocess.CalledProcessError) as error:
-            print(f"Update failed: {error}", file=sys.stderr, flush=True)
+        except Exception as error:
+            report_failure(args, error)
         # --force applies to the first check only, or each check would deploy again.
         args.force = False
         time.sleep(args.interval)
