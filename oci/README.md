@@ -36,10 +36,12 @@ Contents:
 
 ## Container organization and roles
 
-Container images and podman-compose configuration for FreezeMan. The stack runs the same software as
-`DEPLOYMENT.md` (same major versions): Python 3.14, Node 24, uwsgi 2.0 behind nginx, PostgreSQL 15.
-The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`. The uwsgi version
-is `UWSGI_VERSION` in `Containerfile`. uwsgi settings are in `backend/uwsgi.ini`.
+Container images and podman-compose configuration for FreezeMan.
+
+- The stack runs the same software as `DEPLOYMENT.md` (same major versions): Python 3.14, Node 24, uwsgi 2.0 behind nginx, PostgreSQL 15.
+- The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
+- The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
+- uwsgi settings are in `backend/uwsgi.ini`.
 
 ### Production
 
@@ -71,8 +73,9 @@ location / {
 
 - HTTPS stays on the classic setup (`DEPLOYMENT.md`). The two setups use separate directories, databases and media.
   See [First start](#first-start).
-- `compose.yaml` binds the port to `127.0.0.1` only (`FMS_HTTP_ADDR`). Only the host nginx can reach it. The firewall needs no change.
-  `FMS_HTTP_PORT` must match the `proxy_pass` port.
+- `compose.yaml` binds the port to `127.0.0.1` only. Only the host nginx can reach it. The firewall needs no change.
+  - `FMS_HTTP_ADDR`: the address of the bind (`127.0.0.1`).
+  - `FMS_HTTP_PORT`: must match the `proxy_pass` port.
 - The `web` nginx turns `X-Forwarded-Proto: https` into `HTTPS=on` for uwsgi. On HTTP, Django builds `http` URLs.
 - Limits: the host HTTP server block needs `client_max_body_size 50M` and `client_body_timeout 300s`, as the HTTPS block.
   The `web` nginx uses the same values. Without them, an upload over 1 MB fails with 413 at the host nginx.
@@ -105,7 +108,7 @@ Do these steps for both environments:
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
 - Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_LOG_DIR`.
-  `FMS_LOG_DIR` is the absolute path of the log directory. It has no default: compose stops if it is not set.
+  - `FMS_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
 
 ### Production
 
@@ -147,13 +150,14 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
   Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
 - `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
   You do not add them.
-- The proxy values are build arguments of podman and stay out of the images. At runtime, only `dev` gets the proxy
-  (from `compose.dev.yaml`). The other services (`db`, `migrate`, `backend`, `report`, `backup`, `web`) get
-  empty proxy variables from `compose.yaml`. The empty values override the proxy that podman copies from its own
-  environment (`http_proxy = true`, the default of `containers.conf`) and the proxy values of `.env` (`env_file`).
-  These services make no outbound HTTP calls, so they do not need a proxy.
-
-  Only in `dev` does `NO_PROXY` get the service names.
+- Runtime proxy:
+  - The proxy values are build arguments of podman and stay out of the images.
+  - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
+  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `web`) get empty proxy variables from `compose.yaml`.
+  - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
+    `containers.conf`) and the proxy values of `.env` (`env_file`).
+  - These services make no outbound HTTP calls, so they do not need a proxy.
+  - Only in `dev` does `NO_PROXY` get the service names.
 - Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
   `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
 - Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.
@@ -263,11 +267,13 @@ Run these steps as `django`.
    cp .env.example .env
    ```
 
-3. Create the log directory. Each service writes its log to its own file in this directory (see [Logs](#logs)).
-   `compose.yaml` sets the log driver and the file name of each service, so `containers.conf` needs no log
-   setting. The files are on the host, outside the containers, so they stay after `podman-compose down` and
-   `podman-compose up -d --force-recreate`. `podman-compose logs` still reads them. Podman does not create a
-   missing log directory, and the container fails to start without it.
+3. Create the log directory.
+   - Each service writes its log to its own file in this directory (see [Logs](#logs)).
+   - `compose.yaml` sets the log driver and the file name of each service, so `containers.conf` needs no log setting.
+   - The files are on the host, outside the containers, so they stay after `podman-compose down` and
+     `podman-compose up -d --force-recreate`.
+   - `podman-compose logs` still reads them.
+   - Podman does not create a missing log directory, and the container fails to start without it.
 
    ```bash
    mkdir -p /data/freezeman-oci/oci/logs
@@ -309,9 +315,9 @@ Run these steps as `django`.
       0 3 * * 0 /usr/sbin/logrotate -s ~/.local/state/logrotate-freezeman.state ~/.config/logrotate/freezeman.conf
       ```
 
-   `copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` must copy the
-   file and then empty it. A line that a container writes between the copy and the truncation can be lost.
-   Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
+   - `copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` must copy the
+     file and then empty it. A line that a container writes between the copy and the truncation can be lost.
+   - Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
 
 5. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
 
@@ -332,19 +338,24 @@ On a new host with no data to keep, skip them. The classic setup keeps running a
 and do not change the classic crontab. The stack has its own copy of the data.
 
 1. **Classic host:** dump the classic database. The container runs the same PostgreSQL major version (15), so a plain dump and restore is enough.
-   Before the dump, check the default time zone of the classic server. `TZ` is the variable in `.env` that sets
-   the time zone of the stack (default `America/Montreal`). The new `db` container uses `TZ` as its default, so
-   people and tools that query it outside Django get different dates and times from the classic server if the two
-   values differ. If the result is not the `TZ` value and you want the old behavior, read
-   [Time zone (TZ)](#time-zone-tz) and add the flag `-c timezone=UTC` to `compose.yaml` before step 3. Step 3 starts
-   `db`, and the flag must be in `compose.yaml` at that time.
+   Before the dump, check the default time zone of the classic server:
 
-   Use `pg_dump -Fc`. Do not use `pg_dumpall`. `pg_dumpall` also copies the roles of the classic server. On the
-   classic host, `admin` is a normal role and `postgres` is the superuser. In the container, `POSTGRES_USER` is the
-   superuser. The script of `pg_dumpall` runs `ALTER ROLE admin ... NOSUPERUSER PASSWORD ...`. This removes the
-   superuser right of `POSTGRES_USER` during the restore and sets the classic password, so `backend` cannot log in
-   with `POSTGRES_PASSWORD`. The release backups of `DEPLOYMENT.md` (`backup_release_*.pgsql`) are `pg_dumpall`
-   files and have the same problem. Do not restore them into the container.
+   - `TZ` is the variable in `.env` that sets the time zone of the stack (default `America/Montreal`).
+   - The new `db` container uses `TZ` as its default, so people and tools that query it outside Django get different
+     dates and times from the classic server if the two values differ.
+   - If the result is not the `TZ` value and you want the old behavior, read [Time zone (TZ)](#time-zone-tz) and add
+     the flag `-c timezone=UTC` to `compose.yaml` before step 3. Step 3 starts `db`, and the flag must be in
+     `compose.yaml` at that time.
+
+   Use `pg_dump -Fc`. Do not use `pg_dumpall`:
+
+   - `pg_dumpall` also copies the roles of the classic server. On the classic host, `admin` is a normal role and
+     `postgres` is the superuser. In the container, `POSTGRES_USER` is the superuser.
+   - The script of `pg_dumpall` runs `ALTER ROLE admin ... NOSUPERUSER PASSWORD ...`. This removes the superuser right
+     of `POSTGRES_USER` during the restore and sets the classic password, so `backend` cannot log in with
+     `POSTGRES_PASSWORD`.
+   - The release backups of `DEPLOYMENT.md` (`backup_release_*.pgsql`) are `pg_dumpall` files and have the same
+     problem. Do not restore them into the container.
 
    ```bash
    psql -U postgres -d fms -c 'SHOW timezone'    # compare the result with TZ in .env
@@ -376,13 +387,14 @@ and do not change the classic crontab. The stack has its own copy of the data.
      pg_restore -U admin -d fms --no-owner --no-acl --verbose < fms_classic.dump    # classic host only
    ```
 
-   To follow the restore, run `podman logs -f freezeman_db_1` (or `podman-compose logs -f db`) in another terminal.
-   `COPY` lines show the table name, not the rows. Only the restore session logs its statements.
-   The server setting does not change. `log_statement` is a superuser setting, and `POSTGRES_USER` is the superuser in the container.
-   The database is created on first start with `fzy` already enabled, so expect a
-   harmless "extension fzy already exists" message during the restore.
-   `pg_dump` copies only the `fms` database. It does not copy roles, passwords, or `ALTER DATABASE ... SET` and
-   `ALTER ROLE ... SET` settings. The container keeps the roles that `initdb` made from `.env`.
+   - To follow the restore, run `podman logs -f freezeman_db_1` (or `podman-compose logs -f db`) in another terminal.
+   - `COPY` lines show the table name, not the rows.
+   - Only the restore session logs its statements. The server setting does not change. `log_statement` is a superuser
+     setting, and `POSTGRES_USER` is the superuser in the container.
+   - The database is created on first start with `fzy` already enabled, so expect a harmless
+     "extension fzy already exists" message during the restore.
+   - `pg_dump` copies only the `fms` database. It does not copy roles, passwords, or `ALTER DATABASE ... SET` and
+     `ALTER ROLE ... SET` settings. The container keeps the roles that `initdb` made from `.env`.
 
 4. **Classic host:** copy the media files and the trigger folders:
 
@@ -417,11 +429,14 @@ of `django` (`crontab -e`):
 @reboot /data/freezeman-oci/oci/start.py >> /data/freezeman-oci/oci/logs/boot.log 2>&1
 ```
 
-`start.py` sets `XDG_RUNTIME_DIR` as in step 1 of [Set up the home of django](#set-up-the-home-of-django), then runs `podman-compose up -d` in `oci/`. At boot it waits up
-to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)). This step needs a cron
-daemon (`cronie` on Rocky) and no root. If `podman-compose up -d` fails, or a container is in a wrong state
-after 60 seconds, `start.py` sends an email (see [Failure emails](#failure-emails)). If the host is a container, it has no cron. Start `start.py`, as
-`django`, from the init of the outer container instead.
+`start.py` does this:
+
+- It sets `XDG_RUNTIME_DIR` as in step 1 of [Set up the home of django](#set-up-the-home-of-django), then runs `podman-compose up -d` in `oci/`.
+- At boot it waits up to 60 seconds for `/run/user/<uid>` if the user has linger (see [ROCKY.md](ROCKY.md)).
+- This step needs a cron daemon (`cronie` on Rocky) and no root.
+- If `podman-compose up -d` fails, or a container is in a wrong state after 60 seconds, `start.py` sends an email
+  (see [Failure emails](#failure-emails)).
+- If the host is a container, it has no cron. Start `start.py`, as `django`, from the init of the outer container instead.
 
 #### To go back
 
@@ -462,12 +477,14 @@ Run these commands in `oci/`. The last two are alternatives, not a sequence. Use
 | `podman-compose restart backend` | Restart the process of one service in the same container. The image and the `.env` do not change. Use it for a hung service. |
 | `podman-compose up -d --force-recreate` | Replace the containers with new ones from the current images and `.env`. Use it after a build or an `.env` change. |
 
-`--force-recreate` matters: `podman-compose up -d` only recreates containers
-when the resolved compose configuration changed. A rebuilt image under the same
-tag, or an edit to a variable that reaches the containers only through
-`env_file: .env` (e.g. `FMS_EMAIL_HOST`), is otherwise silently not applied.
-Removing a container deletes its podman state, but not the log files in `FMS_LOG_DIR` (see [Logs](#logs)).
-`migrate` runs again whenever its container is recreated.
+`--force-recreate` matters:
+
+- `podman-compose up -d` only recreates containers when the resolved compose configuration changed.
+- A rebuilt image under the same tag is otherwise silently not applied.
+- An edit to a variable that reaches the containers only through `env_file: .env` (e.g. `FMS_EMAIL_HOST`) is
+  otherwise silently not applied.
+- Removing a container deletes its podman state, but not the log files in `FMS_LOG_DIR` (see [Logs](#logs)).
+- `migrate` runs again whenever its container is recreated.
 
 #### Update to a new release
 
@@ -589,9 +606,12 @@ podman-compose logs migrate
 #### Daily report data
 
 The `report` service replaces the cron entry. It runs `python manage.py prepare_report_data` every day.
-The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
-(`~/reports/log/` in the container is a bind mount of that directory). A failed run is printed to the service log, and the next run
-still happens, and an email is sent: see [Failure emails](#failure-emails). It does not start in development (profile `report`).
+
+- The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
+  (`~/reports/log/` in the container is a bind mount of that directory).
+- A failed run is printed to the service log, and the next run still happens, and an email is sent:
+  see [Failure emails](#failure-emails).
+- It does not start in development (profile `report`).
 
 ```bash
 # oci/.env
@@ -635,8 +655,9 @@ FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
 
 - If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, no email is sent. The job writes the alert subject to its log.
 - TLS follows the rule of Django (`EMAIL_USE_TLS` in `backend/fms/settings.py`): `starttls()` runs if `FMS_EMAIL_TLS` has any
-  non-empty value, even `False`, and `FMS_DEBUG` is not `true`. A missing `FMS_DEBUG` counts as `true`. An empty one counts as `false`. To turn TLS off, leave
-  `FMS_EMAIL_TLS` empty or unset.
+  non-empty value, even `False`, and `FMS_DEBUG` is not `true`.
+  - `FMS_EMAIL_TLS`: to turn TLS off, leave it empty or unset.
+  - `FMS_DEBUG`: a missing value counts as `true`. An empty one counts as `false`.
 - If the email cannot be sent, the job prints the error to its log and continues.
 - The subject is `[FreezeMan <FMS_ENV> <FMS_HOST>] <job> failed`. The body has the error, the last 50 lines of output
   where the job has them, the host name and the time.
@@ -666,11 +687,15 @@ FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
   time zone to UTC. Django stores and returns the datetimes in UTC, and each Django database connection uses UTC.
 - The time stamps in the names of saved template files use `LOCAL_TZ` in `backend/fms/settings.py`, not `TZ`.
 
-**PostgreSQL default time zone.** When `initdb` first runs (empty `freezeman_pgdata` volume), PostgreSQL writes
-`TZ` into `postgresql.conf` as `log_timezone` and as `timezone`. `timezone` is the default time zone of each
-session. Django sets its sessions to UTC, so the app is not affected. Other clients (`psql`, `pg_dumpall`,
-external tools) use the default. For example, `SELECT now()::date` gives the date in `TZ`. A data directory that
-`initdb` created before `db` got `TZ` keeps UTC. To see the value:
+**PostgreSQL default time zone.**
+
+- When `initdb` first runs (empty `freezeman_pgdata` volume), PostgreSQL writes `TZ` into `postgresql.conf` as
+  `log_timezone` and as `timezone`. `timezone` is the default time zone of each session.
+- Django sets its sessions to UTC, so the app is not affected.
+- Other clients (`psql`, `pg_dumpall`, external tools) use the default. For example, `SELECT now()::date` gives the date in `TZ`.
+- A data directory that `initdb` created before `db` got `TZ` keeps UTC.
+
+To see the value:
 
 ```bash
 podman-compose exec db psql -U admin -d fms -c 'SHOW timezone'
@@ -703,22 +728,31 @@ for [First start](#first-start), [Database backups](#database-backups) and `auto
 #### Logs
 
 Each service writes its output to one file on the host: `<FMS_LOG_DIR>/<service>.log`, for example
-`/data/freezeman-oci/oci/logs/backend.log`. `compose.yaml` sets the `k8s-file` log driver and the file of each
-service. The files stay after `podman-compose down` and `podman-compose up -d --force-recreate`. A new container
-of the same service appends to the file of the old one. `podman-compose logs` reads the active file.
+`/data/freezeman-oci/oci/logs/backend.log`.
+
+- `compose.yaml` sets the `k8s-file` log driver and the file of each service.
+- The files stay after `podman-compose down` and `podman-compose up -d --force-recreate`.
+- A new container of the same service appends to the file of the old one.
+- `podman-compose logs` reads the active file.
 
 ```bash
 podman-compose logs -f backend
 tail -f /data/freezeman-oci/oci/logs/backend.log        # each line has a time stamp, the stream and the text
 ```
 
-Each service writes its time stamps in `TZ` (default `America/Montreal`). The `db` service sets the PostgreSQL
-`log_timezone` to `TZ` at each start. Django lines (`migrate`, `backend`) show the offset, for example `-0400`.
-The prefix that podman adds to each line uses the time zone of the host. See [Time zone (TZ)](#time-zone-tz).
+Time stamps (see [Time zone (TZ)](#time-zone-tz)):
 
-The request log is `web.log` (nginx). uwsgi does not log requests (`disable-logging` in `backend/uwsgi.ini`),
-because it can write its times only in UTC. Each `web.log` line ends with `rt=` (total time) and `urt=` (time that
-uwsgi took), in seconds. `urt=` is `-` for files that nginx serves itself.
+- Each service writes its time stamps in `TZ` (default `America/Montreal`).
+- The `db` service sets the PostgreSQL `log_timezone` to `TZ` at each start.
+- Django lines (`migrate`, `backend`) show the offset, for example `-0400`.
+- The prefix that podman adds to each line uses the time zone of the host.
+
+Request log:
+
+- The request log is `web.log` (nginx).
+- uwsgi does not log requests (`disable-logging` in `backend/uwsgi.ini`), because it can write its times only in UTC.
+- Each `web.log` line ends with `rt=` (total time) and `urt=` (time that uwsgi took), in seconds.
+- `urt=` is `-` for files that nginx serves itself.
 
 Rotate the files as in step 4 of [Get the release and create the directories](#get-the-release-and-create-the-directories).
 
@@ -832,9 +866,9 @@ HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
 podman-compose up -d
 ```
 
-Open `http://localhost:8080` (`FMS_HTTP_PORT`). In a VM or container, set `FMS_HTTP_ADDR=0.0.0.0` in `.env` first: the default
-binds the port to `127.0.0.1` of the host. The database is empty. To get data, restore a backup as in
-[Database backups](#database-backups).
+- Open `http://localhost:8080` (`FMS_HTTP_PORT`).
+- In a VM or container, set `FMS_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
+- The database is empty. To get data, restore a backup as in [Database backups](#database-backups).
 
 ### Useful podman and podman-compose commands
 
