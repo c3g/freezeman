@@ -25,6 +25,7 @@ Podman is the smallest-risk option: it uses the Rocky packages and adds no proce
 | 3 | [Linger](#3-linger) for `django` | systemd-logind deletes `/run/user/<uid>` at the last logout of `django`, and podman keeps the state of the running containers there |
 | 4 | [Cron daemon](#4-cron-daemon) (`cronie`) | The `@reboot` line in the crontab of `django` starts the stack at boot |
 | 5 | [Host nginx](#5-host-nginx): HTTP location and upload limits | The host nginx passes HTTP to the `web` container on `127.0.0.1:8080` |
+| 6 | [Network access](#6-network-access): outbound HTTPS and HTTP to the listed domains | The host installs packages, clones the source, pulls images and builds them |
 
 ## Required setup
 
@@ -124,6 +125,30 @@ sudo nginx -T | grep -A3 'proxy_pass http://127.0.0.1:8080'
 sudo nginx -T | grep client_max_body_size
 ```
 
+### 6. Network access
+
+Required: if the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic. If the host has open outbound access, no change is necessary.
+
+| Domain | Port | Used by |
+|---|---|---|
+| `mirrors.rockylinux.org`, `dl.rockylinux.org` (and the mirror that the mirror list returns) | 443 | Step 1 and step 4: `dnf` (Rocky BaseOS, AppStream and CRB) |
+| `mirrors.fedoraproject.org`, `dl.fedoraproject.org` (and the mirror that the metalink returns) | 443 | Step 1: `dnf` (EPEL 9, for `podman-compose`) |
+| `pypi.org`, `files.pythonhosted.org` | 443 | `pip install podman-compose==1.5.0`, only if `dnf` gives no `podman-compose` |
+| `github.com` | 443 | `git clone --recurse-submodules` of the source and its submodules. `autoupdate.py` (QC only) also uses it |
+| `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
+| `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com`. The test of the FreezeMan team did not use it |
+| `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
+| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image |
+| `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
+| `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
+| The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Failure emails and Django email, only if `FMS_EMAIL_HOST` is set |
+
+- The FreezeMan team measured the rows for `github.com`, the image pulls, `deb.debian.org`, `apt.postgresql.org`, `pypi.org` and `registry.npmjs.org` with a full build and start of the stack. The team did not measure the `dnf` rows, because the test host did not run Rocky. They come from the repository lists of Rocky and EPEL.
+- The mirror lists of Rocky and EPEL send `dnf` to a third-party mirror. If the allow list cannot take it, set a fixed `baseurl` in the repository file or use a local mirror.
+- Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
+- The build needs the domains. The running stack needs only `FMS_EMAIL_HOST` and no other outbound connection.
+- All traffic is outbound. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
+
 ## SELinux
 
 SELinux is disabled on this host. No SELinux change is necessary now. If IT enables SELinux later, run
@@ -161,3 +186,4 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/     # 200
 | 3. Linger | `sudo loginctl disable-linger django` |
 | 4. Cron daemon | `sudo systemctl disable --now crond` and `sudo dnf remove cronie`, only if step 4 installed `cronie` and no other job needs it |
 | 5. Host nginx | Remove the `location /` block (and the limits that step 5 added) from the HTTP server block, then `sudo nginx -t && sudo systemctl reload nginx` |
+| 6. Network access | Remove the domains from the allow list |
