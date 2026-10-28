@@ -28,7 +28,7 @@ DB_WAIT_SECONDS = 120
 # pg_dumpall scripts (the backup service) restore into postgres: they create the roles and the database.
 # pg_dump -Fc dumps restore into the existing POSTGRES_DB.
 RESTORE_PSQL = 'psql -U "$POSTGRES_USER" -d postgres'
-RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl -d "$POSTGRES_DB"'
+RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl --verbose -d "$POSTGRES_DB"'
 
 
 class Abort(Exception):

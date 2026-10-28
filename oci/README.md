@@ -357,10 +357,16 @@ and do not change the classic crontab. The stack has its own copy of the data.
    # -h 127.0.0.1: the first-start init server listens on the socket only,
    # so a TCP check passes only when the real server is up.
    until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-   podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < fms_classic.dump    # classic host only
+   podman-compose exec -T db env PGOPTIONS='-c log_statement=all' \
+     pg_restore -U admin -d fms --no-owner --no-acl --verbose < fms_classic.dump    # classic host only
    ```
 
    `-T` keeps the binary dump intact. Without it, the pseudo-TTY changes the stream.
+   `PGOPTIONS='-c log_statement=all'` writes each statement of the restore session to the server log.
+   To follow the restore, run `podman logs -f freezeman_db_1` (or `podman-compose logs -f db`) in another terminal.
+   `COPY` lines show the table name, not the rows. Only the restore session logs its statements.
+   The server setting does not change. `log_statement` is a superuser setting, and `POSTGRES_USER` is the superuser in the container.
+   `--verbose` prints each object that `pg_restore` restores.
    The database is created on first start with `fzy` already enabled, so expect a
    harmless "extension fzy already exists" message during the restore. `--no-owner`
    assigns everything to `POSTGRES_USER`. `--no-acl` skips the `GRANT` and `REVOKE` commands of the dump.
