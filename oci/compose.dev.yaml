@@ -1,19 +1,15 @@
-# Development override: one idle "dev" container with Python 3.14 (venv) and Node 24, and the
-# source bind-mounted from the host. It starts no server. Enter it and start runserver,
-# npm start and migrate by hand. Works with podman-compose on any OS (on macOS/Windows
-# inside `podman machine`).
+# # FreezeMan development override
+#
+# This file changes compose.yaml for development. It adds one idle "dev" container with Python 3.14
+# (venv) and Node 24, and the source bind-mounted from the host. It starts no server. Enter it and
+# start runserver, npm start and migrate by hand. Works with podman-compose on any OS (on
+# macOS/Windows inside `podman machine`).
 #
 #   podman-compose -f compose.yaml -f compose.dev.yaml up -d
 #   podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 #
 # Frontend: http://localhost:9000   Backend: http://localhost:8000
 # VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and README.md.
-#
-# The repository is mounted at /src so backend/fms/info.py and
-# frontend/webpack.config.js find ../VERSION and .git as they do outside
-# containers. ":z" relabels the mounts for SELinux (Rocky/RHEL/Fedora) and is
-# ignored elsewhere. userns_mode: keep-id keeps files written into the
-# repository (fms.log, migrations, uploads) owned by the host user.
 
 # Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
 # environment of "dev", so npm ci and pip run through the proxy when compose starts without
@@ -27,11 +23,16 @@ x-proxy: &proxy
   no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
 
 services:
+  # Publish the database port, so a host `psql` or a GUI client can connect to `localhost:5432`.
   db:
     ports:
       - "5432:5432"
 
+  # The development container. It runs `sleep infinity` (the `CMD` of the `dev` target). In it,
+  # the developer runs `migrate`, `runserver` and `npm start` by hand, in place of the production
+  # services `migrate`, `backend` and `web` (see README.md).
   dev:
+    # Build the `dev` image of oci/Containerfile.
     image: localhost/freezeman-dev:latest
     build:
       context: ..
@@ -40,6 +41,7 @@ services:
       args:
         # apt-get (git, psql client), pip and npm download packages while the image builds.
         <<: *proxy
+
     env_file: .env
     environment:
       <<: *proxy
@@ -56,8 +58,15 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
+
+    # Run the container as the host user. keep-id keeps files written into the repository
+    # (fms.log, migrations, uploads) owned by the host user.
     userns_mode: keep-id
+
     volumes:
+      # Mount the repository at /src, so backend/fms/info.py and frontend/webpack.config.js find
+      # ../VERSION and .git as they do outside containers. ":z" relabels the mounts for SELinux
+      # (Rocky/RHEL/Fedora) and is ignored elsewhere.
       - ..:/src:z
       # Repository directories instead of the named volumes of the production services
       - ../backend/media:/src/backend/media:z
@@ -66,19 +75,26 @@ services:
       # Linux dependencies installed by the container, separate from the host's node_modules
       # (":U" chowns the volume to the container user)
       - frontend_node_modules:/src/frontend/node_modules:U
+
+    # Publish runserver (8000) and the webpack dev server (9000) on the host.
     ports:
       - "8000:8000"
       - "9000:9000"
+
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/dev.log
+
     # The entrypoint waits until the database accepts connections.
     depends_on:
       db:
         condition: service_started
+
     restart: "no"
 
+  # Turn off the production services. A service with a `profiles` list starts only when the
+  # profile is active, so `up -d` does not start these services.
   migrate:
     # The developer runs the migrations by hand in "dev".
     profiles: ["prod"]
@@ -99,5 +115,6 @@ services:
     # The daily database backup does not run in development.
     profiles: ["backup"]
 
+# Declare the volume for the Linux `node_modules` of `dev`.
 volumes:
   frontend_node_modules:

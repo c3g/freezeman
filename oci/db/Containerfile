@@ -1,4 +1,8 @@
-# PostgreSQL with the fzy extension (backend/dependencies/pg_fzy).
+# # FreezeMan database images
+#
+# This file makes the PostgreSQL server with the fzy extension (backend/dependencies/pg_fzy), and
+# the image of the backup job.
+#
 # Build context: repository root
 #   podman build -f oci/db/Containerfile .                    (server, the default target)
 #   podman build -f oci/db/Containerfile --target backup .    (fms-backup, Python without the server)
@@ -6,28 +10,56 @@
 # To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
 # (a new major version needs a dump and restore of existing data).
 
+# Name the PostgreSQL 15 base image.
 ARG POSTGRES_IMAGE=docker.io/library/postgres:15-trixie
 
+# This stage holds the compiler. The server stage copies only the compiled extension from it
+# (`COPY --from=build`), so the compiler stays out of the server image.
 FROM ${POSTGRES_IMAGE} AS build
+
+# Install the compiler and the PostgreSQL headers.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential "postgresql-server-dev-$PG_MAJOR" \
  && rm -rf /var/lib/apt/lists/*
+
+# Copy the source of pg_fzy.
 COPY backend/dependencies/pg_fzy /src
+
+# Set working directory to /src
 WORKDIR /src
+
 # Compile from source; the binaries in pg_fzy/static target older PostgreSQL versions.
+# `make install DESTDIR=/out` puts the result in `/out`, and the server stage copies it.
 RUN make clean && make && make install DESTDIR=/out
 
 # The server image has no Python, so the backup job has its own image. The same base keeps
-# pg_dumpall in step with the server version. python3-minimal lacks gzip and shutil.
+# pg_dumpall in step with the server version.
 FROM ${POSTGRES_IMAGE} AS backup
+
+# Install Python. python3-minimal lacks gzip and shutil.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 \
  && rm -rf /var/lib/apt/lists/*
+
+# Copy the backup script (`fms-backup`).
+# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
 COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
+
 # Failure emails: backup.py imports it from its own directory.
 COPY oci/notify.py /usr/local/bin/notify.py
+
+# Run `pg_dumpall` every day at `FMS_BACKUP_TIME` and delete the backups older than
+# `FMS_BACKUP_KEEP_DAYS`. `fms-backup now` runs one backup and exits.
 ENTRYPOINT ["fms-backup"]
 
+# The server stage has no name, so no `--target` selects it. It is the last stage, and a build
+# without `--target` makes the last stage.
 FROM ${POSTGRES_IMAGE}
+
+# Copy the compiled fzy extension into the system directories of the server.
 COPY --from=build /out/ /
+
+# Copy the `initdb` scripts. They enable the extension.
+# The PostgreSQL image runs the files in `/docker-entrypoint-initdb.d/` once, when it creates a
+# new data directory.
 COPY oci/db/initdb/ /docker-entrypoint-initdb.d/

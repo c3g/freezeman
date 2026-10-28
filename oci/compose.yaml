@@ -1,4 +1,7 @@
-# FreezeMan, production-like stack.
+# # FreezeMan production-like stack
+#
+# This file starts the services of FreezeMan: the database, the migrations, Django, nginx, the
+# daily report job and the daily backup. Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
 #   mkdir -p ../backend/media ../backend/triggers logs
@@ -13,22 +16,21 @@
 # After rebuilding images or editing .env, apply with
 #   podman-compose up -d --force-recreate
 # (plain `up -d` only recreates containers when this file's resolved config changes).
-#
-# Notes:
-#   - restart: always restarts a container that exits while podman runs. It does not start
-#     containers at boot. `start.py` does that (README.md: "Start the stack at boot").
-#   - Each service writes its log to ${FMS_LOG_DIR}/<service>.log (default: logs/ in this directory,
-#     as an absolute path). The file stays after `down` and `--force-recreate`. The path must be
-#     absolute: a relative path breaks `podman restart` from another directory.
-#   - podman-compose does not check migrate's exit code; check its logs.
 
+# Name the project. `name` is the prefix of the container, network and volume names (for example
+# `freezeman_pgdata`).
 name: freezeman
 
 x-podman:
-  # Plain bridge network with service-name DNS, like Kubernetes Services.
+  # Use a plain bridge network with service-name DNS, like Kubernetes Services. Each service finds
+  # the others by name (for example `db` and `backend`).
   # (Pods would also conflict with userns_mode in compose.dev.yaml.)
   in_pod: false
 
+# A key that starts with `x-` is not a service. `&name` gives a block a name (an anchor), and
+# `<<: *name` (a merge key) copies that block into a service. An anchor must be above its first use.
+
+# Set the database settings of the Django services (`migrate`, `backend`, `report`).
 x-backend-env: &backend-env
   PG_DATABASE: ${POSTGRES_DB}
   PG_USER: ${POSTGRES_USER}
@@ -63,7 +65,9 @@ x-no-proxy: &no-proxy
   no_proxy: ""
 
 services:
+  # PostgreSQL 15 with the fzy extension.
   db:
+    # Build the server image of oci/db/Containerfile (default target).
     image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
@@ -71,26 +75,42 @@ services:
       args:
         # apt-get installs the compiler and the PostgreSQL headers to build the fzy extension.
         <<: *proxy
+
     environment:
       <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-America/Montreal}
+
     # log_timezone is set in postgresql.conf when initdb first runs (UTC if TZ was unset then).
     # The flag overrides it for an existing data directory too.
     command: ["postgres", "-c", "log_timezone=${TZ:-America/Montreal}"]
+
+    # Keep the data in the named volume `pgdata`, so it stays after `down`, which removes the
+    # container.
     volumes:
       # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
       - pgdata:/var/lib/postgresql/data
+
+    # Write the log of the container to ${FMS_LOG_DIR}/<service>.log on the host (default: logs/
+    # in this directory, as an absolute path). Each service has its own file. The file stays after
+    # `down` and `--force-recreate`, and `podman-compose logs` still reads it. The path must be
+    # absolute: a relative path breaks `podman restart` from another directory.
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/db.log
+
+    # Restart a container that exits while podman runs. It does not start containers at boot.
+    # `start.py` does that (README.md: "Start the stack at boot").
     restart: always
 
-  # One-shot: apply migrations, then exit (a Job in Kubernetes).
+  # One-shot: apply migrations, then exit (a Job in Kubernetes). It runs again each time its
+  # container is created.
   migrate:
+    # Build the `backend-prod` image of oci/Containerfile. `backend` and `report` use the same
+    # image.
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
@@ -99,39 +119,102 @@ services:
       args:
         # apt-get (libpq, gcc) and pip (requirements.txt, uwsgi) download packages.
         <<: *proxy
+
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
+
     command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
+
+    # Start as soon as the `db` container starts. The entrypoint of the image waits until the
+    # database accepts connections.
     depends_on:
       db:
         condition: service_started
+
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/migrate.log
+
+    # Stay stopped when the job ends. podman-compose does not check migrate's exit code; check its
+    # logs.
     restart: "no"
 
+  # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in
+  # the container network. The port is not published. Only `web` connects to it.
   backend:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
+
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
     userns_mode: keep-id:uid=1000,gid=1000
+
+    # `:z` relabels the host directory for SELinux, so the container can use it. It has no effect
+    # where SELinux is absent. Podman does not create a missing source directory, so create them
+    # first (see the commands at the top).
     volumes:
       - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media:z
       - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers:z
       # Same path on both sides when set: .env also reaches the container (settings.py reads it).
       - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}:z
+
+    # Start only after `migrate` exits with code 0.
     depends_on:
       migrate:
         condition: service_completed_successfully
+
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/backend.log
+
+    restart: always
+
+  # nginx in a container: the production entry. The host nginx passes HTTP to it.
+  # Also the model for Kubernetes. It serves the frontend build, the Django static files and
+  # `/media/`, and passes `/api/` to `backend`.
+  web:
+    # Build the `web` image of oci/Containerfile.
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: web
+      args:
+        # apt-get (git) and npm ci download packages for the frontend build that web copies.
+        <<: *proxy
+        FMS_ENV: ${FMS_ENV:-PROD}
+
+    environment:
+      <<: *no-proxy
+      BACKEND_UPSTREAM: backend:8000
+      TZ: ${TZ:-America/Montreal}
+
+    # Publish port 8080 of the container on the host.
+    # Only the host nginx can reach it. A developer in a VM or container sets FMS_HTTP_ADDR=0.0.0.0.
+    ports:
+      - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
+
+    # `:ro` makes the mount read-only, because nginx only reads the media files. `:z` is the
+    # SELinux label (see `backend`).
+    volumes:
+      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro,z
+
+    # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
+    # and restart: always is the fallback if the name does not resolve yet.
+    depends_on:
+      backend:
+        condition: service_started
+
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:-${PWD}/logs}/web.log
+
     restart: always
 
   # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
@@ -140,26 +223,34 @@ services:
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
+
     command: ["fms-report"]
+
     # keep-id: the log files belong to the host user, as uid 1000 (the image user fms), like backend.
     userns_mode: keep-id:uid=1000,gid=1000
+
+    # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
+    # keeps it next to the service logs (<service>.log).
     volumes:
-      # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
-      # keeps it next to the service logs (<service>.log).
       - ${FMS_LOG_DIR:-${PWD}/logs}:/home/fms/reports/log
+
+    # Start only after `migrate` exits with code 0.
     depends_on:
       migrate:
         condition: service_completed_successfully
+
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/report.log
+
     restart: always
 
   # Daily pg_dumpall into FMS_BACKUP_DIR on the host, as <YYYY-MM-DD>.pgsql.gz, at FMS_BACKUP_TIME
   # (a CronJob in Kubernetes). The directory must exist. Runs as root in the container,
   # which rootless podman maps to the host user, so that user owns the files.
   backup:
+    # Build the `backup` image of oci/db/Containerfile.
     image: localhost/freezeman-backup:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
@@ -168,6 +259,7 @@ services:
       args:
         # apt-get installs python3 for the backup and notify scripts.
         <<: *proxy
+
     environment:
       <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB}
@@ -187,48 +279,23 @@ services:
       FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
       FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
       FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
+
+    # `:z` is the SELinux label (see `backend`).
     volumes:
       - ${FMS_BACKUP_DIR:-./backups}:/backups:z
+
     depends_on:
       db:
         condition: service_started
+
     logging:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:-${PWD}/logs}/backup.log
+
     restart: always
 
-  # nginx in a container: the production entry. The host nginx passes HTTP to it.
-  # Also the model for Kubernetes.
-  web:
-    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
-    build:
-      context: ..
-      dockerfile: oci/Containerfile
-      target: web
-      args:
-        # apt-get (git) and npm ci download packages for the frontend build that web copies.
-        <<: *proxy
-        FMS_ENV: ${FMS_ENV:-PROD}
-    environment:
-      <<: *no-proxy
-      BACKEND_UPSTREAM: backend:8000
-      TZ: ${TZ:-America/Montreal}
-    # Only the host nginx can reach it. A developer in a VM or container sets FMS_HTTP_ADDR=0.0.0.0.
-    ports:
-      - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
-    volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro,z
-    # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
-    # and restart: always is the fallback if the name does not resolve yet.
-    depends_on:
-      backend:
-        condition: service_started
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/web.log
-    restart: always
-
+# Declare the named volume of `db`. Podman manages it, so the data stays when a container is
+# removed.
 volumes:
   pgdata:
