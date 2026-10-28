@@ -313,7 +313,8 @@ and do not change the classic crontab. The stack has its own copy of the data.
 2. Build the images:
 
    ```bash
-   podman-compose build
+   # Proxy host: set the variables as in Proxy. Other hosts: remove them.
+   HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
    ```
 
 3. Start only the database. `migrate` runs as soon as `db` starts, so do not start the other services yet. Wait until it is ready.
@@ -427,7 +428,8 @@ Removing a container deletes its podman state, but not the log files in `FMS_LOG
 podman-compose exec backup fms-backup now
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
-podman-compose build
+# proxy host: set the variables before each podman-compose command, as in Proxy
+HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
 podman-compose up -d --force-recreate
 podman-compose logs migrate
 ```
@@ -472,7 +474,7 @@ What one run does:
 2. Stop if `FMS_ENV` is `PROD`, if the checkout is not on `--branch` or if it has local changes.
 3. Run `git fetch` and read `origin/<branch>`. If this commit is the last one in `logs/autoupdate.state`, stop.
 4. Fast-forward the checkout (`git merge --ff-only`) and update the submodules.
-5. Run `podman-compose build`. If it fails, the old containers keep running.
+5. Run `podman-compose build`. If it fails, the old containers keep running. On a proxy host, the build needs the proxy variables from the crontab line (see [Proxy](#proxy)).
 6. Run `podman-compose down`, delete the volume `freezeman_pgdata` and start `db`. Wait for it, then restore the dump.
 7. Run `podman-compose up -d --force-recreate`. `migrate` applies the migrations that the dump does not have.
 
@@ -772,7 +774,8 @@ Then build and start the stack. `web` is a default service:
 
 ```bash
 mkdir -p ../backend/media ../backend/triggers logs
-podman-compose build
+# proxy host: set the variables before each podman-compose command, as in Proxy
+HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
 podman-compose up -d
 ```
 
