@@ -298,6 +298,13 @@ and do not change the classic crontab. The stack has its own copy of the data.
    [Time zone (TZ)](#time-zone-tz) and add the flag `-c timezone=UTC` to `compose.yaml` before step 3. Step 3 starts
    `db`, and the flag must be in `compose.yaml` at that time.
 
+   Use `pg_dump -Fc`. Do not use `pg_dumpall`. `pg_dumpall` also copies the roles of the classic server. On the
+   classic host, `admin` is a normal role and `postgres` is the superuser. In the container, `POSTGRES_USER` is the
+   superuser. The script of `pg_dumpall` runs `ALTER ROLE admin ... NOSUPERUSER PASSWORD ...`. This removes the
+   superuser right of `POSTGRES_USER` during the restore and sets the classic password, so `backend` cannot log in
+   with `POSTGRES_PASSWORD`. The release backups of `DEPLOYMENT.md` (`backup_release_*.pgsql`) are `pg_dumpall`
+   files and have the same problem. Do not restore them into the container.
+
    ```bash
    psql -U postgres -d fms -c 'SHOW timezone'    # compare the result with TZ in .env
    pg_dump -U postgres -Fc fms > fms_classic.dump
@@ -326,6 +333,8 @@ and do not change the classic crontab. The stack has its own copy of the data.
    assigns everything to `POSTGRES_USER`. `--no-acl` skips the `GRANT` and `REVOKE` commands of the dump.
    These commands name roles of the old server, which do not exist in the container database.
    `POSTGRES_USER` owns all objects, so it needs no grants.
+   `pg_dump` copies only the `fms` database. It does not copy roles, passwords, or `ALTER DATABASE ... SET` and
+   `ALTER ROLE ... SET` settings. The container keeps the roles that `initdb` made from `.env`.
 
 4. **Classic host:** copy the media files and the trigger folders:
 
@@ -379,7 +388,8 @@ The classic setup is not affected.
 Do this when the team decides that the stack replaces the classic setup. The stack needs no change: TLS ends at the host nginx,
 `FMS_HOST` stays the same, and Django sets no secure-cookie or `SECURE_PROXY_SSL_HEADER` setting today.
 
-1. Stop the writes to the classic site. Dump the classic database again. Delete the volume `freezeman_pgdata`
+1. Stop the writes to the classic site. Dump the classic database again with the same `pg_dump -Fc` command as in
+   step 1 of [First start](#first-start). Delete the volume `freezeman_pgdata`
    (`podman-compose down`, then `podman volume rm freezeman_pgdata`) and restore the new dump as in step 3 of
    [First start](#first-start). Copy the media files and the triggers
    again with `cp -a`. This replaces the data of the HTTP trial.
@@ -438,6 +448,9 @@ Before the first run:
 - Get a production dump. `.pgsql.gz` and `.pgsql` (`pg_dumpall`, the files of the `backup` service) restore with
   `psql`, as in [Database backups](#database-backups). `.dump` (`pg_dump -Fc`) restores with `pg_restore`,
   as in [First start](#first-start). Other extensions stop the script.
+- A `.pgsql` or `.pgsql.gz` file must come from the `backup` service of a container stack. For a classic
+  production source, give `--dump` a `.dump` file (`pg_dump -Fc`). A classic `pg_dumpall` file changes the roles,
+  as [First start](#first-start) describes.
 
 Add a line to the crontab of `django` (`crontab -e`). The example checks every 10 minutes:
 
@@ -503,6 +516,15 @@ podman-compose logs migrate
 - The container runs as root, which rootless podman maps to the deployment user, so that user owns the
   files. The bind mount uses `:z` for SELinux. The `backup` image has the same PostgreSQL base image as the
   `db` image (`POSTGRES_IMAGE`), so `pg_dumpall` always matches the server version.
+- `pg_dumpall` copies the whole cluster: the roles with their password hashes, the role and database settings,
+  and all databases. During the restore, `CREATE ROLE admin` fails ("already exists"), but the next
+  `ALTER ROLE admin ... PASSWORD ...` runs. It sets the password that `POSTGRES_USER` had at backup time.
+  If `POSTGRES_PASSWORD` in `.env` changed after the backup, set `.env` back to the old value. Or run
+  `ALTER ROLE <POSTGRES_USER> PASSWORD '<new>'` after the restore.
+- Restore only into an empty cluster (a new `freezeman_pgdata` volume). The script has no `DROP` commands, so a
+  restore over existing data gives duplicate-key errors or mixed data.
+- Use these files only between container stacks, because the roles match. For a classic-host source, use
+  `pg_dump -Fc`. See [First start](#first-start).
 - Copy the directory off the host as well: a backup on the same disk does not protect against disk loss.
 - A failed backup sends an email: see [Failure emails](#failure-emails).
 
@@ -768,6 +790,7 @@ podman-compose exec -T backend python manage.py prepare_report_data
 podman-compose exec db psql -U admin -d fms
 # -T: no pseudo-TTY, which would turn the dump's line endings into CRLF
 podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql
+# pg_dumpall copies the roles too. Restore it as in "Database backups"
 
 podman ps -a                                       # all containers, also stopped ones
 podman images                                      # built images
