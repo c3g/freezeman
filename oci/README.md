@@ -170,7 +170,7 @@ Do these steps after IT completes [ROCKY.md](ROCKY.md) and the [acceptance check
 Do these sections in this order. On a new host with no data to keep, skip the steps marked **classic host**.
 
 1. [Set up the home of django](#set-up-the-home-of-django): podman configuration and podman-compose.
-2. [Get the release and create the directories](#get-the-release-and-create-the-directories): the checkout `/data/freezeman-oci`, `.env`, and the host directories.
+2. [Get the release and create the directories](#get-the-release-and-create-the-directories): the checkout `/data/freezeman-oci`, `.env`, the host directories and log rotation.
 3. [First start](#first-start): build, restore the data of the classic setup (**classic host** only), start, check.
 4. [Start at boot](#start-at-boot): the `@reboot` line.
 5. [Switch to HTTPS (later)](#switch-to-https-later): only when the team decides that the stack replaces the classic setup.
@@ -274,13 +274,43 @@ Run these steps as `django`.
 
    `FMS_LOG_DIR` in `.env` must be this directory. The path must be absolute. To use another directory, change both.
 
-4. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
+4. Set up log rotation. The files grow without limit. Rotate them with `logrotate` (Rocky has the package: `rpm -q logrotate`) and the crontab of `django`, with no systemd:
+
+   1. Create the configuration `~/.config/logrotate/freezeman.conf`. If you set `FMS_LOG_DIR`, change the path.
+
+      ```bash
+      mkdir -p ~/.config/logrotate ~/.local/state
+      cat > ~/.config/logrotate/freezeman.conf <<'EOF'
+      /data/freezeman-oci/oci/logs/*.log {
+          weekly
+          rotate 8
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+      }
+      EOF
+      ```
+
+   2. Add a line to the crontab (`crontab -e`). The line uses its own state file, so it does not touch the
+      system `logrotate`.
+
+      ```cron
+      0 3 * * 0 /usr/sbin/logrotate -s ~/.local/state/logrotate-freezeman.state ~/.config/logrotate/freezeman.conf
+      ```
+
+   `copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` must copy the
+   file and then empty it. A line that a container writes between the copy and the truncation can be lost.
+   Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
+
+5. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
 
    ```bash
    mkdir -p /data/freezeman-oci/backups
    ```
 
-5. Create the media and trigger directories. Podman does not create a missing bind-mount source.
+6. Create the media and trigger directories. Podman does not create a missing bind-mount source.
 
    ```bash
    mkdir -p /data/freezeman-oci/backend/media /data/freezeman-oci/backend/triggers
@@ -467,7 +497,7 @@ Add a line to the crontab of `django` (`crontab -e`). The example checks every 1
 - If the host has no cron (the host is a container), add `--interval 600` and start the command, as `django`,
   from the init of the outer container, like `start.py`. The script then checks every 600 seconds and never exits.
   Redirect its output to `logs/autoupdate.log`.
-- The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [Logs](#logs) rotates it.
+- The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [step 4 of Get the release and create the directories](#get-the-release-and-create-the-directories) rotates it.
 - A failed run sends an email, one per distinct error: see [Failure emails](#failure-emails).
 
 What one run does:
@@ -651,35 +681,7 @@ The request log is `web.log` (nginx). uwsgi does not log requests (`disable-logg
 because it can write its times only in UTC. Each `web.log` line ends with `rt=` (total time) and `urt=` (time that
 uwsgi took), in seconds. `urt=` is `-` for files that nginx serves itself.
 
-The files grow without limit. Rotate them with `logrotate` (Rocky has the package: `rpm -q logrotate`) and the crontab of `django`, with no systemd:
-
-1. Create the configuration `~/.config/logrotate/freezeman.conf`. If you set `FMS_LOG_DIR`, change the path.
-
-   ```bash
-   mkdir -p ~/.config/logrotate ~/.local/state
-   cat > ~/.config/logrotate/freezeman.conf <<'EOF'
-   /data/freezeman-oci/oci/logs/*.log {
-       weekly
-       rotate 8
-       compress
-       delaycompress
-       missingok
-       notifempty
-       copytruncate
-   }
-   EOF
-   ```
-
-2. Add a line to the crontab (`crontab -e`). The line uses its own state file, so it does not touch the
-   system `logrotate`.
-
-   ```cron
-   0 3 * * 0 /usr/sbin/logrotate -s ~/.local/state/logrotate-freezeman.state ~/.config/logrotate/freezeman.conf
-   ```
-
-`copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` must copy the
-file and then empty it. A line that a container writes between the copy and the truncation can be lost.
-Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
+Rotate the files as in step 4 of [Get the release and create the directories](#get-the-release-and-create-the-directories).
 
 With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 `/src/backend/fms.log` inside the container.
