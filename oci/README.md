@@ -185,8 +185,7 @@ and the shell. They need no checkout and no data.
 1. Set up podman without systemd. The compose stack needs no systemd user manager and no D-Bus, so it also runs
    on a host that is a container. Make two changes.
 
-   a. Tell podman to use the `cgroupfs` cgroup manager and the `file` event logger. Podman then creates the cgroups
-      (resource limits) of the containers itself and writes its events to a file. The stack sets no resource limits,
+   a. Tell podman to use the `cgroupfs` cgroup manager and the `file` event logger. The stack sets no resource limits,
       so `cgroupfs` loses nothing. If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak`
       and merge the two keys into its `[engine]` section.
 
@@ -194,7 +193,9 @@ and the shell. They need no checkout and no data.
       mkdir -p ~/.config/containers
       cat >> ~/.config/containers/containers.conf <<'EOF'
       [engine]
+      # Podman creates the cgroups (resource limits) of the containers itself.
       cgroup_manager = "cgroupfs"
+      # Podman writes its events to a file.
       events_logger = "file"
       EOF
       ```
@@ -300,10 +301,11 @@ Run these steps as `django`.
       EOF
       ```
 
-   2. Add a line to the crontab (`crontab -e`). The line uses its own state file, so it does not touch the
-      system `logrotate`.
+   2. Add a line to the crontab (`crontab -e`).
 
       ```cron
+      # 0 3 * * 0: every Sunday at 03:00.
+      # -s: own state file, so it does not touch the system logrotate.
       0 3 * * 0 /usr/sbin/logrotate -s ~/.local/state/logrotate-freezeman.state ~/.config/logrotate/freezeman.conf
       ```
 
@@ -346,6 +348,7 @@ and do not change the classic crontab. The stack has its own copy of the data.
 
    ```bash
    psql -U postgres -d fms -c 'SHOW timezone'    # compare the result with TZ in .env
+   # -Fc: custom format, restore with pg_restore.
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
@@ -364,21 +367,20 @@ and do not change the classic crontab. The stack has its own copy of the data.
    # -h 127.0.0.1: the first-start init server listens on the socket only,
    # so a TCP check passes only when the real server is up.
    until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+   # -T: no pseudo-TTY, keeps the binary dump intact.
+   # PGOPTIONS: log each statement of this session.
+   # --no-owner: give all objects to POSTGRES_USER.
+   # --no-acl: skip GRANT and REVOKE of old roles, which do not exist here.
+   # --verbose: print each restored object.
    podman-compose exec -T db env PGOPTIONS='-c log_statement=all' \
      pg_restore -U admin -d fms --no-owner --no-acl --verbose < fms_classic.dump    # classic host only
    ```
 
-   `-T` keeps the binary dump intact. Without it, the pseudo-TTY changes the stream.
-   `PGOPTIONS='-c log_statement=all'` writes each statement of the restore session to the server log.
    To follow the restore, run `podman logs -f freezeman_db_1` (or `podman-compose logs -f db`) in another terminal.
    `COPY` lines show the table name, not the rows. Only the restore session logs its statements.
    The server setting does not change. `log_statement` is a superuser setting, and `POSTGRES_USER` is the superuser in the container.
-   `--verbose` prints each object that `pg_restore` restores.
    The database is created on first start with `fzy` already enabled, so expect a
-   harmless "extension fzy already exists" message during the restore. `--no-owner`
-   assigns everything to `POSTGRES_USER`. `--no-acl` skips the `GRANT` and `REVOKE` commands of the dump.
-   These commands name roles of the old server, which do not exist in the container database.
-   `POSTGRES_USER` owns all objects, so it needs no grants.
+   harmless "extension fzy already exists" message during the restore.
    `pg_dump` copies only the `fms` database. It does not copy roles, passwords, or `ALTER DATABASE ... SET` and
    `ALTER ROLE ... SET` settings. The container keeps the roles that `initdb` made from `.env`.
 
@@ -502,14 +504,19 @@ Before the first run:
 Add a line to the crontab of `django` (`crontab -e`). The example checks every 10 minutes:
 
 ```cron
+# */10 * * * *: check every 10 minutes.
+# --branch: branch of origin to follow.
+# --dump: dump to restore (.pgsql.gz, .pgsql or .dump).
+# >> logs/autoupdate.log 2>&1: append the output and the errors to the log.
+# Optional --interval N: check every N seconds and never exit (default: check once).
+# Optional --force: deploy even if the commit is the last deployed one.
 */10 * * * * /data/freezeman-oci/oci/autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz >> /data/freezeman-oci/oci/logs/autoupdate.log 2>&1
 ```
 
 - If the host uses an HTTP proxy, cron does not have it. Set the proxy variables before the command in the
   crontab line, as in [Proxy](#proxy): `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... /data/freezeman-oci/oci/autoupdate.py ...`
 - If the host has no cron (the host is a container), add `--interval 600` and start the command, as `django`,
-  from the init of the outer container, like `start.py`. The script then checks every 600 seconds and never exits.
-  Redirect its output to `logs/autoupdate.log`.
+  from the init of the outer container, like `start.py`. Redirect its output to `logs/autoupdate.log`.
 - The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [step 4 of Get the release and create the directories](#get-the-release-and-create-the-directories) rotates it.
 - A failed run sends an email, one per distinct error: see [Failure emails](#failure-emails).
 
@@ -526,21 +533,25 @@ What one run does:
 - Each run deletes `freezeman_pgdata`, so `initdb` runs each time and the default `timezone` is `TZ`. To get UTC,
   see [Time zone (TZ)](#time-zone-tz).
 - The site is down from `down` until the end of `up -d --force-recreate`. This time includes the restore.
-- A commit that fails is not tried again. The script waits for a new commit. To try the same commit again, or to
-  deploy the commit that is already deployed, run the script with `--force`.
+- A commit that fails is not tried again. The script waits for a new commit. To try the same commit again,
+  run the script with `--force`.
 - `logs/autoupdate.state` holds the last commit, `ok` and the time (JSON). Delete it to deploy at the next run.
 - The restore does not stop on errors, because the dump gives harmless "already exists" messages. The log shows the
   exit code of the restore. Read the output of `psql` or `pg_restore` above it.
 
 #### Database backups
 
-The `backup` service runs `pg_dumpall` every day at `FMS_BACKUP_TIME` (default `01:00`, in `TZ`)
-and writes `<YYYY-MM-DD>.pgsql.gz` into `FMS_BACKUP_DIR` on the host. It deletes files older than
-`FMS_BACKUP_KEEP_DAYS` (default 14, `0` keeps all). It does not start in development (profile `backup`).
+The `backup` service runs `pg_dumpall` every day and writes `<YYYY-MM-DD>.pgsql.gz` into a host directory.
+It does not start in development (profile `backup`).
 
 ```bash
 # oci/.env
+# Host directory for the daily dumps. It must exist.
 FMS_BACKUP_DIR=/data/freezeman-oci/backups
+# Time of day (HH:MM, in TZ) of the backup.
+FMS_BACKUP_TIME=01:00
+# Delete backups older than this many days (0 keeps all).
+FMS_BACKUP_KEEP_DAYS=14
 
 mkdir -p /data/freezeman-oci/backups      # podman does not create a missing bind-mount source
 podman-compose up -d backup
@@ -552,14 +563,14 @@ To restore into an empty database cluster, start only `db`, restore, then start 
 ```bash
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+# -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c /data/freezeman-oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 podman-compose up -d                 # migrate applies the migrations that the backup does not have
 podman-compose logs migrate
 ```
 
-- `-d postgres`: the `pg_dumpall` script creates the roles and the database, then runs `\connect fms`.
-  psql must start in another database, so it starts in `postgres`. The messages "role admin already
-  exists", "database fms already exists" and "extension fzy already exists" are harmless.
+- The messages "role admin already exists", "database fms already exists" and
+  "extension fzy already exists" are harmless.
 - The container runs as root, which rootless podman maps to the deployment user, so that user owns the
   files. The bind mount uses `:z` for SELinux. The `backup` image has the same PostgreSQL base image as the
   `db` image (`POSTGRES_IMAGE`), so `pg_dumpall` always matches the server version.
@@ -578,12 +589,15 @@ podman-compose logs migrate
 #### Daily report data
 
 The `report` service replaces the cron entry. It runs `python manage.py prepare_report_data` every day.
-Set the time in `.env`: `FMS_REPORT_TIME` (`HH:MM`, default `02:00`) in the time
-zone `TZ` (`America/Montreal`). The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
+The run log `report_preparation.log` goes to `FMS_LOG_DIR`, next to the service logs
 (`~/reports/log/` in the container is a bind mount of that directory). A failed run is printed to the service log, and the next run
 still happens, and an email is sent: see [Failure emails](#failure-emails). It does not start in development (profile `report`).
 
 ```bash
+# oci/.env
+# Time of day (HH:MM, in TZ) for prepare_report_data.
+FMS_REPORT_TIME=02:00
+
 podman-compose logs report                                                    # next run time and output
 podman-compose exec -T backend python manage.py prepare_report_data              # run it now
 ```
@@ -599,11 +613,23 @@ Four jobs run without a person. Each one sends an email when it fails. Before th
 | `autoupdate.py` | An update fails (it aborts, a command fails, or another error occurs) |
 | `start.py` (cron `@reboot`) | `podman-compose up -d` exits with a non-zero code, or 60 s later (`CHECK_DELAY`) a container is in a wrong state: `migrate` with a non-zero exit code, or any other service not `running` |
 
-Set the recipients in `.env`. The jobs use the SMTP settings of Django (`FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`,
-`FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS`) and one more variable:
+Set the SMTP server and the recipients in `.env`. The jobs use the SMTP settings of Django:
 
 ```bash
 # oci/.env
+# SMTP server.
+FMS_EMAIL_HOST=smtp.office365.com
+# SMTP port.
+FMS_EMAIL_PORT=587
+# Sender address.
+FMS_EMAIL_FROM=noreply@example.com
+# SMTP user name.
+FMS_EMAIL_USER=noreply@example.com
+# SMTP password.
+FMS_EMAIL_PASSWORD=secret
+# Any non-empty value turns TLS on, even False (see the TLS rule below).
+FMS_EMAIL_TLS=True
+# Recipients of the failure emails (comma list).
 FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
 ```
 
@@ -726,14 +752,15 @@ The `dev` shell starts in `/src`. In the `dev` shell:
 cd /src/backend && python manage.py migrate && python manage.py createinitialrevisions
 
 # Backend: http://localhost:8000, reloads on code changes
+# 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
 cd /src/backend && python manage.py runserver 0.0.0.0:8000
 
 # Frontend with live reload: http://localhost:9000 (proxies /api to port 8000)
+# --host 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
 cd /src/frontend && npm ci && npm start -- --host 0.0.0.0
 ```
 
-- Use `0.0.0.0`: the published port connects to the container IP, not to the container loopback.
-  The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
+- The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
 - Run the servers in two shells (or in the background).
 - PostgreSQL: see [Database access](#database-access).
 
@@ -776,8 +803,16 @@ as in [Development](#development-2).
 1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
    Create `oci/logs` and set `FMS_LOG_DIR` in `.env` to its absolute path, for example
    `FMS_LOG_DIR=/home/me/freezeman/oci/logs`. The editor starts compose from another directory, so the path must be absolute.
-2. For podman, set these VS Code user settings: `"dev.containers.dockerPath": "podman"` and
-   `"dev.containers.dockerComposePath": "podman-compose"`.
+2. For podman, set these VS Code user settings:
+
+   ```jsonc
+   {
+     // Use podman instead of docker.
+     "dev.containers.dockerPath": "podman",
+     // Use podman-compose instead of docker compose.
+     "dev.containers.dockerComposePath": "podman-compose"
+   }
+   ```
 3. Open the repository in VS Code and run "Dev Containers: Reopen in Container".
 
 The Dev Containers extension with `podman-compose` has known quirks. If "Reopen in Container" fails,
