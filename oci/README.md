@@ -104,7 +104,8 @@ Do these steps for both environments:
 - Check out the pg_fzy submodules: `git submodule update --init --recursive`
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
-- Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY` and `FMS_HOST`.
+- Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_LOG_DIR`.
+  `FMS_LOG_DIR` is the absolute path of the log directory. It has no default: compose stops if it is not set.
 
 ### Production
 
@@ -253,7 +254,8 @@ Run these steps as `django`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git /data/freezeman-oci
    ```
 
-2. Create `.env` and set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_ENV`. Add the other values that the next steps name.
+2. Create `.env` and set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST`, `FMS_ENV` and `FMS_LOG_DIR`
+   (`FMS_LOG_DIR=/data/freezeman-oci/oci/logs`). Add the other values that the next steps name.
 
    ```bash
    cd /data/freezeman-oci/oci
@@ -270,7 +272,7 @@ Run these steps as `django`.
    mkdir -p /data/freezeman-oci/oci/logs
    ```
 
-   The default is `logs/` in `oci/`. To use another directory, set `FMS_LOG_DIR` in `.env`. The path must be absolute.
+   `FMS_LOG_DIR` in `.env` must be this directory. The path must be absolute. To use another directory, change both.
 
 4. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
 
@@ -693,10 +695,11 @@ With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 
 ### Development
 
-Start the stack and enter the `dev` container:
+Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs` in your checkout, for example
+`FMS_LOG_DIR=/home/me/freezeman/oci/logs`. Compose stops without it. Start the stack and enter the `dev` container:
 
 ```bash
-mkdir -p logs                          # the container logs go to oci/logs/<service>.log
+mkdir -p logs                          # the container logs go to FMS_LOG_DIR/<service>.log
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
@@ -756,8 +759,8 @@ starts `db` and `dev`. It starts no server: start the servers by hand in a termi
 as in [Development](#development-2).
 
 1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
-   The editor starts compose from another directory, so the default log path does not apply. Create `oci/logs`
-   and set `FMS_LOG_DIR` in `.env` to its absolute path, for example `FMS_LOG_DIR=/home/me/freezeman/oci/logs`.
+   Create `oci/logs` and set `FMS_LOG_DIR` in `.env` to its absolute path, for example
+   `FMS_LOG_DIR=/home/me/freezeman/oci/logs`. The editor starts compose from another directory, so the path must be absolute.
 2. For podman, set these VS Code user settings: `"dev.containers.dockerPath": "podman"` and
    `"dev.containers.dockerComposePath": "podman-compose"`.
 3. Open the repository in VS Code and run "Dev Containers: Reopen in Container".
@@ -770,7 +773,7 @@ The servers, `psql` and the tests run in that `dev` shell as before.
 #### Test the production stack locally
 
 Podman does not create a missing bind-mount source or log directory. Create the host directories first (once).
-Then build and start the stack. `web` is a default service:
+Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs`. Then build and start the stack. `web` is a default service:
 
 ```bash
 mkdir -p ../backend/media ../backend/triggers logs

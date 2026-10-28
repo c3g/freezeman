@@ -93,14 +93,15 @@ services:
       # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
       - pgdata:/var/lib/postgresql/data
 
-    # Write the log of the container to ${FMS_LOG_DIR}/<service>.log on the host (default: logs/
-    # in this directory, as an absolute path). Each service has its own file. The file stays after
-    # `down` and `--force-recreate`, and `podman-compose logs` still reads it. The path must be
-    # absolute: a relative path breaks `podman restart` from another directory.
+    # Write the log of the container to ${FMS_LOG_DIR}/<service>.log on the host. Each service has
+    # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`
+    # still reads it. FMS_LOG_DIR has no default: set it in .env. The path must be absolute: a
+    # relative path breaks `podman restart` from another directory. Do not use a nested default
+    # such as ${A:-${B}}: podman-compose 1.5 (Rocky 9.6) stops at the first `}`.
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/db.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/db.log
 
     # Restart a container that exits while podman runs. It does not start containers at boot.
     # `start.py` does that (README.md: "Start the stack at boot").
@@ -135,7 +136,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/migrate.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/migrate.log
 
     # Stay stopped when the job ends. podman-compose does not check migrate's exit code; check its
     # logs.
@@ -170,7 +171,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/backend.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/backend.log
 
     restart: always
 
@@ -213,7 +214,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/web.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/web.log
 
     restart: always
 
@@ -232,7 +233,7 @@ services:
     # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
     # keeps it next to the service logs (<service>.log).
     volumes:
-      - ${FMS_LOG_DIR:-${PWD}/logs}:/home/fms/reports/log
+      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/home/fms/reports/log
 
     # Start only after `migrate` exits with code 0.
     depends_on:
@@ -242,7 +243,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/report.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/report.log
 
     restart: always
 
@@ -291,7 +292,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/backup.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/backup.log
 
     restart: always
 

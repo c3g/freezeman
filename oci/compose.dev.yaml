@@ -84,7 +84,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:-${PWD}/logs}/dev.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/dev.log
 
     # The entrypoint waits until the database accepts connections.
     depends_on:
