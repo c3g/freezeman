@@ -14,3 +14,11 @@ TODO.txt
 
 oci/backups/
 oci/logs/
+
+# Database dumps
+*.dump
+*.pgdump
+*.pgsql
+*.sql.gz
+*.dump.gz
+*.pgsql.gz

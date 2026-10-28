@@ -22,3 +22,11 @@ frontend/dist
 
 # Generated inside the image by oci/Containerfile
 backend/fms/build_info.json
+
+# Database dumps
+**/*.dump
+**/*.pgdump
+**/*.pgsql
+**/*.sql.gz
+**/*.dump.gz
+**/*.pgsql.gz
