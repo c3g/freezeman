@@ -291,8 +291,15 @@ On a new host with no data to keep, skip them. The classic setup keeps running a
 and do not change the classic crontab. The stack has its own copy of the data.
 
 1. **Classic host:** dump the classic database. The container runs the same PostgreSQL major version (15), so a plain dump and restore is enough.
+   Before the dump, check the default time zone of the classic server. `TZ` is the variable in `.env` that sets
+   the time zone of the stack (default `America/Montreal`). The new `db` container uses `TZ` as its default, so
+   people and tools that query it outside Django get different dates and times from the classic server if the two
+   values differ. If the result is not the `TZ` value and you want the old behavior, read
+   [Time zone (TZ)](#time-zone-tz) and add the flag `-c timezone=UTC` to `compose.yaml` before step 3. Step 3 starts
+   `db`, and the flag must be in `compose.yaml` at that time.
 
    ```bash
+   psql -U postgres -d fms -c 'SHOW timezone'    # compare the result with TZ in .env
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
@@ -456,6 +463,8 @@ What one run does:
 6. Run `podman-compose down`, delete the volume `freezeman_pgdata` and start `db`. Wait for it, then restore the dump.
 7. Run `podman-compose up -d --force-recreate`. `migrate` applies the migrations that the dump does not have.
 
+- Each run deletes `freezeman_pgdata`, so `initdb` runs each time and the default `timezone` is `TZ`. To get UTC,
+  see [Time zone (TZ)](#time-zone-tz).
 - The site is down from `down` until the end of `up -d --force-recreate`. This time includes the restore.
 - A commit that fails is not tried again. The script waits for a new commit. To try the same commit again, or to
   deploy the commit that is already deployed, run the script with `--force`.
@@ -582,11 +591,19 @@ The flag also overrides the value in `postgresql.conf` of an existing data direc
 Use the flag in these cases:
 
 - You create a new data directory (new deployment, or a restore into a new volume), and people or tools query the
-  database outside Django. The flag gives them UTC, the same as the data directories that exist.
+  database outside Django. The flag gives them UTC. Compare with the old server: a classic host server gets its
+  `timezone` from its own `initdb`, so it is not always UTC.
 - You want the same query results on all hosts, independent of the `TZ` value when `initdb` ran.
 
-The flag is not necessary when only Django uses the database. Backups do not need it: `pg_dumpall` writes each
-`timestamptz` value with its UTC offset, so a restore gives the same values.
+Two more points:
+
+- `ALTER DATABASE ... SET timezone` and `ALTER ROLE ... SET timezone` override the flag for each session.
+  `pg_dumpall` copies these settings. To see them, run `\drds` in `psql`.
+- To get UTC in one client only, set `PGTZ=UTC` for that client. The server flag is then not necessary.
+
+The flag is not necessary when only Django uses the database. Dumps and restores do not need it: `pg_dump` and
+`pg_dumpall` write each `timestamptz` value with its UTC offset, so a restore gives the same values. This is true
+for [First start](#first-start), [Database backups](#database-backups) and `autoupdate.py`.
 
 #### Logs
 
