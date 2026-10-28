@@ -2,8 +2,9 @@
 # Update a QC/dev stack from a GitHub branch (README.md: "Automatic update (QC)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
 # the dump and recreate the stack. Never use it on production: it deletes the database.
-#   autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz [--interval 600] [--force]
+#   autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz [--interval 600] [--force] [--fast-restore]
 # Without --interval it checks once and exits (cron). With it, it checks every N seconds and never exits.
+# --fast-restore restores with compose.restore.yaml (slow disk, README.md: "Restore on a slow disk").
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 import argparse
 import fcntl
@@ -30,6 +31,9 @@ DB_WAIT_SECONDS = 120
 RESTORE_PSQL = 'psql -U "$POSTGRES_USER" -d postgres'
 RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl --verbose -d "$POSTGRES_DB"'
 
+# Relative to the working directory, like compose.yaml: hostenv.setup() changes it to OCI_DIR.
+FAST_RESTORE_FILES = ["-f", "compose.yaml", "-f", "compose.restore.yaml"]
+
 
 class Abort(Exception):
     pass
@@ -44,6 +48,7 @@ class Args(argparse.Namespace):
         self.profile: list[str] = []
         self.interval: Optional[int] = None
         self.force: bool = False
+        self.fast_restore: bool = False
         # Set by update_once() when the commit is known, for the alert email.
         self.commit: Optional[str] = None
 
@@ -173,9 +178,15 @@ def deploy(args: Args, profiles: list[str], state_path: str, commit: str, dump_c
         run(["podman-compose", *profiles, "down"])
         if subprocess.run(["podman", "volume", "exists", PGDATA_VOLUME], check=False).returncode == 0:
             run(["podman", "volume", "rm", PGDATA_VOLUME])
-        run(["podman-compose", "up", "-d", "db"])
+        # Safe only because the volume is new: a crash during the restore loses nothing, the next run deletes it.
+        run(["podman-compose", *(FAST_RESTORE_FILES if args.fast_restore else []), "up", "-d", "db"])
         wait_for_database()
         restore_dump(args.dump, dump_command)
+        if args.fast_restore:
+            log("Step: restart the database with the normal settings")
+            run(["podman-compose", "up", "-d", "--force-recreate", "db"])
+            # The fast server did not flush its files.
+            run(["sync"])
         log("Step: recreate the stack")
         # migrate applies the migrations that the dump does not have.
         run(["podman-compose", *profiles, "up", "-d", "--force-recreate"])
@@ -244,6 +255,7 @@ def main() -> None:
     _ = parser.add_argument("--profile", action="append", default=[], help="compose profile for build and up (repeatable)")
     _ = parser.add_argument("--interval", type=int, help="check every N seconds and never exit (default: check once)")
     _ = parser.add_argument("--force", action="store_true", help="deploy even if the commit is the last deployed one")
+    _ = parser.add_argument("--fast-restore", action="store_true", help="restore with compose.restore.yaml (fsync off). For a slow disk only")
     args = parser.parse_args(namespace=Args())
     args.dump = os.path.abspath(args.dump)
 

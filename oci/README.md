@@ -22,6 +22,7 @@ Contents:
     - [Update to a new release](#update-to-a-new-release)
     - [Automatic update (QC)](#automatic-update-qc)
     - [Database backups](#database-backups)
+    - [Restore on a slow disk](#restore-on-a-slow-disk)
     - [Daily report data](#daily-report-data)
     - [Failure emails](#failure-emails)
     - [Logs](#logs)
@@ -371,7 +372,7 @@ and do not change the classic crontab. The stack has its own copy of the data.
    ```
 
 3. Start only the database. `migrate` runs as soon as `db` starts, so do not start the other services yet. Wait until it is ready.
-   **Classic host:** restore the dump.
+   **Classic host:** restore the dump. On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
 
    ```bash
    podman-compose up -d db
@@ -527,6 +528,7 @@ Add a line to the crontab of `django` (`crontab -e`). The example checks every 1
 # >> logs/autoupdate.log 2>&1: append the output and the errors to the log.
 # Optional --interval N: check every N seconds and never exit (default: check once).
 # Optional --force: deploy even if the commit is the last deployed one.
+# Optional --fast-restore: restore with the settings of compose.restore.yaml (slow disk, see below).
 */10 * * * * /data/freezeman-oci/oci/autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz >> /data/freezeman-oci/oci/logs/autoupdate.log 2>&1
 ```
 
@@ -545,7 +547,13 @@ What one run does:
 4. Fast-forward the checkout (`git merge --ff-only`) and update the submodules.
 5. Run `podman-compose build`. If it fails, the old containers keep running. On a proxy host, the build needs the proxy variables from the crontab line (see [Proxy](#proxy)).
 6. Run `podman-compose down`, delete the volume `freezeman_pgdata` and start `db`. Wait for it, then restore the dump.
+   With `--fast-restore`, start `db` with `compose.restore.yaml`. After the restore, run
+   `podman-compose up -d --force-recreate db` and `sync`.
 7. Run `podman-compose up -d --force-recreate`. `migrate` applies the migrations that the dump does not have.
+
+- `--fast-restore` is off by default. Use it on a slow disk, as in [Restore on a slow disk](#restore-on-a-slow-disk).
+  The script always restores into a new volume, so the safety rule of that section holds. If the host crashes during
+  the restore, the next run with `--force` deletes the volume and restores again.
 
 - Each run deletes `freezeman_pgdata`, so `initdb` runs each time and the default `timezone` is `TZ`. To get UTC,
   see [Time zone (TZ)](#time-zone-tz).
@@ -575,7 +583,8 @@ podman-compose up -d backup
 podman-compose exec backup fms-backup now      # run one backup now
 ```
 
-To restore into an empty database cluster, start only `db`, restore, then start the rest:
+To restore into an empty database cluster, start only `db`, restore, then start the rest.
+On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
 
 ```bash
 podman-compose up -d db
@@ -602,6 +611,89 @@ podman-compose logs migrate
   `pg_dump -Fc`. See [First start](#first-start).
 - Copy the directory off the host as well: a backup on the same disk does not protect against disk loss.
 - A failed backup sends an email: see [Failure emails](#failure-emails).
+
+#### Restore on a slow disk
+
+A restore waits for the disk at each commit and at each checkpoint. On a disk with slow flushes, a restore takes hours.
+`compose.restore.yaml` starts `db` for the restore only, with settings that skip these waits. After the restore, you start
+`db` again with the normal settings.
+
+**When to use it.** Measure the flush rate of the disk. The command writes its test file in the data volume and
+deletes the file when it ends:
+
+```bash
+podman-compose up -d db
+podman-compose exec db pg_test_fsync -f /var/lib/postgresql/data/fsync.test -s 2
+```
+
+Use `fdatasync` in the output as the reference. A local NVMe disk gives thousands of operations per second.
+The Rocky 9.6 QC VM (KVM virtio disk `/dev/vda5`, xfs) gives 244 operations per second. This is a slow disk.
+If your disk gives a similar rate, use this section. If not, restore as usual.
+
+**What the settings do.** `compose.restore.yaml` changes only the `command` of `db`:
+
+| Setting | Effect |
+|---|---|
+| `fsync=off` | PostgreSQL does not flush its files to the disk |
+| `synchronous_commit=off` | A commit does not wait for the WAL flush |
+| `full_page_writes=off` | A checkpoint does not make the WAL write full pages |
+| `wal_level=minimal` | The WAL holds only the data that crash recovery needs |
+| `max_wal_senders=0` | Necessary for `wal_level=minimal` |
+| `max_wal_size=8GB` | The server makes fewer checkpoints during the load |
+| `maintenance_work_mem=512MB` | Index builds and constraint checks run faster |
+
+**Safety rule.** Use it only for a restore into a new, empty `freezeman_pgdata` volume. If the host crashes or loses
+power during the restore, the data is corrupt. Then run `podman-compose down`, delete the volume
+(`podman volume rm freezeman_pgdata`) and start again. Do not keep these settings after the restore, and do not use
+them on a volume that holds data to keep.
+
+**Steps.** Run them in `oci/`:
+
+1. Start only `db` with the override. The override replaces the `command` of `compose.yaml` (check with
+   `podman-compose -f compose.yaml -f compose.restore.yaml config`).
+
+   ```bash
+   podman-compose -f compose.yaml -f compose.restore.yaml up -d db
+   ```
+
+2. Wait until the database is ready, with the same loop as in [First start](#first-start):
+
+   ```bash
+   until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+   ```
+
+3. Run the restore command, with no change: `pg_restore` as in [First start](#first-start), or `psql` as in
+   [Database backups](#database-backups).
+4. Start `db` again with the settings of `compose.yaml`. This stops the fast server and starts a new container:
+
+   ```bash
+   podman-compose up -d --force-recreate db
+   ```
+
+   The log of the new server must say "database system was shut down at". The message "was not properly shut down"
+   means that the old server did not stop cleanly.
+5. Run `sync` on the host. The fast server did not flush its files, and `sync` writes them to the disk.
+
+   ```bash
+   sync
+   ```
+
+6. Check that the normal settings are active. The result must be `on`:
+
+   ```bash
+   podman-compose exec db psql -U admin -d fms -c 'SHOW fsync'
+   ```
+
+7. Start the other services:
+
+   ```bash
+   podman-compose up -d
+   ```
+
+`autoupdate.py` does these steps with the option `--fast-restore`. See [Automatic update (QC)](#automatic-update-qc).
+
+**Long-term fix.** Ask IT about the disk cache mode of the VM (the `cache=` option of the KVM disk) and about the
+storage behind it. A faster disk makes this workaround unnecessary.
 
 #### Daily report data
 
@@ -767,6 +859,7 @@ With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | `client_max_body_size` is missing in the host HTTP server block |
+| Restore takes hours | The disk is slow at flushes. See [Restore on a slow disk](#restore-on-a-slow-disk) |
 
 ### Development
 
