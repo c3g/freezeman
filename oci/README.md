@@ -544,6 +544,50 @@ FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
 - `start.py` reads `.env` itself, because it runs on the host.
 - SMTP does not go through the proxy (see [Proxy](#proxy)).
 
+#### Time zone (TZ)
+
+`TZ` in `.env` (default `America/Montreal`) sets the time zone of all services (`db`, `migrate`, `backend`,
+`report`, `backup`, `web`). It changes these items:
+
+| Item | Effect of `TZ` |
+|---|---|
+| `backup` service | `FMS_BACKUP_TIME` is in `TZ` |
+| `report` service | `FMS_REPORT_TIME` is in `TZ` |
+| Logs in `FMS_LOG_DIR` | The time stamps are in `TZ` (see [Logs](#logs)) |
+| PostgreSQL in a new data directory | The default `timezone` of each session is `TZ` (see below) |
+
+`TZ` does not change the data of the app:
+
+- Django uses `TIME_ZONE = 'UTC'` (`backend/fms/settings.py`). When Django loads its settings, it sets the process
+  time zone to UTC. Django stores and returns the datetimes in UTC, and each Django database connection uses UTC.
+- The time stamps in the names of saved template files use `LOCAL_TZ` in `backend/fms/settings.py`, not `TZ`.
+
+**PostgreSQL default time zone.** When `initdb` first runs (empty `freezeman_pgdata` volume), PostgreSQL writes
+`TZ` into `postgresql.conf` as `log_timezone` and as `timezone`. `timezone` is the default time zone of each
+session. Django sets its sessions to UTC, so the app is not affected. Other clients (`psql`, `pg_dumpall`,
+external tools) use the default. For example, `SELECT now()::date` gives the date in `TZ`. A data directory that
+`initdb` created before `db` got `TZ` keeps UTC. To see the value:
+
+```bash
+podman-compose exec db psql -U admin -d fms -c 'SHOW timezone'
+```
+
+To keep UTC as the default for all clients, add `-c timezone=UTC` to the `db` command in `compose.yaml`.
+The flag also overrides the value in `postgresql.conf` of an existing data directory:
+
+```yaml
+    command: ["postgres", "-c", "log_timezone=${TZ:-America/Montreal}", "-c", "timezone=UTC"]
+```
+
+Use the flag in these cases:
+
+- You create a new data directory (new deployment, or a restore into a new volume), and people or tools query the
+  database outside Django. The flag gives them UTC, the same as the data directories that exist.
+- You want the same query results on all hosts, independent of the `TZ` value when `initdb` ran.
+
+The flag is not necessary when only Django uses the database. Backups do not need it: `pg_dumpall` writes each
+`timestamptz` value with its UTC offset, so a restore gives the same values.
+
 #### Logs
 
 Each service writes its output to one file on the host: `<FMS_LOG_DIR>/<service>.log`, for example
@@ -558,7 +602,7 @@ tail -f /data/freezeman-oci/oci/logs/backend.log        # each line has a time s
 
 Each service writes its time stamps in `TZ` (default `America/Montreal`). The `db` service sets the PostgreSQL
 `log_timezone` to `TZ` at each start. Django lines (`migrate`, `backend`) show the offset, for example `-0400`.
-The prefix that podman adds to each line uses the time zone of the host.
+The prefix that podman adds to each line uses the time zone of the host. See [Time zone (TZ)](#time-zone-tz).
 
 The request log is `web.log` (nginx). uwsgi does not log requests (`disable-logging` in `backend/uwsgi.ini`),
 because it can write its times only in UTC. Each `web.log` line ends with `rt=` (total time) and `urt=` (time that
