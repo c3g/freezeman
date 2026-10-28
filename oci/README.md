@@ -282,12 +282,19 @@ Run these steps as `django`.
       mkdir -p ~/.config/logrotate ~/.local/state
       cat > ~/.config/logrotate/freezeman.conf <<'EOF'
       /data/freezeman-oci/oci/logs/*.log {
+          # Rotate each log at most once a week.
           weekly
+          # Keep 8 rotated files (about 8 weeks). Delete older ones.
           rotate 8
+          # Gzip the rotated files.
           compress
+          # Keep the newest rotated file (.log.1) uncompressed until the next rotation.
           delaycompress
+          # Do not fail if a log file is missing.
           missingok
+          # Do not rotate an empty file.
           notifempty
+          # Copy the file, then empty it in place. The writer keeps its open file.
           copytruncate
       }
       EOF
