@@ -1,3 +1,5 @@
+
+from fms_core.viewsets.sample_reporting import SampleReportingViewSet
 from rest_framework import routers
 
 from .viewsets import (
@@ -64,6 +66,7 @@ router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
 router.register(r"readset-reporting", ReadsetReportingViewSet, basename="readset-reporting")
+router.register(r"sample-reporting", SampleReportingViewSet, basename="sample-reporting")
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"sample-metadata", SampleMetadataViewSet, basename="sample-metadata")
 router.register(r"protocols", ProtocolViewSet)
