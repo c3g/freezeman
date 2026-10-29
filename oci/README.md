@@ -344,15 +344,17 @@ and do not change the classic crontab. The stack has its own copy of the data.
    HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
    ```
 
-3. Start only the database. `migrate` runs as soon as `db` starts, so do not start the other services yet. Wait until it is ready.
-   **Classic host:** restore the dump. On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
+3. Start only the database, wait until it is ready, and (classic host only) restore the dump.
+   - `migrate` runs as soon as `db` starts. Do not start the other services yet.
+   - If the host is classic and the disk is slow, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
+     Do not use the first command below.
 
    ```bash
    podman-compose up -d db
    # -h 127.0.0.1: the first-start init server listens on the socket only,
    # so a TCP check passes only when the real server is up.
    until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-   # -T: no pseudo-TTY, keeps the binary dump intact.
+   # Classic host only. -T: no pseudo-TTY, keeps the binary dump intact.
    # PGOPTIONS: log each statement of this session.
    # --no-owner: give all objects to POSTGRES_USER.
    # --no-acl: skip GRANT and REVOKE of old roles, which do not exist here.

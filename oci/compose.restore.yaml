@@ -18,28 +18,28 @@
 
 services:
   db:
-    # The first flag is the `command` of compose.yaml (see the comment there). The other flags:
-    # - fsync=off, synchronous_commit=off: do not wait for the disk at commit.
-    # - full_page_writes=off: do not write full pages to the WAL after a checkpoint.
-    # - wal_level=minimal: write only the WAL that crash recovery needs. A restore into a new volume
-    #   needs no replication data. wal_level=minimal needs max_wal_senders=0.
-    # - max_wal_size=8GB: fewer checkpoints during the load.
-    # - maintenance_work_mem=512MB: faster index builds and constraint checks.
     command:
+      # The `command` of compose.yaml (see the comment there).
       - postgres
       - -c
       - log_timezone=${TZ:-America/Montreal}
+      # Do not wait for the disk at commit.
       - -c
       - fsync=off
       - -c
       - synchronous_commit=off
+      # Do not write full pages to the WAL after a checkpoint.
       - -c
       - full_page_writes=off
+      # Write only the WAL that crash recovery needs. A restore into a new volume needs no replication data.
+      # wal_level=minimal needs max_wal_senders=0.
       - -c
       - wal_level=minimal
       - -c
       - max_wal_senders=0
+      # Fewer checkpoints during the load.
       - -c
       - max_wal_size=8GB
+      # Faster index builds and constraint checks.
       - -c
       - maintenance_work_mem=512MB
