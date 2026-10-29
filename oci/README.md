@@ -53,6 +53,7 @@ Container images and podman-compose configuration for FreezeMan.
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
 | `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `backup`   | `localhost/freezeman-backup`  | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
+| `logrotate`| `localhost/freezeman-logrotate` | Daily `logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`. Each file rotates every `FMS_LOGROTATE_FREQUENCY` (default weekly) |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
 
 #### Host nginx
@@ -99,7 +100,7 @@ location / {
 
   The host editor does not see this `node_modules`. Use the [Dev Container](#dev-container) if the editor needs it.
 - The production services `migrate`, `backend` and `web` have the profile `prod` in development,
-  so `up -d` does not start them. `report` and `backup` do not start either.
+  so `up -d` does not start them. `report`, `backup` and `logrotate` do not start either.
 
 ## Prerequisites
 
@@ -154,7 +155,7 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `logrotate`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`) and the proxy values of `.env` (`env_file`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
@@ -175,7 +176,7 @@ Do these steps after IT completes [ROCKY.md](ROCKY.md) and the [acceptance check
 Do these sections in this order. On a new host with no data to keep, skip the steps marked **classic host**.
 
 1. [Set up the home of django](#set-up-the-home-of-django): podman configuration and podman-compose.
-2. [Get the release and create the directories](#get-the-release-and-create-the-directories): the checkout `/data/freezeman-oci`, `.env`, the host directories and log rotation.
+2. [Get the release and create the directories](#get-the-release-and-create-the-directories): the checkout `/data/freezeman-oci`, `.env` and the host directories.
 3. [First start](#first-start): build, restore the data of the classic setup (**classic host** only), start, check.
 4. [Start at boot](#start-at-boot): the `@reboot` line.
 5. [Switch to HTTPS (later)](#switch-to-https-later): only when the team decides that the stack replaces the classic setup.
@@ -282,43 +283,14 @@ Run these steps as `django`.
 
    `FMS_LOG_DIR` in `.env` must be this directory. The path must be absolute. To use another directory, change both.
 
-4. Set up log rotation. The files grow without limit. Rotate them with `logrotate` (Rocky has the package: `rpm -q logrotate`) and the crontab of `django`, with no systemd:
+4. Log rotation needs no host setup. The `logrotate` service rotates the files of the log directory (see [Logs](#logs)).
+   It starts with `podman-compose up -d`.
+   - **Migration:** on a host that has the old host setup, remove it as `django`. The service replaces it:
 
-   1. Create the configuration `~/.config/logrotate/freezeman.conf`. If you set `FMS_LOG_DIR`, change the path.
-
-      ```bash
-      mkdir -p ~/.config/logrotate ~/.local/state
-      cat > ~/.config/logrotate/freezeman.conf <<'EOF'
-      /data/freezeman-oci/oci/logs/*.log {
-          # Rotate each log at most once a week.
-          weekly
-          # Keep 8 rotated files (about 8 weeks). Delete older ones.
-          rotate 8
-          # Gzip the rotated files.
-          compress
-          # Keep the newest rotated file (.log.1) uncompressed until the next rotation.
-          delaycompress
-          # Do not fail if a log file is missing.
-          missingok
-          # Do not rotate an empty file.
-          notifempty
-          # Copy the file, then empty it in place. The writer keeps its open file.
-          copytruncate
-      }
-      EOF
-      ```
-
-   2. Add a line to the crontab (`crontab -e`).
-
-      ```cron
-      # 0 3 * * 0: every Sunday at 03:00.
-      # -s: own state file, so it does not touch the system logrotate.
-      0 3 * * 0 /usr/sbin/logrotate -s ~/.local/state/logrotate-freezeman.state ~/.config/logrotate/freezeman.conf
-      ```
-
-   - `copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` must copy the
-     file and then empty it. A line that a container writes between the copy and the truncation can be lost.
-   - Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
+     ```bash
+     crontab -e                                           # delete the weekly logrotate line
+     rm -f ~/.config/logrotate/freezeman.conf ~/.local/state/logrotate-freezeman.state
+     ```
 
 5. Create the backup directory and set `FMS_BACKUP_DIR` in `.env`. See [Database backups](#database-backups).
 
@@ -499,7 +471,7 @@ podman-compose up -d --force-recreate
 podman-compose logs migrate
 ```
 
-`build` makes the `db`, `backend`, `backup` and `web` images.
+`build` makes the `db`, `backend`, `backup`, `logrotate` and `web` images.
 
 #### Automatic update (QC)
 
@@ -536,7 +508,7 @@ Add a line to the crontab of `django` (`crontab -e`). The example checks every 1
   crontab line, as in [Proxy](#proxy): `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... /data/freezeman-oci/oci/autoupdate.py ...`
 - If the host has no cron (the host is a container), add `--interval 600` and start the command, as `django`,
   from the init of the outer container, like `start.py`. Redirect its output to `logs/autoupdate.log`.
-- The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` configuration of [step 4 of Get the release and create the directories](#get-the-release-and-create-the-directories) rotates it.
+- The log `logs/autoupdate.log` ends in `.log`, so the `logrotate` service rotates it (see [Logs](#logs)).
 - A failed run sends an email, one per distinct error: see [Failure emails](#failure-emails).
 
 What one run does:
@@ -716,12 +688,13 @@ podman-compose exec -T backend python manage.py prepare_report_data             
 
 #### Failure emails
 
-Four jobs run without a person. Each one sends an email when it fails. Before this, a failure wrote only a line to a log.
+Five jobs run without a person. Each one sends an email when it fails. Before this, a failure wrote only a line to a log.
 
 | Job | Email is sent when |
 |---|---|
 | `backup` service (`db/backup.py`) | The database is not reachable after 60 s, `pg_dumpall` exits with an error, or the script raises an exception |
 | `report` service (`backend/report.py`) | `prepare_report_data` exits with a non-zero code |
+| `logrotate` service (`logrotate/logrotate.py`) | `logrotate` exits with a non-zero code |
 | `autoupdate.py` | An update fails (it aborts, a command fails, or another error occurs) |
 | `start.py` (cron `@reboot`) | `podman-compose up -d` exits with a non-zero code, or 60 s later (`CHECK_DELAY`) a container is in a wrong state: `migrate` with a non-zero exit code, or any other service not `running` |
 
@@ -753,7 +726,7 @@ FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
 - If the email cannot be sent, the job prints the error to its log and continues.
 - The subject is `[FreezeMan <FMS_ENV> <FMS_HOST>] <job> failed`. The body has the error, the last 50 lines of output
   where the job has them, the host name and the time.
-- `backup` and `report` send one email for each failed run (once a day at most). `backup` gets the SMTP settings from
+- `backup`, `report` and `logrotate` send one email for each failed run (once a day at most). `backup` and `logrotate` get the SMTP settings from
   `compose.yaml`. After a change of `.env`, run `podman-compose up -d --force-recreate`.
 - `autoupdate.py` sends one email for each distinct error. It keeps the error in `logs/autoupdate.alert`. The same error
   at the next check sends nothing. A successful run, or a check with no new commit, deletes the file. A run that finds
@@ -764,12 +737,13 @@ FMS_ALERT_EMAILS=dev1@example.com,dev2@example.com
 #### Time zone (TZ)
 
 `TZ` in `.env` (default `America/Montreal`) sets the time zone of all services (`db`, `migrate`, `backend`,
-`report`, `backup`, `web`). It changes these items:
+`report`, `backup`, `logrotate`, `web`). It changes these items:
 
 | Item | Effect of `TZ` |
 |---|---|
 | `backup` service | `FMS_BACKUP_TIME` is in `TZ` |
 | `report` service | `FMS_REPORT_TIME` is in `TZ` |
+| `logrotate` service | `FMS_LOGROTATE_TIME` is in `TZ` |
 | Logs in `FMS_LOG_DIR` | The time stamps are in `TZ` (see [Logs](#logs)) |
 | PostgreSQL in a new data directory | The default `timezone` of each session is `TZ` (see below) |
 
@@ -846,7 +820,31 @@ Request log:
 - Each `web.log` line ends with `rt=` (total time) and `urt=` (time that uwsgi took), in seconds.
 - `urt=` is `-` for files that nginx serves itself.
 
-Rotate the files as in step 4 of [Get the release and create the directories](#get-the-release-and-create-the-directories).
+Rotation:
+
+- The `logrotate` service rotates `<FMS_LOG_DIR>/*.log` every day at `FMS_LOGROTATE_TIME` (in `TZ`). It does not start in development (profile `logrotate`).
+- The rules are in `logrotate/logrotate.conf.template`, in the image. `FMS_LOGROTATE_FREQUENCY` (`daily`, `weekly`, `monthly` or `yearly`) sets how often each file rotates.
+  The service runs once a day, so it cannot rotate more often. A wrong value sends an alert and the service rotates weekly. It keeps `FMS_LOGROTATE_KEEP` rotated files, gzips them (the newest stays uncompressed) and skips empty files.
+- `copytruncate` is necessary: the container runtime (conmon) keeps each file open, so `logrotate` copies the
+  file and then empties it. A line that a container writes between the copy and the truncation can be lost.
+- Do not set `log_size_max` or `max_size`. Podman then truncates the file itself, and old lines are lost with no copy.
+- The state file is `<FMS_LOG_DIR>/logrotate.state`. It stays after `down` and `--force-recreate`, so the frequency rule holds.
+- To change another directive, edit the template and run `podman-compose build logrotate` and
+  `podman-compose up -d --force-recreate logrotate`. Do not add a config file on the host.
+- A failed run sends an email: see [Failure emails](#failure-emails).
+
+```bash
+# oci/.env
+# Time of day (HH:MM, in TZ) of the daily run.
+FMS_LOGROTATE_TIME=03:00
+# How often each log rotates: daily, weekly, monthly or yearly.
+FMS_LOGROTATE_FREQUENCY=weekly
+# Rotated files to keep for each log.
+FMS_LOGROTATE_KEEP=8
+
+podman-compose logs logrotate                                  # next run time and output
+podman-compose exec logrotate fms-logrotate now                # run it now (rotates only a file that is due)
+```
 
 With `FMS_ENV=PROD` Django logs to the console. Any other value also writes
 `/src/backend/fms.log` inside the container.
@@ -1022,6 +1020,7 @@ The layout already maps onto Kubernetes objects:
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
 | `backup`           | CronJob + PVC                                                     |
 | `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
+| `logrotate`        | Not necessary: the cluster rotates the container logs. Do not deploy it |
 | `web` port mapping and the host nginx | Ingress (TLS)                                                |
 
 Notes:

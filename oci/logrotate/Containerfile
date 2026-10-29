@@ -1,0 +1,30 @@
+# # FreezeMan log rotation image
+#
+# Rotates the `<service>.log` files of FMS_LOG_DIR with logrotate, every day at FMS_LOGROTATE_TIME.
+#
+# Build context: repository root
+#   podman build -f oci/logrotate/Containerfile .
+
+# Same Python base image as oci/Containerfile, so the host pulls no new image.
+ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
+FROM ${PYTHON_IMAGE}
+
+# Install logrotate.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends logrotate \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy the script (`fms-logrotate`).
+# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
+COPY --chmod=755 oci/logrotate/logrotate.py /usr/local/bin/fms-logrotate
+
+# Failure emails: logrotate.py imports it from its own directory.
+COPY oci/notify.py /usr/local/bin/notify.py
+
+# The rotation rules. The script fills in FMS_LOGROTATE_KEEP at start.
+COPY oci/logrotate/logrotate.conf.template /etc/fms-logrotate/logrotate.conf.template
+
+# Run as root: the image has no non-root user on purpose. Rootless podman maps root to the host
+# user, so the files in the bind mount keep their owner (see the `logrotate` service in compose.yaml).
+# Run `logrotate` every day at `FMS_LOGROTATE_TIME`. `fms-logrotate now` runs it once and exits.
+ENTRYPOINT ["fms-logrotate"]

@@ -115,6 +115,10 @@ services:
     # The daily database backup does not run in development.
     profiles: ["backup"]
 
+  logrotate:
+    # The log rotation does not run in development.
+    profiles: ["logrotate"]
+
 # Declare the volume for the Linux `node_modules` of `dev`.
 volumes:
   frontend_node_modules:

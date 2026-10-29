@@ -1,7 +1,7 @@
 # # FreezeMan production-like stack
 #
 # This file starts the services of FreezeMan: the database, the migrations, Django, nginx, the
-# daily report job and the daily backup. Run `podman-compose` from this directory.
+# daily report job, the daily backup and the daily log rotation. Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
 #   mkdir -p ../backend/media ../backend/triggers logs
@@ -293,6 +293,51 @@ services:
       driver: k8s-file
       options:
         path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/backup.log
+
+    restart: always
+
+  # Daily logrotate of FMS_LOG_DIR/*.log at FMS_LOGROTATE_TIME. Kubernetes needs no such job: the
+  # cluster rotates the container logs.
+  logrotate:
+    # Build the image of oci/logrotate/Containerfile.
+    image: localhost/freezeman-logrotate:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/logrotate/Containerfile
+      args:
+        # apt-get installs logrotate.
+        <<: *proxy
+
+    environment:
+      <<: *no-proxy
+      TZ: ${TZ:-America/Montreal}
+      FMS_LOGROTATE_TIME: ${FMS_LOGROTATE_TIME:-03:00}
+      FMS_LOGROTATE_FREQUENCY: ${FMS_LOGROTATE_FREQUENCY:-weekly}
+      FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
+      # Failure email (notify.py). It needs only the SMTP settings, not the Django secrets of .env.
+      FMS_ENV: ${FMS_ENV:-}
+      FMS_HOST: ${FMS_HOST:-}
+      FMS_DEBUG: ${FMS_DEBUG-True}
+      FMS_EMAIL_HOST: ${FMS_EMAIL_HOST:-}
+      FMS_EMAIL_PORT: ${FMS_EMAIL_PORT:-}
+      FMS_EMAIL_FROM: ${FMS_EMAIL_FROM:-}
+      FMS_EMAIL_USER: ${FMS_EMAIL_USER:-}
+      FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
+      FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
+      FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
+
+    # No `userns_mode`: the container runs as root, which rootless podman maps to the host user.
+    # conmon writes the log files as that user, so they show as root in the container. logrotate
+    # copies each file with the owner of the original, so the rotated files and the state file
+    # keep the host owner. `keep-id` would run the script as a non-root user and gain nothing.
+    # `:z` is the SELinux label (see `backend`).
+    volumes:
+      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/logs:z
+
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/logrotate.log
 
     restart: always
 
