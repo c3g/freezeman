@@ -168,12 +168,15 @@ RUN --mount=type=bind,source=.git,target=/src/.git \
 # node_modules. Defined after the backend and frontend stages, which it copies from.
 FROM python-base AS dev
 
-# Install git, the PostgreSQL client (`psql`) and the certificates.
+# Install git, the PostgreSQL client (`psql`), the certificates and bash completion.
 # fms/info.py and webpack.config.js read commit information from the bind-mounted .git.
+# Debian loads completion only in login shells (/etc/profile.d). `exec dev bash` and VS Code
+# terminals start non-login shells, which read /etc/bash.bashrc, so load it there too.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git postgresql-client ca-certificates \
+ && apt-get install -y --no-install-recommends git postgresql-client ca-certificates bash-completion \
  && rm -rf /var/lib/apt/lists/* \
- && git config --system --add safe.directory '*'
+ && git config --system --add safe.directory '*' \
+ && echo '. /usr/share/bash-completion/bash_completion' >> /etc/bash.bashrc
 
 # Copy the venv.
 COPY --from=backend-deps /opt/venv /opt/venv

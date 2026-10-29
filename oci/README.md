@@ -99,6 +99,7 @@ location / {
   - Correct file owners (`:U` gives the volume to the container user), and no container files in your checkout.
 
   The host editor does not see this `node_modules`. Use the [Dev Container](#dev-container) if the editor needs it.
+- Bash in `dev` has tab completion (for example `git` and `psql`).
 - The production services `migrate`, `backend` and `web` have the profile `prod` in development,
   so `up -d` does not start them. `report`, `backup` and `logrotate` do not start either.
 
