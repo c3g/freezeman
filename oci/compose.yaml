@@ -9,7 +9,7 @@
 #   podman-compose up -d
 #
 # The default services include "web" (container nginx). The host nginx (HTTPS) passes the requests to
-# 127.0.0.1:${FMS_HTTP_PORT} (see DEPLOYMENT.md, "Host nginx").
+# 127.0.0.1:${FMS_HTTP_PORT} (see ROCKY.md, "5. Host nginx").
 #
 # Development: see compose.dev.yaml and DEVELOPMENT.md.
 #

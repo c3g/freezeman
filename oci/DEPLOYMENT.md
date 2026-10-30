@@ -25,42 +25,13 @@ Contents:
 
 ## Host nginx
 
-The FreezeMan domain has one HTTPS server block. IT keeps a copy of it, then sets this `location /` in it. In Path A, the classic `location /` is replaced:
+IT owns the host nginx. The FreezeMan team has no `sudo` and cannot read or change the nginx configuration.
+IT does the setup in [Host nginx](ROCKY.md#5-host-nginx) of ROCKY.md. In Path A, IT does it at the cutover (step 7).
 
-```nginx
-location / {
-    proxy_pass http://127.0.0.1:8080;
-    proxy_http_version 1.1;
-    proxy_set_header Host              $host;
-    proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 300s;
-    proxy_send_timeout 300s;
-}
-```
+Give IT these values of `.env`:
 
-In Path A, IT also removes these classic locations:
-
-```nginx
-location /static/ {
-    alias /data/freezeman/backend/staticfiles/;
-}
-
-location /media/ {
-    alias /data/freezeman/backend/media/;
-}
-
-location /api/ {
-    include uwsgi_params;
-    uwsgi_pass unix:/data/freezeman/backend/fms.sock;
-    uwsgi_read_timeout 300s;
-}
-```
-
-- The same server block needs `client_max_body_size 50M` and `client_body_timeout 300s`.
-- `FMS_HOST` in `.env`: the FreezeMan domain.
-- `FMS_HTTP_PORT` in `.env`: the `proxy_pass` port.
+- `FMS_HOST`: the FreezeMan domain (`server_name` of the HTTPS server block).
+- `FMS_HTTP_PORT`: the `proxy_pass` port (default 8080).
 
 ## Set up the home of django
 
@@ -209,7 +180,7 @@ Use this path to keep the data of the classic host. Run the steps as `django`, i
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    ```
 
-7. IT changes the host nginx as in [Host nginx](#host-nginx). Then check the site:
+7. Ask IT to switch the host nginx to the containers, as in [Host nginx](ROCKY.md#5-host-nginx) of ROCKY.md (migration on the same domain). Wait for the output of its checks. Then check the site:
 
    ```bash
    curl -sfo /dev/null -w '%{http_code}\n' https://<host>/           # 200, through the host nginx (<host> is the FreezeMan domain)
@@ -397,7 +368,7 @@ Use these steps to return to the classic setup.
    ```
 
 2. Remove the `@reboot` line from the crontab of `django`.
-3. IT restores the classic server block (`/`, `/static/`, `/media/` and `/api/`) from the copy of [Host nginx](#host-nginx).
+3. Ask IT to restore the classic server block (`/`, `/static/`, `/media/` and `/api/`) from its copy, as in [Undo](ROCKY.md#undo) of ROCKY.md.
 4. Start the classic uwsgi and its cron entries.
 
 The stack writes after the cutover are not in the classic database.
@@ -406,8 +377,8 @@ The stack writes after the cutover are not in the classic database.
 
 | Symptom | Likely cause |
 |---|---|
-| 502 at the host nginx | `web` is not running, or `FMS_HTTP_PORT` does not match the `proxy_pass` port. Check `podman-compose ps` and `curl http://127.0.0.1:8080/` |
+| 502 at the host nginx | `web` is not running, or `FMS_HTTP_PORT` does not match the `proxy_pass` port. Check `podman-compose ps` and `curl http://127.0.0.1:8080/`. If `web` answers, ask IT to check the `proxy_pass` port |
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
-| 413 on upload | `client_max_body_size` is missing in the HTTPS server block of the FreezeMan domain |
+| 413 on upload | `client_max_body_size` is missing in the HTTPS server block of the FreezeMan domain. Ask IT to add it ([Host nginx](ROCKY.md#5-host-nginx)) |
 | Restore takes hours | The disk is slow at flushes. See [Restore on a slow disk](#restore-on-a-slow-disk) |

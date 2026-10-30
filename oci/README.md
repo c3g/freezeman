@@ -36,7 +36,7 @@ Contents:
 | `logrotate`| `localhost/freezeman-logrotate` | Daily `logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`. Each file rotates every `FMS_LOGROTATE_FREQUENCY` (default weekly) |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
 
-For the host nginx, see [Host nginx](DEPLOYMENT.md#host-nginx) in DEPLOYMENT.md.
+IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
 
 ### Development services
 

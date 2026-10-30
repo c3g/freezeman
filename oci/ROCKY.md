@@ -24,7 +24,7 @@ Podman is the smallest-risk option: it uses the Rocky packages and adds no proce
 | 2 | [subuid and subgid](#2-subuid-and-subgid) ranges for `django` | Rootless containers need a range of user ids |
 | 3 | [Linger](#3-linger) for `django` | systemd-logind deletes `/run/user/<uid>` at the last logout of `django`, and podman keeps the state of the running containers there |
 | 4 | [Cron daemon](#4-cron-daemon) (`cronie`) | The `@reboot` line in the crontab of `django` starts the stack at boot |
-| 5 | [Host nginx](#5-host-nginx): HTTP location and upload limits | The host nginx passes HTTP to the `web` container on `127.0.0.1:8080` |
+| 5 | [Host nginx](#5-host-nginx): `location /` and upload limits in the HTTPS server block | The host nginx passes the requests to the `web` container on `127.0.0.1:8080`. The FreezeMan team cannot change nginx |
 | 6 | [Network access](#6-network-access): outbound HTTPS and HTTP to the listed domains | The host installs packages, clones the source, pulls images and builds them |
 
 ## Required setup
@@ -95,7 +95,16 @@ The team runs `podman system migrate` after this, and sets up the boot start (se
 
 ### 5. Host nginx
 
-Required: the HTTPS server block of the FreezeMan container domain passes requests to the `web` container, which listens on `127.0.0.1:8080`. The classic FreezeMan keeps its own domain.
+Required: the HTTPS server block of the FreezeMan domain passes requests to the `web` container, which listens on `127.0.0.1:8080`.
+
+IT owns the host nginx. The FreezeMan team has no `sudo` and cannot read or change the nginx configuration. The team gives IT the domain and the port (`FMS_HOST` and `FMS_HTTP_PORT` in `.env`), and asks IT for each change below.
+
+Before a change, keep a copy of the server block. The undo and the return to the classic setup restore this copy.
+
+There are two cases:
+
+- New domain for the containers: the classic FreezeMan keeps its own domain. Do the steps now.
+- Migration of the classic FreezeMan to the containers on the same domain ([Path A](DEPLOYMENT.md#path-a-migrate-from-the-classic-host)): the classic server block becomes the container server block. Do the steps at the cutover, when the FreezeMan team asks. Until then, the classic setup serves the site.
 
 The `location /` block is done (IT added it):
 
@@ -119,11 +128,36 @@ client_max_body_size 50M;
 client_body_timeout 300s;
 ```
 
+For a migration on the same domain, the new `location /` replaces the classic `location /`. Also remove these classic locations. The `web` container serves these paths:
+
+```nginx
+location /static/ {
+    alias /data/freezeman/backend/staticfiles/;
+}
+
+location /media/ {
+    alias /data/freezeman/backend/media/;
+}
+
+location /api/ {
+    include uwsgi_params;
+    uwsgi_pass unix:/data/freezeman/backend/fms.sock;
+    uwsgi_read_timeout 300s;
+}
+```
+
+Apply the change:
+
 ```bash
+sudo nginx -t && sudo systemctl reload nginx
+
 # Check
 sudo nginx -T | grep -A3 'proxy_pass http://127.0.0.1:8080'
-sudo nginx -T | grep client_max_body_size
+sudo nginx -T | grep client_max_body_size          # 50M
+sudo nginx -T | grep -c 'fms.sock'                 # 0, after a migration on the same domain
 ```
+
+After a change, send the output of the checks to the FreezeMan team.
 
 ### 6. Network access
 
@@ -185,5 +219,5 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/     # 200
 | 2. subuid and subgid | `sudo usermod --del-subuids <START>-<END> --del-subgids <START>-<END> django`, with the range added in step 2 |
 | 3. Linger | `sudo loginctl disable-linger django` |
 | 4. Cron daemon | `sudo systemctl disable --now crond` and `sudo dnf remove cronie`, only if step 4 installed `cronie` and no other job needs it |
-| 5. Host nginx | Remove the `location /` block (and the limits that step 5 added) from the HTTPS server block of the domain, then `sudo nginx -t && sudo systemctl reload nginx` |
+| 5. Host nginx | Restore the copy of the server block that step 5 kept (for a migration on the same domain, this brings back the classic `/`, `/static/`, `/media/` and `/api/`), then `sudo nginx -t && sudo systemctl reload nginx` |
 | 6. Network access | Remove the domains from the allow list |
