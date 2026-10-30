@@ -341,6 +341,45 @@ services:
 
     restart: always
 
+  # Monthly reminder email to update the base images, on day FMS_REMIND_DAY at FMS_REMIND_TIME,
+  # only if FMS_ENV is PROD (the service idles on QC and DEV)
+  # (a CronJob in Kubernetes). It keeps the last month sent in FMS_LOG_DIR.
+  remind:
+    # Build the image of oci/remind/Containerfile.
+    image: localhost/freezeman-remind:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/remind/Containerfile
+
+    environment:
+      <<: *no-proxy
+      TZ: ${TZ:-America/Montreal}
+      FMS_REMIND_DAY: ${FMS_REMIND_DAY:-1}
+      FMS_REMIND_TIME: ${FMS_REMIND_TIME:-09:00}
+      # The email (notify.py). It needs only the SMTP settings, not the Django secrets of .env.
+      FMS_ENV: ${FMS_ENV:-}
+      FMS_HOST: ${FMS_HOST:-}
+      FMS_DEBUG: ${FMS_DEBUG-True}
+      FMS_EMAIL_HOST: ${FMS_EMAIL_HOST:-}
+      FMS_EMAIL_PORT: ${FMS_EMAIL_PORT:-}
+      FMS_EMAIL_FROM: ${FMS_EMAIL_FROM:-}
+      FMS_EMAIL_USER: ${FMS_EMAIL_USER:-}
+      FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
+      FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
+      FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
+
+    # No `userns_mode`: the container runs as root, which rootless podman maps to the host user
+    # (see `logrotate`). `:z` is the SELinux label (see `backend`).
+    volumes:
+      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/logs:z
+
+    logging:
+      driver: k8s-file
+      options:
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/remind.log
+
+    restart: always
+
 # Declare the named volume of `db`. Podman manages it, so the data stays when a container is
 # removed.
 volumes:

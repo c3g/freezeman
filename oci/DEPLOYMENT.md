@@ -142,7 +142,7 @@ Use this path to keep the data of the classic host. Run the steps as `django`, i
    psql -U postgres -d fms -c 'SHOW timezone'
    ```
 
-   `TZ` also sets the time zone of `FMS_BACKUP_TIME`, `FMS_REPORT_TIME` and `FMS_LOGROTATE_TIME`. To use another time zone, set `TZ` to it.
+   `TZ` also sets the time zone of `FMS_BACKUP_TIME`, `FMS_REPORT_TIME`, `FMS_LOGROTATE_TIME` and `FMS_REMIND_TIME`. To use another time zone, set `TZ` to it.
 
 3. Dump the classic database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the classic host.
 
@@ -328,19 +328,29 @@ podman-compose exec logrotate fms-logrotate now                # rotate now (onl
 
 ### Remind the image updates
 
-`remind_images.py` emails a monthly reminder to update the base images. It uses the SMTP settings and the
-`FMS_ALERT_EMAILS` recipients of `.env`, as the failure emails do. Run this step as `django` on each host (prod and QC).
-Add this line to the crontab (`crontab -e`):
+The `remind` service emails a monthly reminder to update the base images. It uses the SMTP settings and the
+`FMS_ALERT_EMAILS` recipients of `.env`, as the failure emails do. It starts with the stack. It sends only if `FMS_ENV` is `PROD`: on QC and dev it idles and sends nothing.
 
-```cron
-# 0 9 1 * *: at 09:00 on the first day of each month.
-0 9 1 * * /data/freezeman-oci/oci/remind_images.py >> /data/freezeman-oci/oci/logs/remind_images.log 2>&1
+```bash
+# oci/.env
+# Day of the month (1 to 28) and time of day (HH:MM, in TZ) of the reminder.
+FMS_REMIND_DAY=1
+FMS_REMIND_TIME=09:00
 ```
 
-- Test it once: run `/data/freezeman-oci/oci/remind_images.py`. If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the
-  script sends no email and prints a message instead.
+After an `.env` change, run `podman-compose up -d --force-recreate remind`.
+
+```bash
+podman-compose exec remind fms-remind now    # send the reminder now (a test)
+cat /data/freezeman-oci/oci/logs/remind.state # the last month sent
+```
+
+- The service keeps the last month sent in `logs/remind.state`, so a restart does not send the email twice.
+  At its first start it sends nothing and waits for the next date.
+- If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the service sends no email and logs a message instead.
+- `fms-remind now` sends the email on any host, as a test.
 - The email only reminds you. Do the update with the steps of "Keep the base images up to date" in `oci/README.md`.
-- No cron (the host is a container): schedule the command with the init of the outer container.
+- A stopped stack sends no reminder.
 
 ### Automatic update (QC)
 

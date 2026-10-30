@@ -1,0 +1,18 @@
+# Build context: repository root
+#   podman build -f oci/remind/Containerfile .
+
+# Same Python base image as oci/Containerfile, so the host pulls no new image.
+ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
+FROM ${PYTHON_IMAGE}
+
+# Copy the script (`fms-remind`).
+# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
+COPY --chmod=755 oci/remind/remind.py /usr/local/bin/fms-remind
+
+# Reminder emails: remind.py imports it from its own directory.
+COPY oci/notify.py /usr/local/bin/notify.py
+
+# Run as root: the image has no non-root user on purpose. Rootless podman maps root to the host
+# user, so the state file in the bind mount keeps its owner (see the `remind` service in compose.yaml).
+# Email the reminder once a month. `fms-remind now` sends it once and exits.
+ENTRYPOINT ["fms-remind"]
