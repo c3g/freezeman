@@ -91,11 +91,11 @@ rpm -q cronie                                      # cronie-<version>
 systemctl is-active crond                          # active
 ```
 
-The team runs `podman system migrate` after this, and sets up the boot start (see [README.md](README.md)).
+The team runs `podman system migrate` after this, and sets up the boot start (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
 ### 5. Host nginx
 
-Required: the HTTP server block passes requests to the `web` container, which listens on `127.0.0.1:8080`. HTTPS stays on the classic FreezeMan.
+Required: the HTTPS server block of the FreezeMan container domain passes requests to the `web` container, which listens on `127.0.0.1:8080`. The classic FreezeMan keeps its own domain.
 
 The `location /` block is done (IT added it):
 
@@ -112,7 +112,7 @@ location / {
 }
 ```
 
-In the same HTTP server block, set the limits that the HTTPS block has. Without them, an upload over 1 MB fails with 413:
+In the same HTTPS server block, set these limits. Without them, an upload over 1 MB fails with 413:
 
 ```nginx
 client_max_body_size 50M;
@@ -185,5 +185,5 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/     # 200
 | 2. subuid and subgid | `sudo usermod --del-subuids <START>-<END> --del-subgids <START>-<END> django`, with the range added in step 2 |
 | 3. Linger | `sudo loginctl disable-linger django` |
 | 4. Cron daemon | `sudo systemctl disable --now crond` and `sudo dnf remove cronie`, only if step 4 installed `cronie` and no other job needs it |
-| 5. Host nginx | Remove the `location /` block (and the limits that step 5 added) from the HTTP server block, then `sudo nginx -t && sudo systemctl reload nginx` |
+| 5. Host nginx | Remove the `location /` block (and the limits that step 5 added) from the HTTPS server block of the domain, then `sudo nginx -t && sudo systemctl reload nginx` |
 | 6. Network access | Remove the domains from the allow list |

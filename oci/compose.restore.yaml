@@ -2,7 +2,7 @@
 #
 # This file overrides only the `command` of the `db` service. It starts PostgreSQL with settings that skip
 # the disk flushes, so `pg_restore` or `psql` does not wait for the disk at each commit and checkpoint.
-# Use it only when `pg_test_fsync` shows a low `fdatasync` rate (README.md: "Restore on a slow disk").
+# Use it only when `pg_test_fsync` shows a low `fdatasync` rate (DEPLOYMENT.md: "Restore on a slow disk").
 #
 # SAFETY: use it only for a restore into a NEW, EMPTY `freezeman_pgdata` volume. If the host
 # crashes or loses power while the volume runs with these settings, the data is corrupt. Then delete

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Start the stack. Run it from cron: `@reboot /data/freezeman-oci/oci/start.py` (README.md).
+# Start the stack. Run it from cron: `@reboot /data/freezeman-oci/oci/start.py` (DEPLOYMENT.md).
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 # Send an alert email if `podman-compose up -d` fails or if a container is in a wrong state after CHECK_DELAY.
 import json

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Update a QC/dev stack from a GitHub branch (README.md: "Automatic update (QC)").
+# Update a QC/dev stack from a GitHub branch (DEPLOYMENT.md: "Automatic update (QC)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
 # the dump and recreate the stack. Never use it on production: it deletes the database.
-#   autoupdate.py --branch qc --dump /data/dumps/prod.pgsql.gz [--interval 600] [--force] [--fast-restore]
+#   autoupdate.py --branch qc --dump /data/freezeman-oci/backups/2026-10-21.pgsql.gz [--interval 600] [--force] [--fast-restore]
 # Without --interval it checks once and exits (cron). With it, it checks every N seconds and never exits.
-# --fast-restore restores with compose.restore.yaml (slow disk, README.md: "Restore on a slow disk").
+# --fast-restore restores with compose.restore.yaml (slow disk, DEPLOYMENT.md: "Restore on a slow disk").
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 import argparse
 import fcntl
@@ -147,7 +147,7 @@ def wait_for_database() -> None:
 
 def restore_dump(dump: str, command: str) -> None:
     log(f"Restore {dump}")
-    # No ON_ERROR_STOP: the "already exists" messages of the README are harmless.
+    # No ON_ERROR_STOP: the "already exists" messages of DEPLOYMENT.md are harmless.
     with subprocess.Popen(["podman-compose", "exec", "-T", "db", "sh", "-c", command], stdin=subprocess.PIPE) as restore:
         assert restore.stdin is not None
         try:
@@ -214,6 +214,8 @@ def update_once(args: Args) -> None:
 
         if (os.environ.get("FMS_ENV") or env.get("FMS_ENV")) == "PROD":
             raise Abort("FMS_ENV is PROD. This job deletes the database.")
+        if not os.path.isabs(args.dump):
+            raise Abort(f"--dump must be an absolute path: {args.dump}")
         dump_command = restore_command(args.dump)
         if not os.path.isfile(args.dump):
             raise Abort(f"Dump not found: {args.dump}")
@@ -251,13 +253,12 @@ def report_failure(args: Args, error: BaseException) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Update a QC/dev stack from a GitHub branch. It deletes the database.")
     _ = parser.add_argument("--branch", required=True, help="branch of origin to follow")
-    _ = parser.add_argument("--dump", required=True, help="dump to restore: .pgsql.gz, .pgsql (pg_dumpall) or .dump (pg_dump -Fc)")
+    _ = parser.add_argument("--dump", required=True, help="absolute path of the dump to restore: .pgsql.gz, .pgsql (pg_dumpall) or .dump (pg_dump -Fc)")
     _ = parser.add_argument("--profile", action="append", default=[], help="compose profile for build and up (repeatable)")
     _ = parser.add_argument("--interval", type=int, help="check every N seconds and never exit (default: check once)")
     _ = parser.add_argument("--force", action="store_true", help="deploy even if the commit is the last deployed one")
     _ = parser.add_argument("--fast-restore", action="store_true", help="restore with compose.restore.yaml (fsync off). For a slow disk only")
     args = parser.parse_args(namespace=Args())
-    args.dump = os.path.abspath(args.dump)
 
     if args.interval is None:
         try:

@@ -9,7 +9,7 @@
 #   podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 #
 # Frontend: http://localhost:9000   Backend: http://localhost:8000
-# VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and README.md.
+# VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and DEVELOPMENT.md.
 
 # Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
 # environment of "dev", so npm ci and pip run through the proxy when compose starts without
@@ -30,7 +30,7 @@ services:
 
   # The development container. It runs `sleep infinity` (the `CMD` of the `dev` target). In it,
   # the developer runs `migrate`, `runserver` and `npm start` by hand, in place of the production
-  # services `migrate`, `backend` and `web` (see README.md).
+  # services `migrate`, `backend` and `web` (see DEVELOPMENT.md).
   dev:
     # Build the `dev` image of oci/Containerfile.
     image: localhost/freezeman-dev:latest
@@ -52,7 +52,7 @@ services:
       PG_PASSWORD: ${POSTGRES_PASSWORD}
       PG_HOST: db
       PG_PORT: "5432"
-      # psql in this container reads these (README.md: "Database access")
+      # psql in this container reads these (DEVELOPMENT.md: "Database access")
       PGHOST: db
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB}

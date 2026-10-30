@@ -90,6 +90,14 @@ COPY backend/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
 
+# This stage makes the venv writable for the `dev` image.
+# `dev` runs as the host UID (`userns_mode: keep-id`), which is not known at build time, so
+# `chown` cannot give it the venv. Allow all users to write, so `pip install` works in `dev`.
+# A separate stage keeps the change out of `backend-prod`, and avoids a second copy of the venv
+# in a `RUN chmod` layer of `dev`.
+FROM backend-deps AS dev-venv
+RUN chmod -R a+rwX /opt/venv
+
 #############
 # Frontend  #
 #############
@@ -178,8 +186,8 @@ RUN apt-get update \
  && git config --system --add safe.directory '*' \
  && echo '. /usr/share/bash-completion/bash_completion' >> /etc/bash.bashrc
 
-# Copy the venv.
-COPY --from=backend-deps /opt/venv /opt/venv
+# Copy the writable venv.
+COPY --from=dev-venv /opt/venv /opt/venv
 
 # Copy Node and npm.
 # Node comes from NODE_IMAGE, so the version follows that ARG. `COPY --from=node-runtime` takes
