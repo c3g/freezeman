@@ -326,6 +326,22 @@ podman-compose exec -T backend python manage.py prepare_report_data             
 podman-compose exec logrotate fms-logrotate now                # rotate now (only a file that is due)
 ```
 
+### Remind the image updates
+
+`remind_images.py` emails a monthly reminder to update the base images. It uses the SMTP settings and the
+`FMS_ALERT_EMAILS` recipients of `.env`, as the failure emails do. Run this step as `django` on each host (prod and QC).
+Add this line to the crontab (`crontab -e`):
+
+```cron
+# 0 9 1 * *: at 09:00 on the first day of each month.
+0 9 1 * * /data/freezeman-oci/oci/remind_images.py >> /data/freezeman-oci/oci/logs/remind_images.log 2>&1
+```
+
+- Test it once: run `/data/freezeman-oci/oci/remind_images.py`. If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the
+  script sends no email and prints a message instead.
+- The email only reminds you. Do the update with the steps of "Keep the base images up to date" in `oci/README.md`.
+- No cron (the host is a container): schedule the command with the init of the outer container.
+
 ### Automatic update (QC)
 
 QC and dev hosts only. It deletes the database at each new commit.

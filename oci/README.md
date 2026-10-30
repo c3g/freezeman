@@ -73,6 +73,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a QC or dev stack from a GitHub branch |
 | `notify.py` | Sends the failure emails of the jobs |
+| `remind_images.py` | Sends the monthly reminder to update the base images (cron) |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
 | `logs/` | Usual `FMS_LOG_DIR` (a git-ignored directory). Create it before the first start |
@@ -156,6 +157,48 @@ podman info --format '{{.Host.CgroupManager}}'     # cgroupfs on the deployment 
 ```
 
 For the restore, see [Database backups](DEPLOYMENT.md#database-backups) in DEPLOYMENT.md.
+
+## Keep the base images up to date
+
+The Containerfiles use floating tags (`python:3.14-slim-trixie`, `node:24-trixie-slim`, `nginx-unprivileged:stable-alpine`,
+`postgres:15-trixie`). A floating tag moves to each new patch release, but a host does not fetch it by itself: podman
+keeps the image it pulled first. Without the steps below, a host stays on old base images and misses security fixes,
+and QC and prod can run different versions for the same commit.
+
+When to update:
+
+- Once a month. `remind_images.py` emails the reminder (see [Remind the image updates](DEPLOYMENT.md#remind-the-image-updates)).
+- When a CVE affects Python, Node, nginx, PostgreSQL, Debian trixie or Alpine.
+
+How to update (on each host, QC first, prod after QC works):
+
+1. Pull the new base images and rebuild without the layer cache. `--pull` alone is not enough: the cached `apt-get`,
+   `pip` and `npm` layers would keep the old packages.
+
+   ```bash
+   podman-compose build --pull --no-cache
+   ```
+
+   With a proxy, use the proxy variables of [Proxy](#proxy).
+2. Recreate the containers: `podman-compose up -d`.
+3. Check the versions, and write them in the deployment notes:
+
+   ```bash
+   podman-compose exec backend python --version
+   podman-compose exec web nginx -v
+   podman-compose exec db postgres --version
+   ```
+
+A new patch release can break the stack. Test on QC before prod.
+
+Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15). A major change follows `DEPLOYMENT.md`.
+For PostgreSQL it also needs a dump and restore of the data.
+
+Ideas for later (not done):
+
+- A scheduled GitHub workflow or Renovate that opens a PR when a base image changes.
+- A CVE scan of the built images (for example `trivy image`) in CI or before each deploy.
+- Pinning to patch tags or digests (`tag@sha256:...`) if all hosts must run the same bytes.
 
 ## Additional notes
 
