@@ -8,6 +8,20 @@ instance/
 launch.json
 fms.log*
 .python-version
+__pycache__/
 .coverage
 TODO.txt
 
+oci/backups/
+oci/logs/
+# Rendered logrotate config and state (the template stays tracked).
+oci/logrotate/logrotate.conf
+oci/logrotate/*.state
+
+# Database dumps
+*.dump
+*.pgdump
+*.pgsql
+*.sql.gz
+*.dump.gz
+*.pgsql.gz

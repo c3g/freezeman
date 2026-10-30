@@ -1,0 +1,273 @@
+# # FreezeMan application images
+#
+# This file makes the images of the Django backend, the React frontend and nginx.
+#
+# Build context: the repository root. Build one target with `podman build -f oci/Containerfile
+# --target <target> .` or let `podman-compose build` do it. The targets are:
+#
+#   dev            Idle development container with the venv, Python 3.14 and Node 24. It expects
+#                  the repository bind-mounted at /src. The developer starts runserver and npm
+#                  by hand
+#   backend-prod   Django served by uwsgi, source baked in
+#   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
+
+# Name the three base images: Python 3.14, Node 24 and nginx.
+ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
+ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
+ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
+
+
+############
+# Backend  #
+############
+
+# This stage holds the Python runtime, the user `fms`, the helper scripts and the entrypoint. The
+# `backend-deps`, `dev` and `backend-prod` stages start from it (`FROM python-base`), so they all
+# get these files.
+FROM ${PYTHON_IMAGE} AS python-base
+
+# `PYTHONDONTWRITEBYTECODE` stops Python from writing `.pyc` files. `PYTHONUNBUFFERED` sends the
+# output at once.
+# Put venv first in `PATH`, so `python` and `pip` are the ones of `/opt/venv`.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/opt/venv/bin:$PATH
+
+# Install `libpq5` (the PostgreSQL client library).
+# Create the (non-root) user `fms` with uid 1000 and the directory for the report log.
+#
+# Uid 1000 is the user that `userns_mode: keep-id` gives to `backend` and `report` in compose.yaml,
+# so the files of the bind mounts belong to the host user.
+# `rm -rf /var/lib/apt/lists/*` keeps the package lists out of the layer, so the image is smaller.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libpq5 \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --uid 1000 --create-home --shell /bin/sh fms \
+ && install -d -o fms -g fms /home/fms/reports
+
+# Copy the helper scripts: the entrypoint (`fms-entrypoint`) and the report job (`fms-report`).
+# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
+COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
+COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
+
+# Failure emails: report.py imports it from its own directory.
+COPY oci/notify.py /usr/local/bin/notify.py
+
+# Copy the uwsgi configuration.
+COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
+
+# Set working directory to /src/backend
+WORKDIR /src/backend
+
+# Create the directories that Django writes into, wait until the database accepts connections,
+# then run the command (the `CMD`, or the `command` of the compose service).
+ENTRYPOINT ["fms-entrypoint"]
+
+# This stage holds the compiler. The images copy only the finished venv from it
+# (`COPY --from=backend-deps`), so the compiler stays out of them.
+FROM python-base AS backend-deps
+
+# Set the uwsgi version. The major version matches DEPLOYMENT.md (uwsgi 2.0).
+ARG UWSGI_VERSION=2.0.31
+
+# Install the compiler packages (`gcc`, `libc6-dev`, `libpq-dev`).
+# They build the Python packages that have no wheel.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Create the venv in `/opt/venv`.
+RUN python -m venv /opt/venv
+
+# Copy `requirements.txt` alone, before the source.
+# The build reuses the install layer (the cache of a step that did not change) until
+# `requirements.txt` changes.
+COPY backend/requirements.txt /tmp/requirements.txt
+
+# Install the packages of `requirements.txt` and uwsgi.
+# `--mount=type=cache` keeps the pip download cache between builds. The cache is a directory of
+# the build, not a layer, so it stays out of the image.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
+
+#############
+# Frontend  #
+#############
+
+# The plain Node image. The `dev` stage copies the Node files from it.
+FROM ${NODE_IMAGE} AS node-runtime
+
+# This stage adds git to Node. The `frontend-build` and `build-info` stages start from it.
+FROM node-runtime AS node-base
+
+# Install git.
+# webpack.config.js shells out to git for the commit hash, branch and date.
+# `safe.directory '*'` lets git read a `.git` directory that another user owns. The build mounts
+# it from the repository.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*'
+
+# Set working directory to /src/frontend
+WORKDIR /src/frontend
+
+# This stage builds the frontend. The `web` stage copies only the result (`dist/`), so Node and
+# the packages stay out of it.
+FROM node-base AS frontend-build
+
+# Copy `package.json` and `package-lock.json` alone, before the source.
+# The build reuses the `npm ci` layer until the packages change.
+COPY frontend/package.json frontend/package-lock.json ./
+
+# Install the packages.
+# `--mount=type=cache` keeps the npm download cache between builds, outside the image.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# Copy VERSION next to `frontend/`, then the source.
+# The layout mirrors the repository (/src/frontend, /src/VERSION), because the code reads
+# ../VERSION relative to frontend/.
+COPY VERSION /src/VERSION
+COPY frontend/ ./
+
+# Set `FMS_ENV` for the build. Compose passes the value of `.env` as a build argument.
+ARG FMS_ENV=PROD
+ENV FMS_ENV=${FMS_ENV}
+
+# Build the app. The build writes `dist/`, and the `web` stage copies it.
+# `--mount=type=bind,source=.git` shows the repository `.git` to this one command, so webpack can
+# read the commit information. The mount does not copy `.git` into the image.
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    npm run build
+
+# This stage records the commit information. It starts from `node-base`, which has git.
+FROM node-base AS build-info
+
+# Write the commit date, hash, tag and branch to `/build_info.json`. The `backend-prod` stage
+# copies it.
+# backend/fms/info.py has no git repository at runtime. The image has no `.git`, so it reads
+# this file.
+RUN --mount=type=bind,source=.git,target=/src/.git \
+    cd /src \
+ && printf '{"commit_date": "%s", "commit_full_hash": "%s", "commit_small_hash": "%s", "commit_tagged_version": "%s", "branch": "%s"}\n' \
+      "$(git show --quiet --format=%cI)" \
+      "$(git show --quiet --format=%H)" \
+      "$(git show --quiet --format=%h)" \
+      "$(git describe --tags 2>/dev/null || true)" \
+      "$(git branch --show-current)" \
+      > /build_info.json \
+ && cat /build_info.json
+
+
+#####################
+# Development image #
+#####################
+
+# Both toolchains in one image, so that one container (and the editor in it) sees the venv and
+# node_modules. Defined after the backend and frontend stages, which it copies from.
+FROM python-base AS dev
+
+# Install git, the PostgreSQL client (`psql`), the certificates and bash completion.
+# fms/info.py and webpack.config.js read commit information from the bind-mounted .git.
+# Debian loads completion only in login shells (/etc/profile.d). `exec dev bash` and VS Code
+# terminals start non-login shells, which read /etc/bash.bashrc, so load it there too.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git postgresql-client ca-certificates bash-completion \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --system --add safe.directory '*' \
+ && echo '. /usr/share/bash-completion/bash_completion' >> /etc/bash.bashrc
+
+# Copy the venv.
+COPY --from=backend-deps /opt/venv /opt/venv
+
+# Copy Node and npm.
+# Node comes from NODE_IMAGE, so the version follows that ARG. `COPY --from=node-runtime` takes
+# the files of another image, so no installer is necessary.
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+
+# Link the npm and npx commands.
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Make a writable home directory.
+# keep-id runs the container as the host UID, which has no passwd entry and no home directory.
+# VS Code Server and npm need a writable home.
+RUN install -d -m 1777 /home/dev
+ENV HOME=/home/dev \
+    NPM_CONFIG_CACHE=/home/dev/.npm
+
+# Set working directory to /src
+# Shells and editor terminals start in the repository root, like the Dev Container workspace folder.
+WORKDIR /src
+
+# Create the directories that Django writes into, wait until the database accepts connections,
+# then run the command.
+ENTRYPOINT ["fms-entrypoint"]
+
+# Document the ports of the two dev servers (runserver 8000, webpack 9000).
+# `EXPOSE` does not publish them. compose.dev.yaml publishes them.
+EXPOSE 8000 9000
+
+# Keep the container idle. The developer enters it and starts the servers by hand.
+CMD ["sleep", "infinity"]
+
+
+#####################
+# Production images #
+#####################
+
+# This stage is the production backend: Django on uwsgi, with the source baked in. The `migrate`,
+# `backend` and `report` services of compose.yaml run it.
+FROM python-base AS backend-prod
+
+# Copy the venv, the source and the commit information.
+# The layout mirrors the repository (/src/backend, /src/VERSION), because the code reads
+# ../VERSION relative to backend/.
+COPY --from=backend-deps /opt/venv /opt/venv
+COPY VERSION /src/VERSION
+COPY backend/ /src/backend/
+COPY --from=build-info /build_info.json /src/backend/fms/build_info.json
+
+# `FMS_ENV=PROD` and `FMS_DEBUG=False` set the production mode of Django. `UWSGI_PROCESSES` is the
+# number of uwsgi workers.
+ENV FMS_ENV=PROD \
+    FMS_DEBUG=False \
+    UWSGI_PROCESSES=3
+
+# Collect the static files, and create the writable directories for the user `fms`.
+# The `web` stage copies the static files.
+# Writable locations; media, triggers and automations_work are bind mounts in compose.yaml.
+# The backend directory itself stays writable for fms.log, which settings.py
+# writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
+RUN python manage.py collectstatic --noinput \
+ && mkdir -p media/uploads/templates triggers automations_work tmp \
+ && chown -R fms:fms media triggers automations_work tmp \
+ && chown fms:fms /src/backend
+
+# Run the container process as `fms`, a user that is not root.
+USER fms
+
+# Document port 8000: the uwsgi protocol port for nginx.
+# `EXPOSE` does not publish the port.
+EXPOSE 8000
+
+# Start uwsgi. The entrypoint of `python-base` runs this command.
+CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
+
+# This stage is last because it copies from the stages above it.
+FROM ${NGINX_IMAGE} AS web
+
+# Set the address of uwsgi. nginx passes `/api` to it.
+ENV BACKEND_UPSTREAM=backend:8000
+
+# Copy the nginx configuration, the frontend build and the Django static files.
+# `COPY --from` takes the files of the build stages, so the image gets none of the build tools.
+COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
+COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
+
+# Document port 8080. compose.yaml publishes it.
+# The nginx image runs as a user that is not root, so it cannot use a port below 1024.
+EXPOSE 8080

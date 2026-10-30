@@ -261,6 +261,8 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "fms": {
+            "()": "fms.log_formatters.LocalTimeFormatter",
+            "tz": LOCAL_TZ,
             "format": "[{asctime}] [{levelname}] {message}",
             "style": "{",
         }
