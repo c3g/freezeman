@@ -16,6 +16,15 @@ ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
 ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
 ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
 
+# Set the versions of the language servers in the `dev` image.
+# `typescript` is the fallback `tsserver` for a project with no local `typescript`. It stays on
+# 5.x, because `typescript-language-server` needs `tsserver` and TypeScript 7 (the Go version)
+# has none.
+ARG BASEDPYRIGHT_VERSION=1.40.2
+ARG TYPESCRIPT_LANGUAGE_SERVER_VERSION=6.0.2
+ARG TYPESCRIPT_VERSION=5.9.3
+ARG DOCKER_LANGUAGE_SERVER_VERSION=0.20.1
+
 
 ############
 # Backend  #
@@ -90,12 +99,20 @@ COPY backend/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
 
-# This stage makes the venv writable for the `dev` image.
+# This stage adds the type stubs and makes the venv writable for the `dev` image.
 # `dev` runs as the host UID (`userns_mode: keep-id`), which is not known at build time, so
 # `chown` cannot give it the venv. Allow all users to write, so `pip install` works in `dev`.
 # A separate stage keeps the change out of `backend-prod`, and avoids a second copy of the venv
 # in a `RUN chmod` layer of `dev`.
 FROM backend-deps AS dev-venv
+
+# Install the type stubs (Django, DRF, pandas) that the language server reads.
+# `requirements-stubs.txt` is separate from `requirements.txt`, so `backend-prod` gets no stubs.
+COPY backend/requirements-stubs.txt /tmp/requirements-stubs.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /tmp/requirements-stubs.txt
+
+# Run `chmod` after the install, so the stub files are writable too.
 RUN chmod -R a+rwX /opt/venv
 
 #############
@@ -198,6 +215,30 @@ COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
 # Link the npm and npx commands.
 RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
  && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Install the language servers for Python (`basedpyright`) and TypeScript
+# (`typescript-language-server`, with `typescript` as its fallback `tsserver`).
+# Any editor in the container finds them on `PATH`, in `/usr/local/bin`.
+# `basedpyright` comes from npm, not pip, so it stays out of `/opt/venv`, which is the runtime of
+# the app. The npm package has the same server and uses the Node of this image.
+# Re-declare the `ARG` lines, because a stage does not see the global ones without that.
+# This step runs before `ENV HOME`, so the build uses the cache of root, not `/home/dev/.npm`.
+ARG BASEDPYRIGHT_VERSION
+ARG TYPESCRIPT_LANGUAGE_SERVER_VERSION
+ARG TYPESCRIPT_VERSION
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g "basedpyright@${BASEDPYRIGHT_VERSION}" \
+      "typescript-language-server@${TYPESCRIPT_LANGUAGE_SERVER_VERSION}" \
+      "typescript@${TYPESCRIPT_VERSION}"
+
+# Install the language server for Dockerfiles and compose files (`docker-language-server`).
+# It is a Go binary from a GitHub release, not an npm package. `ADD <url>` downloads it, so the
+# image needs no `curl`. `TARGETARCH` (`amd64` or `arm64`) is part of the file name of the release.
+ARG DOCKER_LANGUAGE_SERVER_VERSION
+ARG TARGETARCH
+ADD --chmod=755 \
+    https://github.com/docker/docker-language-server/releases/download/v${DOCKER_LANGUAGE_SERVER_VERSION}/docker-language-server-linux-${TARGETARCH}-v${DOCKER_LANGUAGE_SERVER_VERSION} \
+    /usr/local/bin/docker-language-server
 
 # Make a writable home directory.
 # keep-id runs the container as the host UID, which has no passwd entry and no home directory.

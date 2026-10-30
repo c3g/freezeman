@@ -43,7 +43,7 @@ IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md).
 | Service    | Image                         | What it runs                                                    |
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension. Port 5432 is published  |
-| `dev`      | `localhost/freezeman-dev`     | Idle container with the venv (`/opt/venv`), Python 3.14 and Node 24. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
+| `dev`      | `localhost/freezeman-dev`     | Idle container with the venv (`/opt/venv`), Python 3.14 and Node 24. It also has the language servers (`basedpyright`, `typescript-language-server`, `docker-language-server`) and the Python type stubs. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
 
 For the bind mount, the `node_modules` volume and the `prod` profiles, see [Development notes](DEVELOPMENT.md#development-notes) in DEVELOPMENT.md.
 

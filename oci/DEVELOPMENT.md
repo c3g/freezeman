@@ -135,6 +135,13 @@ the venv (`/opt/venv/bin/python`) and `node_modules`. It uses the same compose f
 starts `db` and `dev`. It starts no server. Start the servers by hand in a terminal of the editor,
 as in [Start the development stack](#start-the-development-stack).
 
+The `dev` image has the language servers `basedpyright`, `typescript-language-server` and
+`docker-language-server` on `PATH`, and the type stubs of `backend/requirements-stubs.txt` in the venv.
+The Dev Container sets no editor type-checking settings. To use basedpyright in VS Code, install its extension
+and configure it in your own settings.
+To change a language server version, edit its `ARG` in `oci/Containerfile`. To change a stub, edit
+`backend/requirements-stubs.txt`. Then rebuild `dev`.
+
 1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
    Create `oci/logs` and set `FMS_LOG_DIR` in `.env` to its absolute path, for example
    `FMS_LOG_DIR=/home/me/freezeman/oci/logs`. The editor starts compose from another directory, so the path must be absolute.
