@@ -34,7 +34,6 @@ Contents:
 | `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
 | `backup`   | `localhost/freezeman-backup`  | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
 | `logrotate`| `localhost/freezeman-logrotate` | Daily `logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`. Each file rotates every `FMS_LOGROTATE_FREQUENCY` (default weekly) |
-| `remind`    | `localhost/freezeman-remind`  | Monthly email at `FMS_REMIND_TIME` on day `FMS_REMIND_DAY`: update the base images. Only if `FMS_ENV` is `PROD` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
 
 IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
@@ -70,10 +69,10 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `db/` | `Containerfile` of the `db` and `backup` images, `backup.py` (the `backup` service), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `logrotate/` | `Containerfile`, `logrotate.py` and `logrotate.conf.template` of the `logrotate` service |
-| `remind/` | `Containerfile` and `remind.py` of the `remind` service |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `report` service) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a QC or dev stack from a GitHub branch |
+| `scan.py` | Scans the images of the stack with Trivy and emails the fixable HIGH and CRITICAL CVEs |
 | `notify.py` | Sends the failure emails of the jobs |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
@@ -128,7 +127,7 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `logrotate`, `remind`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `logrotate`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`) and the proxy values of `.env` (`env_file`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
@@ -168,7 +167,7 @@ and QC and prod can run different versions for the same commit.
 
 When to update:
 
-- Once a month. The `remind` service emails the reminder (see [Remind the image updates](DEPLOYMENT.md#remind-the-image-updates)).
+- When `scan.py` emails a finding (see [Scan the images for CVEs](DEPLOYMENT.md#scan-the-images-for-cves)).
 - When a CVE affects Python, Node, nginx, PostgreSQL, Debian trixie or Alpine.
 
 How to update (on each host, QC first, prod after QC works):
@@ -198,7 +197,6 @@ For PostgreSQL it also needs a dump and restore of the data.
 Ideas for later (not done):
 
 - A scheduled GitHub workflow or Renovate that opens a PR when a base image changes.
-- A CVE scan of the built images (for example `trivy image`) in CI or before each deploy.
 - Pinning to patch tags or digests (`tag@sha256:...`) if all hosts must run the same bytes.
 
 ## Additional notes
@@ -242,7 +240,6 @@ The layout already maps onto Kubernetes objects:
 | `backup`           | CronJob + PVC                                                     |
 | `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
 | `logrotate`        | Not necessary: the cluster rotates the container logs. Do not deploy it |
-| `remind`           | CronJob that runs `fms-remind now` (`schedule` from `FMS_REMIND_DAY` and `FMS_REMIND_TIME`, `timeZone` from `TZ`) |
 | `web` port mapping and the host nginx | Ingress (TLS)                                                |
 
 Notes:

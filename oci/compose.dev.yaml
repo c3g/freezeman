@@ -119,10 +119,6 @@ services:
     # The log rotation does not run in development.
     profiles: ["logrotate"]
 
-  remind:
-    # The monthly reminder does not run in development.
-    profiles: ["remind"]
-
 # Declare the volume for the Linux `node_modules` of `dev`.
 volumes:
   frontend_node_modules:

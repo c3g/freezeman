@@ -142,7 +142,7 @@ Use this path to keep the data of the classic host. Run the steps as `django`, i
    psql -U postgres -d fms -c 'SHOW timezone'
    ```
 
-   `TZ` also sets the time zone of `FMS_BACKUP_TIME`, `FMS_REPORT_TIME`, `FMS_LOGROTATE_TIME` and `FMS_REMIND_TIME`. To use another time zone, set `TZ` to it.
+   `TZ` also sets the time zone of `FMS_BACKUP_TIME`, `FMS_REPORT_TIME` and `FMS_LOGROTATE_TIME`. To use another time zone, set `TZ` to it.
 
 3. Dump the classic database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the classic host.
 
@@ -326,31 +326,57 @@ podman-compose exec -T backend python manage.py prepare_report_data             
 podman-compose exec logrotate fms-logrotate now                # rotate now (only a file that is due)
 ```
 
-### Remind the image updates
+### Scan the images for CVEs
 
-The `remind` service emails a monthly reminder to update the base images. It uses the SMTP settings and the
-`FMS_ALERT_EMAILS` recipients of `.env`, as the failure emails do. It starts with the stack. It sends only if `FMS_ENV` is `PROD`: on QC and dev it idles and sends nothing.
+`scan.py` scans the images of the stack with [Trivy](https://trivy.dev), a CVE scanner that it runs as a throwaway
+podman container (`docker.io/aquasec/trivy`, a pinned tag in `scan.py`). Nothing is installed on the host.
 
-```bash
-# oci/.env
-# Day of the month (1 to 28) and time of day (HH:MM, in TZ) of the reminder.
-FMS_REMIND_DAY=1
-FMS_REMIND_TIME=09:00
+- It scans the image of each container of the project `freezeman` (also stopped containers), once per image.
+  It scans what runs, also after a rebuild without a recreate. A profile service that never started has no container, so it is not scanned.
+- It reports only HIGH and CRITICAL CVEs that a newer package fixes (`--ignore-unfixed`).
+- If it finds any, it emails the list on every run, with the SMTP settings and the `FMS_ALERT_EMAILS` recipients of `.env`
+  (the same as the failure emails). The email says how to fix them: the steps of "Keep the base images up to date" in `oci/README.md`.
+- If a run fails (podman or Trivy error), it emails one alert per distinct error (`logs/scan.alert`). It exits with code 1.
+  A scan that finds CVEs exits with code 0.
+
+Add a line to the crontab of `django` (`crontab -e`):
+
+```cron
+# 0 6 * * *: scan every day at 06:00.
+# >> logs/scan.log 2>&1: append the output and the errors to the log.
+# Optional --interval N: scan every N seconds and never exit (default: scan once).
+0 6 * * * /data/freezeman-oci/oci/scan.py >> /data/freezeman-oci/oci/logs/scan.log 2>&1
 ```
 
-After an `.env` change, run `podman-compose up -d --force-recreate remind`.
+- Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` in `.env` or before the command in the crontab line.
+  `scan.py` passes them to the Trivy container. Trivy downloads its vulnerability database from `mirror.gcr.io` and `ghcr.io`
+  (HTTPS, port 443): the proxy must allow both. The database stays in the named volume `freezeman-trivy-cache`, so a run downloads it only when it is out of date.
+- No cron (the host is a container): add `--interval 86400` and start the command as `django` from the init of the outer container. Redirect its output to `logs/scan.log`.
+- Another Trivy image: set `FMS_TRIVY_IMAGE` in `.env`.
+- Disk space: it exports one image at a time to `oci/.scan-tmp/` and deletes the file after the scan.
+  Keep the free space of the data disk above the size of the largest image.
+
+Test it by hand. The first run downloads the database and takes some minutes:
 
 ```bash
-podman-compose exec remind fms-remind now    # send the reminder now (a test)
-cat /data/freezeman-oci/oci/logs/remind.state # the last month sent
+cd /data/freezeman-oci/oci
+./scan.py                      # scan once
+tail logs/scan.log             # the images, the CVEs and the result
 ```
 
-- The service keeps the last month sent in `logs/remind.state`, so a restart does not send the email twice.
-  At its first start it sends nothing and waits for the next date.
-- If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the service sends no email and logs a message instead.
-- `fms-remind now` sends the email on any host, as a test.
-- The email only reminds you. Do the update with the steps of "Keep the base images up to date" in `oci/README.md`.
-- A stopped stack sends no reminder.
+If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the script prints the alert to the error output instead of sending it.
+
+Hosts that ran an older version of the stack have the `remind` service of the monthly reminder (removed). Remove its
+orphan container and image once:
+
+```bash
+podman-compose up -d --remove-orphans
+# or:
+podman rm -f freezeman_remind_1
+podman rmi localhost/freezeman-remind
+```
+
+A patch release of a base image that fixes no HIGH or CRITICAL CVE gives no email. Rebuild from time to time anyway (see "Keep the base images up to date").
 
 ### Automatic update (QC)
 

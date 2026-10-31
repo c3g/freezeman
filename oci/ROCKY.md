@@ -175,12 +175,15 @@ Required: if the host uses a proxy or a firewall with an allow list, allow these
 | `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image |
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
+| `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Pull of the Trivy image `docker.io/aquasec/trivy` by `scan.py` (the same domains as the image pulls above) |
+| `mirror.gcr.io`, `ghcr.io`, `pkg-containers.githubusercontent.com` | 443 | `scan.py`: Trivy downloads its vulnerability database (an OCI image) from `mirror.gcr.io` and falls back to `ghcr.io`. `ghcr.io` serves the layers from `pkg-containers.githubusercontent.com`. Only if you run `scan.py` |
 | The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Failure emails and Django email, only if `FMS_EMAIL_HOST` is set |
 
 - The FreezeMan team measured the rows for `github.com`, the image pulls, `deb.debian.org`, `apt.postgresql.org`, `pypi.org` and `registry.npmjs.org` with a full build and start of the stack. The team did not measure the `dnf` rows, because the test host did not run Rocky. They come from the repository lists of Rocky and EPEL.
 - The mirror lists of Rocky and EPEL send `dnf` to a third-party mirror. If the allow list cannot take it, set a fixed `baseurl` in the repository file or use a local mirror.
 - Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
-- The build needs the domains. The running stack needs only `FMS_EMAIL_HOST` and no other outbound connection.
+- The team did not measure the Trivy rows (`mirror.gcr.io`, `ghcr.io`, `pkg-containers.githubusercontent.com`). Test them with the manual run of `scan.py` and add the domain that the proxy blocks.
+- The build needs the domains. The running stack needs only `FMS_EMAIL_HOST` and no other outbound connection. `scan.py` (a host cron job, see [Scan the images for CVEs](DEPLOYMENT.md#scan-the-images-for-cves)) also needs the Trivy rows.
 - All traffic is outbound. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
 
 ## SELinux
