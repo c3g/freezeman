@@ -1,0 +1,5 @@
+# Type stubs for the language server (basedpyright). Dev only: the `dev` image installs them in
+# its venv, and `backend-prod` does not. Keep each series in step with requirements.txt.
+django-stubs==6.0.9                # Django 6.0.x
+djangorestframework-stubs==3.17.1  # djangorestframework 3.17.x
+pandas-stubs==3.0.5.260914         # pandas 3.0.x

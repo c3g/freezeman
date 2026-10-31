@@ -1,0 +1,32 @@
+# Build context exclusions for oci/Containerfile (context: repository root).
+# .git is intentionally kept: the frontend build reads commit info from it.
+
+**/.env
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/*.log
+**/*.log.*
+.vscode
+.pytest_cache
+**/.pytest_cache
+
+backend/env
+backend/staticfiles
+backend/media
+backend/triggers
+backend/automations_work
+backend/tmp
+
+frontend/dist
+
+# Generated inside the image by oci/Containerfile
+backend/fms/build_info.json
+
+# Database dumps
+**/*.dump
+**/*.pgdump
+**/*.pgsql
+**/*.sql.gz
+**/*.dump.gz
+**/*.pgsql.gz

@@ -1,0 +1,23 @@
+# Rotation rules for the log files of the stack. logrotate reads this file after logrotate.py
+# fills in the frequency and the number of files to keep. To change a directive, edit this file and rebuild the image.
+# /logs is the mount point of FMS_LOG_DIR in the container.
+/logs/*.log {
+    # Rotate each log at most once per period: daily, weekly, monthly or yearly.
+    ${FMS_LOGROTATE_FREQUENCY}
+    # Keep this many rotated files. Delete older ones.
+    rotate ${FMS_LOGROTATE_KEEP}
+    # Gzip the rotated files.
+    compress
+    # Keep the newest rotated file (.log.1) uncompressed until the next rotation.
+    delaycompress
+    # Do not fail if a log file is missing.
+    missingok
+    # Do not rotate an empty file.
+    notifempty
+    # Copy the file, then empty it in place. The writer keeps its open file.
+    # This is necessary: the container runtime (conmon) keeps each file open. A line that a
+    # container writes between the copy and the truncation can be lost.
+    # Do not use `size` or `maxsize`, and do not set `log_size_max` in podman: podman then
+    # truncates the file itself and the old lines are lost with no copy.
+    copytruncate
+}

@@ -1,0 +1,45 @@
+# # FreezeMan fast restore on a slow disk
+#
+# This file overrides only the `command` of the `db` service. It starts PostgreSQL with settings that skip
+# the disk flushes, so `pg_restore` or `psql` does not wait for the disk at each commit and checkpoint.
+# Use it only when `pg_test_fsync` shows a low `fdatasync` rate (DEPLOYMENT.md: "Restore on a slow disk").
+#
+# SAFETY: use it only for a restore into a NEW, EMPTY `freezeman_pgdata` volume. If the host
+# crashes or loses power while the volume runs with these settings, the data is corrupt. Then delete
+# the volume and restore again. Never run the stack with this file after the restore.
+#
+#   podman-compose -f compose.yaml -f compose.restore.yaml up -d db
+#   # ... restore the dump ...
+#   podman-compose up -d --force-recreate db      # back to the settings of compose.yaml
+#   sync                                          # on the host: write the files of the fast server to disk
+#
+# podman-compose replaces the `command` of `compose.yaml` with the one below. Check with
+#   podman-compose -f compose.yaml -f compose.restore.yaml config
+
+services:
+  db:
+    command:
+      # The `command` of compose.yaml (see the comment there).
+      - postgres
+      - -c
+      - log_timezone=${TZ:-America/Montreal}
+      # Do not wait for the disk at commit.
+      - -c
+      - fsync=off
+      - -c
+      - synchronous_commit=off
+      # Do not write full pages to the WAL after a checkpoint.
+      - -c
+      - full_page_writes=off
+      # Write only the WAL that crash recovery needs. A restore into a new volume needs no replication data.
+      # wal_level=minimal needs max_wal_senders=0.
+      - -c
+      - wal_level=minimal
+      - -c
+      - max_wal_senders=0
+      # Fewer checkpoints during the load.
+      - -c
+      - max_wal_size=8GB
+      # Faster index builds and constraint checks.
+      - -c
+      - maintenance_work_mem=512MB
