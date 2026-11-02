@@ -6,16 +6,23 @@ Run all `podman-compose` commands in `/data/freezeman-oci/oci` as `django`.
 
 Contents:
 
-- [Prerequisites](#prerequisites)
-- [Host nginx](#host-nginx)
-- [Set up the home of django](#set-up-the-home-of-django)
-- [Get the release and configure](#get-the-release-and-configure)
-- [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host)
-- [Path B: new host](#path-b-new-host)
-- [Start at boot](#start-at-boot)
+- [Prerequisites](#prerequisites): shared setup, the IT acceptance checks, no proxy.
+- [Host nginx](#host-nginx): the `.env` values to give IT.
+- [Set up the home of django](#set-up-the-home-of-django): podman without systemd, `podman system migrate`, podman-compose.
+- [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, scheduled jobs, image build.
+- Do one of these two paths:
+  - [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host): dump, copy the files, restore, cutover of the host nginx.
+  - [Path B: new host](#path-b-new-host): first start with an empty database.
+- [Start at boot](#start-at-boot): the `@reboot` crontab line.
 - [Daily use](#daily-use)
-- [To go back](#to-go-back)
-- [Troubleshooting](#troubleshooting)
+  - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
+  - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
+  - [Database backups](#database-backups): settings, a backup now, a restore.
+  - [Restore on a slow disk](#restore-on-a-slow-disk): measure the disk, restore with `compose.restore.yaml`.
+  - [Report, emails and logs](#report-emails-and-logs): follow the logs, run the report or the log rotation now.
+  - [Automatic update (QC)](#automatic-update-qc): `autoupdate.py` on QC and dev hosts.
+- [To go back](#to-go-back): return to the classic setup.
+- [Troubleshooting](#troubleshooting): symptoms and likely causes.
 
 ## Prerequisites
 
