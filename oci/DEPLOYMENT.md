@@ -307,11 +307,15 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
    podman-compose up -d --force-recreate db
    ```
 
-4. Write the files to the disk, check that `SHOW fsync` gives `on`, and start the other services:
+4. Check that `SHOW fsync` gives `on`, write the files to the disk, and start the other services:
 
    ```bash
-   sync
    podman-compose exec db psql -U admin -d fms -c 'SHOW fsync'
+   # "For reliable recovery when changing fsync off to on, it is necessary to force all modified buffers in
+   # the kernel to durable storage. This can be done while the cluster is shutdown or while fsync is on by
+   # running initdb --sync-only, running sync, unmounting the file system, or rebooting the server."
+   # Source: https://www.postgresql.org/docs/15/runtime-config-wal.html#GUC-FSYNC
+   sync
    podman-compose up -d
    ```
 
@@ -320,11 +324,11 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
 The times and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
 
 ```bash
-podman-compose logs -f backend
-tail -f /data/freezeman-oci/oci/logs/backend.log
-tail -f /data/freezeman-oci/oci/logs/scheduler.log      # the report, backup and log rotation jobs
-podman-compose exec -T backend python manage.py prepare_report_data              # run the report now
-podman-compose exec scheduler fms-logrotate now                # rotate now (only a file that is due)
+podman-compose logs -f backend                                       # follow the backend log through podman
+tail -f /data/freezeman-oci/oci/logs/backend.log                     # the same log, read from FMS_LOG_DIR (works after `down`)
+tail -f /data/freezeman-oci/oci/logs/scheduler.log                   # the report, backup and log rotation jobs
+podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
+podman-compose exec scheduler fms-logrotate now                      # rotate now (only a file that is due)
 ```
 
 ### Automatic update (QC)
