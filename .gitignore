@@ -14,7 +14,6 @@ TODO.txt
 
 oci/backups/
 oci/logs/
-oci/.scan-tmp/
 # Rendered logrotate config and state (the template stays tracked).
 oci/logrotate/logrotate.conf
 oci/logrotate/*.state

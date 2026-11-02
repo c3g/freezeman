@@ -72,7 +72,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `report` service) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a QC or dev stack from a GitHub branch |
-| `scan.py` | Scans the images of the stack with Trivy and emails the fixable HIGH and CRITICAL CVEs |
 | `notify.py` | Sends the failure emails of the jobs |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
@@ -167,7 +166,6 @@ and QC and prod can run different versions for the same commit.
 
 When to update:
 
-- When `scan.py` emails a finding (see [Scan the images for CVEs](DEPLOYMENT.md#scan-the-images-for-cves)).
 - When a CVE affects Python, Node, nginx, PostgreSQL, Debian trixie or Alpine.
 
 How to update (on each host, QC first, prod after QC works):

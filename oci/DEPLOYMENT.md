@@ -326,46 +326,6 @@ podman-compose exec -T backend python manage.py prepare_report_data             
 podman-compose exec logrotate fms-logrotate now                # rotate now (only a file that is due)
 ```
 
-### Scan the images for CVEs
-
-`scan.py` scans the images of the stack with [Trivy](https://trivy.dev), a CVE scanner that it runs as a throwaway
-podman container (`docker.io/aquasec/trivy`, a pinned tag in `scan.py`). Nothing is installed on the host.
-
-- It scans the image of each container of the project `freezeman` (also stopped containers), once per image.
-  It scans what runs, also after a rebuild without a recreate. A profile service that never started has no container, so it is not scanned.
-- It reports only HIGH and CRITICAL CVEs that a newer package fixes (`--ignore-unfixed`).
-- If it finds any, it emails the list on every run, with the SMTP settings and the `FMS_ALERT_EMAILS` recipients of `.env`
-  (the same as the failure emails). The email says how to fix them: the steps of "Keep the base images up to date" in `oci/README.md`.
-- If a run fails (podman or Trivy error), it emails one alert per distinct error (`logs/scan.alert`). It exits with code 1.
-  A scan that finds CVEs exits with code 0.
-
-Add a line to the crontab of `django` (`crontab -e`):
-
-```cron
-# 0 6 * * *: scan every day at 06:00.
-# >> logs/scan.log 2>&1: append the output and the errors to the log.
-# Optional --interval N: scan every N seconds and never exit (default: scan once).
-0 6 * * * /data/freezeman-oci/oci/scan.py >> /data/freezeman-oci/oci/logs/scan.log 2>&1
-```
-
-- Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` in `.env` or before the command in the crontab line.
-  `scan.py` passes them to the Trivy container. Trivy downloads its vulnerability database from `mirror.gcr.io` and `ghcr.io`
-  (HTTPS, port 443): the proxy must allow both. The database stays in the named volume `freezeman-trivy-cache`, so a run downloads it only when it is out of date.
-- No cron (the host is a container): add `--interval 86400` and start the command as `django` from the init of the outer container. Redirect its output to `logs/scan.log`.
-- Another Trivy image: set `FMS_TRIVY_IMAGE` in `.env`.
-- Disk space: it exports one image at a time to `oci/.scan-tmp/` and deletes the file after the scan.
-  Keep the free space of the data disk above the size of the largest image.
-
-Test it by hand. The first run downloads the database and takes some minutes:
-
-```bash
-cd /data/freezeman-oci/oci
-./scan.py                      # scan once
-tail logs/scan.log             # the images, the CVEs and the result
-```
-
-If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, the script prints the alert to the error output instead of sending it.
-
 Hosts that ran an older version of the stack have the `remind` service of the monthly reminder (removed). Remove its
 orphan container and image once:
 
@@ -376,7 +336,14 @@ podman rm -f freezeman_remind_1
 podman rmi localhost/freezeman-remind
 ```
 
-A patch release of a base image that fixes no HIGH or CRITICAL CVE gives no email. Rebuild from time to time anyway (see "Keep the base images up to date").
+Hosts that ran `scan.py` (the CVE scan with Trivy, removed) keep its cron line, volume, image and files. Remove them once:
+
+```bash
+crontab -e                                  # as django: delete the scan.py line
+podman volume rm freezeman-trivy-cache
+podman rmi docker.io/aquasec/trivy:0.76.1
+rm -rf logs/scan.log logs/scan.alert .scan-tmp   # in oci/
+```
 
 ### Automatic update (QC)
 
