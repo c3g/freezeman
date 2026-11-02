@@ -340,6 +340,7 @@ function WorkflowOptions({
               api.samples.list({
                 derived_by_samples__project__name: project.name,
                 id__in: sampleIDs.join(","),
+                limit: 100000,
               }),
             ).then((response) => {
               return response.data.results.length === sampleIDs.length ? project : null // weak but potentially sufficient test

@@ -21,28 +21,39 @@ def valid_step_orders_for_study_queueing(candidate_sample_ids: list[int], tested
     step_orders_by_sample_type = defaultdict(list)
     errors = []
     warnings = []
-    
+
     try:
+        # Q queries catalog
+        filter_candidate_samples = Q(id__in=candidate_sample_ids)
+        filter_is_extracted = Q(derived_samples__sample_kind__is_extracted=True)
+        filter_is_not_extracted = ~filter_is_extracted
+        filter_is_library = Q(derived_samples__library__isnull=False)
+        filter_is_not_library = ~filter_is_library
+        filter_is_not_pool = Q(derived_by_sample__volume_ratio__gte=1)
+
+        candidate_samples_qs = Sample.objects.filter(filter_candidate_samples)
+
         for step_order in tested_step_orders:
             step_orders_by_sample_type[step_order.step.expected_sample_type].append(step_order)
 
         for sample_type, step_orders in step_orders_by_sample_type.items():
             is_valid_sample_kind = False
 
+            # For each category, we check if there is a single sample that does not meet the requirement. Faster than extensive validation.
             if sample_type == SampleType.ANY:
                 is_valid_sample_kind = True
             elif sample_type == SampleType.UNEXTRACTED_SAMPLE:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & Q(derived_samples__sample_kind__is_extracted=True)).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_extracted).exists()
             elif sample_type == SampleType.EXTRACTED_SAMPLE:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & (Q(derived_samples__sample_kind__is_extracted=False) | Q(derived_samples__library__isnull=False))).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_not_extracted | filter_is_library).exists()
             elif sample_type == SampleType.EXTRACTED_SAMPLE_OR_LIBRARY:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & Q(derived_samples__sample_kind__is_extracted=False)).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_not_extracted).exists()
             elif sample_type == SampleType.SAMPLE:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & Q(derived_samples__library__isnull=False)).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_library).exists()
             elif sample_type == SampleType.LIBRARY:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & Q(derived_samples__library__isnull=True)).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_not_library).exists()
             elif sample_type == SampleType.POOLED_LIBRARY:
-                is_valid_sample_kind = not Sample.objects.filter(Q(id__in=candidate_sample_ids) & (Q(derived_samples__library__isnull=True) | Q(derived_by_sample__volume_ratio__gte=1))).exists()
+                is_valid_sample_kind = not candidate_samples_qs.filter(filter_is_not_library | filter_is_not_pool).exists()
             else:
                 is_valid_sample_kind = False
 
