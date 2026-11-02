@@ -129,7 +129,7 @@ Run these steps as `django`.
    | `FMS_BACKUP_DIR` | `/data/freezeman-oci/backups` |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `FMS_ALERT_EMAILS` | The recipients of the failure emails (comma list) |
-   | `TZ` | The time zone of the services, for example `America/Montreal` |
+   | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
    | `FMS_REPORT_TIME`, `FMS_BACKUP_TIME`, `FMS_LOGROTATE_TIME` | The time of day (HH:MM, in `TZ`) of the daily report, database backup and log rotation. See "Scheduled jobs" below the table |
    | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days (0 keeps all). Default: 14 |

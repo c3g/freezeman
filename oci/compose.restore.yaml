@@ -22,7 +22,7 @@ services:
       # The `command` of compose.yaml (see the comment there).
       - postgres
       - -c
-      - log_timezone=${TZ:-America/Montreal}
+      - log_timezone=${TZ:-UTC}
       # Do not wait for the disk at commit.
       - -c
       - fsync=off
