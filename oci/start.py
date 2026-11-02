@@ -14,10 +14,10 @@ import notify
 
 CHECK_DELAY = 60
 PROJECT = "freezeman"
-# Services that may be stopped: they must not exit with an error. `migrate` ends after its job.
+# Services that may be stopped: they must not exit with an error.
 # `scheduler` exits with 0 when no job has a time (all jobs off on purpose), and nothing restarts it.
 # The other services must run.
-ONE_SHOT = ("migrate", "scheduler")
+ONE_SHOT = ("scheduler",)
 
 
 # The fields of `podman ps --format json` that failed_containers() reads.

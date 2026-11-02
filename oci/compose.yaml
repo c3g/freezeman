@@ -1,6 +1,6 @@
 # # FreezeMan production-like stack
 #
-# This file starts the services of FreezeMan: the database, the migrations, Django, nginx, the
+# This file starts the services of FreezeMan: the database, Django, nginx, the
 # scheduler (daily report job, backup and log rotation). Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
@@ -30,7 +30,7 @@ x-podman:
 # A key that starts with `x-` is not a service. `&name` gives a block a name (an anchor), and
 # `<<: *name` (a merge key) copies that block into a service. An anchor must be above its first use.
 
-# Set the database settings of the Django services (`migrate`, `backend`, `scheduler`).
+# Set the database settings of the Django services (`backend`, `scheduler`).
 x-backend-env: &backend-env
   PG_DATABASE: ${POSTGRES_DB}
   PG_USER: ${POSTGRES_USER}
@@ -107,11 +107,16 @@ services:
     # `start.py` does that (DEPLOYMENT.md: "Start at boot").
     restart: always
 
-  # One-shot: apply migrations, then exit (a Job in Kubernetes). It runs again each time its
-  # container is created.
-  migrate:
-    # Build the `backend-prod` image of oci/Containerfile. `backend` uses the same image.
+  # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in
+  # the container network. The port is not published. Only `web` connects to it.
+  #
+  # Migrations are manual. Stop `web`, `backend` and `scheduler`, start only `db`, then run
+  #   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+  # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
+  # on QC/dev hosts. See DEPLOYMENT.md.
+  backend:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    # Build the `backend-prod` image of oci/Containerfile. `scheduler` builds on it.
     build:
       context: ..
       dockerfile: oci/Containerfile
@@ -120,31 +125,6 @@ services:
         # apt-get (libpq, gcc) and pip (requirements.txt, uwsgi) download packages.
         <<: *proxy
 
-    env_file: .env
-    environment:
-      <<: [*backend-env, *no-proxy]
-
-    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py createinitialrevisions"]
-
-    # Start as soon as the `db` container starts. The entrypoint of the image waits until the
-    # database accepts connections.
-    depends_on:
-      db:
-        condition: service_started
-
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/migrate.log
-
-    # Stay stopped when the job ends. podman-compose does not check migrate's exit code; check its
-    # logs.
-    restart: "no"
-
-  # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in
-  # the container network. The port is not published. Only `web` connects to it.
-  backend:
-    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
@@ -162,10 +142,11 @@ services:
       # Same path on both sides when set: .env also reaches the container (settings.py reads it).
       - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}:z
 
-    # Start only after `migrate` exits with code 0.
+    # Start as soon as the `db` container starts. The entrypoint of the image waits until the
+    # database accepts connections.
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      db:
+        condition: service_started
 
     logging:
       driver: k8s-file
@@ -278,10 +259,11 @@ services:
       - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/home/fms/reports/log:z
       - ${FMS_BACKUP_DIR:-./backups}:/backups:z
 
-    # Start only after `migrate` exits with code 0.
+    # Start as soon as the `db` container starts. The entrypoint of the image waits until the
+    # database accepts connections.
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      db:
+        condition: service_started
 
     logging:
       driver: k8s-file

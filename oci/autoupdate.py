@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Update a QC/dev stack from a GitHub branch (DEPLOYMENT.md: "Automatic update (QC)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
-# the dump and recreate the stack. Never use it on production: it deletes the database.
+# the dump, apply the migrations and recreate the stack. Never use it on production: it deletes the database.
 #   autoupdate.py --branch qc --dump /data/freezeman-oci/backups/2026-10-21.pgsql.gz [--interval 600] [--force] [--fast-restore]
 # Without --interval it checks once and exits (cron). With it, it checks every N seconds and never exits.
 # --fast-restore restores with compose.restore.yaml (slow disk, DEPLOYMENT.md: "Restore on a slow disk").
@@ -30,6 +30,9 @@ DB_WAIT_SECONDS = 120
 # pg_dump -Fc dumps restore into the existing POSTGRES_DB.
 RESTORE_PSQL = 'psql -U "$POSTGRES_USER" -d postgres'
 RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl --verbose -d "$POSTGRES_DB"'
+
+# Runs in a one-off backend container while only `db` runs. The dump does not have the newest migrations.
+MIGRATE = "python manage.py migrate --noinput && python manage.py createinitialrevisions"
 
 # Relative to the working directory, like compose.yaml: hostenv.setup() changes it to OCI_DIR.
 FAST_RESTORE_FILES = ["-f", "compose.yaml", "-f", "compose.restore.yaml"]
@@ -187,8 +190,11 @@ def deploy(args: Args, profiles: list[str], state_path: str, commit: str, dump_c
             run(["podman-compose", "up", "-d", "--force-recreate", "db"])
             # The fast server did not flush its files.
             run(["sync"])
+        log("Step: migrate")
+        # A failed migration raises here: the stack stays down, only `db` runs, and the alert goes out.
+        run(["podman-compose", *profiles, "run", "--rm", "--no-deps", "backend", "sh", "-c", MIGRATE])
         log("Step: recreate the stack")
-        # migrate applies the migrations that the dump does not have.
+        # The migrations ran in the step above.
         run(["podman-compose", *profiles, "up", "-d", "--force-recreate"])
     except BaseException:
         # Do not retry the same commit in a loop: a new commit or --force starts the next try.

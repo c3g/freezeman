@@ -30,7 +30,7 @@ services:
 
   # The development container. It runs `sleep infinity` (the `CMD` of the `dev` target). In it,
   # the developer runs `migrate`, `runserver` and `npm start` by hand, in place of the production
-  # services `migrate`, `backend` and `web` (see DEVELOPMENT.md).
+  # services `backend` and `web` (see DEVELOPMENT.md).
   dev:
     # Build the `dev` image of oci/Containerfile.
     image: localhost/freezeman-dev:latest
@@ -95,12 +95,8 @@ services:
 
   # Turn off the production services. A service with a `profiles` list starts only when the
   # profile is active, so `up -d` does not start these services.
-  migrate:
-    # The developer runs the migrations by hand in "dev".
-    profiles: ["prod"]
-
   backend:
-    # The developer runs runserver by hand in "dev".
+    # The developer runs migrate and runserver by hand in "dev".
     profiles: ["prod"]
 
   web:

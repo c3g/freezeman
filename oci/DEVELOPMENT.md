@@ -43,7 +43,7 @@ For the services of the development stack, see [Development services](README.md#
 
   The host editor does not see this `node_modules`. If the editor needs it, use the [Dev Container](#dev-container).
 - Bash in `dev` has tab completion (for example `git` and `psql`).
-- The production services `migrate`, `backend` and `web` have the profile `prod` in development,
+- The production services `backend` and `web` have the profile `prod` in development,
   so `up -d` does not start them. `scheduler` does not start either.
 
 ## Start the development stack

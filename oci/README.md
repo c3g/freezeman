@@ -29,7 +29,6 @@ Contents:
 | Service    | Image                         | What it runs                                                    |
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
-| `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
 | `scheduler`| `localhost/freezeman-scheduler` | supercronic runs three daily jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
@@ -125,7 +124,7 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `migrate`, `backend`, `scheduler`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `backend`, `scheduler`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`) and the proxy values of `.env` (`env_file`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
@@ -230,7 +229,7 @@ The layout already maps onto Kubernetes objects:
 | Compose            | Kubernetes                                                        |
 |--------------------|-------------------------------------------------------------------|
 | `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
-| `migrate`          | Job (or Helm `pre-install`/`pre-upgrade` hook)                    |
+| migrations (manual)| A Job that the operator starts, with the backend Deployment scaled to 0 |
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
 | `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |

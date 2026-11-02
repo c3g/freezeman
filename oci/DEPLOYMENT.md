@@ -184,11 +184,11 @@ Use this path to keep the data of the classic host. Run the steps as `django`, i
      pg_restore -U admin -d fms --no-owner --no-acl --verbose < fms_classic.dump
    ```
 
-6. Start all services and check them:
+6. Apply the migrations while only `db` runs, then start all services and check them. The migration command prints the applied migrations and ends with exit code 0:
 
    ```bash
+   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
    podman-compose up -d
-   podman-compose logs migrate          # migrations applied?
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    ```
 
@@ -205,9 +205,13 @@ Use this path to keep the data of the classic host. Run the steps as `django`, i
 
 Use this path when there is no data to keep. Run the steps as `django`, in `oci/`.
 
+Start only `db`, apply the migrations in a one-off `backend` container, then start the stack. Nothing applies migrations automatically.
+
 ```bash
+podman-compose up -d db
+until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
 podman-compose up -d
-podman-compose logs migrate          # migrations applied?
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
 curl -sfo /dev/null -w '%{http_code}\n' https://<host>/           # 200, through the host nginx (<host> is the FreezeMan domain)
 ```
@@ -245,9 +249,13 @@ git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
 # proxy host: set the variables before each podman-compose command, as in Proxy
 HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
+# Stop the services that use the database, so no request meets a schema that does not match the code.
+podman-compose stop web backend scheduler
+podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
 podman-compose up -d --force-recreate
-podman-compose logs migrate
 ```
+
+The migration command runs in a one-off container. It needs the new image (the `build` above) and a running `db`. If it fails, the stack stays down: fix the error, then run it again.
 
 ### Database backups
 
@@ -274,8 +282,9 @@ podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c /data/freezeman-oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
-podman-compose up -d                 # migrate applies the migrations that the backup does not have
-podman-compose logs migrate
+# Apply the migrations that the backup does not have, while only db runs.
+podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+podman-compose up -d
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
@@ -316,6 +325,7 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
    # running initdb --sync-only, running sync, unmounting the file system, or rebooting the server."
    # Source: https://www.postgresql.org/docs/15/runtime-config-wal.html#GUC-FSYNC
    sync
+   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
    podman-compose up -d
    ```
 
@@ -357,6 +367,7 @@ QC and dev hosts only. It deletes the database at each new commit.
    */10 * * * * /data/freezeman-oci/oci/autoupdate.py --branch qc --dump /data/freezeman-oci/backups/2026-10-21.pgsql.gz >> /data/freezeman-oci/oci/logs/autoupdate.log 2>&1
    ```
 
+- `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script sends the alert email.
 - Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
 - No cron (the host is a container): add `--interval 600` and start the command as `django` from the init of the outer container. Redirect its output to `logs/autoupdate.log`.
 - Slow disk (see [Restore on a slow disk](#restore-on-a-slow-disk)): add `--fast-restore`.
@@ -386,4 +397,5 @@ The stack writes after the cutover are not in the classic database.
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | `client_max_body_size` is missing in the HTTPS server block of the FreezeMan domain. Ask IT to add it ([Host nginx](ROCKY.md#5-host-nginx)) |
+| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration command of [Update to a new release](#update-to-a-new-release) |
 | Restore takes hours | The disk is slow at flushes. See [Restore on a slow disk](#restore-on-a-slow-disk) |

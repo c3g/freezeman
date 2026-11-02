@@ -234,8 +234,8 @@ CMD ["sleep", "infinity"]
 # Production images #
 #####################
 
-# This stage is the production backend: Django on uwsgi, with the source baked in. The `migrate`,
-# `backend` service of compose.yaml run it. The `scheduler` stage builds on it.
+# This stage is the production backend: Django on uwsgi, with the source baked in. The
+# `backend` service of compose.yaml runs it. The `scheduler` stage builds on it.
 FROM python-base AS backend-prod
 
 # Copy the venv, the source and the commit information.
