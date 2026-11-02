@@ -123,6 +123,11 @@ Run these steps as `django`.
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `FMS_ALERT_EMAILS` | The recipients of the failure emails (comma list) |
    | `TZ` | The time zone of the services, for example `America/Montreal` |
+   | `FMS_REPORT_TIME`, `FMS_BACKUP_TIME`, `FMS_LOGROTATE_TIME` | The time of day (HH:MM, in `TZ`) of the daily report, database backup and log rotation. See "Scheduled jobs" below the table |
+   | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
+   | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days (0 keeps all). Default: 14 |
+
+   Scheduled jobs: the `scheduler` service runs the report, the backup and the log rotation. A job runs only if its time is set. Remove or comment out a time in `.env` to turn that job off. `.env.example` sets all three times. If no job has a time, the `scheduler` stops with exit code 0. If a time is not HH:MM, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
 4. Build the images:
 
@@ -228,7 +233,7 @@ Run these commands in `oci/`. Use `--force-recreate` after a build or an `.env` 
 ### Update to a new release
 
 ```bash
-podman-compose exec backup fms-backup now
+podman-compose exec scheduler fms-backup now
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
 # proxy host: set the variables before each podman-compose command, as in Proxy
@@ -239,7 +244,7 @@ podman-compose logs migrate
 
 ### Database backups
 
-The `backup` service starts with `podman-compose up -d` and runs every day. To change its settings, edit `.env`, then run `podman-compose up -d --force-recreate`. To run a backup now, use the last command:
+The `scheduler` service starts with `podman-compose up -d` and runs the backup every day. To change its settings, edit `.env`, then run `podman-compose up -d --force-recreate`. To run a backup now, use the last command:
 
 ```bash
 # oci/.env
@@ -250,7 +255,7 @@ FMS_BACKUP_TIME=01:00
 # Delete backups older than this many days (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
 
-podman-compose exec backup fms-backup now      # run one backup now
+podman-compose exec scheduler fms-backup now   # run one backup now
 ```
 
 To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest. On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
@@ -305,44 +310,14 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
 
 ### Report, emails and logs
 
-Set the times in `.env`. After an `.env` change, run `podman-compose up -d --force-recreate`.
-
-```bash
-# oci/.env
-# Time of day (HH:MM, in TZ) for prepare_report_data.
-FMS_REPORT_TIME=02:00
-# Time of day (HH:MM, in TZ) of the daily log rotation.
-FMS_LOGROTATE_TIME=03:00
-# How often each log rotates: daily, weekly, monthly or yearly.
-FMS_LOGROTATE_FREQUENCY=weekly
-# Rotated files to keep for each log.
-FMS_LOGROTATE_KEEP=8
-```
+The times and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
 
 ```bash
 podman-compose logs -f backend
 tail -f /data/freezeman-oci/oci/logs/backend.log
+tail -f /data/freezeman-oci/oci/logs/scheduler.log      # the report, backup and log rotation jobs
 podman-compose exec -T backend python manage.py prepare_report_data              # run the report now
-podman-compose exec logrotate fms-logrotate now                # rotate now (only a file that is due)
-```
-
-Hosts that ran an older version of the stack have the `remind` service of the monthly reminder (removed). Remove its
-orphan container and image once:
-
-```bash
-podman-compose up -d --remove-orphans
-# or:
-podman rm -f freezeman_remind_1
-podman rmi localhost/freezeman-remind
-```
-
-Hosts that ran `scan.py` (the CVE scan with Trivy, removed) keep its cron line, volume, image and files. Remove them once:
-
-```bash
-crontab -e                                  # as django: delete the scan.py line
-podman volume rm freezeman-trivy-cache
-podman rmi docker.io/aquasec/trivy:0.76.1
-rm -rf logs/scan.log logs/scan.alert .scan-tmp   # in oci/
+podman-compose exec scheduler fms-logrotate now                # rotate now (only a file that is due)
 ```
 
 ### Automatic update (QC)

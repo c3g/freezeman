@@ -107,17 +107,9 @@ services:
     # The production nginx image is not used in development.
     profiles: ["prod"]
 
-  report:
-    # The daily report job does not run in development.
-    profiles: ["report"]
-
-  backup:
-    # The daily database backup does not run in development.
-    profiles: ["backup"]
-
-  logrotate:
-    # The log rotation does not run in development.
-    profiles: ["logrotate"]
+  scheduler:
+    # The daily report, backup and log rotation jobs do not run in development.
+    profiles: ["scheduler"]
 
 # Declare the volume for the Linux `node_modules` of `dev`.
 volumes:

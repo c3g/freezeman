@@ -9,6 +9,7 @@
 #                  the repository bind-mounted at /src. The developer starts runserver and npm
 #                  by hand
 #   backend-prod   Django served by uwsgi, source baked in
+#   scheduler      backend-prod plus supercronic and the report, backup and logrotate jobs
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -234,7 +235,7 @@ CMD ["sleep", "infinity"]
 #####################
 
 # This stage is the production backend: Django on uwsgi, with the source baked in. The `migrate`,
-# `backend` and `report` services of compose.yaml run it.
+# `backend` service of compose.yaml run it. The `scheduler` stage builds on it.
 FROM python-base AS backend-prod
 
 # Copy the venv, the source and the commit information.
@@ -270,6 +271,59 @@ EXPOSE 8000
 
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
+
+# This stage is the scheduler: one container that runs the three daily jobs with supercronic, a cron
+# for containers (it runs as a normal user, keeps the container environment and writes to stdout).
+#   fms-report      prepare_report_data (Django, from backend-prod)
+#   fms-backup      pg_dumpall into /backups
+#   fms-logrotate   logrotate of /logs/*.log
+FROM backend-prod AS scheduler
+
+# Pin supercronic and check the download. SHA1 sums are from the release page of the version.
+ARG SUPERCRONIC_VERSION=v0.2.51
+ARG SUPERCRONIC_SHA1_AMD64=1692066e350a88ff4d7d6474fe3c7a6c41ec5e89
+ARG SUPERCRONIC_SHA1_ARM64=9d4c2000493215a1898502b2fc2dada3e8ea8c7a
+
+# Install the tools as root. The user is `fms` again at the end of the stage.
+USER root
+
+# `pg_dumpall` must have the major version of the server (15). Debian trixie has client 17, and a
+# dump of a newer client may not restore into 15. So install `postgresql-client-15` from the
+# PostgreSQL apt repository (apt.postgresql.org). curl is only for the downloads, so remove it after.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl \
+ && install -d /usr/share/postgresql-common/pgdg \
+ && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+ && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends postgresql-client-15 logrotate \
+ && arch="$(dpkg --print-architecture)" \
+ && case "$arch" in \
+      amd64) sha1="$SUPERCRONIC_SHA1_AMD64" ;; \
+      arm64) sha1="$SUPERCRONIC_SHA1_ARM64" ;; \
+      *) echo "No supercronic checksum for $arch" >&2; exit 1 ;; \
+    esac \
+ && curl -fsSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${arch}" \
+ && echo "${sha1}  /usr/local/bin/supercronic" | sha1sum -c - \
+ && chmod 755 /usr/local/bin/supercronic \
+ && apt-get purge -y curl \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy the job scripts and the logrotate rules. `fms-report` and `notify.py` come from `python-base`.
+# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
+COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
+COPY --chmod=755 oci/logrotate/logrotate.py /usr/local/bin/fms-logrotate
+COPY --chmod=755 oci/scheduler/scheduler.py /usr/local/bin/fms-scheduler
+COPY oci/logrotate/logrotate.conf.template /etc/fms-logrotate/logrotate.conf.template
+
+# `fms-logrotate` writes `logrotate.conf` next to the template at each run, so `fms` needs to write there.
+RUN chown fms:fms /etc/fms-logrotate
+
+USER fms
+
+# Write the crontab from the `FMS_*_TIME` variables, then run supercronic.
+CMD ["fms-scheduler"]
 
 # This stage is last because it copies from the stages above it.
 FROM ${NGINX_IMAGE} AS web

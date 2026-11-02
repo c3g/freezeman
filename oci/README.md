@@ -31,9 +31,7 @@ Contents:
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `migrate`  | `localhost/freezeman-backend` | One-shot: `migrate` + `createinitialrevisions`, then exits      |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `report`   | `localhost/freezeman-backend` | Daily `prepare_report_data` at `FMS_REPORT_TIME`                |
-| `backup`   | `localhost/freezeman-backup`  | Daily `pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`    |
-| `logrotate`| `localhost/freezeman-logrotate` | Daily `logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`. Each file rotates every `FMS_LOGROTATE_FREQUENCY` (default weekly) |
+| `scheduler`| `localhost/freezeman-scheduler` | supercronic runs three daily jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
 
 IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
@@ -62,14 +60,15 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 
 | Item | What it is |
 |---|---|
-| `Containerfile` | Images of the backend (`dev`, `backend-prod`) and `web`. The build context is the repository root |
+| `Containerfile` | Images of the backend (`dev`, `backend-prod`), `scheduler` and `web`. The build context is the repository root |
 | `compose.yaml` | The production-like stack (all services) |
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
 | `compose.restore.yaml` | Override of the `db` command for a restore on a slow disk |
-| `db/` | `Containerfile` of the `db` and `backup` images, `backup.py` (the `backup` service), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
+| `db/` | `Containerfile` of the `db` image, `backup.py` (the `fms-backup` job), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
-| `logrotate/` | `Containerfile`, `logrotate.py` and `logrotate.conf.template` of the `logrotate` service |
-| `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `report` service) and `uwsgi.ini` |
+| `logrotate/` | `logrotate.py` (the `fms-logrotate` job) and `logrotate.conf.template` |
+| `scheduler/` | `scheduler.py`: writes the crontab from the `FMS_*_TIME` variables and starts supercronic (the `scheduler` service) |
+| `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a QC or dev stack from a GitHub branch |
 | `notify.py` | Sends the failure emails of the jobs |
@@ -126,7 +125,7 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `migrate`, `backend`, `report`, `backup`, `logrotate`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `migrate`, `backend`, `scheduler`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`) and the proxy values of `.env` (`env_file`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
@@ -235,14 +234,16 @@ The layout already maps onto Kubernetes objects:
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
 | `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
-| `backup`           | CronJob + PVC                                                     |
-| `report`           | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
-| `logrotate`        | Not necessary: the cluster rotates the container logs. Do not deploy it |
+| `scheduler`: `fms-backup` | CronJob + PVC (`schedule` from `FMS_BACKUP_TIME`). Use an image with `postgresql-client-15` |
+| `scheduler`: `fms-report` | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
+| `scheduler`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
 | `web` port mapping and the host nginx | Ingress (TLS)                                                |
 
 Notes:
-- The `report` CronJob replaces the sleep loop in `fms-report`, so run `python manage.py prepare_report_data`
-  directly, not `fms-report`. Set `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
+- The `scheduler` service has one job of three because supercronic is a cron inside one container. Kubernetes
+  has CronJobs, so each job becomes its own CronJob. Each job is a one-shot command (`fms-report now`,
+  `fms-backup now`), so a CronJob calls it directly and no supercronic is necessary. Set
+  `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
 - Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
   Expose only the `web` Service.

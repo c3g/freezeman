@@ -7,25 +7,37 @@ import subprocess
 import sys
 import time
 import traceback
-from datetime import date, datetime, timedelta
+from datetime import date
 
 import notify
 
-# Daily pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz.
-# Replaces a host cron entry, so the job works the same under podman-compose
-# and Kubernetes (a CronJob can replace this service).
-#   fms-backup        run every day at FMS_BACKUP_TIME (HH:MM in TZ)
-#   fms-backup now    run one backup and exit
+# One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
+# result. The `scheduler` service (oci/scheduler/scheduler.py) starts it every day at
+# FMS_BACKUP_TIME. In Kubernetes a CronJob can call it too.
+#   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
-backup_time = os.environ.get("FMS_BACKUP_TIME") or "01:00"
 keep_days = int(os.environ.get("FMS_BACKUP_KEEP_DAYS") or "14")
 
+
+def setting(*names: str, default: str = "") -> str:
+    # First non-empty variable of the list. POSTGRES_* are the names of the db service, PG_* the
+    # names of the backend services (the `scheduler` container only has PG_*).
+    for name in names:
+        if os.environ.get(name):
+            return os.environ[name]
+    if default:
+        return default
+    print(f"Set one of: {', '.join(names)}", file=sys.stderr)
+    sys.exit(1)
+
+
 # pg_isready and pg_dumpall read these.
-os.environ["PGHOST"] = os.environ.get("PGHOST") or "db"
-os.environ["PGUSER"] = os.environ["POSTGRES_USER"]
-os.environ["PGPASSWORD"] = os.environ["POSTGRES_PASSWORD"]
-os.environ["PGDATABASE"] = os.environ["POSTGRES_DB"]
+os.environ["PGHOST"] = setting("PGHOST", "PG_HOST", default="db")
+os.environ["PGPORT"] = setting("PGPORT", "PG_PORT", default="5432")
+os.environ["PGUSER"] = setting("POSTGRES_USER", "PG_USER")
+os.environ["PGPASSWORD"] = setting("POSTGRES_PASSWORD", "PG_PASSWORD")
+os.environ["PGDATABASE"] = setting("POSTGRES_DB", "PG_DATABASE")
 
 
 # Why the last run_backup() failed, for the alert email.
@@ -97,25 +109,8 @@ def run_and_alert() -> bool:
         ok = fail(traceback.format_exc())
     if not ok:
         print("Backup failed", file=sys.stderr, flush=True)
-        notify.send_alert("Backup failed", f"The daily pg_dumpall backup failed.\n\n{failure_reason}\nThe log is backup.log in FMS_LOG_DIR (podman-compose logs backup).")
+        notify.send_alert("Backup failed", f"The daily pg_dumpall backup failed.\n\n{failure_reason}\nThe log is scheduler.log in FMS_LOG_DIR (podman-compose logs scheduler).")
     return ok
 
 
-def next_run(hhmm: str) -> tuple[datetime, datetime]:
-    hour, minute = map(int, hhmm.split(":"))
-    now = datetime.now()
-    run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if run <= now:
-        run += timedelta(days=1)
-    # astimezone() attaches the local zone, so the wait is right across a DST change.
-    return now.astimezone(), run.astimezone()
-
-
-if len(sys.argv) > 1 and sys.argv[1] == "now":
-    sys.exit(0 if run_and_alert() else 1)
-
-while True:
-    now, run = next_run(backup_time)
-    print(f"Next backup: {run:%Y-%m-%d %H:%M:%S %Z}", flush=True)
-    time.sleep((run - now).total_seconds())
-    _ = run_and_alert()
+sys.exit(0 if run_and_alert() else 1)

@@ -1,7 +1,7 @@
 # # FreezeMan production-like stack
 #
 # This file starts the services of FreezeMan: the database, the migrations, Django, nginx, the
-# daily report job, the daily backup and the daily log rotation. Run `podman-compose` from this directory.
+# scheduler (daily report job, backup and log rotation). Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
 #   mkdir -p ../backend/media ../backend/triggers logs
@@ -30,7 +30,7 @@ x-podman:
 # A key that starts with `x-` is not a service. `&name` gives a block a name (an anchor), and
 # `<<: *name` (a merge key) copies that block into a service. An anchor must be above its first use.
 
-# Set the database settings of the Django services (`migrate`, `backend`, `report`).
+# Set the database settings of the Django services (`migrate`, `backend`, `scheduler`).
 x-backend-env: &backend-env
   PG_DATABASE: ${POSTGRES_DB}
   PG_USER: ${POSTGRES_USER}
@@ -110,8 +110,7 @@ services:
   # One-shot: apply migrations, then exit (a Job in Kubernetes). It runs again each time its
   # container is created.
   migrate:
-    # Build the `backend-prod` image of oci/Containerfile. `backend` and `report` use the same
-    # image.
+    # Build the `backend-prod` image of oci/Containerfile. `backend` uses the same image.
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
@@ -218,22 +217,66 @@ services:
 
     restart: always
 
-  # Daily prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes).
-  report:
-    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
-    env_file: .env
+  # The three daily jobs in one container, started by supercronic (oci/scheduler/scheduler.py):
+  #   fms-report      prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes)
+  #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz at FMS_BACKUP_TIME
+  #                   (a CronJob in Kubernetes)
+  #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log at FMS_LOGROTATE_TIME. Kubernetes needs no such
+  #                   job: the cluster rotates the container logs.
+  # All three log to ${FMS_LOG_DIR}/scheduler.log.
+  scheduler:
+    # Build the `scheduler` image of oci/Containerfile (`backend-prod` plus supercronic,
+    # postgresql-client-15 and logrotate).
+    image: localhost/freezeman-scheduler:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: scheduler
+      args:
+        # apt-get (PostgreSQL client, logrotate) and curl (supercronic) download packages.
+        <<: *proxy
+
+    # No env_file: the container gets only what the three jobs need. `report` runs Django, so it
+    # needs the Django settings below. `backup` reads PG_* (x-backend-env). The jobs send the failure
+    # email (notify.py) with the FMS_EMAIL_* settings.
     environment:
       <<: [*backend-env, *no-proxy]
+      FMS_SECRET_KEY: ${FMS_SECRET_KEY}
+      FMS_ENV: ${FMS_ENV:-PROD}
+      FMS_DEBUG: ${FMS_DEBUG:-False}
+      FMS_HOST: ${FMS_HOST:-}
+      # A key with no value passes the value of .env, and leaves the variable unset if .env has
+      # none. Do not write `${FMS_EMAIL_HOST:-}` here: an empty value counts as set for Django
+      # (settings.py: an empty FMS_EMAIL_HOST turns on SMTP, an empty FMS_EMAIL_PORT stops `int()`).
+      FMS_EMAIL_HOST:
+      FMS_EMAIL_PORT:
+      FMS_EMAIL_FROM:
+      FMS_EMAIL_USER:
+      FMS_EMAIL_PASSWORD:
+      FMS_EMAIL_TLS:
+      FMS_ALERT_EMAILS:
+      # No default for the times: a job with no time is off (scheduler.py). A key with no value is
+      # left unset when .env has none. Do not use `${FMS_REPORT_TIME:?...}`: it would stop compose
+      # when a job is off.
+      FMS_REPORT_TIME:
+      FMS_BACKUP_TIME:
+      FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
+      FMS_LOGROTATE_TIME:
+      FMS_LOGROTATE_FREQUENCY: ${FMS_LOGROTATE_FREQUENCY:-weekly}
+      FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
 
-    command: ["fms-report"]
-
-    # keep-id: the log files belong to the host user, as uid 1000 (the image user fms), like backend.
+    # keep-id: the jobs run as uid 1000 (the image user fms), which is the host user. The log,
+    # backup and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # The command writes report_preparation.log to ~/reports/log/. Mounting FMS_LOG_DIR there
-    # keeps it next to the service logs (<service>.log).
+    # `:z` is the SELinux label (see `backend`). FMS_LOG_DIR is mounted twice: /logs is the
+    # directory that logrotate rotates, and ~/reports/log is where prepare_report_data writes
+    # report_preparation.log, next to the service logs (<service>.log). The backup directory must
+    # exist.
     volumes:
-      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/home/fms/reports/log
+      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/logs:z
+      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/home/fms/reports/log:z
+      - ${FMS_BACKUP_DIR:-./backups}:/backups:z
 
     # Start only after `migrate` exits with code 0.
     depends_on:
@@ -243,103 +286,11 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/report.log
+        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/scheduler.log
 
-    restart: always
-
-  # Daily pg_dumpall into FMS_BACKUP_DIR on the host, as <YYYY-MM-DD>.pgsql.gz, at FMS_BACKUP_TIME
-  # (a CronJob in Kubernetes). The directory must exist. Runs as root in the container,
-  # which rootless podman maps to the host user, so that user owns the files.
-  backup:
-    # Build the `backup` image of oci/db/Containerfile.
-    image: localhost/freezeman-backup:${FMS_IMAGE_TAG:-latest}
-    build:
-      context: ..
-      dockerfile: oci/db/Containerfile
-      target: backup
-      args:
-        # apt-get installs python3 for the backup and notify scripts.
-        <<: *proxy
-
-    environment:
-      <<: *no-proxy
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: ${TZ:-America/Montreal}
-      FMS_BACKUP_TIME: ${FMS_BACKUP_TIME:-01:00}
-      FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
-      # Failure email (notify.py). It needs only the SMTP settings, not the Django secrets of .env.
-      FMS_ENV: ${FMS_ENV:-}
-      FMS_HOST: ${FMS_HOST:-}
-      FMS_DEBUG: ${FMS_DEBUG-True}
-      FMS_EMAIL_HOST: ${FMS_EMAIL_HOST:-}
-      FMS_EMAIL_PORT: ${FMS_EMAIL_PORT:-}
-      FMS_EMAIL_FROM: ${FMS_EMAIL_FROM:-}
-      FMS_EMAIL_USER: ${FMS_EMAIL_USER:-}
-      FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
-      FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
-      FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
-
-    # `:z` is the SELinux label (see `backend`).
-    volumes:
-      - ${FMS_BACKUP_DIR:-./backups}:/backups:z
-
-    depends_on:
-      db:
-        condition: service_started
-
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/backup.log
-
-    restart: always
-
-  # Daily logrotate of FMS_LOG_DIR/*.log at FMS_LOGROTATE_TIME. Kubernetes needs no such job: the
-  # cluster rotates the container logs.
-  logrotate:
-    # Build the image of oci/logrotate/Containerfile.
-    image: localhost/freezeman-logrotate:${FMS_IMAGE_TAG:-latest}
-    build:
-      context: ..
-      dockerfile: oci/logrotate/Containerfile
-      args:
-        # apt-get installs logrotate.
-        <<: *proxy
-
-    environment:
-      <<: *no-proxy
-      TZ: ${TZ:-America/Montreal}
-      FMS_LOGROTATE_TIME: ${FMS_LOGROTATE_TIME:-03:00}
-      FMS_LOGROTATE_FREQUENCY: ${FMS_LOGROTATE_FREQUENCY:-weekly}
-      FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
-      # Failure email (notify.py). It needs only the SMTP settings, not the Django secrets of .env.
-      FMS_ENV: ${FMS_ENV:-}
-      FMS_HOST: ${FMS_HOST:-}
-      FMS_DEBUG: ${FMS_DEBUG-True}
-      FMS_EMAIL_HOST: ${FMS_EMAIL_HOST:-}
-      FMS_EMAIL_PORT: ${FMS_EMAIL_PORT:-}
-      FMS_EMAIL_FROM: ${FMS_EMAIL_FROM:-}
-      FMS_EMAIL_USER: ${FMS_EMAIL_USER:-}
-      FMS_EMAIL_PASSWORD: ${FMS_EMAIL_PASSWORD:-}
-      FMS_EMAIL_TLS: ${FMS_EMAIL_TLS:-}
-      FMS_ALERT_EMAILS: ${FMS_ALERT_EMAILS:-}
-
-    # No `userns_mode`: the container runs as root, which rootless podman maps to the host user.
-    # conmon writes the log files as that user, so they show as root in the container. logrotate
-    # copies each file with the owner of the original, so the rotated files and the state file
-    # keep the host owner. `keep-id` would run the script as a non-root user and gain nothing.
-    # `:z` is the SELinux label (see `backend`).
-    volumes:
-      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/logs:z
-
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/logrotate.log
-
-    restart: always
+    # No restart. A wrong or missing time does not fix itself, so a restart only repeats the error
+    # and the alert email. Fix .env, then `podman-compose up -d --force-recreate scheduler`.
+    restart: "no"
 
 # Declare the named volume of `db`. Podman manages it, so the data stays when a container is
 # removed.

@@ -1,36 +1,26 @@
 #!/usr/bin/env python
-import os
 import sys
-import time
-from datetime import datetime, timedelta
 
 import notify
 
-# Daily prepare_report_data. Replaces a host cron entry or systemd timer, so the
-# job works the same under podman-compose and Kubernetes (a CronJob can replace
-# this service). FMS_REPORT_TIME is HH:MM in the container time zone (TZ).
-report_time = os.environ.get("FMS_REPORT_TIME") or "02:00"
+# One prepare_report_data run, then exit with its exit code. The `scheduler` service
+# (oci/scheduler/scheduler.py) starts it every day at FMS_REPORT_TIME. In Kubernetes a CronJob
+# can call it too.
+#   fms-report now    run once and exit (`now` is the only mode, the argument is optional)
 
 
-def next_run(hhmm: str) -> tuple[datetime, datetime]:
-    hour, minute = map(int, hhmm.split(":"))
-    now = datetime.now()
-    run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if run <= now:
-        run += timedelta(days=1)
-    # astimezone() attaches the local zone, so the wait is right across a DST change.
-    return now.astimezone(), run.astimezone()
-
-
-while True:
-    now, run = next_run(report_time)
-    print(f"Next prepare_report_data run: {run:%Y-%m-%d %H:%M:%S %Z}", flush=True)
-    time.sleep((run - now).total_seconds())
+def run_and_alert() -> bool:
     returncode, tail = notify.run_tail([sys.executable, "manage.py", "prepare_report_data"])
     if returncode != 0:
         print("prepare_report_data failed", file=sys.stderr, flush=True)
         notify.send_alert(
             "Report data failed",
             f"prepare_report_data exited with code {returncode}.\n\nLast output:\n{tail}\n"
-            + "The logs are report_preparation.log and report.log in FMS_LOG_DIR.",
+            + "The logs are report_preparation.log and scheduler.log in FMS_LOG_DIR.",
         )
+        return False
+    print("prepare_report_data finished", flush=True)
+    return True
+
+
+sys.exit(0 if run_and_alert() else 1)
