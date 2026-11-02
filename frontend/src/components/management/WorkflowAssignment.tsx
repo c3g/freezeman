@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, Drawer, Flex, Modal, Select, Space, Spin, Tooltip } from "antd"
-import { SyncOutlined } from '@ant-design/icons'
+import { SyncOutlined } from "@ant-design/icons"
 import { fetchSamples } from "../../modules/cache/cache"
 import { FilterSet } from "../../models/paged_items"
-import { FMSProject, FMSSampleNextStep, FMSStudy, FMSWorkflow, FMSId, WorkflowStepOrder } from "../../models/fms_api_models"
+import {
+  FMSProject,
+  FMSSampleNextStep,
+  FMSStudy,
+  FMSWorkflow,
+  FMSId,
+  WorkflowStepOrder,
+} from "../../models/fms_api_models"
 import { notifyError, notifySuccess, notifyWarning } from "../../modules/notification/actions"
 import { Sample, Study } from "../../models/frontend_models"
 import {
@@ -317,20 +324,30 @@ function WorkflowOptions({
           serializeFilterParamsWithDescriptions(filters),
         ),
       )
-      
+
       const sampleIDs = samples.map(({ id }) => id)
       setSampleIds(sampleIDs)
 
       const sampleProjects = (
-        await dispatch(api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs.join(",") }))
+        await dispatch(
+          api.projects.list({ project_derived_by_samples__sample__id__in: sampleIDs.join(",") }),
+        )
       ).data.results
-      const commonProjects = (await Promise.all(sampleProjects.map(async project => {
-        return await dispatch(api.samples.list({ derived_by_samples__project__name: project.name, id__in: sampleIDs.join(",") }))
-        .then(response => {
-          return response.data.results.length === sampleIDs.length ? project : null // weak but potentially sufficient test
-        })
-      }))).filter(item => item != null)
-      
+      const commonProjects = (
+        await Promise.all(
+          sampleProjects.map(async (project) => {
+            return await dispatch(
+              api.samples.list({
+                derived_by_samples__project__name: project.name,
+                id__in: sampleIDs.join(","),
+              }),
+            ).then((response) => {
+              return response.data.results.length === sampleIDs.length ? project : null // weak but potentially sufficient test
+            })
+          }),
+        )
+      ).filter((item) => item != null)
+
       commonProjects.sort((a: FMSProject, b: FMSProject) => a.name.localeCompare(b.name))
       setCommonProjects(commonProjects)
       setSelectedProject(undefined)
@@ -370,22 +387,22 @@ function WorkflowOptions({
       if (!selectedStudy || !workflowByStudy) {
         return
       }
-     
+
       const workflow = workflowByStudy[selectedStudy.id]
-      
+
       await dispatch(api.workflows.validStepOrdersForSampleQueueing(workflow.id, sampleIds))
-      .then(response => setValidStepOrders(response.data))
-      .catch(response => {
-        const errors = response.data.errors
-        dispatch(
-          notifyError({
-            id: "failed-valid-step-order",
-            title: `Error identifying valid step orders for selected samples on workflow ${workflow.name}.`,
-            description: errors,
-            duration: 10,
-          }),
-        )}
-      ) 
+        .then((response) => setValidStepOrders(response.data))
+        .catch((response) => {
+          const errors = response.data.errors
+          dispatch(
+            notifyError({
+              id: "failed-valid-step-order",
+              title: `Error identifying valid step orders for selected samples on workflow ${workflow.name}.`,
+              description: errors,
+              duration: 10,
+            }),
+          )
+        })
     })()
   }, [dispatch, selectedStudy])
 
@@ -441,11 +458,10 @@ function WorkflowOptions({
     if (!selectedStudy) return result
 
     const workflow = workflowByStudy[selectedStudy.id]
-    const validStepOrderOptions = validStepOrders
-      .map((stepOrder) => ({
-        label: `${stepOrder.order} - ${stepOrder.step_name}`,
-        value: stepOrder.id,
-      }))
+    const validStepOrderOptions = validStepOrders.map((stepOrder) => ({
+      label: `${stepOrder.order} - ${stepOrder.step_name}`,
+      value: stepOrder.id,
+    }))
 
     result.push(
       <Select
@@ -463,7 +479,7 @@ function WorkflowOptions({
 
     result.push(
       <Tooltip
-        key={actionName + '-submit'}
+        key={actionName + "-submit"}
         destroyOnHidden
         title={
           selectedStepOrder.mandatory && actionName == "skip"
@@ -474,16 +490,16 @@ function WorkflowOptions({
         <Button
           block
           style={{ justifyContent: "space-between", textAlign: "left" }}
-          icon= {isLoading ? <SyncOutlined spin /> : <></>}
+          icon={isLoading ? <SyncOutlined spin /> : <></>}
           iconPlacement="end"
           disabled={isLoading || (selectedStepOrder.mandatory && actionName == "skip")}
           type="primary"
           onClick={async () => {
-            if (!selectedStepOrder) 
-              return
+            if (!selectedStepOrder) return
             setIsLoading(true)
             try {
-              const NOTIFICATION_KEY = `LabworkSamples_${selectedStudy.id}_${selectedStepOrder.order}` as const
+              const NOTIFICATION_KEY =
+                `LabworkSamples_${selectedStudy.id}_${selectedStepOrder.order}` as const
               if (actionName == "dequeue") {
                 try {
                   const sampleIDs = (
@@ -497,7 +513,11 @@ function WorkflowOptions({
                   ).map((sample) => sample.id)
                   const removed = (
                     await dispatch(
-                      api.sampleNextStepByStudy.removeList(sampleIDs, selectedStudy.id, selectedStepOrder.order),
+                      api.sampleNextStepByStudy.removeList(
+                        sampleIDs,
+                        selectedStudy.id,
+                        selectedStepOrder.order,
+                      ),
                     )
                   ).data
                   const samplesRemovedCount = removed.length
@@ -519,8 +539,7 @@ function WorkflowOptions({
                     )
                   }
                   refresh()
-                }
-                catch (e) {
+                } catch (e) {
                   dispatch(
                     notifyError({
                       id: NOTIFICATION_KEY,
@@ -550,11 +569,14 @@ function WorkflowOptions({
                           "Sample selection is outdated. Please close this panel and try again.",
                       }),
                     )
-                  }
-                  else {
+                  } else {
                     const skipCount = (
                       await dispatch(
-                        api.sampleNextStepByStudy.skip(sampleIDs, selectedStudy.id, selectedStepOrder.order),
+                        api.sampleNextStepByStudy.skip(
+                          sampleIDs,
+                          selectedStudy.id,
+                          selectedStepOrder.order,
+                        ),
                       )
                     ).data
                     dispatch(
@@ -566,8 +588,7 @@ function WorkflowOptions({
                     )
                   }
                   refresh()
-                } 
-                catch (error) {
+                } catch (error) {
                   dispatch(
                     notifyError({
                       id: NOTIFICATION_KEY,
@@ -597,8 +618,7 @@ function WorkflowOptions({
                     }),
                   )
                   refresh()
-                } 
-                catch (error) {
+                } catch (error) {
                   const errors: string[] | undefined = error.data?.["add_sample_to_study"]
                   dispatch(
                     notifyError({
@@ -612,8 +632,7 @@ function WorkflowOptions({
                   )
                 }
               }
-            }
-            finally {
+            } finally {
               setIsLoading(false)
             }
           }}
