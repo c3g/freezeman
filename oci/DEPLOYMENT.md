@@ -168,7 +168,7 @@ Run these steps as `<user>`.
    | `POSTGRES_PASSWORD` | A new password |
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
-   | `FMS_ENV` | `PROD` |
+   | `FMS_ENV` | `PROD` on the production host. `QC` or `DEV` on a test host. See "FMS_ENV values" below the table |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
@@ -179,7 +179,22 @@ Run these steps as `<user>`.
    | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
-   Scheduled jobs: the `scheduler` service runs the report, the backup and the log rotation. A job runs only if its time is set. Remove or comment out a time in `.env` to turn that job off. `.env.example` sets all three times. If no job has a time, the `scheduler` stops with exit code 0. If a time is not HH:MM, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
+   <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
+
+   | Area | `PROD` | Other value (`QC`, `DEV`) |
+   |---|---|---|
+   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `fms.log` in `/src/backend` of the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
+   | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
+   | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
+   | Failure emails | Subject starts with `[FreezeMan PROD <host>]` | Subject starts with `[FreezeMan <value> <host>]` |
+   | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
+   | Scheduled jobs | Same for every value: each job with a time in `.env` runs | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, comment out `FMS_BACKUP_TIME` |
+
+   The `web` image gets `FMS_ENV` when it is built. `backend` and `scheduler` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
+
+   > **C3G:** the production host uses `PROD`, the QC host `QC` and the dev host `DEV`.
+
+   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation. A job runs only if its time is set. Remove or comment out a time in `.env` to turn that job off. `.env.example` sets all three times. If no job has a time, the `scheduler` stops with exit code 0. If a time is not HH:MM, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -387,6 +402,7 @@ Failure emails: `notify.py` sends an alert email to `FMS_ALERT_EMAILS` when a jo
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from FMS_LOG_DIR (works after `down`)
+podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
 tail -f <install-dir>/oci/logs/scheduler.log                         # the report, backup and log rotation jobs
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 podman-compose exec scheduler fms-logrotate now                      # rotate now (only a file that is due)
@@ -395,7 +411,7 @@ grep -h "Alert email" <install-dir>/oci/logs/*.log                   # the alert
 
 ### Automatic update (test hosts)
 
-Test hosts only. It deletes the database at each new commit.
+Test hosts only. It deletes the database at each new commit. `FMS_ENV` must not be `PROD` (see [FMS_ENV values](#fms_env-values)). If it is, `autoupdate.py` stops.
 
 > **C3G:** the QC host follows the `qc` branch. The dev host follows `master`.
 
