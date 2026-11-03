@@ -173,14 +173,13 @@ Required: if the host uses a proxy or a firewall with an allow list, allow these
 | `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
 | `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com`. The test of the FreezeMan team did not use it |
 | `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
-| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image |
-| `apt.postgresql.org`, `www.postgresql.org` | 443 | Image build of `scheduler`: the repository key and `postgresql-client-15` (`pg_dumpall` must match the server version 15) |
+| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `scheduler`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
 | `github.com`, `release-assets.githubusercontent.com` (or `objects.githubusercontent.com`) | 443 | Image build of `scheduler`: download of the pinned `supercronic` release (the sum is checked). GitHub redirects the download to this domain |
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Failure emails and Django email, only if `FMS_EMAIL_HOST` is set |
 
-- The rows for the `scheduler` build (`apt.postgresql.org` on 443, `www.postgresql.org` and the GitHub download domain) are not measured yet.
+- The GitHub download domain of the `scheduler` build is not measured yet.
 - The FreezeMan team measured the rows for `github.com`, the image pulls, `deb.debian.org`, `apt.postgresql.org`, `pypi.org` and `registry.npmjs.org` with a full build and start of the stack. The team did not measure the `dnf` rows, because the test host did not run Rocky. They come from the repository lists of Rocky and EPEL.
 - The mirror lists of Rocky and EPEL send `dnf` to a third-party mirror. If the allow list cannot take it, set a fixed `baseurl` in the repository file or use a local mirror.
 - Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
