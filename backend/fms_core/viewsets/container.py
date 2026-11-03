@@ -201,11 +201,11 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 # Example: GET /api/containers/search/?q=BOX with FZY(q, F("barcode")) does not return box-1.
                 # Lowercasing q and the fields makes every query case-insensitive.
                 fuzzy_input = search_input.lower()
-                # Without Cast, fzy on the integer id gives HTTP 500.
                 containers_data = containers_data.annotate(
                     score=Greatest(
                         FZY(fuzzy_input, Lower("barcode")),
                         FZY(fuzzy_input, Lower("name")),
+                        # Without Cast, fzy on the integer id gives HTTP 500.
                         FZY(fuzzy_input, Cast("id", CharField())),
                     )
                 )
