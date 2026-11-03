@@ -168,7 +168,7 @@ Run these steps as `<user>`.
    | `POSTGRES_PASSWORD` | A new password |
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
-   | `FMS_ENV` | `PROD` on the production host. `QC` or `DEV` on a test host. See "FMS_ENV values" below the table |
+   | `FMS_ENV` | `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
