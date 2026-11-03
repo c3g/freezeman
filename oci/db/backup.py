@@ -62,12 +62,19 @@ def wait_for_database() -> bool:
 def delete_old_backups() -> None:
     # Same rule as `find -mtime +(keep_days - 1)`: age in whole days is at least keep_days.
     limit = time.time() - keep_days * 86400
-    patterns = ("*.pgsql.gz", "*.pgsql.gz.partial*")
-    for pattern in patterns:
-        for path in sorted(glob.glob(os.path.join(BACKUP_DIR, pattern))):
-            if os.path.isfile(path) and not os.path.islink(path) and os.path.getmtime(path) < limit:
-                os.remove(path)
-                print(f"Deleted old backup: {path}")
+
+    def backup_files(pattern: str) -> list[str]:
+        paths = glob.glob(os.path.join(BACKUP_DIR, pattern))
+        return [p for p in paths if os.path.isfile(p) and not os.path.islink(p)]
+
+    # Always keep the newest keep_days backups. If the job was off for some days, the age rule
+    # alone deletes all of them except the new one.
+    backups = sorted(backup_files("*.pgsql.gz"), key=os.path.getmtime, reverse=True)[keep_days:]
+    partials = backup_files("*.pgsql.gz.partial*")
+    for path in sorted(backups + partials):
+        if os.path.getmtime(path) < limit:
+            os.remove(path)
+            print(f"Deleted old backup: {path}")
 
 
 def run_backup() -> bool:

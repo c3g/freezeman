@@ -177,7 +177,7 @@ Run these steps as `<user>`.
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
    | `FMS_REPORT_TIME`, `FMS_BACKUP_TIME`, `FMS_LOGROTATE_TIME` | The time of day (HH:MM, in `TZ`) of the daily report, database backup and log rotation. See "Scheduled jobs" below the table |
    | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
-   | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days (0 keeps all). Default: 14 |
+   | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
    Scheduled jobs: the `scheduler` service runs the report, the backup and the log rotation. A job runs only if its time is set. Remove or comment out a time in `.env` to turn that job off. `.env.example` sets all three times. If no job has a time, the `scheduler` stops with exit code 0. If a time is not HH:MM, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
@@ -315,7 +315,8 @@ The `scheduler` service starts with `podman-compose up -d` and runs the backup e
 FMS_BACKUP_DIR=<install-dir>/backups
 # Time of day (HH:MM, in TZ) of the backup.
 FMS_BACKUP_TIME=01:00
-# Delete backups older than this many days (0 keeps all).
+# Delete backups older than this many days, but always keep the newest
+# FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
 
 podman-compose exec scheduler fms-backup now   # run one backup now
