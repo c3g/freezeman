@@ -229,6 +229,8 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    cp -a <classic-dir>/backend/triggers/. <install-dir>/backend/triggers/
    ```
 
+   If the classic `uwsgi.ini` sets `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH` or `FMS_RELEASED_FILES_PATH`, copy those folders into `lims-run-info`, `lims-validation-info` and `lims-release-info` of `<install-dir>/backend/triggers`. Do not put these variables in `.env`: they are paths inside the container, and a host path stops the backend. `FMS_TRIGGERS_DIR` sets the host folder.
+
 5. Start only the database, wait until it is ready, and restore the dump. On a slow disk, follow [Restore on a slow disk](#restore-on-a-slow-disk) instead. The message "extension fzy already exists" is harmless.
 
    ```bash
