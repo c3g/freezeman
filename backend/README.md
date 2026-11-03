@@ -174,6 +174,17 @@ column then appears as one block. Add the flag to the textconv command:
 git config diff.xlsx.textconv "backend/env/bin/python backend/tools/xlsx_textconv.py --by-column"
 ```
 
+In column mode, each cell below the header row also shows the header name of its column. The tool finds the
+header row on its own: the row with the most text cells in the first 20 rows, with at least 3 text cells.
+Header cells, title cells above the header row and columns without a header have no annotation. Row mode does
+not show header names. Example:
+
+```
+Library!N7 [Index Set]: 'IDT_10nt_UDI_TruSeq_Adapters'
+```
+
+If a header is renamed, every cell line of that column changes in the diff.
+
 To print the text of one workbook, run `backend/env/bin/python backend/tools/xlsx_textconv.py [--by-column] file.xlsx`.
 
 ## Database diagram

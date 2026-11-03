@@ -64,3 +64,46 @@ def test_by_column_order(tmp_path):
 
     assert cells(False) == ["Data!A1", "Data!B1", "Data!A2", "Data!B2"]
     assert cells(True) == ["Data!A1", "Data!A2", "Data!B1", "Data!B2"]
+
+
+def _make_table_workbook(path: Path) -> str:
+    wb = Workbook()
+    ws = wb.active
+    assert ws is not None
+    ws.title = "Data"
+    ws["A1"] = "Title"
+    ws["A2"] = "note"
+    ws["A3"], ws["B3"], ws["C3"] = "Name", "Index", "Volume"
+    ws["A4"], ws["B4"], ws["C4"] = "s1", "i1", 5
+    ws["E4"] = "no header"
+    wb.save(path)
+    return str(path)
+
+
+def test_by_column_header_annotation(tmp_path):
+    path = _make_table_workbook(tmp_path / "table.xlsx")
+    lines = list(dump_workbook(path, by_column=True))
+    assert "Data!A4 [Name]: 's1'" in lines
+    assert "Data!B4 [Index]: 'i1'" in lines
+    assert "Data!C4 [Volume]: 5" in lines
+    assert "Data!A3: 'Name'" in lines
+    assert "Data!A1: 'Title'" in lines
+    assert "Data!A2: 'note'" in lines
+    assert "Data!E4: 'no header'" in lines
+
+
+def test_row_mode_has_no_annotation(tmp_path):
+    path = _make_table_workbook(tmp_path / "table.xlsx")
+    assert not any("[" in l for l in dump_workbook(path) if l.startswith("Data!"))
+
+
+def test_by_column_no_header_row(tmp_path):
+    wb = Workbook()
+    ws = wb.active
+    assert ws is not None
+    ws.title = "Data"
+    ws["A1"], ws["B1"] = "a", "b"
+    ws["A2"], ws["B2"] = "c", "d"
+    path = tmp_path / "small.xlsx"
+    wb.save(path)
+    assert not any("[" in l for l in dump_workbook(str(path), by_column=True) if l.startswith("Data!"))
