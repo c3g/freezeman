@@ -373,7 +373,7 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
    podman-compose -f compose.yaml -f compose.restore.yaml up -d db
    ```
 
-2. Wait for `db` (same `until` loop as in [Path A](#path-a-migrate-from-the-classic-host)), then run the restore command: `pg_restore` as in Path A, or `psql` as in [Database backups](#database-backups).
+2. Wait for `db` (same `until` loop as in [Path A](#path-a-migrate-from-the-classic-host)), then run the restore command: `pg_restore` as in [Path A](#path-a-migrate-from-the-classic-host), or `psql` as in [Database backups](#database-backups).
 3. Start `db` again with the normal settings. The log of the new server must say "database system was shut down at":
 
    ```bash
