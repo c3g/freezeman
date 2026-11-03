@@ -32,9 +32,11 @@ Contents:
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
 | `scheduler`| `localhost/freezeman-scheduler` | supercronic runs three daily jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
-| `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The host nginx passes HTTP to it |
+| `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
-IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
+
+> **C3G:** IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
 
 ### Development services
 
@@ -50,7 +52,8 @@ For the bind mount, the `node_modules` volume and the `prod` profiles, see [Deve
 | Reader | Read |
 |---|---|
 | Agents | This file first. Then the guide that fits the task. |
-| IT (host setup) | [ROCKY.md](ROCKY.md): the root steps and the acceptance checks for the Rocky Linux 9.6 host |
+| Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) of DEPLOYMENT.md. [ROCKY.md](ROCKY.md) is a worked example of the root steps on a RHEL-family host |
+| C3G IT (host setup) | [ROCKY.md](ROCKY.md): the root steps, the acceptance checks and the C3G values for the Rocky Linux 9.6 host |
 | Deployment team | [DEPLOYMENT.md](DEPLOYMENT.md): production deployment and daily use |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and the Dev Container |
 
@@ -70,13 +73,13 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `scheduler/` | `scheduler.py`: writes the crontab from the `FMS_*_TIME` variables and starts supercronic (the `scheduler` service) |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
-| `autoupdate.py` | Updates a QC or dev stack from a GitHub branch |
+| `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `notify.py` | Sends the failure emails of the jobs |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
 | `logs/` | Usual `FMS_LOG_DIR` (a git-ignored directory). Create it before the first start |
 | `backups/` | Git-ignored directory for database backups (`FMS_BACKUP_DIR` points to a directory like it) |
-| `ROCKY.md` | Requirements for the Rocky Linux 9.6 host (IT) |
+| `ROCKY.md` | Root steps for a Rocky Linux 9.6 host, and the C3G values of the DEPLOYMENT.md placeholders |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
 
@@ -101,8 +104,10 @@ Then continue with the environment steps:
 
 ### Proxy
 
-Do this section only if your host reaches the internet through an HTTP proxy (for example the lab dev server).
-Without a proxy, skip it. The stack then works as before. Production has no proxy: leave the variables unset there.
+Do this section only if your host reaches the internet through an HTTP proxy (for example a development server).
+Without a proxy, skip it and leave the variables unset. The stack then works as before.
+
+> **C3G:** the lab dev server uses a proxy. Production has no proxy.
 
 - Give the proxy to the `podman-compose` command. Use the uppercase names. Set them before the command, so
   they apply only to this command and not to other commands of the shell:
@@ -198,12 +203,12 @@ Ideas for later (not done):
 
 ## Additional notes
 
-Host nginx design choices:
+Reverse proxy and host design choices:
 
 - `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files, and
-  `django` owns them on the host.
+  the host user that runs the stack owns them on the host.
 - uwsgi listens on port 8000 (uwsgi protocol) in the container network, for the `web` service and Kubernetes.
-- Client address: the host nginx sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
+- Client address: the reverse proxy sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
   uwsgi gets the address of the podman port forwarder as `REMOTE_ADDR`, and the `web` access log shows that address.
   Nothing in FreezeMan uses the client address today. If it becomes necessary, add `set_real_ip_from` and
   `real_ip_header X-Real-IP` to `nginx/default.conf.template`.
@@ -256,7 +261,7 @@ The layout already maps onto Kubernetes objects:
 | `scheduler`: `fms-backup` | CronJob + PVC (`schedule` from `FMS_BACKUP_TIME`). Use an image with `postgresql-client-15` |
 | `scheduler`: `fms-report` | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
 | `scheduler`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
-| `web` port mapping and the host nginx | Ingress (TLS)                                                |
+| `web` port mapping and the reverse proxy | Ingress (TLS)                                             |
 
 Notes:
 - The `scheduler` service has one job of three because supercronic is a cron inside one container. Kubernetes
@@ -267,4 +272,4 @@ Notes:
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
   Expose only the `web` Service.
 - `podman kube generate <container...>` produces a first draft of the YAML. `podman kube play`
-  runs Kubernetes YAML directly on Rocky 9, which can be used to test the manifests before a cluster exists.
+  runs Kubernetes YAML directly on the podman host, which can be used to test the manifests before a cluster exists.

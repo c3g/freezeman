@@ -4,6 +4,7 @@ FreezeMan does not run on this host until each item below is in place.
 The FreezeMan team runs FreezeMan as user `django` with rootless podman and podman-compose.
 This file lists only the steps that need root. IT installs `podman` and `podman-compose` and prepares the host.
 Make the changes in "Required setup", run the "Acceptance checks" and send the output to the FreezeMan team.
+[DEPLOYMENT.md](DEPLOYMENT.md) is generic. This file holds the C3G host setup and the [C3G values](#c3g-values) of its placeholders.
 
 ## Why Podman
 
@@ -224,3 +225,17 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/     # 200
 | 4. Cron daemon | `sudo systemctl disable --now crond` and `sudo dnf remove cronie`, only if step 4 installed `cronie` and no other job needs it |
 | 5. Host nginx | Restore the copy of the server block that step 5 kept (for a migration on the same domain, this brings back the classic `/`, `/static/`, `/media/` and `/api/`), then `sudo nginx -t && sudo systemctl reload nginx` |
 | 6. Network access | Remove the domains from the allow list |
+
+## C3G values
+
+The values of the placeholders in [DEPLOYMENT.md](DEPLOYMENT.md) for the C3G deployment:
+
+| Placeholder or item | C3G value |
+|---|---|
+| `<user>` | `django`. The FreezeMan team logs in with `sudo su - django` and has no other `sudo` |
+| `<install-dir>` | `/data/freezeman-oci` |
+| `<classic-dir>` | `/data/freezeman` |
+| `<domain>` | The FreezeMan domain (`FMS_HOST`) |
+| `<branch>` | `qc` on the QC host, `master` on the dev host |
+| HTTP proxy | None in production |
+| Reverse proxy | The host nginx. IT owns it ([Host nginx](#5-host-nginx)) |
