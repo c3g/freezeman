@@ -333,12 +333,15 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
 
 The times and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
 
+Failure emails: `notify.py` sends an alert email to `FMS_ALERT_EMAILS` when a job fails. The jobs are the report, the backup, the log rotation, the `scheduler` start (a wrong time in `.env`), `start.py` and `autoupdate.py`. A successful run sends no email. The emails use the SMTP settings `FMS_EMAIL_*` (step 3). If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, no email goes out and the alert goes only to the log. Each alert writes one line that starts with `Alert email` to the log of its job: `sent to ...`, `failed: ...` (SMTP error) or `disabled ...`.
+
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f /data/freezeman-oci/oci/logs/backend.log                     # the same log, read from FMS_LOG_DIR (works after `down`)
 tail -f /data/freezeman-oci/oci/logs/scheduler.log                   # the report, backup and log rotation jobs
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 podman-compose exec scheduler fms-logrotate now                      # rotate now (only a file that is due)
+grep -h "Alert email" /data/freezeman-oci/oci/logs/*.log             # the alerts: sent, failed or disabled
 ```
 
 ### Automatic update (QC)
