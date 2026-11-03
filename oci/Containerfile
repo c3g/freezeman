@@ -103,7 +103,8 @@ COPY backend/requirements-stubs.txt /tmp/requirements-stubs.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r /tmp/requirements-stubs.txt
 
-# Run `chmod` after the install, so the stub files are writable too.
+# Run `chmod` after the stub install, so it covers the stubs too. `pip install` in `dev` can then
+# add, update or remove any package of the venv.
 RUN chmod -R a+rwX /opt/venv
 
 #############
