@@ -338,8 +338,8 @@ export interface FMSPooledSample extends FMSTrackedModel {
   experimental_group?: string[] // An array of experimental group names
   individual_id?: FMSId // The ID of the individual to whom this sample was extracted
   individual_name?: string // Individual name
-  parent_sample_id: FMSId // The id of the sample that was added to this pool
-  parent_sample_name: string // The name of the sample that was added to this pool
+  root_sample_id: FMSId // The id of the sample that was added to this pool
+  root_sample_name: string // The name of the sample that was added to this pool
   sample_kind: string // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
   container_id: FMSId
   container_barcode: string
