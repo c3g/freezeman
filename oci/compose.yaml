@@ -198,7 +198,7 @@ services:
 
     restart: always
 
-  # The three daily jobs in one container, started by supercronic (oci/scheduler/scheduler.py):
+  # The three daily jobs in one container, started by a daily loop (oci/scheduler/scheduler.py):
   #   fms-report      prepare_report_data at FMS_REPORT_TIME (a CronJob in Kubernetes)
   #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz at FMS_BACKUP_TIME
   #                   (a CronJob in Kubernetes)
@@ -206,7 +206,7 @@ services:
   #                   job: the cluster rotates the container logs.
   # All three log to ${FMS_LOG_DIR}/scheduler.log.
   scheduler:
-    # Build the `scheduler` image of oci/Containerfile (`backend-prod` plus supercronic,
+    # Build the `scheduler` image of oci/Containerfile (`backend-prod` plus
     # postgresql-client-15 and logrotate).
     image: localhost/freezeman-scheduler:${FMS_IMAGE_TAG:-latest}
     build:
@@ -214,7 +214,7 @@ services:
       dockerfile: oci/Containerfile
       target: scheduler
       args:
-        # apt-get (PostgreSQL client, logrotate) and curl (supercronic) download packages.
+        # apt-get (PostgreSQL client, logrotate) downloads packages.
         <<: *proxy
 
     # No env_file: the container gets only what the three jobs need. `report` runs Django, so it

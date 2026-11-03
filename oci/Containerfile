@@ -9,7 +9,7 @@
 #                  the repository bind-mounted at /src. The developer starts runserver and npm
 #                  by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   scheduler      backend-prod plus supercronic and the report, backup and logrotate jobs
+#   scheduler      backend-prod plus the report, backup and logrotate jobs and their daily loop
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -273,44 +273,27 @@ EXPOSE 8000
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
-# This stage is the scheduler: one container that runs the three daily jobs with supercronic, a cron
-# for containers (it runs as a normal user, keeps the container environment and writes to stdout).
+# This stage is the scheduler: one container that runs the three daily jobs with a Python loop
+# (oci/scheduler/scheduler.py). It needs no cron program.
 #   fms-report      prepare_report_data (Django, from backend-prod)
 #   fms-backup      pg_dumpall into /backups
 #   fms-logrotate   logrotate of /logs/*.log
 FROM backend-prod AS scheduler
-
-# Pin supercronic and check the download. SHA1 sums are from the release page of the version.
-ARG SUPERCRONIC_VERSION=v0.2.51
-ARG SUPERCRONIC_SHA1_AMD64=1692066e350a88ff4d7d6474fe3c7a6c41ec5e89
-ARG SUPERCRONIC_SHA1_ARM64=9d4c2000493215a1898502b2fc2dada3e8ea8c7a
 
 # Install the tools as root. The user is `fms` again at the end of the stage.
 USER root
 
 # `pg_dumpall` must have the major version of the server (15). Debian trixie has client 17, and a
 # dump of a newer client may not restore into 15. So install `postgresql-client-15` from the
-# PostgreSQL apt repository (apt.postgresql.org). curl is only for the supercronic download, so remove
-# it after.
+# PostgreSQL apt repository (apt.postgresql.org).
 # WORKAROUND: the C3G dev host proxy blocks www.postgresql.org (the PGDG key) and apt.postgresql.org
 # on 443. So take the same key from Debian's `postgresql-client-common`, and use http like the `db`
 # build (apt checks the signatures). Revert when the proxy allows them (ROCKY.md: "Network").
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl postgresql-client-common \
+ && apt-get install -y --no-install-recommends ca-certificates postgresql-client-common \
  && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
  && apt-get update \
  && apt-get install -y --no-install-recommends postgresql-client-15 logrotate \
- && arch="$(dpkg --print-architecture)" \
- && case "$arch" in \
-      amd64) sha1="$SUPERCRONIC_SHA1_AMD64" ;; \
-      arm64) sha1="$SUPERCRONIC_SHA1_ARM64" ;; \
-      *) echo "No supercronic checksum for $arch" >&2; exit 1 ;; \
-    esac \
- && curl -fsSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${arch}" \
- && echo "${sha1}  /usr/local/bin/supercronic" | sha1sum -c - \
- && chmod 755 /usr/local/bin/supercronic \
- && apt-get purge -y curl \
- && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy the job scripts and the logrotate rules. `fms-report` and `notify.py` come from `python-base`.
@@ -325,7 +308,7 @@ RUN chown fms:fms /etc/fms-logrotate
 
 USER fms
 
-# Write the crontab from the `FMS_*_TIME` variables, then run supercronic.
+# Read the `FMS_*_TIME` variables, then run the daily loop.
 CMD ["fms-scheduler"]
 
 # This stage is last because it copies from the stages above it.

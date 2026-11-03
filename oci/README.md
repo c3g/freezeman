@@ -31,7 +31,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `scheduler`| `localhost/freezeman-scheduler` | supercronic runs three daily jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
+| `scheduler`| `localhost/freezeman-scheduler` | a daily loop (`scheduler.py`) runs three jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
@@ -70,7 +70,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `db/` | `Containerfile` of the `db` image, `backup.py` (the `fms-backup` job), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `logrotate/` | `logrotate.py` (the `fms-logrotate` job) and `logrotate.conf.template` |
-| `scheduler/` | `scheduler.py`: writes the crontab from the `FMS_*_TIME` variables and starts supercronic (the `scheduler` service) |
+| `scheduler/` | `scheduler.py`: a daily loop that runs the jobs at the `FMS_*_TIME` times, in `TZ` (the `scheduler` service) |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
@@ -264,9 +264,9 @@ The layout already maps onto Kubernetes objects:
 | `web` port mapping and the reverse proxy | Ingress (TLS)                                             |
 
 Notes:
-- The `scheduler` service has one job of three because supercronic is a cron inside one container. Kubernetes
+- The `scheduler` service has one job of three because the loop of `scheduler.py` runs them inside one container. Kubernetes
   has CronJobs, so each job becomes its own CronJob. Each job is a one-shot command (`fms-report now`,
-  `fms-backup now`), so a CronJob calls it directly and no supercronic is necessary. Set
+  `fms-backup now`), so a CronJob calls it directly and no loop is necessary. Set
   `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
 - Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
