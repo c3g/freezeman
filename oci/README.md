@@ -14,6 +14,7 @@ Contents:
   - [Proxy](#proxy)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
 - [Additional notes](#additional-notes)
+- [Docker compatibility](#docker-compatibility)
 - [Path to Kubernetes](#path-to-kubernetes)
 
 ## Overview
@@ -221,6 +222,25 @@ Files outside `oci/`:
   Images contain no `.git`. Without this change `git show` returns an empty string on master,
   the tuple unpacking raises `ValueError` at import, and Django does not start.
   Without the file, info.py runs git as before, so behavior outside containers is the same.
+
+## Docker compatibility
+
+The stack targets rootless podman and podman-compose. Docker Engine with Docker Compose does not run it.
+The Docker daemon rejects these podman-only settings:
+
+| Setting | Where | Why podman needs it |
+|---|---|---|
+| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `scheduler` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
+| `:U` mount option | `frontend_node_modules` volume of `dev` | Gives the volume to the container user. Docker has no `U` option |
+| `logging.driver: k8s-file` | All services | Writes each container log to `FMS_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
+
+`x-podman` is ignored by other tools. `:z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.
+
+The Docker Compose v2 program can also talk to the podman socket instead of a Docker daemon. This is not tested.
+
+Docker support would need a separate override file and another way to set file owners. It is not planned.
+If podman-compose fails in the VS Code Dev Container, use the host-terminal fallback in
+[Dev Container](DEVELOPMENT.md#dev-container) in DEVELOPMENT.md.
 
 ## Path to Kubernetes
 
