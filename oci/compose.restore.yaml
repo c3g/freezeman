@@ -1,7 +1,8 @@
 # # FreezeMan fast restore on a slow disk
 #
 # This file overrides only the `command` of the `db` service. It starts PostgreSQL with settings that skip
-# the disk flushes, so `pg_restore` or `psql` does not wait for the disk at each commit and checkpoint.
+# the disk flushes, so `pg_restore` or `psql` does not wait for the disk at each commit and checkpoint,
+# and that reduce the other writes during the load (checkpoints, WAL, autovacuum).
 # Use it only when `pg_test_fsync` shows a low `fdatasync` rate (DEPLOYMENT.md: "Restore on a slow disk").
 #
 # SAFETY: use it only for a restore into a NEW, EMPTY `freezeman_pgdata` volume. If the host
@@ -37,9 +38,19 @@ services:
       - wal_level=minimal
       - -c
       - max_wal_senders=0
-      # Fewer checkpoints during the load.
+      # Fewer checkpoints during the load. max_wal_size limits the checkpoints that the WAL volume starts,
+      # checkpoint_timeout the timed ones (default every 5 minutes). Each checkpoint writes the dirty pages again.
       - -c
       - max_wal_size=8GB
+      - -c
+      - checkpoint_timeout=1h
+      # Fewer WAL writes during the large COPY statements of the restore (default: 1/32 of shared_buffers).
+      - -c
+      - wal_buffers=64MB
+      # Autovacuum reads and writes the new tables while the restore loads them, on the same slow disk.
+      # The normal settings of compose.yaml turn it on again, and it analyzes the restored tables then.
+      - -c
+      - autovacuum=off
       # Faster index builds and constraint checks.
       - -c
       - maintenance_work_mem=512MB
