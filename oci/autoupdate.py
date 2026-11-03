@@ -2,7 +2,7 @@
 # Update a QC/dev stack from a GitHub branch (DEPLOYMENT.md: "Automatic update (QC)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
 # the dump, apply the migrations and recreate the stack. Never use it on production: it deletes the database.
-#   autoupdate.py --branch qc --dump /data/freezeman-oci/backups/2026-10-21.pgsql.gz [--interval 600] [--force] [--fast-restore]
+#   autoupdate.py --branch qc --dump <install-dir>/backups/2026-10-21.pgsql.gz [--interval 600] [--force] [--fast-restore]
 # Without --interval it checks once and exits (cron). With it, it checks every N seconds and never exits.
 # --fast-restore restores with compose.restore.yaml (slow disk, DEPLOYMENT.md: "Restore on a slow disk").
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.

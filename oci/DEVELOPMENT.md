@@ -163,7 +163,7 @@ The servers, `psql` and the tests run in that `dev` shell as before.
 ## Test the production stack locally
 
 Podman does not create a missing bind-mount source or log directory. Create the host directories first (once).
-Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs`. Then build and start the stack. `web` is a default service:
+Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs`, and `FMS_HOST` to `localhost`. Then build and start the stack. `web` is a default service:
 
 ```bash
 mkdir -p ../backend/media ../backend/triggers logs
