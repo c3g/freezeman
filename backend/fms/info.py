@@ -2,6 +2,7 @@ import json
 import subprocess
 import datetime
 from pathlib import Path
+from typing import cast
 
 __all__ = [
     "COMMIT_DATE",
@@ -15,11 +16,29 @@ __all__ = [
     "VERSION",
 ]
 
-# Container images have no git repository; oci/Containerfile writes the commit info to this file instead.
+# The `build-info` stage of oci/Containerfile writes the commit info to this file at build time, and the
+# prod image (`backend-prod`) reads it. A git call at runtime is not worth adding to that image:
+# - The image has no `.git` and no git binary. Both add size: `.git` is about 60 MB in a full clone
+#   (end of 2026), and it also puts the full history in the image.
+# - The file records the commit that the image was built from. A git call at runtime describes the
+#   repository that is present at that time, if there is one.
+# - Without git, `_git` fails silently (empty stdout), so the software information API returns empty
+#   commit fields.
+# Outside the prod image (local run, classic deployment, `dev` image with the bind-mounted `.git`), the
+# file does not exist and the values come from git.
 BUILD_INFO_PATH = Path(__file__).parent / "build_info.json"
 
 
-def _git(command):
+def _git(command: str) -> str:
+    """
+    Run a git command in a shell and return its stripped output.
+
+    Args:
+        `command`: The git command line, for example `git show --quiet --format=%H`.
+
+    Returns:
+        The standard output of the command, without surrounding whitespace. Empty if git fails.
+    """
     return subprocess.run(
         command,
         shell=True,
@@ -28,9 +47,11 @@ def _git(command):
     ).stdout.strip()
 
 
+build_info: dict[str, str]
 if BUILD_INFO_PATH.exists():
     with open(BUILD_INFO_PATH, "r") as bf:
-        build_info = json.load(bf)
+        # The `build-info` stage writes only string values.
+        build_info = cast(dict[str, str], json.load(bf))
 else:
     build_info = {
         "commit_date": _git("git show --quiet --format=%cI"),
