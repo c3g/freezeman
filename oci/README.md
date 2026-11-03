@@ -137,13 +137,13 @@ Without a proxy, skip it. The stack then works as before. Production has no prox
 ## Useful podman and podman-compose commands
 
 ```bash
-podman-compose ps
-podman-compose logs -f backend
-podman-compose exec backend python manage.py shell
-podman-compose exec -T backend python manage.py prepare_report_data
-podman-compose exec db psql -U admin -d fms
+podman-compose ps                                  # containers of the stack and their state
+podman-compose logs -f backend                     # follow the backend logs
+podman-compose exec backend python manage.py shell  # Django shell in the backend
+podman-compose exec -T backend python manage.py prepare_report_data  # run the fms-report job now
+podman-compose exec db psql -U admin -d fms        # psql session on the fms database
 # -T: no pseudo-TTY, which would turn the dump's line endings into CRLF
-podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql
+podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql  # manual dump of all databases
 # pg_dumpall copies the roles too. Restore it as in "Database backups"
 
 podman ps -a                                       # all containers, also stopped ones
