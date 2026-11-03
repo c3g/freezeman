@@ -18,8 +18,8 @@ JOBS = (
 )
 
 # A job with no time (unset or empty variable) is off: it gets no crontab line.
-lines = []
-errors = []
+lines: list[str] = []
+errors: list[str] = []
 for variable, command in JOBS:
     value = (os.environ.get(variable) or "").strip()
     if not value:
