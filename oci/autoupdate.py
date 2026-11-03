@@ -266,18 +266,17 @@ def main() -> None:
     _ = parser.add_argument("--fast-restore", action="store_true", help="restore with compose.restore.yaml (fsync off). For a slow disk only")
     args = parser.parse_args(namespace=Args())
 
-    if args.interval is None:
-        try:
-            update_once(args)
-        except Exception as error:
-            report_failure(args, error)
-            sys.exit(1)
-        return
     while True:
         try:
             update_once(args)
         except Exception as error:
             report_failure(args, error)
+            if args.interval is None:
+                sys.exit(1)
+
+        if args.interval is None:
+            return
+
         # --force applies to the first check only, or each check would deploy again.
         args.force = False
         time.sleep(args.interval)
