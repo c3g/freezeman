@@ -8,8 +8,7 @@ Contents:
 - [Prerequisites](#prerequisites)
 - [Development notes](#development-notes)
 - [Start the development stack](#start-the-development-stack)
-  - [Option A: Restore a production database](#option-a-restore-a-production-database)
-  - [Option B: Copy the database volume](#option-b-copy-the-database-volume)
+  - [Restore a production database](#restore-a-production-database)
   - [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
@@ -69,10 +68,10 @@ podman-compose -f compose.yaml -f compose.dev.yaml build dev
 podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
 ```
 
-### Option A: Restore a production database
+### Restore a production database
 
-Optional. Do option A or option B before `migrate` and `runserver` to get production data into the development database.
-Both options run the migrations themselves.
+Optional. Do this before `migrate` and `runserver` to get production data into the development database.
+The steps run the migrations themselves.
 
 - The files have production data. Keep them on your machine, in `oci/backups/` (git-ignored).
   Do not commit or share them. Delete them when you are done.
@@ -120,42 +119,6 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
 - The database has no media files. If you need the uploaded files, copy `backend/media` of the production host
   into `backend/media` of your checkout.
 - On a slow disk, start `db` with `-f compose.restore.yaml` added, as in [Restore on a slow disk](DEPLOYMENT.md#restore-on-a-slow-disk).
-
-### Option B: Copy the database volume
-
-Instead of option A, you can copy the `freezeman_pgdata` volume of production. It holds the data files of PostgreSQL, so the
-load is faster than a large dump: PostgreSQL does not rebuild the indexes. Limits:
-
-- Production downtime: stop the stack during the export. A copy of the files of a running server can be corrupt.
-- Both hosts need the same PostgreSQL major version (`POSTGRES_IMAGE` in `db/Containerfile`) and the same CPU architecture.
-  For example, a copy from an x86-64 server does not start on an Apple Silicon Mac. Use a dump then.
-- The copy holds the whole cluster: all roles, their passwords and all databases. The `POSTGRES_*` values of `.env`
-  have no effect on a volume that already has data.
-- The tar file is larger than a compressed dump, because it also holds the indexes and the WAL.
-- It has production data: keep it as the dump files above.
-
-On the production host, in `oci/`:
-
-```bash
-podman-compose stop                    # the site goes offline
-podman volume export freezeman_pgdata --output freezeman_pgdata.tar
-podman-compose up -d                   # the site is online again
-```
-
-Copy `freezeman_pgdata.tar` to `oci/backups/` on your machine. Then, in `oci/`:
-
-```bash
-podman-compose -f compose.yaml -f compose.dev.yaml down
-podman volume rm freezeman_pgdata     # deletes the development database
-podman volume create freezeman_pgdata
-podman volume import freezeman_pgdata backups/freezeman_pgdata.tar
-podman-compose -f compose.yaml -f compose.dev.yaml up -d
-# Set the password of admin to POSTGRES_PASSWORD of your .env.
-podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
-```
-
-`podman volume import` keeps the file owners and modes, so `db` can read the data directory.
 
 ### Run the servers and the tests
 
@@ -230,4 +193,4 @@ podman-compose up -d
 
 - Open `http://localhost:8080` (`FMS_HTTP_PORT`).
 - In a VM or container, set `FMS_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
-- The database is empty. To get data, restore a backup as in [Option A: Restore a production database](#option-a-restore-a-production-database).
+- The database is empty. To get data, restore a backup as in [Restore a production database](#restore-a-production-database).
