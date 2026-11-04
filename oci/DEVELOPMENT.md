@@ -8,8 +8,9 @@ Contents:
 - [Prerequisites](#prerequisites)
 - [Development notes](#development-notes)
 - [Start the development stack](#start-the-development-stack)
+  - [Restore a production database](#restore-a-production-database)
+  - [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
-- [Restore a production database](#restore-a-production-database)
 - [Test the production stack locally](#test-the-production-stack-locally)
 
 ## Run all `podman-compose` commands from `oci/`.
@@ -67,6 +68,96 @@ podman-compose -f compose.yaml -f compose.dev.yaml build dev
 podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
 ```
 
+### Restore a production database
+
+Optional. Do this step before `migrate` and `runserver` to get production data into the development database.
+The restore runs the migrations itself.
+
+- The files have production data. Keep them on your machine, in `oci/backups/` (git-ignored).
+  Do not commit or share them. Delete them when you are done.
+- The restore deletes the current development database. The production-like local stack
+  ([Test the production stack locally](#test-the-production-stack-locally)) uses the same volume `freezeman_pgdata`.
+
+Get one of these files from the production host and copy it to `oci/backups/`:
+
+- A daily backup: `<FMS_BACKUP_DIR>/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
+- A custom dump of the `fms` database only. Make it on the production host, in `oci/`. The site stays online:
+
+  ```bash
+  # -T: no pseudo-TTY, keeps the binary dump intact.
+  podman-compose exec -T db pg_dump -U admin -Fc fms > fms.dump
+  ```
+
+Restore the file (in `oci/`):
+
+```bash
+podman-compose -f compose.yaml -f compose.dev.yaml down
+podman volume rm freezeman_pgdata     # deletes the development database
+podman-compose -f compose.yaml -f compose.dev.yaml up -d db
+until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+
+# Daily backup (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U admin -d postgres
+# Or the custom dump (pg_dump -Fc).
+# --no-owner: give all objects to POSTGRES_USER. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
+podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.dump
+
+# Start dev, then apply the migrations of your branch that the dump does not have.
+podman-compose -f compose.yaml -f compose.dev.yaml up -d
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
+```
+
+- The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
+- A daily backup also restores the roles, so `admin` gets the production password. If `dev` reports
+  "password authentication failed", set it back to `POSTGRES_PASSWORD` of your `.env`. The socket connection in `db` needs no password:
+
+  ```bash
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
+  ```
+
+  If `pytest` cannot create its test database, also run `ALTER ROLE admin CREATEDB` the same way.
+- The database has no media files. If you need the uploaded files, copy `backend/media` of the production host
+  into `backend/media` of your checkout.
+- On a slow disk, start `db` with `-f compose.restore.yaml` added, as in [Restore on a slow disk](DEPLOYMENT.md#restore-on-a-slow-disk).
+
+#### Copy the database volume
+
+You can also copy the `freezeman_pgdata` volume of production. It holds the data files of PostgreSQL, so the
+load is faster than a large dump: PostgreSQL does not rebuild the indexes. Limits:
+
+- Production downtime: stop the stack during the export. A copy of the files of a running server can be corrupt.
+- Both hosts need the same PostgreSQL major version (`POSTGRES_IMAGE` in `db/Containerfile`) and the same CPU architecture.
+  For example, a copy from an x86-64 server does not start on an Apple Silicon Mac. Use a dump then.
+- The copy holds the whole cluster: all roles, their passwords and all databases. The `POSTGRES_*` values of `.env`
+  have no effect on a volume that already has data.
+- The tar file is larger than a compressed dump, because it also holds the indexes and the WAL.
+- It has production data: keep it as the dump files above.
+
+On the production host, in `oci/`:
+
+```bash
+podman-compose stop                    # the site goes offline
+podman volume export freezeman_pgdata --output freezeman_pgdata.tar
+podman-compose up -d                   # the site is online again
+```
+
+Copy `freezeman_pgdata.tar` to `oci/backups/` on your machine. Then, in `oci/`:
+
+```bash
+podman-compose -f compose.yaml -f compose.dev.yaml down
+podman volume rm freezeman_pgdata     # deletes the development database
+podman volume create freezeman_pgdata
+podman volume import freezeman_pgdata backups/freezeman_pgdata.tar
+podman-compose -f compose.yaml -f compose.dev.yaml up -d
+# Set the password of admin to POSTGRES_PASSWORD of your .env.
+podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
+```
+
+`podman volume import` keeps the file owners and modes, so `db` can read the data directory.
+
+### Run the servers and the tests
+
 In the `dev` shell:
 
 ```bash
@@ -123,93 +214,6 @@ Use `psql` to look at the development database. There are three ways:
 
 - From the host with a host `psql` or a GUI client: connect to `localhost:5432` (`compose.dev.yaml` publishes
   the port). Use the user, the database and the password of `.env`.
-
-## Restore a production database
-
-Use this section to get production data into the development database.
-
-- The files have production data. Keep them on your machine, in `oci/backups/` (git-ignored).
-  Do not commit or share them. Delete them when you are done.
-- The restore deletes the current development database. The production-like local stack
-  ([Test the production stack locally](#test-the-production-stack-locally)) uses the same volume `freezeman_pgdata`.
-
-Get one of these files from the production host and copy it to `oci/backups/`:
-
-- A daily backup: `<FMS_BACKUP_DIR>/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
-- A custom dump of the `fms` database only. Make it on the production host, in `oci/`. The site stays online:
-
-  ```bash
-  # -T: no pseudo-TTY, keeps the binary dump intact.
-  podman-compose exec -T db pg_dump -U admin -Fc fms > fms.dump
-  ```
-
-Restore the file (in `oci/`):
-
-```bash
-podman-compose -f compose.yaml -f compose.dev.yaml down
-podman volume rm freezeman_pgdata     # deletes the development database
-podman-compose -f compose.yaml -f compose.dev.yaml up -d db
-until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-
-# Daily backup (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U admin -d postgres
-# Or the custom dump (pg_dump -Fc).
-# --no-owner: give all objects to POSTGRES_USER. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
-podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.dump
-
-# Start dev, then apply the migrations of your branch that the dump does not have.
-podman-compose -f compose.yaml -f compose.dev.yaml up -d
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
-```
-
-- The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
-- A daily backup also restores the roles, so `admin` gets the production password. If `dev` reports
-  "password authentication failed", set it back to `POSTGRES_PASSWORD` of your `.env`. The socket connection in `db` needs no password:
-
-  ```bash
-  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
-  ```
-
-  If `pytest` cannot create its test database, also run `ALTER ROLE admin CREATEDB` the same way.
-- The database has no media files. If you need the uploaded files, copy `backend/media` of the production host
-  into `backend/media` of your checkout.
-- On a slow disk, start `db` with `-f compose.restore.yaml` added, as in [Restore on a slow disk](DEPLOYMENT.md#restore-on-a-slow-disk).
-
-### Copy the database volume
-
-You can also copy the `freezeman_pgdata` volume of production. It holds the data files of PostgreSQL, so the
-load is faster than a large dump: PostgreSQL does not rebuild the indexes. Limits:
-
-- Production downtime: stop the stack during the export. A copy of the files of a running server can be corrupt.
-- Both hosts need the same PostgreSQL major version (`POSTGRES_IMAGE` in `db/Containerfile`) and the same CPU architecture.
-  For example, a copy from an x86-64 server does not start on an Apple Silicon Mac. Use a dump then.
-- The copy holds the whole cluster: all roles, their passwords and all databases. The `POSTGRES_*` values of `.env`
-  have no effect on a volume that already has data.
-- The tar file is larger than a compressed dump, because it also holds the indexes and the WAL.
-- It has production data: keep it as the dump files above.
-
-On the production host, in `oci/`:
-
-```bash
-podman-compose stop                    # the site goes offline
-podman volume export freezeman_pgdata --output freezeman_pgdata.tar
-podman-compose up -d                   # the site is online again
-```
-
-Copy `freezeman_pgdata.tar` to `oci/backups/` on your machine. Then, in `oci/`:
-
-```bash
-podman-compose -f compose.yaml -f compose.dev.yaml down
-podman volume rm freezeman_pgdata     # deletes the development database
-podman volume create freezeman_pgdata
-podman volume import freezeman_pgdata backups/freezeman_pgdata.tar
-podman-compose -f compose.yaml -f compose.dev.yaml up -d
-# Set the password of admin to POSTGRES_PASSWORD of your .env.
-podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
-```
-
-`podman volume import` keeps the file owners and modes, so `db` can read the data directory.
 
 ## Test the production stack locally
 
