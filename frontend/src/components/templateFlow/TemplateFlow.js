@@ -125,7 +125,7 @@ const TemplateFlow = (props) => {
      */
     const steps = STEPS.map((s) => ({
       title: s.title,
-      description: s.description(action.description),
+      content: s.description(action.description),
     }))
     return steps
   }, [action.description])
