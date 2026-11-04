@@ -13,6 +13,7 @@ Contents:
   - [Prerequisites](#prerequisites)
   - [Proxy](#proxy)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
+- [Run the stack inside a container](#run-the-stack-inside-a-container)
 - [Additional notes](#additional-notes)
 - [Docker compatibility](#docker-compatibility)
 - [Path to Kubernetes](#path-to-kubernetes)
@@ -206,6 +207,49 @@ Ideas for later (not done):
 
 - A scheduled GitHub workflow or Renovate that opens a PR when a base image changes.
 - Pinning to patch tags or digests (`tag@sha256:...`) if all hosts must run the same bytes.
+
+## Run the stack inside a container
+
+Do this section only if you run podman inside a container (e.g. nested rootless podman).
+On a normal host, skip it.
+
+The outer container must give the inner podman:
+
+- `/dev/fuse` and `fuse-overlayfs` as the overlay `mount_program`. Native overlay does not work on top of the outer overlay.
+- A subuid and subgid range of at least 65536 IDs for the inner user (`/etc/subuid`, `/etc/subgid`), inside the ID range
+  that the outer container maps. The host range of the outer user must then be larger than 65536.
+- `XDG_RUNTIME_DIR` on a tmpfs (for example `/run/user/1000`, owned by the inner user, mode 0700).
+- `cgroups = "disabled"` in `containers.conf` if the outer container has no cgroup delegation. Then do not pass
+  `--memory` or `--cpus`.
+
+Known issues:
+
+- `apt-get` fails in a build with `setgroups ... Invalid argument`.
+  - Cause: the inner subid range is smaller than 65536 IDs. apt drops to GID 65534 (`nogroup`), which is then not mapped.
+  - Check: `cat /proc/self/uid_map` in the outer container and `cat /etc/subuid /etc/subgid`.
+  - Fix:
+    1. On the host, give the user that runs the outer container a larger range in `/etc/subuid` and `/etc/subgid`
+       (for example `<user>:100000:262144`). Then run `podman system migrate`.
+    2. In the outer container image, set the inner user's range in `/etc/subuid` and `/etc/subgid` to 65536 IDs.
+       The range must end below the last ID in `/proc/self/uid_map` of the outer container
+       (for example `<user>:10000:65536` ends at ID 75535).
+    3. Remove and create the outer container again (not only stop and start), so it gets the new ID mapping.
+       This deletes the inner images, containers and volumes, unless the inner podman storage
+       (`~/.local/share/containers` of the inner user) is on a volume of the outer container. With a volume, they stay.
+       Keep the start of the old inner range (for example 10000) so their files keep the right owners.
+- `newuidmap` fails with `Operation not permitted`.
+  - Cause: the inner subid range is not inside the ID range that the outer container maps.
+  - Fix: move or shrink the inner range so that it fits, or enlarge the host range (the `apt-get` fix above, steps 1 to 3).
+- `podman` fails with `current system boot ID differs from cached boot ID`.
+  - Cause: the podman runtime directory survived a host reboot. Without `XDG_RUNTIME_DIR`, rootless podman keeps it in
+    `/tmp/storage-run-<uid>`, and `/tmp` of the outer container survives a stop and start.
+  - Quick fix: delete the two directories that the error message names, then run podman again. They hold only runtime
+    state. Images, containers and volumes stay.
+  - Fix: in the outer container image, set `ENV XDG_RUNTIME_DIR=/run/user/<uid>` (`<uid>` of the inner user).
+    Create the outer container with a tmpfs there, owned by the inner user:
+    `podman run --tmpfs /run/user/<uid>:rw,mode=0700,U ...`. The tmpfs is empty on each start.
+- After the outer container starts again, the inner containers are stopped. Start the stack again
+  (`podman-compose up -d`).
 
 ## Additional notes
 
