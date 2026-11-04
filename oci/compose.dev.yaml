@@ -9,11 +9,10 @@
 #   podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 #
 # Frontend: http://localhost:9000   Backend: http://localhost:8000
-# VS Code can run inside "dev": see ../.devcontainer/devcontainer.json and DEVELOPMENT.md.
 
 # Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
 # environment of "dev", so npm ci and pip run through the proxy when compose starts without
-# the shell proxy (VS Code).
+# the shell proxy.
 x-proxy: &proxy
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}

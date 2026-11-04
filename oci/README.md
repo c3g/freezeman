@@ -55,7 +55,7 @@ For the bind mount, the `node_modules` volume and the `prod` profiles, see [Deve
 | Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) of DEPLOYMENT.md. [ROCKY.md](ROCKY.md) is a worked example of the root steps on a RHEL-family host |
 | C3G IT (host setup) | [ROCKY.md](ROCKY.md): the root steps, the acceptance checks and the C3G values for the Rocky Linux 9.6 host |
 | Deployment team | [DEPLOYMENT.md](DEPLOYMENT.md): production deployment and daily use |
-| Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and the Dev Container |
+| Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers and the tests |
 
 Both guides use the [Shared setup](#shared-setup) below. Read it once.
 
@@ -124,7 +124,7 @@ Without a proxy, skip it and leave the variables unset. The stack then works as 
 
 - Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
 - The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
-  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy (VS Code Dev Containers).
+  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy.
   Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
 - `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
   You do not add them.
@@ -250,8 +250,6 @@ The Docker daemon rejects these podman-only settings:
 The Docker Compose v2 program can also talk to the podman socket instead of a Docker daemon. This is not tested.
 
 Docker support would need a separate override file and another way to set file owners. It is not planned.
-If podman-compose fails in the VS Code Dev Container, use the host-terminal fallback in
-[Dev Container](DEVELOPMENT.md#dev-container) in DEVELOPMENT.md.
 
 ## Path to Kubernetes
 

@@ -9,7 +9,6 @@ Contents:
 - [Development notes](#development-notes)
 - [Start the development stack](#start-the-development-stack)
 - [Database access](#database-access)
-- [Dev Container](#dev-container)
 - [Test the production stack locally](#test-the-production-stack-locally)
 
 Run all `podman-compose` commands from `oci/`.
@@ -24,9 +23,6 @@ Run all `podman-compose` commands from `oci/`.
    - macOS: [install Podman](https://podman.io/docs/installation#macos) and use `podman machine`.
    - Ubuntu 26.04 Desktop: [install Podman](https://podman.io/docs/installation#ubuntu).
    - All systems: [install podman-compose](https://github.com/containers/podman-compose#installation).
-   - Optional: VS Code with the [Dev Containers extension](https://code.visualstudio.com/docs/devcontainers/containers).
-     The editor runs in the `dev` container, so the language servers see the venv and `node_modules`.
-     See [Dev Container](#dev-container).
 
 ## Development notes
 
@@ -41,7 +37,7 @@ For the services of the development stack, see [Development services](README.md#
     is slow through the Podman VM.
   - Correct file owners (`:U` gives the volume to the container user), and no container files in your checkout.
 
-  The host editor does not see this `node_modules`. If the editor needs it, use the [Dev Container](#dev-container).
+  The host editor does not see this `node_modules`.
 - Bash in `dev` has tab completion (for example `git` and `psql`).
 - The production services `backend` and `web` have the profile `prod` in development,
   so `up -d` does not start them. `scheduler` does not start either.
@@ -109,10 +105,9 @@ PostgreSQL makes each new database as a copy of `template1`. On the first start 
 
 Use `psql` to look at the development database. There are three ways:
 
-- In the `dev` shell, or in a VS Code terminal of the [Dev Container](#dev-container): run `psql`.
+- In the `dev` shell: run `psql`.
   `compose.dev.yaml` sets `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` and `PGPASSWORD` in `dev` (from `.env`),
-  so `psql` needs no arguments. The `dev` image has the PostgreSQL client. The Dev Container terminal is inside
-  `dev` and has no `podman-compose`, so use this way there.
+  so `psql` needs no arguments. The `dev` image has the PostgreSQL client.
 
   ```bash
   psql
@@ -127,36 +122,6 @@ Use `psql` to look at the development database. There are three ways:
 
 - From the host with a host `psql` or a GUI client: connect to `localhost:5432` (`compose.dev.yaml` publishes
   the port). Use the user, the database and the password of `.env`.
-
-## Dev Container
-
-`.devcontainer/devcontainer.json` runs the editor inside `dev`, so the language servers see
-the venv (`/opt/venv/bin/python`) and `node_modules`. It uses the same compose files and
-starts `db` and `dev`. It starts no server. Start the servers by hand in a terminal of the editor,
-as in [Start the development stack](#start-the-development-stack).
-
-The `dev` image has no language servers. The editor installs its own (in the Dev Container,
-the Pylance extension). The Dev Container sets no editor type-checking settings.
-
-1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
-   Create `oci/logs` and set `FMS_LOG_DIR` in `.env` to its absolute path, for example
-   `FMS_LOG_DIR=/home/me/freezeman/oci/logs`. The editor starts compose from another directory, so the path must be absolute.
-2. For podman, set these VS Code user settings:
-
-   ```jsonc
-   {
-     // Use podman instead of docker.
-     "dev.containers.dockerPath": "podman",
-     // Use podman-compose instead of docker compose.
-     "dev.containers.dockerComposePath": "podman-compose"
-   }
-   ```
-3. Open the repository in VS Code and run "Dev Containers: Reopen in Container".
-
-The Dev Containers extension with `podman-compose` has known quirks. If "Reopen in Container" fails,
-work without the editor inside `dev`. Open a terminal on the host, in `oci/`, and run the two commands
-from the start of [Start the development stack](#start-the-development-stack) (`up -d`, then `exec dev bash`). Edit the files on the host.
-The servers, `psql` and the tests run in that `dev` shell as before.
 
 ## Test the production stack locally
 
