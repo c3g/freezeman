@@ -8,7 +8,8 @@ Contents:
 - [Prerequisites](#prerequisites)
 - [Development notes](#development-notes)
 - [Start the development stack](#start-the-development-stack)
-  - [Restore a production database](#restore-a-production-database)
+  - [Option A: Restore a production database](#option-a-restore-a-production-database)
+  - [Option B: Copy the database volume](#option-b-copy-the-database-volume)
   - [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
@@ -68,10 +69,10 @@ podman-compose -f compose.yaml -f compose.dev.yaml build dev
 podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
 ```
 
-### Restore a production database
+### Option A: Restore a production database
 
-Optional. Do this step before `migrate` and `runserver` to get production data into the development database.
-The restore runs the migrations itself.
+Optional. Do option A or option B before `migrate` and `runserver` to get production data into the development database.
+Both options run the migrations themselves.
 
 - The files have production data. Keep them on your machine, in `oci/backups/` (git-ignored).
   Do not commit or share them. Delete them when you are done.
@@ -120,9 +121,9 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
   into `backend/media` of your checkout.
 - On a slow disk, start `db` with `-f compose.restore.yaml` added, as in [Restore on a slow disk](DEPLOYMENT.md#restore-on-a-slow-disk).
 
-#### Copy the database volume
+### Option B: Copy the database volume
 
-You can also copy the `freezeman_pgdata` volume of production. It holds the data files of PostgreSQL, so the
+Instead of option A, you can copy the `freezeman_pgdata` volume of production. It holds the data files of PostgreSQL, so the
 load is faster than a large dump: PostgreSQL does not rebuild the indexes. Limits:
 
 - Production downtime: stop the stack during the export. A copy of the files of a running server can be corrupt.
@@ -229,4 +230,4 @@ podman-compose up -d
 
 - Open `http://localhost:8080` (`FMS_HTTP_PORT`).
 - In a VM or container, set `FMS_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
-- The database is empty. To get data, restore a backup as in [Restore a production database](#restore-a-production-database).
+- The database is empty. To get data, restore a backup as in [Option A: Restore a production database](#option-a-restore-a-production-database).
