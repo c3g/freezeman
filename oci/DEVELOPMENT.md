@@ -11,7 +11,7 @@ Contents:
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
 
-Run all `podman-compose` commands from `oci/`.
+## Run all `podman-compose` commands from `oci/`.
 
 ## Prerequisites
 
