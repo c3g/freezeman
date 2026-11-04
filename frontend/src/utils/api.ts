@@ -569,6 +569,13 @@ const api = {
       get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
     list: (options: any, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSWorkflow>>>("/workflows/", options, { abort }),
+    validStepOrdersForSampleQueueing: (workflowId: FMSWorkflow["id"], sampleIds: FMSId[]) =>
+      get<JsonResponse<WorkflowStepOrder[]>>(
+        `/workflows/${workflowId}/valid_step_orders_for_sample_queueing/`,
+        {
+          sample_ids: sampleIds.join(","),
+        },
+      ),
   },
 
   groups: {
@@ -729,7 +736,7 @@ function apiFetch<R extends ResponseWithData<any>>(
   }
 }
 
-export type QueryParams = Parameters<typeof qs>[0]
+export type QueryParams = Record<string, string | number>
 
 function get<R extends ResponseWithData<any>>(
   route: string,
