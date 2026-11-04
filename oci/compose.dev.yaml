@@ -95,6 +95,10 @@ services:
 
     restart: "no"
 
+    # sleep runs as PID 1 and ignores SIGTERM, so `podman stop` waits for SIGKILL and an
+    # interrupted stop leaves the container in "Stopping". catatonit (PID 1) forwards the signal.
+    init: true
+
   # Turn off the production services. A service with a `profiles` list starts only when the
   # profile is active, so `up -d` does not start these services.
   backend:
