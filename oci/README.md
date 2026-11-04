@@ -55,7 +55,7 @@ For the bind mount, the `node_modules` volume and the `prod` profiles, see [Deve
 | Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) of DEPLOYMENT.md. [ROCKY.md](ROCKY.md) is a worked example of the root steps on a RHEL-family host |
 | C3G IT (host setup) | [ROCKY.md](ROCKY.md): the root steps, the acceptance checks and the C3G values for the Rocky Linux 9.6 host |
 | Deployment team | [DEPLOYMENT.md](DEPLOYMENT.md): production deployment and daily use |
-| Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers and the tests |
+| Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 
 Both guides use the [Shared setup](#shared-setup) below. Read it once.
 
