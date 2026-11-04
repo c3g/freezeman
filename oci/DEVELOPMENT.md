@@ -135,10 +135,8 @@ the venv (`/opt/venv/bin/python`) and `node_modules`. It uses the same compose f
 starts `db` and `dev`. It starts no server. Start the servers by hand in a terminal of the editor,
 as in [Start the development stack](#start-the-development-stack).
 
-The `dev` image has the type stubs of `backend/requirements-stubs.txt` in the venv. It has no
-language servers. The editor installs its own (in the Dev Container, the Pylance extension).
-The Dev Container sets no editor type-checking settings. To change a stub, edit
-`backend/requirements-stubs.txt`. Then rebuild `dev`.
+The `dev` image has no language servers. The editor installs its own (in the Dev Container,
+the Pylance extension). The Dev Container sets no editor type-checking settings.
 
 1. Do the [Prerequisites](#prerequisites), including `cp .env.example .env` in `oci/`.
    Create `oci/logs` and set `FMS_LOG_DIR` in `.env` to its absolute path, for example

@@ -90,21 +90,14 @@ COPY backend/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r /tmp/requirements.txt "uwsgi==${UWSGI_VERSION}"
 
-# This stage adds the type stubs and makes the venv writable for the `dev` image.
+# This stage makes the venv writable for the `dev` image.
 # `dev` runs as the host UID (`userns_mode: keep-id`), which is not known at build time, so
 # `chown` cannot give it the venv. Allow all users to write, so `pip install` works in `dev`.
 # A separate stage keeps the change out of `backend-prod`, and avoids a second copy of the venv
 # in a `RUN chmod` layer of `dev`.
 FROM backend-deps AS dev-venv
 
-# Install the type stubs (Django, DRF, pandas) that the editor's language server reads (for example Pylance).
-# `requirements-stubs.txt` is separate from `requirements.txt`, so `backend-prod` gets no stubs.
-COPY backend/requirements-stubs.txt /tmp/requirements-stubs.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r /tmp/requirements-stubs.txt
-
-# Run `chmod` after the stub install, so it covers the stubs too. `pip install` in `dev` can then
-# add, update or remove any package of the venv.
+# `pip install` in `dev` can add, update or remove any package of the venv.
 RUN chmod -R a+rwX /opt/venv
 
 #############
