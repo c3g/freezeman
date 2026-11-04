@@ -16,16 +16,12 @@ __all__ = [
     "VERSION",
 ]
 
-# The `build-info` stage of oci/Containerfile writes the commit info to this file at build time, and the
-# prod image (`backend-prod`) reads it. A git call at runtime is not worth adding to that image:
-# - The image has no `.git` and no git binary. Both add size: `.git` is about 60 MB in a full clone
-#   (end of 2026), and it also puts the full history in the image.
-# - The file records the commit that the image was built from. A git call at runtime describes the
-#   repository that is present at that time, if there is one.
-# - Without git, `_git` fails silently (empty stdout), so the software information API returns empty
-#   commit fields.
-# Outside the prod image (local run, classic deployment, `dev` image with the bind-mounted `.git`), the
-# file does not exist and the values come from git.
+# Only the prod container image (`backend-prod`) uses build_info.json.
+# The `build-info` stage of oci/Containerfile creates the file at build time.
+# Elsewhere the file does not exist and uses git.
+# 
+# Why not `.git`: it adds about 60 MB (full clone, end of 2026) and the full history to the image,
+# and the image would also need the git binary.
 BUILD_INFO_PATH = Path(__file__).parent / "build_info.json"
 
 
