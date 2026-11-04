@@ -91,7 +91,8 @@ Do this setup once for each checkout. It applies to production and to developmen
 
 Do these steps for both environments:
 
-- Check out the pg_fzy submodules: `git submodule update --init --recursive`
+- Check out the pg_fzy submodules: `git submodule update --init --recursive`.
+  If it fails on the `git://` URL, set the HTTPS rule in [Submodule URL](../README.md#submodule-url) first.
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
 - Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_LOG_DIR`.
