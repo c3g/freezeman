@@ -31,7 +31,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `scheduler`| `localhost/freezeman-scheduler` | a daily loop (`scheduler.py`) runs three jobs: `fms-report` (`prepare_report_data` at `FMS_REPORT_TIME`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz` at `FMS_BACKUP_TIME`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log` at `FMS_LOGROTATE_TIME`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). It gets only the settings that the jobs need, not the whole `.env` |
+| `scheduler`| `localhost/freezeman-scheduler` | a daily loop (`scheduler.py`) runs three jobs at `FMS_JOBS_TIME`, one after the other in this order: `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). A job runs only if `FMS_<JOB>_ENABLED=True` (default `False`). A failed job does not stop the next jobs. It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
@@ -258,8 +258,7 @@ The layout already maps onto Kubernetes objects:
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
 | `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
-| `scheduler`: `fms-backup` | CronJob + PVC (`schedule` from `FMS_BACKUP_TIME`). Use an image with `postgresql-client-15` |
-| `scheduler`: `fms-report` | CronJob that runs `python manage.py prepare_report_data` (`schedule` from `FMS_REPORT_TIME`, `timeZone` from `TZ`) + a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
+| `scheduler`: `fms-report`, `fms-backup` | One CronJob (`schedule` from `FMS_JOBS_TIME`, `timeZone` from `TZ`) that runs `fms-report now`, then `fms-backup now`. Two CronJobs at the same time run in parallel, so the order is lost. Needs an image with `postgresql-client-15`, a backup PVC and a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
 | `scheduler`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
 | `web` port mapping and the reverse proxy | Ingress (TLS)                                             |
 

@@ -175,7 +175,8 @@ Run these steps as `<user>`.
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `FMS_ALERT_EMAILS` | The recipients of the failure emails (comma list) |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
-   | `FMS_REPORT_TIME`, `FMS_BACKUP_TIME`, `FMS_LOGROTATE_TIME` | The time of day (HH:MM, in `TZ`) of the daily report, database backup and log rotation. See "Scheduled jobs" below the table |
+   | `FMS_JOBS_TIME` | The time of day (HH:MM, in `TZ`) of the daily jobs: report, database backup and log rotation, in this order. See "Scheduled jobs" below the table |
+   | `FMS_REPORT_ENABLED`, `FMS_BACKUP_ENABLED`, `FMS_LOGROTATE_ENABLED` | Turn one job on or off (`True` or `False`). Default: `False`: a job runs only if its flag is `True` |
    | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
@@ -188,13 +189,13 @@ Run these steps as `<user>`.
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | Failure emails | Subject starts with `[FreezeMan PROD <host>]` | Subject starts with `[FreezeMan <value> <host>]` |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-   | Scheduled jobs | Same for every value: each job with a time in `.env` runs | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, comment out `FMS_BACKUP_TIME` |
+   | Scheduled jobs | Same for every value: each enabled job runs at `FMS_JOBS_TIME` | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, set `FMS_BACKUP_ENABLED=False` |
 
    The `web` image gets `FMS_ENV` when it is built. `backend` and `scheduler` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
 
    > **C3G:** the production host uses `PROD`, the QC host `QC` and the dev host `DEV`.
 
-   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation. A job runs only if its time is set. Remove or comment out a time in `.env` to turn that job off. `.env.example` sets all three times. If no job has a time, the `scheduler` stops with exit code 0. If a time is not HH:MM, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
+   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation every day at `FMS_JOBS_TIME`, one after the other in this order. A failed job does not stop the next jobs. A job runs only if `FMS_<JOB>_ENABLED=True` is in `.env`. Set it to `False` or remove it to turn the job off. If `FMS_JOBS_TIME` is not set or all jobs are off, the `scheduler` stops with exit code 0. If `FMS_JOBS_TIME` is not HH:MM or a flag is not `True` or `False`, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -213,7 +214,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    psql -U postgres -d fms -c 'SHOW timezone'
    ```
 
-   `TZ` also sets the time zone of `FMS_BACKUP_TIME`, `FMS_REPORT_TIME` and `FMS_LOGROTATE_TIME`. To use another time zone, set `TZ` to it.
+   `TZ` also sets the time zone of `FMS_JOBS_TIME`. To use another time zone, set `TZ` to it.
 
 3. Dump the classic database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the classic host.
 
@@ -330,8 +331,10 @@ The `scheduler` service starts with `podman-compose up -d` and runs the backup e
 # oci/.env
 # Host directory for the daily dumps. It must exist.
 FMS_BACKUP_DIR=<install-dir>/backups
-# Time of day (HH:MM, in TZ) of the backup.
-FMS_BACKUP_TIME=01:00
+# Time of day (HH:MM, in TZ) of the daily jobs. The backup runs after the report.
+FMS_JOBS_TIME=01:00
+# Turn the backup on or off (True or False). Default: False.
+FMS_BACKUP_ENABLED=True
 # Delete backups older than this many days, but always keep the newest
 # FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
@@ -397,7 +400,7 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
 
 ### Report, emails and logs
 
-The times and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
+The time, the job flags and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
 
 Failure emails: `notify.py` sends an alert email to `FMS_ALERT_EMAILS` when a job fails. The jobs are the report, the backup, the log rotation, the `scheduler` start (a wrong time in `.env`), `start.py` and `autoupdate.py`. A successful run sends no email. The emails use the SMTP settings `FMS_EMAIL_*` (step 3). If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, no email goes out and the alert goes only to the log. Each alert writes one line that starts with `Alert email` to the log of its job: `sent to ...`, `failed: ...` (SMTP error) or `disabled ...`.
 

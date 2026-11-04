@@ -4,8 +4,8 @@ import sys
 import notify
 
 # One prepare_report_data run, then exit with its exit code. The `scheduler` service
-# (oci/scheduler/scheduler.py) starts it every day at FMS_REPORT_TIME. In Kubernetes a CronJob
-# can call it too.
+# (oci/scheduler/scheduler.py) starts it every day at FMS_JOBS_TIME, before fms-backup. In
+# Kubernetes a CronJob can call it too.
 #   fms-report now    run once and exit (`now` is the only mode, the argument is optional)
 
 

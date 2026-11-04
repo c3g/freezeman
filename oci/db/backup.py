@@ -13,7 +13,7 @@ import notify
 
 # One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
 # result. The `scheduler` service (oci/scheduler/scheduler.py) starts it every day at
-# FMS_BACKUP_TIME. In Kubernetes a CronJob can call it too.
+# FMS_JOBS_TIME, after fms-report. In Kubernetes a CronJob can call it too.
 #   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
