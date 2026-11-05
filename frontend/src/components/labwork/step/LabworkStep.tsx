@@ -170,8 +170,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
         console.error(err)
       }
     },
-    
-   [step, dispatch],
+
+    [step, dispatch],
   )
 
   /** Table columns **/
