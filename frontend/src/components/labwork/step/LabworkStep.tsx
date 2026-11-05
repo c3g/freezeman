@@ -99,7 +99,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		() => {
 			dispatch(flushSamplesAtStep(step.id))
 			if (selectedTemplate && selectedTemplate.submissionURL) {
-				navigate(selectedTemplate.submissionURL)
+				navigate(`/lab-work/step/${step.id}/${selectedTemplate.submissionURL}`)
 			}
 		}
 		, [step, selectedTemplate, navigate, dispatch])
