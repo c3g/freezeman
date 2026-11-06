@@ -261,6 +261,9 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "fms": {
+            # dictConfig calls the "()" factory with the other keys as keyword arguments.
+            # "tz" is an argument of LocalTimeFormatter, not of logging.Formatter.
+            # It writes the time stamp in local time, because Django sets the process time zone to UTC.
             "()": "fms.log_formatters.LocalTimeFormatter",
             "tz": LOCAL_TZ,
             "format": "[{asctime}] [{levelname}] {message}",
