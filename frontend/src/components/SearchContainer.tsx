@@ -1,8 +1,8 @@
 import { Select } from "antd"
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useId, useState } from "react"
 
 import * as Options from "../utils/options";
-import api, { withToken } from "../utils/api";
+import api, { ABORT_ERROR_NAME, withToken } from "../utils/api";
 import { selectAuthTokenAccess } from "../selectors";
 import { useAppSelector } from "../hooks";
 
@@ -13,16 +13,23 @@ interface SearchContainerProps {
 
 const SearchContainer = ({exceptKinds, handleOnChange}: SearchContainerProps) => {
     const token = useAppSelector(selectAuthTokenAccess)
-    const searchContainers = (token, input, options) =>
-        withToken(token, api.containers.search)(input, { sample_holding: true, except_kinds: exceptKinds.join(","), ...options }).then(res => res.data.results)
+    // A page can render more than one SearchContainer. A key per instance stops them from aborting each other's requests.
+    const instanceId = useId()
+    const requestID = `container-search-${instanceId}`
+    // A string dependency, because a parent can pass a new exceptKinds array with the same kinds on each render.
+    const exceptKindsParam = exceptKinds.join(",")
 
     const [containerOptions, setContainerOptions] = useState([]);
     const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
     const onSearchContainer = useCallback((input, options?) => {
-        searchContainers(token, input, options).then(containers => {
-            setContainerOptions(containers.map(Options.renderContainer));
+        withToken(token, api.containers.search)(input, { sample_holding: true, except_kinds: exceptKindsParam, ...options }, requestID).then(res => {
+            setContainerOptions(res.data.results.map(Options.renderContainer));
+        }).catch(error => {
+            // A newer search aborted this one. Its results replace these.
+            if (error.name === ABORT_ERROR_NAME) return
+            throw error
         })
-    }, [token])
+    }, [token, exceptKindsParam, requestID])
 
     return (
         <div style={{ width: "100%" }}>
