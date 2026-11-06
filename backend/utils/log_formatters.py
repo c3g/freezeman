@@ -7,9 +7,11 @@ from zoneinfo import ZoneInfo
 class LocalTimeFormatter(logging.Formatter):
     """Log formatter that writes the timestamp in a given IANA time zone.
 
-    Without `datefmt`, the timestamp is `YYYY-MM-DD HH:MM:SS,mmm±HHMM`: the default of the
-    standard library plus the UTC offset.
+    Without `datefmt`, the timestamp is `YYYY-MM-DD HH:MM:SS,ffffff±HHMM`: the default of the
+    standard library with microseconds and the UTC offset.
     """
+
+    DEFAULT_DATEFMT = "%Y-%m-%d %H:%M:%S,%f%z"
 
     def __init__(self, *args, tz: str, **kwargs) -> None:
         """
@@ -25,12 +27,10 @@ class LocalTimeFormatter(logging.Formatter):
 
         Args:
             record: The log record.
-            datefmt: `strftime` format. If `None`, use the default format with the offset.
+            datefmt: `strftime` format. If `None`, use `DEFAULT_DATEFMT`.
 
         Returns:
             The formatted timestamp of the log record.
         """
         log_datetime = datetime.fromtimestamp(record.created, self.tz)
-        if datefmt:
-            return log_datetime.strftime(datefmt)
-        return f"{log_datetime:%Y-%m-%d %H:%M:%S},{int(record.msecs):03d}{log_datetime:%z}"
+        return log_datetime.strftime(datefmt or self.DEFAULT_DATEFMT)
