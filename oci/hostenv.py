@@ -1,4 +1,4 @@
-# Environment of the host scripts (start.py, autoupdate.py) that run podman-compose from cron.
+# Environment of the host scripts (start.py, autoupdate.py, jobs.py) that run podman-compose from cron.
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 import getpass
 import os
@@ -43,11 +43,4 @@ def read_env(path: str) -> dict[str, str]:
             if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                 value = value[1:-1]
             values[key.strip()] = value
-    return values
-
-
-def settings() -> dict[str, str]:
-    # The shell wins over .env, as in compose.
-    values = read_env(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-    values.update(os.environ)
     return values

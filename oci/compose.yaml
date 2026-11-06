@@ -169,7 +169,7 @@ services:
       args:
         # apt-get (git) and npm ci download packages for the frontend build that web copies.
         <<: *proxy
-        FMS_ENV: ${FMS_ENV:-PROD}
+        FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
 
     environment:
       <<: *no-proxy
@@ -226,7 +226,7 @@ services:
     environment:
       <<: [*backend-env, *no-proxy]
       FMS_SECRET_KEY: ${FMS_SECRET_KEY}
-      FMS_ENV: ${FMS_ENV:-PROD}
+      FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
       FMS_DEBUG: ${FMS_DEBUG:-False}
       FMS_HOST: ${FMS_HOST:-}
       # A key with no value passes the value of .env, and leaves the variable unset if .env has

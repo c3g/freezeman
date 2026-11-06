@@ -181,7 +181,7 @@ Run these steps as `<user>`.
    | `POSTGRES_PASSWORD` | A new password |
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
-   | `FMS_ENV` | `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
+   | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
@@ -434,7 +434,7 @@ grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job fa
 
 ### Automatic update (test hosts)
 
-Test hosts only. It deletes the database at each new commit. `FMS_ENV` must not be `PROD` (see [FMS_ENV values](#fms_env-values)). If it is, `autoupdate.py` stops.
+Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env` must be set and must not be `PROD` (see [FMS_ENV values](#fms_env-values)). Otherwise `autoupdate.py` stops.
 
 1. Put the checkout on the followed branch, with no local changes:
 

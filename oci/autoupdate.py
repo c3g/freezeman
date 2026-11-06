@@ -65,7 +65,8 @@ def run(command: list[str]) -> None:
 
 
 def log_directory(env: Mapping[str, str]) -> str:
-    return os.environ.get("FMS_LOG_DIR") or env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
+    # Only .env counts, not the shell: the script must see the same values as the stack.
+    return env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
 
 
 def alert_failure(args: Args) -> None:
@@ -183,7 +184,10 @@ def update_once(args: Args) -> None:
             log("Another run holds the lock. Exit.")
             return
 
-        if (os.environ.get("FMS_ENV") or env.get("FMS_ENV")) == "PROD":
+        # Same rule as compose: FMS_ENV is required.
+        if not env.get("FMS_ENV"):
+            raise Abort("FMS_ENV is not set in .env.")
+        if env["FMS_ENV"] == "PROD":
             raise Abort("FMS_ENV is PROD. This job deletes the database.")
         if not os.path.isabs(args.dump):
             raise Abort(f"--dump must be an absolute path: {args.dump}")
