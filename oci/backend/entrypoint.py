@@ -8,11 +8,8 @@ import psycopg2
 BACKEND_DIR = "/src/backend"
 
 
-def env(name: str, default: str) -> str:
-    # Like the shell's ${NAME:-default}: an empty value also falls back to the default.
-    return os.environ.get(name) or default
-
-
+# Read the variables as backend/fms/settings.py does (os.environ.get with a default), so the
+# directories and the database check match what Django uses.
 def make_directories() -> None:
     # Fresh volumes (and Kubernetes PVCs) start empty: create the directories
     # Django writes into before handing over to the actual command.
@@ -20,10 +17,10 @@ def make_directories() -> None:
     for path in (
         "media/uploads/templates",
         "tmp",
-        env("FMS_RUN_INFO_PATH", "triggers/lims-run-info"),
-        env("FMS_VALIDATED_FILES_PATH", "triggers/lims-validation-info"),
-        env("FMS_RELEASED_FILES_PATH", "triggers/lims-release-info"),
-        env("FMS_AUTOMATIONS_WORK_PATH", "automations_work"),
+        os.environ.get("FMS_RUN_INFO_PATH", "triggers/lims-run-info"),
+        os.environ.get("FMS_VALIDATED_FILES_PATH", "triggers/lims-validation-info"),
+        os.environ.get("FMS_RELEASED_FILES_PATH", "triggers/lims-release-info"),
+        os.environ.get("FMS_AUTOMATIONS_WORK_PATH", "automations_work"),
     ):
         os.makedirs(os.path.join(BACKEND_DIR, path), exist_ok=True)
 
@@ -33,15 +30,15 @@ def wait_for_database() -> None:
     # start of the db container, not its readiness, so this wait is necessary. It also covers
     # `podman-compose run --no-deps`, a db restart, and Kubernetes (no depends_on; keep this
     # unless an initContainer replaces it).
-    host = env("PG_HOST", "127.0.0.1")
-    port = env("PG_PORT", "5432")
-    deadline = time.monotonic() + int(env("FMS_DB_WAIT_SECONDS", "60"))
+    host = os.environ.get("PG_HOST", "127.0.0.1")
+    port = os.environ.get("PG_PORT", "5432")
+    deadline = time.monotonic() + int(os.environ.get("FMS_DB_WAIT_SECONDS", "60"))
     while True:
         try:
             psycopg2.connect(
-                dbname=env("PG_DATABASE", "fms"),
-                user=env("PG_USER", "admin"),
-                password=env("PG_PASSWORD", "admin"),
+                dbname=os.environ.get("PG_DATABASE", "fms"),
+                user=os.environ.get("PG_USER", "admin"),
+                password=os.environ.get("PG_PASSWORD", "admin"),
                 host=host,
                 port=port,
                 connect_timeout=3,
