@@ -32,7 +32,7 @@ import {
   selectSampleKindsState,
   selectSamplesByID,
 } from "../../selectors"
-import api, { withToken } from "../../utils/api"
+import api, { ABORT_ERROR_NAME, withToken } from "../../utils/api"
 import * as Options from "../../utils/options"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
@@ -77,8 +77,14 @@ export function EditSampleRoute() {
 const searchCoordinates = (token, input, options) =>
   withToken(token, api.coordinates.search)(input, options).then((res) => res.data.results)
 
-const searchContainers = (token, input, options) =>
-  withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(
+/**
+ * @param {string} token
+ * @param {string} input
+ * @param {object} options
+ * @param {string} [requestID] abort key: a new search with the same key aborts the in-flight one
+ */
+const searchContainers = (token, input, options, requestID) =>
+  withToken(token, api.containers.search)(input, { sample_holding: true, ...options }, requestID).then(
     (res) => res.data.results,
   )
 
@@ -236,9 +242,15 @@ const SampleEditContent = ({ sample, isAdding }) => {
       if (!input) {
         setContainerOptions([])
       } else {
-        searchContainers(token, input, options).then((containers) => {
-          setContainerOptions(containers.map(Options.renderContainer))
-        })
+        searchContainers(token, input, options, "sample-edit-container")
+          .then((containers) => {
+            setContainerOptions(containers.map(Options.renderContainer))
+          })
+          .catch((error) => {
+            // A newer search aborted this one. Its results replace these.
+            if (error.name === ABORT_ERROR_NAME) return
+            throw error
+          })
       }
     },
     [token],
