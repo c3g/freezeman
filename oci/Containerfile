@@ -313,8 +313,8 @@ ENV BACKEND_UPSTREAM=backend:8000
 # Copy the nginx configuration, the frontend build and the Django static files.
 # `COPY --from` takes the files of the build stages, so the image gets none of the build tools.
 COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=frontend-build /src/frontend/dist /usr/share/nginx/html
-COPY --from=backend-prod /src/backend/staticfiles /usr/share/nginx/static
+COPY --from=frontend-build /src/frontend/dist /data/freezeman/frontend/dist
+COPY --from=backend-prod /src/backend/staticfiles /data/freezeman/backend/staticfiles
 
 # Document port 8080. compose.yaml publishes it.
 # The nginx image runs as a user that is not root, so it cannot use a port below 1024.

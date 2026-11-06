@@ -183,7 +183,7 @@ services:
     # `:ro` makes the mount read-only, because nginx only reads the media files. `:z` is the
     # SELinux label (see `backend`).
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/var/www/media:ro,z
+      - ${FMS_MEDIA_DIR:-../backend/media}:/data/freezeman/backend/media:ro,z
 
     # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
     # and restart: always is the fallback if the name does not resolve yet.

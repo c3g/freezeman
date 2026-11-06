@@ -31,7 +31,8 @@ server {
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
 
-    root /usr/share/nginx/html;
+    # Paths match the classic host setup (DEPLOYMENT.md), so both configs read the same.
+    root /data/freezeman/frontend/dist;
     index index.html;
 
     # Single-page application built by webpack
@@ -41,12 +42,12 @@ server {
 
     # Django collectstatic output, baked into this image
     location /static/ {
-        alias /usr/share/nginx/static/;
+        alias /data/freezeman/backend/staticfiles/;
     }
 
     # Uploaded files, shared with the backend through the media volume
     location /media/ {
-        alias /var/www/media/;
+        alias /data/freezeman/backend/media/;
     }
 
     location /api/ {
