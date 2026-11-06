@@ -9,8 +9,6 @@ from datetime import datetime, timedelta
 from graphlib import CycleError, TopologicalSorter
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-import notify
-
 # Runs the daily jobs of the stack with a small loop: no cron and no crontab file. It sleeps until
 # FMS_JOBS_TIME, runs the enabled jobs one after the other and plans the next day. Each job is a
 # one-shot command, so a Kubernetes CronJob can call the same command.
@@ -82,8 +80,7 @@ else:
 
 if errors or tz is None:
     message = "\n".join(errors)
-    print(message, file=sys.stderr, flush=True)
-    notify.send_alert("Scheduler misconfigured", f"{message}\nThe scheduler did not start. Fix .env and run podman-compose up -d --force-recreate scheduler.")
+    print(f"FAILED: scheduler misconfigured.\n{message}\nThe scheduler did not start. Fix .env and run podman-compose up -d --force-recreate scheduler.", file=sys.stderr, flush=True)
     sys.exit(1)
 
 # All jobs are off on purpose: stop with exit code 0 (compose does not restart the service). No alert: nothing is wrong.
@@ -130,8 +127,7 @@ while True:
             except OSError as error:
                 # The job cannot send its alert if it does not start. Alert here, and keep the other jobs.
                 spawning = False
-                print(f"{command}: cannot start: {error}", file=sys.stderr, flush=True)
-                notify.send_alert("Scheduler job did not start", f"{command} did not start: {error}\nThe image is probably broken. Rebuild the scheduler image.")
+                print(f"FAILED: {command} did not start: {error}. The image is probably broken. Rebuild the scheduler image.", file=sys.stderr, flush=True)
                 if stopping:
                     sys.exit(0)
                 continue

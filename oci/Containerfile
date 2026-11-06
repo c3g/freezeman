@@ -50,9 +50,6 @@ RUN apt-get update \
 COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
 COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
 
-# Failure emails: report.py imports it from its own directory.
-COPY oci/notify.py /usr/local/bin/notify.py
-
 # Copy the uwsgi configuration.
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 
@@ -289,7 +286,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends postgresql-client-15 logrotate \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy the job scripts and the logrotate rules. `fms-report` and `notify.py` come from `python-base`.
+# Copy the job scripts and the logrotate rules. `fms-report` comes from `python-base`.
 # `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
 COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
 COPY --chmod=755 oci/logrotate/logrotate.py /usr/local/bin/fms-logrotate

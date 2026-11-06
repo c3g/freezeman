@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import os
 import string
+import subprocess
 import sys
-
-import notify
 
 # One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. The `scheduler` service
 # (oci/scheduler/scheduler.py) starts it every day at FMS_JOBS_TIME, after the other jobs.
@@ -23,8 +22,7 @@ frequency = os.environ.get("FMS_LOGROTATE_FREQUENCY") or "weekly"
 # Fall back to weekly instead of exiting, so the logs still rotate.
 if frequency not in ("daily", "weekly", "monthly", "yearly"):
     message = f"FMS_LOGROTATE_FREQUENCY must be daily, weekly, monthly or yearly, not '{frequency}'."
-    print(f"{message} Using weekly.", file=sys.stderr, flush=True)
-    notify.send_alert("Log rotation misconfigured", f"{message}\nThe service rotates weekly until you fix .env and run podman-compose up -d --force-recreate scheduler.")
+    print(f"FAILED: {message} Using weekly until you fix .env and run podman-compose up -d --force-recreate scheduler.", file=sys.stderr, flush=True)
     frequency = "weekly"
 
 with open(TEMPLATE) as template:
@@ -34,14 +32,9 @@ with open(CONFIG, "w") as out:
 
 
 def run_and_alert() -> bool:
-    returncode, tail = notify.run_tail(["logrotate", "-s", STATE, CONFIG])
+    returncode = subprocess.run(["logrotate", "-s", STATE, CONFIG]).returncode
     if returncode != 0:
-        print("logrotate failed", file=sys.stderr, flush=True)
-        notify.send_alert(
-            "Log rotation failed",
-            f"logrotate exited with code {returncode}.\n\nLast output:\n{tail}\n"
-            + "The log is scheduler.log in FMS_LOG_DIR (podman-compose logs scheduler).",
-        )
+        print(f"FAILED: logrotate exited with code {returncode}.", file=sys.stderr, flush=True)
         return False
     print("logrotate finished", flush=True)
     return True

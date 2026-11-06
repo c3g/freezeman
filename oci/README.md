@@ -73,7 +73,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
-| `notify.py` | Sends the failure emails of the jobs |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
 | `logs/` | Usual `FMS_LOG_DIR` (a git-ignored directory). Create it before the first start |

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Start the stack. Run it from cron: `@reboot <install-dir>/oci/start.py` (DEPLOYMENT.md).
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
-# Send an alert email if `podman-compose up -d` fails or if a container is in a wrong state after CHECK_DELAY.
+# Log a failure if `podman-compose up -d` fails or if a container is in a wrong state after CHECK_DELAY.
 import json
 import subprocess
 import sys
@@ -10,7 +10,6 @@ import traceback
 from typing import TypedDict, cast
 
 import hostenv
-import notify
 
 CHECK_DELAY = 60
 PROJECT = "freezeman"
@@ -48,22 +47,19 @@ def failed_containers() -> list[str]:
 
 
 def main() -> int:
-    settings: dict[str, str] = {}
     try:
         hostenv.setup()
-        settings = hostenv.settings()
-        returncode, tail = notify.run_tail(["podman-compose", "up", "-d"])
+        returncode = subprocess.run(["podman-compose", "up", "-d"]).returncode
         if returncode != 0:
-            notify.send_alert("start.py failed", f"`podman-compose up -d` exited with code {returncode}.\n\nLast output:\n{tail}", settings)
+            print(f"FAILED: `podman-compose up -d` exited with code {returncode}.", file=sys.stderr, flush=True)
             return returncode
         time.sleep(CHECK_DELAY)
         failed = failed_containers()
         if failed:
-            notify.send_alert("start.py: containers failed", f"After {CHECK_DELAY} s these containers are not in the expected state:\n\n" + "\n".join(failed), settings)
+            print(f"FAILED: after {CHECK_DELAY} s these containers are not in the expected state:\n" + "\n".join(failed), file=sys.stderr, flush=True)
             return 1
     except Exception:
-        print(traceback.format_exc(), file=sys.stderr, flush=True)
-        notify.send_alert("start.py failed", traceback.format_exc(), settings)
+        print(f"FAILED: start.py\n{traceback.format_exc()}", file=sys.stderr, flush=True)
         return 1
     return 0
 

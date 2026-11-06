@@ -219,8 +219,7 @@ services:
         <<: *proxy
 
     # No env_file: the container gets only what the three jobs need. `report` runs Django, so it
-    # needs the Django settings below. `backup` reads PG_* (x-backend-env). The jobs send the failure
-    # email (notify.py) with the FMS_EMAIL_* settings.
+    # needs the Django settings below. `backup` reads PG_* (x-backend-env).
     environment:
       <<: [*backend-env, *no-proxy]
       FMS_SECRET_KEY: ${FMS_SECRET_KEY}
@@ -236,7 +235,6 @@ services:
       FMS_EMAIL_USER:
       FMS_EMAIL_PASSWORD:
       FMS_EMAIL_TLS:
-      FMS_ALERT_EMAILS:
       # No default for the time: with no time, all jobs are off (scheduler.py). A key with no value
       # is left unset when .env has none. Do not use `${FMS_JOBS_TIME:?...}`: it would stop compose
       # when the jobs are off.
@@ -273,7 +271,7 @@ services:
         path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/scheduler.log
 
     # No restart. A wrong or missing setting does not fix itself, so a restart only repeats the error
-    # and the alert email. Fix .env, then `podman-compose up -d --force-recreate scheduler`.
+    # and a FAILED: line in the log. Fix .env, then `podman-compose up -d --force-recreate scheduler`.
     restart: "no"
 
 # Declare the named volume of `db`. Podman manages it, so the data stays when a container is

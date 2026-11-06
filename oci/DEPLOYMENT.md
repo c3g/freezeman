@@ -29,7 +29,7 @@ Contents:
   - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
   - [Database backups](#database-backups): settings, a backup now, a restore.
   - [Restore on a slow disk](#restore-on-a-slow-disk): measure the disk, restore with `compose.restore.yaml`.
-  - [Report, emails and logs](#report-emails-and-logs): follow the logs, run the report or the log rotation now.
+  - [Report and logs](#report-and-logs): follow the logs, run the report or the log rotation now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
 - [To go back](#to-go-back): return to the classic setup.
 - [Troubleshooting](#troubleshooting): symptoms and likely causes.
@@ -61,7 +61,7 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `scheduler`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
-| The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Failure emails and Django email, only if `FMS_EMAIL_HOST` is set |
+| The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Django email, only if `FMS_EMAIL_HOST` is set |
 
 - A full build and start of the stack used the rows for `github.com`, the image pulls, `deb.debian.org`, `apt.postgresql.org`, `pypi.org` and `registry.npmjs.org`.
 - Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
@@ -185,7 +185,6 @@ Run these steps as `<user>`.
    | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
-   | `FMS_ALERT_EMAILS` | The recipients of the failure emails (comma list) |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
    | `FMS_JOBS_TIME` | The time of day (HH:MM, in `TZ`) of the daily jobs: report, database backup and log rotation, in this order. See "Scheduled jobs" below the table |
    | `FMS_REPORT_ENABLED`, `FMS_BACKUP_ENABLED`, `FMS_LOGROTATE_ENABLED` | Turn one job on or off (`True` or `False`). Default: `False`: a job runs only if its flag is `True` |
@@ -199,13 +198,12 @@ Run these steps as `<user>`.
    | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `fms.log` in `/src/backend` of the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
-   | Failure emails | Subject starts with `[FreezeMan PROD <host>]` | Subject starts with `[FreezeMan <value> <host>]` |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
    | Scheduled jobs | Same for every value: each enabled job runs at `FMS_JOBS_TIME` | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, set `FMS_BACKUP_ENABLED=False` |
 
    The `web` image gets `FMS_ENV` when it is built. `backend` and `scheduler` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
 
-   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation every day at `FMS_JOBS_TIME`, one after the other in this order. A failed job does not stop the next jobs. A job runs only if `FMS_<JOB>_ENABLED=True` is in `.env`. Set it to `False` or remove it to turn the job off. If `FMS_JOBS_TIME` is not set or all jobs are off, the `scheduler` stops with exit code 0. If `FMS_JOBS_TIME` is not HH:MM or a flag is not `True` or `False`, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
+   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation every day at `FMS_JOBS_TIME`, one after the other in this order. A failed job does not stop the next jobs. A job runs only if `FMS_<JOB>_ENABLED=True` is in `.env`. Set it to `False` or remove it to turn the job off. If `FMS_JOBS_TIME` is not set or all jobs are off, the `scheduler` stops with exit code 0. If `FMS_JOBS_TIME` is not HH:MM or a flag is not `True` or `False`, it stops with an error in the log. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -406,11 +404,11 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
    podman-compose up -d
    ```
 
-### Report, emails and logs
+### Report and logs
 
 The time, the job flags and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
 
-Failure emails: `notify.py` sends an alert email to `FMS_ALERT_EMAILS` when a job fails. The jobs are the report, the backup, the log rotation, the `scheduler` start (a wrong time in `.env`), `start.py` and `autoupdate.py`. A successful run sends no email. The emails use the SMTP settings `FMS_EMAIL_*` (step 3). If `FMS_EMAIL_HOST` or `FMS_ALERT_EMAILS` is empty, no email goes out and the alert goes only to the log. Each alert writes one line that starts with `Alert email` to the log of its job: `sent to ...`, `failed: ...` (SMTP error) or `disabled ...`.
+Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, the log rotation, the `scheduler` start (a wrong time in `.env`), `start.py` and `autoupdate.py`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
@@ -419,7 +417,7 @@ podman-compose exec backend tail -f fms.log                          # the Djang
 tail -f <install-dir>/oci/logs/scheduler.log                         # the report, backup and log rotation jobs
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 podman-compose exec scheduler fms-logrotate now                      # rotate now (only a file that is due)
-grep -h "Alert email" <install-dir>/oci/logs/*.log                   # the alerts: sent, failed or disabled
+grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```
 
 ### Automatic update (test hosts)
@@ -448,7 +446,7 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` must not 
    */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --dump <install-dir>/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
    ```
 
-- `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script sends the alert email.
+- `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
 - Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
 - No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `logs/autoupdate.log`.
 - Slow disk (see [Restore on a slow disk](#restore-on-a-slow-disk)): add `--fast-restore`.

@@ -9,8 +9,6 @@ import time
 import traceback
 from datetime import date
 
-import notify
-
 # One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
 # result. The `scheduler` service (oci/scheduler/scheduler.py) starts it every day at
 # FMS_JOBS_TIME, after fms-report. In Kubernetes a CronJob can call it too.
@@ -40,7 +38,7 @@ os.environ["PGPASSWORD"] = setting("POSTGRES_PASSWORD", "PG_PASSWORD")
 os.environ["PGDATABASE"] = setting("POSTGRES_DB", "PG_DATABASE")
 
 
-# Why the last run_backup() failed, for the alert email.
+# Why the last run_backup() failed, for the failure log.
 failure_reason = ""
 
 
@@ -115,8 +113,7 @@ def run_and_alert() -> bool:
     except Exception:
         ok = fail(traceback.format_exc())
     if not ok:
-        print("Backup failed", file=sys.stderr, flush=True)
-        notify.send_alert("Backup failed", f"The daily pg_dumpall backup failed.\n\n{failure_reason}\nThe log is scheduler.log in FMS_LOG_DIR (podman-compose logs scheduler).")
+        print(f"FAILED: the daily pg_dumpall backup failed.\n{failure_reason}", file=sys.stderr, flush=True)
     return ok
 
 

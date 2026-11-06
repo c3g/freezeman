@@ -21,7 +21,6 @@ from datetime import datetime
 from typing import Optional, cast
 
 import hostenv
-import notify
 
 PGDATA_VOLUME = "freezeman_pgdata"
 DB_WAIT_SECONDS = 120
@@ -52,7 +51,7 @@ class Args(argparse.Namespace):
         self.interval: Optional[int] = None
         self.force: bool = False
         self.fast_restore: bool = False
-        # Set by update_once() when the commit is known, for the alert email.
+        # Set by update_once() when the commit is known, for the failure log.
         self.commit: Optional[str] = None
 
 
@@ -62,53 +61,19 @@ def log(message: str) -> None:
 
 def run(command: list[str]) -> None:
     log("$ " + " ".join(command))
-    returncode, tail = notify.run_tail(command)
-    if returncode != 0:
-        raise subprocess.CalledProcessError(returncode, command, output=tail)
+    _ = subprocess.run(command, check=True)
 
 
 def log_directory(env: Mapping[str, str]) -> str:
     return os.environ.get("FMS_LOG_DIR") or env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
 
 
-def clear_alert(log_dir: str) -> None:
-    try:
-        os.remove(os.path.join(log_dir, "autoupdate.alert"))
-    except FileNotFoundError:
-        pass
-
-
-def alert_failure(args: Args, error: BaseException) -> None:
-    """Send one email per distinct error. logs/autoupdate.alert holds the last error that was sent.
-
-    Without it, a failed commit would send an email at each check (every --interval seconds or cron run).
-    """
-    if isinstance(error, (Abort, subprocess.CalledProcessError)):
-        text = f"{type(error).__name__}: {error}"
-    else:
-        text = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-    try:
-        settings = hostenv.settings()
-        alert_path = os.path.join(log_directory(settings), "autoupdate.alert")
-        try:
-            with open(alert_path) as alert_file:
-                if alert_file.read() == text:
-                    return
-        except OSError:
-            pass
-        body = f"autoupdate.py failed on branch {args.branch}.\n\nError: {text}\n"
-        if args.commit:
-            body += f"\nCommit: {args.commit}\n"
-        output = getattr(error, "output", None)
-        if output:
-            body += f"\nLast output:\n{output}\n"
-        body += "\nThe script does not retry this commit. See logs/autoupdate.log. No other email follows for the same error."
-        notify.send_alert("autoupdate.py failed", body, settings)
-        os.makedirs(os.path.dirname(alert_path), exist_ok=True)
-        with open(alert_path, "w") as alert_file:
-            _ = alert_file.write(text)
-    except Exception as alert_error:
-        print(f"Alert failed: {alert_error}", file=sys.stderr, flush=True)
+def alert_failure(args: Args) -> None:
+    body = f"autoupdate.py failed on branch {args.branch}.\n"
+    if args.commit:
+        body += f"Commit: {args.commit}\n"
+    body += "The script does not retry this commit."
+    print(f"FAILED: {body}", file=sys.stderr, flush=True)
 
 
 def restore_command(dump: str) -> str:
@@ -191,7 +156,7 @@ def deploy(args: Args, profiles: list[str], state_path: str, commit: str, dump_c
             # The fast server did not flush its files.
             run(["sync"])
         log("Step: migrate")
-        # A failed migration raises here: the stack stays down, only `db` runs, and the alert goes out.
+        # A failed migration raises here: the stack stays down, only `db` runs, and the failure goes to the log.
         run(["podman-compose", *profiles, "run", "--rm", "--no-deps", "backend", "sh", "-c", MIGRATE])
         log("Step: recreate the stack")
         # The migrations ran in the step above.
@@ -238,14 +203,12 @@ def update_once(args: Args) -> None:
         args.commit = commit
         if read_state(state_path).get("commit") == commit and not args.force:
             log(f"No new commit ({commit[:12]})")
-            clear_alert(log_dir)
             return
 
         profiles = [part for name in args.profile for part in ("--profile", name)]
         log(f"Deploy {commit[:12]}")
         deploy(args, profiles, state_path, commit, dump_command)
         log(f"Done: {commit[:12]}")
-        clear_alert(log_dir)
 
 
 def report_failure(args: Args, error: BaseException) -> None:
@@ -253,7 +216,7 @@ def report_failure(args: Args, error: BaseException) -> None:
         print(f"Update failed: {error}", file=sys.stderr, flush=True)
     else:
         traceback.print_exception(type(error), error, error.__traceback__)
-    alert_failure(args, error)
+    alert_failure(args)
 
 
 def main() -> None:

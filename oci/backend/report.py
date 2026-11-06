@@ -1,7 +1,6 @@
 #!/usr/bin/env python
+import subprocess
 import sys
-
-import notify
 
 # One prepare_report_data run, then exit with its exit code. The `scheduler` service
 # (oci/scheduler/scheduler.py) starts it every day at FMS_JOBS_TIME, before fms-backup. In
@@ -10,14 +9,11 @@ import notify
 
 
 def run_and_alert() -> bool:
-    returncode, tail = notify.run_tail([sys.executable, "manage.py", "prepare_report_data"])
+    returncode = subprocess.run([sys.executable, "manage.py", "prepare_report_data"]).returncode
     if returncode != 0:
-        print("prepare_report_data failed", file=sys.stderr, flush=True)
-        notify.send_alert(
-            "Report data failed",
-            f"prepare_report_data exited with code {returncode}.\n\nLast output:\n{tail}\n"
-            + "The logs are report_preparation.log and scheduler.log in FMS_LOG_DIR.",
-        )
+        # "FAILED:" is the marker that DEPLOYMENT.md greps for.
+        print(f"FAILED: prepare_report_data exited with code {returncode}. "
+              + "The logs are report_preparation.log and scheduler.log in FMS_LOG_DIR.", file=sys.stderr, flush=True)
         return False
     print("prepare_report_data finished", flush=True)
     return True
