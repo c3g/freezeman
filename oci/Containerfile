@@ -9,7 +9,7 @@
 #                  the repository bind-mounted at /src. The developer starts runserver and npm
 #                  by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   scheduler      backend-prod plus the report, backup and logrotate jobs and their daily loop
+#   jobs           backend-prod plus the report, backup and logrotate jobs (host cron runs them)
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -226,7 +226,7 @@ CMD ["sleep", "infinity"]
 #####################
 
 # This stage is the production backend: Django on uwsgi, with the source baked in. The
-# `backend` service of compose.yaml runs it. The `scheduler` stage builds on it.
+# `backend` service of compose.yaml runs it. The `jobs` stage builds on it.
 FROM python-base AS backend-prod
 
 # Copy the venv, the source and the commit information.
@@ -263,12 +263,12 @@ EXPOSE 8000
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
-# This stage is the scheduler: one container that runs the three daily jobs with a Python loop
-# (oci/scheduler/scheduler.py). It needs no cron program.
+# This stage holds the three daily jobs. Host cron runs one of them per call through oci/jobs.py
+# (`podman-compose --profile jobs run --rm jobs <command> now`).
 #   fms-report      prepare_report_data (Django, from backend-prod)
 #   fms-backup      pg_dumpall into /backups
 #   fms-logrotate   logrotate of /logs/*.log
-FROM backend-prod AS scheduler
+FROM backend-prod AS jobs
 
 # Install the tools as root. The user is `fms` again at the end of the stage.
 USER root
@@ -290,7 +290,6 @@ RUN apt-get update \
 # `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
 COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
 COPY --chmod=755 oci/logrotate/logrotate.py /usr/local/bin/fms-logrotate
-COPY --chmod=755 oci/scheduler/scheduler.py /usr/local/bin/fms-scheduler
 COPY oci/logrotate/logrotate.conf.template /etc/fms-logrotate/logrotate.conf.template
 
 # `fms-logrotate` writes `logrotate.conf` next to the template at each run, so `fms` needs to write there.
@@ -298,8 +297,7 @@ RUN chown fms:fms /etc/fms-logrotate
 
 USER fms
 
-# Read the `FMS_*_TIME` variables, then run the daily loop.
-CMD ["fms-scheduler"]
+# No CMD of its own: jobs.py always gives the job command.
 
 # This stage is last because it copies from the stages above it.
 FROM ${NGINX_IMAGE} AS web

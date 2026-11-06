@@ -4,8 +4,8 @@ import string
 import subprocess
 import sys
 
-# One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. The `scheduler` service
-# (oci/scheduler/scheduler.py) starts it every day at FMS_JOBS_TIME, after the other jobs.
+# One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. Host cron starts it
+# every day through oci/jobs.py, after the other jobs.
 # Kubernetes needs no such job: the cluster rotates the container logs.
 # The frequency directive (FMS_LOGROTATE_FREQUENCY) decides whether a file rotates on a given day.
 #   fms-logrotate now    run once and exit (`now` is the only mode, the argument is optional)
@@ -22,7 +22,7 @@ frequency = os.environ.get("FMS_LOGROTATE_FREQUENCY") or "weekly"
 # Fall back to weekly instead of exiting, so the logs still rotate.
 if frequency not in ("daily", "weekly", "monthly", "yearly"):
     message = f"FMS_LOGROTATE_FREQUENCY must be daily, weekly, monthly or yearly, not '{frequency}'."
-    print(f"FAILED: {message} Using weekly until you fix .env and run podman-compose up -d --force-recreate scheduler.", file=sys.stderr, flush=True)
+    print(f"FAILED: {message} Using weekly until you fix .env.", file=sys.stderr, flush=True)
     frequency = "weekly"
 
 with open(TEMPLATE) as template:

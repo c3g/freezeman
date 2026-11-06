@@ -19,11 +19,12 @@ Contents:
 - [Network access](#network-access): the outbound domains of the build.
 - [Reverse proxy](#reverse-proxy): TLS and the forward to the `web` container.
 - [Set up the account of the user](#set-up-the-account-of-the-user): podman without systemd, `podman system migrate`, podman-compose.
-- [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, scheduled jobs, image build.
+- [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, image build.
 - Do one of these two paths:
   - [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host): dump, copy the files, restore, cutover of the reverse proxy.
   - [Path B: new host](#path-b-new-host): first start with an empty database.
 - [Start at boot](#start-at-boot): the `@reboot` crontab line.
+- [Daily jobs](#daily-jobs): the crontab lines of the report, the backup and the log rotation.
 - [Daily use](#daily-use)
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
   - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
@@ -58,7 +59,7 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
 | `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com` |
 | `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
-| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `scheduler`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
+| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `jobs`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Django email, only if `FMS_EMAIL_HOST` is set |
@@ -186,8 +187,6 @@ Run these steps as `<user>`.
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
-   | `FMS_JOBS_TIME` | The time of day (HH:MM, in `TZ`) of the daily jobs: report, database backup and log rotation, in this order. See "Scheduled jobs" below the table |
-   | `FMS_REPORT_ENABLED`, `FMS_BACKUP_ENABLED`, `FMS_LOGROTATE_ENABLED` | Turn one job on or off (`True` or `False`). Default: `False`: a job runs only if its flag is `True` |
    | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
@@ -199,11 +198,11 @@ Run these steps as `<user>`.
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-   | Scheduled jobs | Same for every value: each enabled job runs at `FMS_JOBS_TIME` | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, set `FMS_BACKUP_ENABLED=False` |
+   | Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, remove its crontab line |
 
-   The `web` image gets `FMS_ENV` when it is built. `backend` and `scheduler` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
+   The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
 
-   **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation every day at `FMS_JOBS_TIME`, one after the other in this order. A failed job does not stop the next jobs. A job runs only if `FMS_<JOB>_ENABLED=True` is in `.env`. Set it to `False` or remove it to turn the job off. If `FMS_JOBS_TIME` is not set or all jobs are off, the `scheduler` stops with exit code 0. If `FMS_JOBS_TIME` is not HH:MM or a flag is not `True` or `False`, it stops with an error in the log. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
+   **Daily jobs:** host cron runs the report, the backup and the log rotation. See [Daily jobs](#daily-jobs).
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -222,7 +221,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    psql -U postgres -d fms -c 'SHOW timezone'
    ```
 
-   `TZ` also sets the time zone of `FMS_JOBS_TIME`. To use another time zone, set `TZ` to it.
+   Cron runs the daily jobs in the time zone of the host, not `TZ`.
 
 3. Dump the classic database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the classic host.
 
@@ -300,6 +299,23 @@ Run this step as `<user>`, after the first start works. Add this line to the cro
 
 If the host has no cron (the host is a container), start `start.py` as `<user>` from the init of the outer container.
 
+## Daily jobs
+
+Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command> now`) and removes it after the job. Add these lines to the crontab (`crontab -e`):
+
+```cron
+0 1 * * *  <install-dir>/oci/jobs.py report    >> <install-dir>/oci/logs/jobs.log 2>&1
+30 1 * * * <install-dir>/oci/jobs.py backup    >> <install-dir>/oci/logs/jobs.log 2>&1
+0 3 * * *  <install-dir>/oci/jobs.py logrotate >> <install-dir>/oci/logs/jobs.log 2>&1
+```
+
+- Cron uses the time zone of the host.
+- Keep this order and leave enough time between the jobs: the backup includes the report data of the day, and the log rotation runs after the other jobs wrote their logs. Cron does not wait for a job to end.
+- To turn a job off, remove its line.
+- If `FMS_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
+- Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
+- A host without cron (the host is a container) is not supported yet.
+
 ## Daily use
 
 ### Start, stop and restart
@@ -316,13 +332,13 @@ Run these commands in `oci/`. Use `--force-recreate` after a build or an `.env` 
 ### Update to a new release
 
 ```bash
-podman-compose exec scheduler fms-backup now
+./jobs.py backup
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
 # proxy host: set the variables before each podman-compose command, as in Proxy
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.
-podman-compose stop web backend scheduler
+podman-compose stop web backend
 podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
 podman-compose up -d --force-recreate
 ```
@@ -331,21 +347,17 @@ The migration command runs in a one-off container. It needs the new image (the `
 
 ### Database backups
 
-The `scheduler` service starts with `podman-compose up -d` and runs the backup every day. To change its settings, edit `.env`, then run `podman-compose up -d --force-recreate`. To run a backup now, use the last command:
+Host cron runs the backup every day (see [Daily jobs](#daily-jobs)). Each run reads `.env`. To run a backup now, use the last command:
 
 ```bash
 # oci/.env
 # Host directory for the daily dumps. It must exist.
 FMS_BACKUP_DIR=<install-dir>/backups
-# Time of day (HH:MM, in TZ) of the daily jobs. The backup runs after the report.
-FMS_JOBS_TIME=01:00
-# Turn the backup on or off (True or False). Default: False.
-FMS_BACKUP_ENABLED=True
 # Delete backups older than this many days, but always keep the newest
 # FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
 
-podman-compose exec scheduler fms-backup now   # run one backup now
+./jobs.py backup   # run one backup now
 ```
 
 To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest. On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
@@ -406,17 +418,17 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
 
 ### Report and logs
 
-The time, the job flags and the log settings are in [Get the release and configure](#get-the-release-and-configure), step 3. After an `.env` change, run `podman-compose up -d --force-recreate`. `start.py` starts the `scheduler` again at boot.
+The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 3.
 
-Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, the log rotation, the `scheduler` start (a wrong time in `.env`), `start.py` and `autoupdate.py`.
+Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, the log rotation, `jobs.py`, `start.py` and `autoupdate.py`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from FMS_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
-tail -f <install-dir>/oci/logs/scheduler.log                         # the report, backup and log rotation jobs
+tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-podman-compose exec scheduler fms-logrotate now                      # rotate now (only a file that is due)
+./jobs.py logrotate                                                  # rotate now (only a file that is due)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```
 

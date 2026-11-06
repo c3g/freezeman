@@ -10,8 +10,8 @@ import traceback
 from datetime import date
 
 # One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
-# result. The `scheduler` service (oci/scheduler/scheduler.py) starts it every day at
-# FMS_JOBS_TIME, after fms-report. In Kubernetes a CronJob can call it too.
+# result. Host cron starts it every day through oci/jobs.py,
+# after fms-report. In Kubernetes a CronJob can call it too.
 #   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
@@ -20,7 +20,7 @@ keep_days = int(os.environ.get("FMS_BACKUP_KEEP_DAYS") or "14")
 
 def setting(*names: str, default: str = "") -> str:
     # First non-empty variable of the list. POSTGRES_* are the names of the db service, PG_* the
-    # names of the backend services (the `scheduler` container only has PG_*).
+    # names of the backend services (the `jobs` container only has PG_*).
     for name in names:
         if os.environ.get(name):
             return os.environ[name]

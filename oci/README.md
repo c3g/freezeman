@@ -33,7 +33,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `scheduler`| `localhost/freezeman-scheduler` | a daily loop (`scheduler.py`) runs three jobs at `FMS_JOBS_TIME`, one after the other in this order: `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). A job runs only if `FMS_<JOB>_ENABLED=True` (default `False`). A failed job does not stop the next jobs. It gets only the settings that the jobs need, not the whole `.env` |
+| `jobs`| `localhost/freezeman-jobs` | not started by `up -d`. Host cron runs one job per crontab line with `jobs.py` (`podman-compose --profile jobs run --rm jobs <command> now`): `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates every `FMS_LOGROTATE_FREQUENCY`, default weekly). The crontab sets the time of each job. It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
@@ -62,14 +62,14 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 
 | Item | What it is |
 |---|---|
-| `Containerfile` | Images of the backend (`dev`, `backend-prod`), `scheduler` and `web`. The build context is the repository root |
+| `Containerfile` | Images of the backend (`dev`, `backend-prod`), `jobs` and `web`. The build context is the repository root |
 | `compose.yaml` | The production-like stack (all services) |
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
 | `compose.restore.yaml` | Override of the `db` command for a restore on a slow disk |
 | `db/` | `Containerfile` of the `db` image, `backup.py` (the `fms-backup` job), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `logrotate/` | `logrotate.py` (the `fms-logrotate` job) and `logrotate.conf.template` |
-| `scheduler/` | `scheduler.py`: a daily loop that runs the jobs at the `FMS_*_TIME` times, in `TZ` (the `scheduler` service) |
+| `jobs.py` | Runs one daily job (`report`, `backup` or `logrotate`) in a `jobs` container. Host cron calls it |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
@@ -126,7 +126,7 @@ Without a proxy, skip it and leave the variables unset. The stack then works as 
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `backend`, `scheduler`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `backend`, `jobs`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`) and the proxy values of `.env` (`env_file`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
@@ -236,7 +236,7 @@ The Docker daemon rejects these podman-only settings:
 
 | Setting | Where | Why podman needs it |
 |---|---|---|
-| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `scheduler` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
+| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `jobs` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
 | `:U` mount option | `frontend_node_modules` volume of `dev` | Gives the volume to the container user. Docker has no `U` option |
 | `logging.driver: k8s-file` | All services | Writes each container log to `FMS_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
 
@@ -358,14 +358,13 @@ The layout already maps onto Kubernetes objects:
 | `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
 | `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
 | `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
-| `scheduler`: `fms-report`, `fms-backup` | One CronJob (`schedule` from `FMS_JOBS_TIME`, `timeZone` from `TZ`) that runs `fms-report now`, then `fms-backup now`. Two CronJobs at the same time run in parallel, so the order is lost. Needs an image with `postgresql-client-15`, a backup PVC and a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
-| `scheduler`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
+| `jobs`: `fms-report`, `fms-backup` | One CronJob per crontab line of the host (same `schedule`, `timeZone` from `TZ`) that runs `fms-report now` or `fms-backup now`. Keep the backup after the report, as in the crontab. Needs an image with `postgresql-client-15`, a backup PVC and a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
+| `jobs`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
 | `web` port mapping and the reverse proxy | Ingress (TLS)                                             |
 
 Notes:
-- The `scheduler` service has one job of three because the loop of `scheduler.py` runs them inside one container. Kubernetes
-  has CronJobs, so each job becomes its own CronJob. Each job is a one-shot command (`fms-report now`,
-  `fms-backup now`), so a CronJob calls it directly and no loop is necessary. Set
+- Each job is a one-shot command (`fms-report now`, `fms-backup now`), so a CronJob calls it directly, as
+  host cron does through `jobs.py`. Set
   `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
 - Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
 - Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.

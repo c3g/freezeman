@@ -42,7 +42,7 @@ For the services of the development stack, see [Development services](README.md#
   The host editor does not see this `node_modules`.
 - Bash in `dev` has tab completion (for example `git` and `psql`).
 - The production services `backend` and `web` have the profile `prod` in development,
-  so `up -d` does not start them. `scheduler` does not start either.
+  so `up -d` does not start them. `jobs` does not start either (only host cron runs it in production).
 
 ## Start the development stack
 

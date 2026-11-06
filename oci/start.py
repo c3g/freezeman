@@ -13,10 +13,6 @@ import hostenv
 
 CHECK_DELAY = 60
 PROJECT = "freezeman"
-# Services that may be stopped: they must not exit with an error.
-# `scheduler` exits with 0 when no job has a time (all jobs off on purpose), and nothing restarts it.
-# The other services must run.
-ONE_SHOT = ("scheduler",)
 
 
 # The fields of `podman ps --format json` that failed_containers() reads.
@@ -38,10 +34,7 @@ def failed_containers() -> list[str]:
         service = labels.get("com.docker.compose.service", "?")
         state = container.get("State", "?")
         exit_code = container.get("ExitCode", 0)
-        if service in ONE_SHOT:
-            if exit_code != 0:
-                failed.append(f"{service}: state {state}, exit code {exit_code}")
-        elif state != "running":
+        if state != "running":
             failed.append(f"{service}: state {state}, exit code {exit_code}")
     return failed
 

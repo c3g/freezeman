@@ -1,7 +1,8 @@
 # # FreezeMan production-like stack
 #
-# This file starts the services of FreezeMan: the database, Django, nginx, the
-# scheduler (daily report job, backup and log rotation). Run `podman-compose` from this directory.
+# This file starts the services of FreezeMan: the database, Django and nginx. It also defines the
+# `jobs` service (daily report, backup and log rotation) that host cron runs through jobs.py.
+# Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
 #   mkdir -p ../backend/media ../backend/triggers logs
@@ -30,7 +31,7 @@ x-podman:
 # A key that starts with `x-` is not a service. `&name` gives a block a name (an anchor), and
 # `<<: *name` (a merge key) copies that block into a service. An anchor must be above its first use.
 
-# Set the database settings of the Django services (`backend`, `scheduler`).
+# Set the database settings of the Django services (`backend`, `jobs`).
 x-backend-env: &backend-env
   PG_DATABASE: ${POSTGRES_DB}
   PG_USER: ${POSTGRES_USER}
@@ -110,13 +111,13 @@ services:
   # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in
   # the container network. The port is not published. Only `web` connects to it.
   #
-  # Migrations are manual. Stop `web`, `backend` and `scheduler`, start only `db`, then run
+  # Migrations are manual. Stop `web` and `backend`, start only `db`, then run
   #   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
   # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
   # on QC/dev hosts. See DEPLOYMENT.md.
   backend:
     image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
-    # Build the `backend-prod` image of oci/Containerfile. `scheduler` builds on it.
+    # Build the `backend-prod` image of oci/Containerfile. `jobs` builds on it.
     build:
       context: ..
       dockerfile: oci/Containerfile
@@ -198,22 +199,24 @@ services:
 
     restart: always
 
-  # The three daily jobs in one container, started by a daily loop (oci/scheduler/scheduler.py) at
-  # FMS_JOBS_TIME, one after the other in this order:
+  # The image of the three daily jobs. Host cron runs one job per crontab line with jobs.py, which
+  # calls `podman-compose --profile jobs run --rm jobs <command> now` (DEPLOYMENT.md, "Daily jobs"):
   #   fms-report      prepare_report_data (a CronJob in Kubernetes)
   #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz (a CronJob in Kubernetes)
   #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log. Kubernetes needs no such job: the cluster
   #                   rotates the container logs.
-  # A job runs only if FMS_<JOB>_ENABLED is True (default False).
-  # All three log to ${FMS_LOG_DIR}/scheduler.log.
-  scheduler:
-    # Build the `scheduler` image of oci/Containerfile (`backend-prod` plus
+  # The crontab line redirects the output to ${FMS_LOG_DIR}/jobs.log.
+  jobs:
+    # Only `podman-compose run` starts it. `up -d` does not.
+    profiles: ["jobs"]
+
+    # Build the `jobs` image of oci/Containerfile (`backend-prod` plus
     # postgresql-client-15 and logrotate).
-    image: localhost/freezeman-scheduler:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-jobs:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: oci/Containerfile
-      target: scheduler
+      target: jobs
       args:
         # apt-get (PostgreSQL client, logrotate) downloads packages.
         <<: *proxy
@@ -235,14 +238,7 @@ services:
       FMS_EMAIL_USER:
       FMS_EMAIL_PASSWORD:
       FMS_EMAIL_TLS:
-      # No default for the time: with no time, all jobs are off (scheduler.py). A key with no value
-      # is left unset when .env has none. Do not use `${FMS_JOBS_TIME:?...}`: it would stop compose
-      # when the jobs are off.
-      FMS_JOBS_TIME:
-      FMS_REPORT_ENABLED: ${FMS_REPORT_ENABLED:-False}
-      FMS_BACKUP_ENABLED: ${FMS_BACKUP_ENABLED:-False}
       FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
-      FMS_LOGROTATE_ENABLED: ${FMS_LOGROTATE_ENABLED:-False}
       FMS_LOGROTATE_FREQUENCY: ${FMS_LOGROTATE_FREQUENCY:-weekly}
       FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
 
@@ -265,13 +261,7 @@ services:
       db:
         condition: service_started
 
-    logging:
-      driver: k8s-file
-      options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/scheduler.log
-
-    # No restart. A wrong or missing setting does not fix itself, so a restart only repeats the error
-    # and a FAILED: line in the log. Fix .env, then `podman-compose up -d --force-recreate scheduler`.
+    # One run per call: the next crontab line starts a new container.
     restart: "no"
 
 # Declare the named volume of `db`. Podman manages it, so the data stays when a container is

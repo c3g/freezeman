@@ -108,9 +108,9 @@ services:
     # The production nginx image is not used in development.
     profiles: ["prod"]
 
-  scheduler:
+  jobs:
     # The daily report, backup and log rotation jobs do not run in development.
-    profiles: ["scheduler"]
+    profiles: ["jobs"]
 
 # Declare the volume for the Linux `node_modules` of `dev`.
 volumes:
