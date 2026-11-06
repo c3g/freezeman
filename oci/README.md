@@ -38,8 +38,6 @@ Contents:
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
 
-> **C3G:** IT sets up the host nginx (see [Host nginx](ROCKY.md#5-host-nginx) in ROCKY.md). The FreezeMan team has no `sudo` and cannot change it.
-
 ### Development services
 
 | Service    | Image                         | What it runs                                                    |
@@ -54,8 +52,7 @@ For the bind mount, the `node_modules` volume and the `prod` profiles, see [Deve
 | Reader | Read |
 |---|---|
 | Agents | This file first. Then the guide that fits the task. |
-| Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) of DEPLOYMENT.md. [ROCKY.md](ROCKY.md) is a worked example of the root steps on a RHEL-family host |
-| C3G IT (host setup) | [ROCKY.md](ROCKY.md): the root steps, the acceptance checks and the C3G values for the Rocky Linux 9.6 host |
+| Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) and [Network access](DEPLOYMENT.md#network-access) of DEPLOYMENT.md |
 | Deployment team | [DEPLOYMENT.md](DEPLOYMENT.md): production deployment and daily use |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 
@@ -81,7 +78,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
 | `logs/` | Usual `FMS_LOG_DIR` (a git-ignored directory). Create it before the first start |
 | `backups/` | Git-ignored directory for database backups (`FMS_BACKUP_DIR` points to a directory like it) |
-| `ROCKY.md` | Root steps for a Rocky Linux 9.6 host, and the C3G values of the DEPLOYMENT.md placeholders |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
 
@@ -109,8 +105,6 @@ Then continue with the environment steps:
 
 Do this section only if your host reaches the internet through an HTTP proxy (for example a development server).
 Without a proxy, skip it and leave the variables unset. The stack then works as before.
-
-> **C3G:** the lab dev server uses a proxy. Production has no proxy.
 
 - Give the proxy to the `podman-compose` command. Use the uppercase names. Set them before the command, so
   they apply only to this command and not to other commands of the shell:

@@ -12,13 +12,11 @@ Conventions:
 - `<classic-dir>`: the checkout of a classic FreezeMan install (Path A only).
 - `<branch>`: the branch that `autoupdate.py` follows (Automatic update only).
 - The local checks use `http://127.0.0.1:8080/`. If you change `FMS_HTTP_PORT`, use your port.
-- Lines that start with **C3G:** apply only to the C3G deployment. Other organizations can skip them.
-
-> **C3G:** the values of these placeholders are in [C3G values](ROCKY.md#c3g-values) of ROCKY.md.
 
 Contents:
 
 - [Prerequisites](#prerequisites): shared setup, the host requirements, the proxy.
+- [Network access](#network-access): the outbound domains of the build.
 - [Reverse proxy](#reverse-proxy): TLS and the forward to the `web` container.
 - [Set up the account of the user](#set-up-the-account-of-the-user): podman without systemd, `podman system migrate`, podman-compose.
 - [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, scheduled jobs, image build.
@@ -39,16 +37,36 @@ Contents:
 ## Prerequisites
 
 1. Do the steps of [Prerequisites](README.md#prerequisites) in README.md. They apply to both environments.
-2. Prepare the host. These steps need root. [ROCKY.md](ROCKY.md) shows them for a RHEL-family host (Rocky Linux 9).
+2. Prepare the host. These steps need root.
    - A Linux host with podman 5.4 or later and podman-compose 1.5 or later.
    - A non-root `<user>` with subuid and subgid ranges, for rootless containers.
    - A directory `/run/user/<uid>` of `<user>` that stays from boot to shutdown (for example systemd linger). Rootless podman keeps the state of the running containers there.
    - A cron daemon, or another way to start `start.py` as `<user>` at boot.
    - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
-   - Outbound access for the build. The domains are in [Network access](ROCKY.md#6-network-access) of ROCKY.md. The running stack needs only the SMTP server.
+   - Outbound access for the build. The domains are in [Network access](#network-access). The running stack needs only the SMTP server.
 3. If the host reaches the internet through an HTTP proxy, see [Proxy](README.md#proxy). Without a proxy, leave the proxy variables unset.
 
-> **C3G:** IT completes [ROCKY.md](ROCKY.md) on the Rocky Linux 9.6 host and sends the output of the [acceptance checks](ROCKY.md#acceptance-checks) to the FreezeMan team. Production has no proxy.
+## Network access
+
+If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic. If the host has open outbound access, no change is necessary.
+
+| Domain | Port | Used by |
+|---|---|---|
+| The package repositories of the host OS | 443 or 80 | Installation of `podman`, `podman-compose` and a cron daemon |
+| `pypi.org`, `files.pythonhosted.org` | 443 | `pip install podman-compose==1.5.0`, only if the OS gives no `podman-compose` |
+| `github.com` | 443 | `git clone --recurse-submodules` of the source and its submodules. `autoupdate.py` (test hosts only) also uses it |
+| `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
+| `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com` |
+| `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
+| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `scheduler`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
+| `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
+| `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
+| The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Failure emails and Django email, only if `FMS_EMAIL_HOST` is set |
+
+- A full build and start of the stack used the rows for `github.com`, the image pulls, `deb.debian.org`, `apt.postgresql.org`, `pypi.org` and `registry.npmjs.org`.
+- Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
+- The build needs the domains. The running stack needs only `FMS_EMAIL_HOST` and no other outbound connection.
+- All traffic is outbound. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
 
 ## Reverse proxy
 
@@ -79,13 +97,9 @@ Other reverse proxies need the same settings.
 
 Migration on the same domain ([Path A](#path-a-migrate-from-the-classic-host)): keep a copy of the classic configuration before the change. [To go back](#to-go-back) restores it. At the cutover, the new `location /` replaces the classic `location /`. Also remove the classic `/static/`, `/media/` and `/api/` locations. The `web` container serves these paths.
 
-> **C3G:** IT owns the host nginx. The FreezeMan team has no `sudo` and cannot read or change it. Give IT `FMS_HOST` and `FMS_HTTP_PORT` of `.env`. IT does [Host nginx](ROCKY.md#5-host-nginx) of ROCKY.md, in Path A at the cutover (step 7).
-
 ## Set up the account of the user
 
 Run these steps as `<user>`.
-
-> **C3G:** log in with `sudo su - django`.
 
 1. Set up podman without systemd.
 
@@ -148,8 +162,6 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-   > **C3G:** `<install-dir>` is `/data/freezeman-oci`. The classic setup uses `/data/freezeman`.
-
 2. Create the directories:
 
    ```bash
@@ -192,8 +204,6 @@ Run these steps as `<user>`.
    | Scheduled jobs | Same for every value: each enabled job runs at `FMS_JOBS_TIME` | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, set `FMS_BACKUP_ENABLED=False` |
 
    The `web` image gets `FMS_ENV` when it is built. `backend` and `scheduler` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
-
-   > **C3G:** the production host uses `PROD`, the QC host `QC` and the dev host `DEV`.
 
    **Scheduled jobs:** the `scheduler` service runs the report, the backup and the log rotation every day at `FMS_JOBS_TIME`, one after the other in this order. A failed job does not stop the next jobs. A job runs only if `FMS_<JOB>_ENABLED=True` is in `.env`. Set it to `False` or remove it to turn the job off. If `FMS_JOBS_TIME` is not set or all jobs are off, the `scheduler` stops with exit code 0. If `FMS_JOBS_TIME` is not HH:MM or a flag is not `True` or `False`, it stops with an error and an alert email. Podman does not restart it in either case: fix `.env`, then run `podman-compose up -d --force-recreate scheduler`.
 
@@ -259,8 +269,6 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    ```bash
    curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
    ```
-
-   > **C3G:** ask IT to do [Host nginx](ROCKY.md#5-host-nginx) of ROCKY.md. Wait for the output of its checks before the `curl`.
 
 8. Disable the `@reboot` and cron entries of the classic setup (report, backup) in the crontab of its user, so they do not run against the old database.
 9. Continue with [Start at boot](#start-at-boot).
@@ -418,8 +426,6 @@ grep -h "Alert email" <install-dir>/oci/logs/*.log                   # the alert
 
 Test hosts only. It deletes the database at each new commit. `FMS_ENV` must not be `PROD` (see [FMS_ENV values](#fms_env-values)). If it is, `autoupdate.py` stops.
 
-> **C3G:** the QC host follows the `qc` branch. The dev host follows `master`.
-
 1. Put the checkout on the followed branch, with no local changes:
 
    ```bash
@@ -461,8 +467,6 @@ Use these steps to return to the classic setup.
 2. Remove the `@reboot` line from the crontab of `<user>`.
 3. Restore the copy of the classic reverse proxy configuration (`/`, `/static/`, `/media/` and `/api/`) that you kept in [Reverse proxy](#reverse-proxy).
 
-   > **C3G:** ask IT to do [Undo](ROCKY.md#undo) of ROCKY.md.
-
 4. Start the classic uwsgi and its cron entries.
 
 The stack writes after the cutover are not in the classic database.
@@ -471,9 +475,9 @@ The stack writes after the cutover are not in the classic database.
 
 | Symptom | Likely cause |
 |---|---|
-| 502 at the reverse proxy | `web` is not running, or `FMS_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<FMS_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration (C3G: ask IT) |
+| 502 at the reverse proxy | `web` is not running, or `FMS_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<FMS_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration |
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
-| 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) (C3G: ask IT) |
+| 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
 | `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration command of [Update to a new release](#update-to-a-new-release) |
 | Restore takes hours | The disk is slow at flushes. See [Restore on a slow disk](#restore-on-a-slow-disk) |

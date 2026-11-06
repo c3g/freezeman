@@ -279,9 +279,9 @@ USER root
 # `pg_dumpall` must have the major version of the server (15). Debian trixie has client 17, and a
 # dump of a newer client may not restore into 15. So install `postgresql-client-15` from the
 # PostgreSQL apt repository (apt.postgresql.org).
-# WORKAROUND: the C3G dev host proxy blocks www.postgresql.org (the PGDG key) and apt.postgresql.org
-# on 443. So take the same key from Debian's `postgresql-client-common`, and use http like the `db`
-# build (apt checks the signatures). Revert when the proxy allows them (ROCKY.md: "Network").
+# Some proxies block www.postgresql.org (the PGDG key) and apt.postgresql.org on 443. So take the
+# same key from Debian's `postgresql-client-common`, and use http like the `db` build (apt checks the
+# signatures).
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates postgresql-client-common \
  && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
