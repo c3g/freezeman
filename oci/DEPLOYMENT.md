@@ -163,7 +163,7 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-2. No directory to create: the checkout holds the directories of the logs (`oci/logs`), the backups (`oci/backups`) and the backend files. [Path A](#path-a-migrate-from-the-classic-host) uses the folders of the classic install for the backend files.
+2. No directory to create: the checkout holds the directories of the logs (`oci/logs`), the backups (`oci/backups`) and the backend files. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
 
@@ -227,7 +227,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
-4. Point `.env` to the folders of the classic install. Do not copy the files: compose binds the folders where they are.
+4. Choose where the backend files are. Compose binds the folders that `.env` names, so the stack can use the folders of the classic install directly, with no copy. To use them, set these variables:
 
    | Variable | Value |
    |---|---|
@@ -236,6 +236,8 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    | `FMS_AUTOMATIONS_WORK_PATH` | The value of the classic `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the classic checkout |
 
    The folders must be on this host. The backend writes as `<user>`, the host user that runs podman (`userns_mode: keep-id`), so `<user>` must be able to write into them.
+
+   You can also copy the files into the folders of the checkout instead (for example to keep the classic files unchanged for [To go back](#to-go-back)). Then leave these variables unset.
 
 5. Start only the database, wait until it is ready, and restore the dump. On a slow disk, follow [Restore on a slow disk](#restore-on-a-slow-disk) instead. The message "extension fzy already exists" is harmless.
 
@@ -477,7 +479,7 @@ Use these steps to return to the classic setup.
 
 4. Start the classic uwsgi and its cron entries.
 
-The stack writes after the cutover are not in the classic database. The files that the stack wrote are in the shared folders of step 4 of Path A.
+The stack writes after the cutover are not in the classic database. If step 4 of Path A uses the classic folders, the files that the stack wrote are in them.
 
 ## Troubleshooting
 
