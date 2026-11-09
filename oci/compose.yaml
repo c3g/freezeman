@@ -5,7 +5,7 @@
 # Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
-#   mkdir -p ../backend/media ../backend/triggers logs
+#   mkdir -p ../backend/media ../backend/triggers ../backend/automations_work logs
 #   podman-compose build
 #   podman-compose up -d
 #
@@ -138,10 +138,9 @@ services:
     # where SELinux is absent. Podman does not create a missing source directory, so create them
     # first (see the commands at the top).
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/src/backend/media:z
-      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/src/backend/triggers:z
-      # Same path on both sides when set: .env also reaches the container (settings.py reads it).
-      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:${FMS_AUTOMATIONS_WORK_PATH:-/src/backend/automations_work}:z
+      - ${FMS_MEDIA_DIR:-../backend/media}:/data/freezeman/backend/media:z
+      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/data/freezeman/backend/triggers:z
+      - ${FMS_AUTOMATIONS_DIR:-../backend/automations_work}:/data/freezeman/backend/automations_work:z
 
     # Start as soon as the `db` container starts. The entrypoint of the image waits until the
     # database accepts connections.

@@ -166,7 +166,8 @@ Run these steps as `<user>`.
 2. Create the directories:
 
    ```bash
-   mkdir -p <install-dir>/oci/logs <install-dir>/backups <install-dir>/backend/media <install-dir>/backend/triggers
+   mkdir -p <install-dir>/oci/logs <install-dir>/backups <install-dir>/backend/media <install-dir>/backend/triggers \
+     <install-dir>/backend/automations_work
    ```
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
@@ -194,7 +195,7 @@ Run these steps as `<user>`.
 
    | Area | `PROD` | Other value (`QC`, `DEV`) |
    |---|---|---|
-   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `fms.log` in `/src/backend` of the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
+   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `fms.log` in `/data/freezeman/backend` of the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
@@ -237,7 +238,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    cp -a <classic-dir>/backend/triggers/. <install-dir>/backend/triggers/
    ```
 
-   If the classic `uwsgi.ini` sets `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH` or `FMS_RELEASED_FILES_PATH`, copy those folders into `lims-run-info`, `lims-validation-info` and `lims-release-info` of `<install-dir>/backend/triggers`. Do not put these variables in `.env`: they are paths inside the container, and a host path stops the backend. `FMS_TRIGGERS_DIR` sets the host folder.
+   If the classic `uwsgi.ini` sets `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH` or `FMS_AUTOMATIONS_WORK_PATH`, copy those folders into `lims-run-info`, `lims-validation-info` and `lims-release-info` of `<install-dir>/backend/triggers`, and into `<install-dir>/backend/automations_work`. Do not put these variables in `.env`: they are paths inside the container. The backend creates and uses fixed paths in `/data/freezeman/backend`. `FMS_TRIGGERS_DIR` and `FMS_AUTOMATIONS_DIR` set the host folders.
 
 5. Start only the database, wait until it is ready, and restore the dump. On a slow disk, follow [Restore on a slow disk](#restore-on-a-slow-disk) instead. The message "extension fzy already exists" is harmless.
 

@@ -5,26 +5,27 @@ import time
 
 import psycopg2
 
-BACKEND_DIR = "/src/backend"
+BACKEND_DIR = "/data/freezeman/backend"
 
 
-# Read the variables as backend/fms/settings.py does (os.environ.get with a default), so the
-# directories and the database check match what Django uses.
 def make_directories() -> None:
     # Fresh volumes (and Kubernetes PVCs) start empty: create the directories
     # Django writes into before handing over to the actual command.
-    # Relative paths belong to the backend directory, whatever the current directory is.
+    # The paths are fixed in the container: the mounts in compose.yaml put the host folders
+    # at these paths, so no environment variable moves them.
     for path in (
         "media/uploads/templates",
         "tmp",
-        os.environ.get("FMS_RUN_INFO_PATH", "triggers/lims-run-info"),
-        os.environ.get("FMS_VALIDATED_FILES_PATH", "triggers/lims-validation-info"),
-        os.environ.get("FMS_RELEASED_FILES_PATH", "triggers/lims-release-info"),
-        os.environ.get("FMS_AUTOMATIONS_WORK_PATH", "automations_work"),
+        "triggers/lims-run-info",
+        "triggers/lims-validation-info",
+        "triggers/lims-release-info",
+        "automations_work",
     ):
         os.makedirs(os.path.join(BACKEND_DIR, path), exist_ok=True)
 
 
+# Read the variables as backend/fms/settings.py does (os.environ.get with a default), so the
+# database check matches what Django uses.
 def wait_for_database() -> None:
     # Wait for PostgreSQL. compose's `depends_on: condition: service_started` orders only the
     # start of the db container, not its readiness, so this wait is necessary. It also covers
