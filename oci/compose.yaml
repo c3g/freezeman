@@ -5,7 +5,6 @@
 # Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
-#   mkdir -p logs   # the backend folders are in the checkout, or in the folders that .env sets
 #   podman-compose build
 #   podman-compose up -d
 #

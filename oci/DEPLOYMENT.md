@@ -163,11 +163,7 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-2. Create the directories of the logs and the backups. The folders of the backend files are in the checkout. [Path A](#path-a-migrate-from-the-classic-host) uses the folders of the classic install instead.
-
-   ```bash
-   mkdir -p <install-dir>/oci/logs <install-dir>/backups
-   ```
+2. No directory to create: the checkout holds the directories of the logs (`oci/logs`), the backups (`oci/backups`) and the backend files. [Path A](#path-a-migrate-from-the-classic-host) uses the folders of the classic install for the backend files.
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
 
@@ -183,7 +179,7 @@ Run these steps as `<user>`.
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
-   | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
+   | `FMS_BACKUP_DIR` | Optional. Default: `<install-dir>/oci/backups` |
    | `FMS_MEDIA_DIR`, `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH`, `FMS_AUTOMATIONS_WORK_PATH` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. Each folder must exist |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
@@ -353,8 +349,8 @@ Host cron runs the backup every day (see [Daily jobs](#daily-jobs)). Each run re
 
 ```bash
 # oci/.env
-# Host directory for the daily dumps. It must exist.
-FMS_BACKUP_DIR=<install-dir>/backups
+# Host directory for the daily dumps. It must exist. Default (not set): <install-dir>/oci/backups.
+#FMS_BACKUP_DIR=
 # Delete backups older than this many days, but always keep the newest
 # FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
@@ -370,7 +366,7 @@ podman volume rm freezeman_pgdata     # deletes the current database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c <install-dir>/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
+gunzip -c <install-dir>/oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 # Apply the migrations that the backup does not have, while only db runs.
 podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
 podman-compose up -d
@@ -457,7 +453,7 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    # Optional --interval N: check every N seconds and never exit (default: check once).
    # Optional --force: deploy even if the commit is the last deployed one.
    # Optional --fast-restore: restore with the settings of compose.restore.yaml (slow disk).
-   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --dump <install-dir>/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
+   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --dump <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
    ```
 
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.

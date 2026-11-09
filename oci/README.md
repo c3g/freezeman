@@ -75,8 +75,8 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
-| `logs/` | Usual `FMS_LOG_DIR` (a git-ignored directory). Create it before the first start |
-| `backups/` | Git-ignored directory for database backups (`FMS_BACKUP_DIR` points to a directory like it) |
+| `logs/` | Usual `FMS_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
+| `backups/` | Default `FMS_BACKUP_DIR`, for the database backups. The directory is in the checkout, its contents are git-ignored |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
 

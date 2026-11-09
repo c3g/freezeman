@@ -50,7 +50,6 @@ Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs` in your checkout,
 `FMS_LOG_DIR=/home/me/freezeman/oci/logs`. Compose stops without it. Start the stack and enter the `dev` container:
 
 ```bash
-mkdir -p logs                          # the container logs go to FMS_LOG_DIR/<service>.log
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
@@ -181,11 +180,9 @@ Use `psql` to look at the development database. There are three ways:
 
 ## Test the production stack locally
 
-Podman does not create a missing bind-mount source or log directory. Create the log directory first (once).
 Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs`, and `FMS_HOST` to `localhost`. Then build and start the stack. `web` is a default service:
 
 ```bash
-mkdir -p logs   # the backend folders are in the checkout, or in the folders that .env sets
 # proxy host: set the variables before each podman-compose command, as in Proxy
 HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
 podman-compose up -d

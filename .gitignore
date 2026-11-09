@@ -12,8 +12,11 @@ __pycache__/
 .coverage
 TODO.txt
 
-oci/backups/
-oci/logs/
+# Keep the directories in the checkout, so nobody has to create them. Ignore their contents.
+oci/backups/*
+!oci/backups/.keep
+oci/logs/*
+!oci/logs/.keep
 # Rendered logrotate config and state (the template stays tracked).
 oci/logrotate/logrotate.conf
 oci/logrotate/*.state

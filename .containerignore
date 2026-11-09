@@ -30,3 +30,7 @@ backend/fms/build_info.json
 **/*.sql.gz
 **/*.dump.gz
 **/*.pgsql.gz
+
+# Host data of the stack: container logs and database backups. Not needed by any build.
+oci/logs
+oci/backups
