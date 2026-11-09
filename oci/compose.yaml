@@ -5,7 +5,7 @@
 # Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
-#   mkdir -p ../backend/media ../backend/triggers ../backend/automations_work logs
+#   mkdir -p logs   # the backend folders are in the checkout, or in the folders that .env sets
 #   podman-compose build
 #   podman-compose up -d
 #
@@ -129,6 +129,13 @@ services:
     env_file: .env
     environment:
       <<: [*backend-env, *no-proxy]
+      # env_file also passes the host paths of the trigger and automations folders (volumes below)
+      # to Django, which reads them as paths in the container. Set the fixed container paths, so
+      # Django writes into the mounts.
+      FMS_RUN_INFO_PATH: /data/freezeman/backend/triggers/lims-run-info
+      FMS_VALIDATED_FILES_PATH: /data/freezeman/backend/triggers/lims-validation-info
+      FMS_RELEASED_FILES_PATH: /data/freezeman/backend/triggers/lims-release-info
+      FMS_AUTOMATIONS_WORK_PATH: /data/freezeman/backend/automations_work
 
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
@@ -137,10 +144,15 @@ services:
     # `:z` relabels the host directory for SELinux, so the container can use it. It has no effect
     # where SELinux is absent. Podman does not create a missing source directory, so create them
     # first (see the commands at the top).
+    # The container paths are fixed. The variables of .env choose only the host folders, so
+    # the files stay where they are on the host (for example the folders of a classic install).
+    # Django uses only the three trigger folders, not their parent, so each one has its own mount.
     volumes:
       - ${FMS_MEDIA_DIR:-../backend/media}:/data/freezeman/backend/media:z
-      - ${FMS_TRIGGERS_DIR:-../backend/triggers}:/data/freezeman/backend/triggers:z
-      - ${FMS_AUTOMATIONS_DIR:-../backend/automations_work}:/data/freezeman/backend/automations_work:z
+      - ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}:/data/freezeman/backend/triggers/lims-run-info:z
+      - ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}:/data/freezeman/backend/triggers/lims-validation-info:z
+      - ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}:/data/freezeman/backend/triggers/lims-release-info:z
+      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:/data/freezeman/backend/automations_work:z
 
     # Start as soon as the `db` container starts. The entrypoint of the image waits until the
     # database accepts connections.

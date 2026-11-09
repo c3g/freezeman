@@ -57,6 +57,12 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
+      # env_file also passes the host paths of the trigger and automations folders to Django. Use
+      # the folders of the repository mount instead.
+      FMS_RUN_INFO_PATH: /data/freezeman/backend/triggers/lims-run-info
+      FMS_VALIDATED_FILES_PATH: /data/freezeman/backend/triggers/lims-validation-info
+      FMS_RELEASED_FILES_PATH: /data/freezeman/backend/triggers/lims-release-info
+      FMS_AUTOMATIONS_WORK_PATH: /data/freezeman/backend/automations_work
 
     # Run the container as the host user. keep-id keeps files written into the repository
     # (fms.log, migrations, uploads) owned by the host user.

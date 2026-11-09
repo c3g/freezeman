@@ -163,11 +163,10 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-2. Create the directories:
+2. Create the directories of the logs and the backups. The folders of the backend files are in the checkout. [Path A](#path-a-migrate-from-the-classic-host) uses the folders of the classic install instead.
 
    ```bash
-   mkdir -p <install-dir>/oci/logs <install-dir>/backups <install-dir>/backend/media <install-dir>/backend/triggers \
-     <install-dir>/backend/automations_work
+   mkdir -p <install-dir>/oci/logs <install-dir>/backups
    ```
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
@@ -185,6 +184,7 @@ Run these steps as `<user>`.
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `FMS_BACKUP_DIR` | `<install-dir>/backups` |
+   | `FMS_MEDIA_DIR`, `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH`, `FMS_AUTOMATIONS_WORK_PATH` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. Each folder must exist |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
@@ -231,14 +231,15 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
-4. Copy the media files and the trigger folders. If the classic host is another machine, use `rsync -a` over SSH.
+4. Point `.env` to the folders of the classic install. Do not copy the files: compose binds the folders where they are.
 
-   ```bash
-   cp -a <classic-dir>/backend/media/. <install-dir>/backend/media/
-   cp -a <classic-dir>/backend/triggers/. <install-dir>/backend/triggers/
-   ```
+   | Variable | Value |
+   |---|---|
+   | `FMS_MEDIA_DIR` | The media folder of the classic install (`MEDIA_ROOT`) |
+   | `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH` | The values of the classic `uwsgi.ini`, as absolute paths. If `uwsgi.ini` does not set one, the folder in `backend/triggers` of the classic checkout |
+   | `FMS_AUTOMATIONS_WORK_PATH` | The value of the classic `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the classic checkout |
 
-   If the classic `uwsgi.ini` sets `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH` or `FMS_AUTOMATIONS_WORK_PATH`, copy those folders into `lims-run-info`, `lims-validation-info` and `lims-release-info` of `<install-dir>/backend/triggers`, and into `<install-dir>/backend/automations_work`. Do not put these variables in `.env`: they are paths inside the container. The backend creates and uses fixed paths in `/data/freezeman/backend`. `FMS_TRIGGERS_DIR` and `FMS_AUTOMATIONS_DIR` set the host folders.
+   The folders must be on this host. The backend writes as `<user>`, the host user that runs podman (`userns_mode: keep-id`), so `<user>` must be able to write into them.
 
 5. Start only the database, wait until it is ready, and restore the dump. On a slow disk, follow [Restore on a slow disk](#restore-on-a-slow-disk) instead. The message "extension fzy already exists" is harmless.
 
@@ -480,7 +481,7 @@ Use these steps to return to the classic setup.
 
 4. Start the classic uwsgi and its cron entries.
 
-The stack writes after the cutover are not in the classic database.
+The stack writes after the cutover are not in the classic database. The files that the stack wrote are in the shared folders of step 4 of Path A.
 
 ## Troubleshooting
 
