@@ -9,7 +9,7 @@ import sys
 
 
 def run_and_alert() -> bool:
-    returncode = subprocess.run([sys.executable, "manage.py", "prepare_report_data"]).returncode
+    returncode = subprocess.run([sys.executable, "/workspace/freezeman/backend/manage.py", "prepare_report_data"]).returncode
     if returncode != 0:
         # "FAILED:" is the marker that DEPLOYMENT.md greps for.
         print(f"FAILED: prepare_report_data exited with code {returncode}. "

@@ -111,7 +111,7 @@ services:
   # the container network. The port is not published. Only `web` connects to it.
   #
   # Migrations are manual. Stop `web` and `backend`, start only `db`, then run
-  #   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+  #   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
   # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
   # on QC/dev hosts. See DEPLOYMENT.md.
   backend:
@@ -131,10 +131,10 @@ services:
       # env_file also passes the host paths of the trigger and automations folders (volumes below)
       # to Django, which reads them as paths in the container. Set the fixed container paths, so
       # Django writes into the mounts.
-      FMS_RUN_INFO_PATH: /data/freezeman/backend/triggers/lims-run-info
-      FMS_VALIDATED_FILES_PATH: /data/freezeman/backend/triggers/lims-validation-info
-      FMS_RELEASED_FILES_PATH: /data/freezeman/backend/triggers/lims-release-info
-      FMS_AUTOMATIONS_WORK_PATH: /data/freezeman/backend/automations_work
+      FMS_RUN_INFO_PATH: /workspace/freezeman/backend/triggers/lims-run-info
+      FMS_VALIDATED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-validation-info
+      FMS_RELEASED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-release-info
+      FMS_AUTOMATIONS_WORK_PATH: /workspace/freezeman/backend/automations_work
 
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
@@ -147,11 +147,11 @@ services:
     # the files stay where they are on the host (for example the folders of a classic install).
     # Django uses only the three trigger folders, not their parent, so each one has its own mount.
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/data/freezeman/backend/media:z
-      - ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}:/data/freezeman/backend/triggers/lims-run-info:z
-      - ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}:/data/freezeman/backend/triggers/lims-validation-info:z
-      - ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}:/data/freezeman/backend/triggers/lims-release-info:z
-      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:/data/freezeman/backend/automations_work:z
+      - ${FMS_MEDIA_DIR:-../backend/media}:/workspace/freezeman/backend/media:z
+      - ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}:/workspace/freezeman/backend/triggers/lims-run-info:z
+      - ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}:/workspace/freezeman/backend/triggers/lims-validation-info:z
+      - ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}:/workspace/freezeman/backend/triggers/lims-release-info:z
+      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:/workspace/freezeman/backend/automations_work:z
 
     # Start as soon as the `db` container starts. The entrypoint of the image waits until the
     # database accepts connections.
@@ -194,7 +194,7 @@ services:
     # `:ro` makes the mount read-only, because nginx only reads the media files. `:z` is the
     # SELinux label (see `backend`).
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/data/freezeman/backend/media:ro,z
+      - ${FMS_MEDIA_DIR:-../backend/media}:/workspace/freezeman/backend/media:ro,z
 
     # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
     # and restart: always is the fallback if the name does not resolve yet.

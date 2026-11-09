@@ -191,7 +191,7 @@ Run these steps as `<user>`.
 
    | Area | `PROD` | Other value (`QC`, `DEV`) |
    |---|---|---|
-   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `fms.log` in `/data/freezeman/backend` of the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
+   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `/workspace/freezeman/backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
@@ -256,7 +256,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 6. Apply the migrations while only `db` runs, then start all services and check them. The migration command prints the applied migrations and ends with exit code 0:
 
    ```bash
-   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
    podman-compose up -d
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    ```
@@ -279,7 +279,7 @@ Start only `db`, apply the migrations in a one-off `backend` container, then sta
 ```bash
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
 podman-compose up -d
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
@@ -339,7 +339,7 @@ git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.
 podman-compose stop web backend
-podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
 podman-compose up -d --force-recreate
 ```
 
@@ -370,7 +370,7 @@ until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c <install-dir>/oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 # Apply the migrations that the backup does not have, while only db runs.
-podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
 podman-compose up -d
 ```
 
@@ -412,7 +412,7 @@ If `fdatasync` is near 250 operations per second or less, use these steps. Use t
    # running initdb --sync-only, running sync, unmounting the file system, or rebooting the server."
    # Source: https://www.postgresql.org/docs/15/runtime-config-wal.html#GUC-FSYNC
    sync
-   podman-compose run --rm --no-deps backend sh -c "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
    podman-compose up -d
    ```
 
@@ -427,7 +427,7 @@ podman-compose logs -f backend                                       # follow th
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from FMS_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
 tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
-podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
+podman-compose exec -T backend python /workspace/freezeman/backend/manage.py prepare_report_data  # run the report now (-T: no terminal)
 ./jobs.py logrotate                                                  # rotate now (only a file that is due)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```

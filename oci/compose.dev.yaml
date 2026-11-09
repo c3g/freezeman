@@ -59,25 +59,25 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
       # env_file also passes the host paths of the trigger and automations folders to Django. Use
       # the folders of the repository mount instead.
-      FMS_RUN_INFO_PATH: /data/freezeman/backend/triggers/lims-run-info
-      FMS_VALIDATED_FILES_PATH: /data/freezeman/backend/triggers/lims-validation-info
-      FMS_RELEASED_FILES_PATH: /data/freezeman/backend/triggers/lims-release-info
-      FMS_AUTOMATIONS_WORK_PATH: /data/freezeman/backend/automations_work
+      FMS_RUN_INFO_PATH: /workspace/freezeman/backend/triggers/lims-run-info
+      FMS_VALIDATED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-validation-info
+      FMS_RELEASED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-release-info
+      FMS_AUTOMATIONS_WORK_PATH: /workspace/freezeman/backend/automations_work
 
     # Run the container as the host user. keep-id keeps files written into the repository
     # (fms.log, migrations, uploads) owned by the host user.
     userns_mode: keep-id
 
     volumes:
-      # Mount the repository at /data/freezeman, so backend/fms/info.py and
+      # Mount the repository at /workspace/freezeman, so backend/fms/info.py and
       # frontend/webpack.config.js find ../VERSION and .git as they do outside containers. ":z"
       # relabels the mounts for SELinux (Rocky/RHEL/Fedora) and is ignored elsewhere.
       # backend/media, backend/triggers and backend/automations_work are in this mount, so they
       # need no mount of their own.
-      - ..:/data/freezeman:z
+      - ..:/workspace/freezeman:z
       # Linux dependencies installed by the container, separate from the host's node_modules
       # (":U" chowns the volume to the container user)
-      - frontend_node_modules:/data/freezeman/frontend/node_modules:U
+      - frontend_node_modules:/workspace/freezeman/frontend/node_modules:U
 
     # Publish runserver (8000) and the webpack dev server (9000) on the host.
     ports:

@@ -30,7 +30,7 @@ Contents:
 
 For the services of the development stack, see [Development services](README.md#development-services) in README.md.
 
-- The repository is bind-mounted at `/data/freezeman`. Files that the container writes (`fms.log`, migrations, uploads)
+- The repository is bind-mounted at `/workspace/freezeman`. Files that the container writes (`fms.log`, migrations, uploads)
   belong to your host user (`userns_mode: keep-id`).
 - Container `node_modules` live in a named volume, separate from the host's. This gives you:
   - No clash between the host and the container. `npm ci` installs binaries for one OS and architecture
@@ -54,7 +54,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
 
-The `dev` shell starts in `/data/freezeman`. The venv is ready: the `dev` image has the packages of
+The `dev` shell starts in `/workspace/freezeman`. The venv is ready: the `dev` image has the packages of
 `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`. So `python`, `pip` and
 `pytest` are the ones of the venv, with no activation and no first `pip install`.
 
@@ -103,7 +103,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admi
 
 # Start dev, then apply the migrations of your branch that the dump does not have.
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py migrate && python /workspace/freezeman/backend/manage.py createinitialrevisions'
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
@@ -125,15 +125,15 @@ In the `dev` shell:
 
 ```bash
 # First start and after each new migration:
-cd /data/freezeman/backend && python manage.py migrate && python manage.py createinitialrevisions
+cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py migrate && python /workspace/freezeman/backend/manage.py createinitialrevisions
 
 # Backend: http://localhost:8000, reloads on code changes
 # 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd /data/freezeman/backend && python manage.py runserver 0.0.0.0:8000
+cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py runserver 0.0.0.0:8000
 
 # Frontend with live reload: http://localhost:9000 (proxies /api to port 8000)
 # --host 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd /data/freezeman/frontend && npm ci && npm start -- --host 0.0.0.0
+cd /workspace/freezeman/frontend && npm ci && npm start -- --host 0.0.0.0
 ```
 
 - The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
@@ -143,13 +143,13 @@ cd /data/freezeman/frontend && npm ci && npm start -- --host 0.0.0.0
 Run the backend tests in the `dev` shell:
 
 ```bash
-cd /data/freezeman/backend && pytest
+cd /workspace/freezeman/backend && pytest
 ```
 
 Or run them from the host, in `oci/`, without a `dev` shell:
 
 ```bash
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && pytest'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd /workspace/freezeman/backend && pytest'
 ```
 
 The tests need no database setup. pytest-django creates a separate test database and deletes it after the run.

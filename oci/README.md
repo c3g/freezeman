@@ -142,8 +142,8 @@ Without a proxy, skip it and leave the variables unset. The stack then works as 
 podman-compose ps                                  # containers of the stack and their state
 podman-compose logs -f backend                     # follow the backend logs
 podman-compose logs -f -n                          # follow the logs of all services, each line with its container name
-podman-compose exec backend python manage.py shell  # Django shell in the backend
-podman-compose exec -T backend python manage.py prepare_report_data  # run the fms-report job now
+podman-compose exec backend python /workspace/freezeman/backend/manage.py shell  # Django shell in the backend
+podman-compose exec -T backend python /workspace/freezeman/backend/manage.py prepare_report_data  # run the fms-report job now
 podman-compose exec db psql -U admin -d fms        # psql session on the fms database
 # -T: no pseudo-TTY, which would turn the dump's line endings into CRLF
 podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql  # manual dump of all databases

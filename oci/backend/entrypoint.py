@@ -5,23 +5,21 @@ import time
 
 import psycopg2
 
-BACKEND_DIR = "/data/freezeman/backend"
-
 
 def make_directories() -> None:
-    # Fresh volumes (and Kubernetes PVCs) start empty: create the directories
-    # Django writes into before handing over to the actual command.
-    # The paths are fixed in the container: the mounts in compose.yaml put the host folders
-    # at these paths, so no environment variable moves them.
+    # Create the directories that Django writes into but does not create itself. The trigger
+    # and automations folders need nothing here: each one is a mount target, so it exists.
     for path in (
-        "media/uploads/templates",
-        "tmp",
-        "triggers/lims-run-info",
-        "triggers/lims-validation-info",
-        "triggers/lims-release-info",
-        "automations_work",
+        # TEMPLATE_UPLOAD_PATH. Django does not create it, and each template submission fails
+        # without it. The default media folder of the checkout has it (git tracks
+        # backend/media/uploads/templates/.keep). Another FMS_MEDIA_DIR may not: a new or empty
+        # folder, a classic media folder with no upload yet, or an empty Kubernetes PVC.
+        "/workspace/freezeman/backend/media/uploads/templates",
+        # TEMP_ROOT. The backend-prod image creates this directory. The "dev" image does not:
+        # it mounts the repository at /workspace/freezeman, and git does not track backend/tmp.
+        "/workspace/freezeman/backend/tmp",
     ):
-        os.makedirs(os.path.join(BACKEND_DIR, path), exist_ok=True)
+        os.makedirs(path, exist_ok=True)
 
 
 # Read the variables as backend/fms/settings.py does (os.environ.get with a default), so the

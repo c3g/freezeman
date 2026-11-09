@@ -31,7 +31,7 @@ RESTORE_PSQL = 'psql -U "$POSTGRES_USER" -d postgres'
 RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl --verbose -d "$POSTGRES_DB"'
 
 # Runs in a one-off backend container while only `db` runs. The dump does not have the newest migrations.
-MIGRATE = "python manage.py migrate --noinput && python manage.py createinitialrevisions"
+MIGRATE = "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
 
 # Relative to the working directory, like compose.yaml: hostenv.setup() changes it to OCI_DIR.
 FAST_RESTORE_FILES = ["-f", "compose.yaml", "-f", "compose.restore.yaml"]
