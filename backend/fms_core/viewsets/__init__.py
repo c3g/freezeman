@@ -48,6 +48,7 @@ from .sample_identity_match import SampleIdentityMatchViewSet
 from .profile import ProfileViewSet
 from .derived_sample import DerivedSampleViewSet
 from .parent_project import ParentProjectViewSet
+from .frontend_log import FrontendLogViewSet
 
 __all__ = [
     "BiosampleViewSet",
@@ -100,4 +101,5 @@ __all__ = [
     "ProfileViewSet",
     "DerivedSampleViewSet",
     "ParentProjectViewSet",
+    "FrontendLogViewSet",
 ]

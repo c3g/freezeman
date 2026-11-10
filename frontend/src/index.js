@@ -10,6 +10,7 @@ import {BrowserRouter} from "react-router-dom";
 
 import "./utils/platform";
 import { setStore } from "./utils/withItem.js";
+import { initFrontendLogger } from "./utils/frontendLogger";
 import App from "./components/app/App";
 
 import "./styles/global.css";
@@ -19,6 +20,7 @@ import store from './store'
 
 const persistor = persistStore(store);
 setStore(store);
+initFrontendLogger(store.dispatch);
 
 const container = document.getElementById("root")
 const root = createRoot(container)

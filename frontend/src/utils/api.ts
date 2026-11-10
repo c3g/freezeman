@@ -33,6 +33,8 @@ import {
   FMSExperimentRun,
   FMSReadsetSummary,
   FMSReadsetReporting,
+  FMSFrontendLogConfig,
+  FMSFrontendLogEntry,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
@@ -44,6 +46,12 @@ const api = {
     tokenRefresh: (tokens) => post("/token/refresh/", tokens),
     resetPassword: (email) => post("/password_reset/", { email }),
     changePassword: (token, password) => post("/password_reset/confirm/", { token, password }),
+  },
+
+  frontendLogs: {
+    send: (entries: FMSFrontendLogEntry[], options?: APIFetchOptions) =>
+      post<StringResponse>("/frontend-logs/", { entries }, options),
+    getConfig: () => get<JsonResponse<FMSFrontendLogConfig>>("/frontend-logs/config/"),
   },
 
   biosamples: {
@@ -666,6 +674,8 @@ export interface APIFetchOptions {
   abort?: boolean
   requestID?: string
   notifyError?: boolean
+  // Lets the request finish after the page unloads (body limit: 64 KiB).
+  keepalive?: boolean
 }
 
 export const ABORT_ERROR_NAME = "AbortError"
@@ -708,6 +718,7 @@ function apiFetch<R extends ResponseWithData<any>>(
       headers,
       credentials: "omit",
       signal,
+      keepalive: options.keepalive,
       body: isFormData(body) ? body : isObject(body) ? JSON.stringify(body) : undefined,
     })
 

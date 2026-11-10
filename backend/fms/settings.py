@@ -124,6 +124,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Frontend logging. The frontend reads the "client" values from GET /api/frontend-logs/config/.
+FRONTEND_LOGGING = {
+    "THROTTLE_RATE": "120/min",
+    "MAX_MESSAGE_LENGTH": 10000,
+    "client": {
+        "max_batch_size": 100,  # also the server limit per POST
+        "flush_threshold": 50,  # flush when the buffer has this many entries
+        "flush_interval_ms": 2000,  # fixed flush window
+        "max_buffer_size": 500,  # drop the oldest entries above this
+    },
+}
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -144,6 +156,9 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'fms_core.exception_handler.fms_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
+    'DEFAULT_THROTTLE_RATES': {
+        'frontend-logs': FRONTEND_LOGGING["THROTTLE_RATE"],
+    },
 }
 
 
@@ -222,6 +237,7 @@ TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
 # Logging
 handler = {}
 logger = {}
+frontend_logger = {}
 MAX_SIZE_LOG = 2000000000
 LOG_BACKUP_COUNT = 1
 if FMS_ENV == "PROD":
@@ -234,6 +250,12 @@ if FMS_ENV == "PROD":
     logger = {
         "handlers": ["console"],
         "level": "WARNING",
+    }
+    # INFO, not WARNING like "django", so that frontend info logs reach production logs.
+    frontend_logger = {
+        "handlers": ["console"],
+        "level": "INFO",
+        "propagate": False,
     }
 else:
     handler = {
@@ -255,6 +277,11 @@ else:
         "level": "DEBUG",
         "propagate": True,
     }
+    frontend_logger = {
+        "handlers": ["file"],
+        "level": "DEBUG",
+        "propagate": False,
+    }
 
 LOGGING = {
     "version": 1,
@@ -268,6 +295,7 @@ LOGGING = {
     "handlers": handler,
     "loggers": {
         "django": logger,
+        "fms.frontend": frontend_logger,
     },
 }
 

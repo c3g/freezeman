@@ -747,3 +747,21 @@ export interface FMSContentType {
   app_label: string
   model: string
 }
+
+export type FMSFrontendLogLevel = "debug" | "info" | "warning" | "error"
+
+export interface FMSFrontendLogEntry {
+  level: FMSFrontendLogLevel
+  message: string
+  timestamp: string
+  url?: string
+  context?: Record<string, unknown>
+}
+
+// Keys match FRONTEND_LOGGING["client"] in backend/fms/settings.py.
+export interface FMSFrontendLogConfig {
+  max_batch_size: number
+  flush_threshold: number
+  flush_interval_ms: number
+  max_buffer_size: number
+}
