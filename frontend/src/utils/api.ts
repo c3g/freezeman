@@ -77,7 +77,11 @@ const api = {
         filteredpost(`/containers/prefill_template/`, { ...options }, form({ template: template })),
     },
     search: (q, { parent, sample_holding, exact_match, except_kinds }, requestID?: string) =>
-      get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }, { abort: true, requestID }),
+      get(
+        "/containers/search/",
+        { q, parent, sample_holding, exact_match, except_kinds },
+        { abort: true, requestID },
+      ),
   },
 
   coordinates: {

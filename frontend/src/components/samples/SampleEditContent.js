@@ -84,9 +84,11 @@ const searchCoordinates = (token, input, options) =>
  * @param {string} [requestID] abort key: a new search with the same key aborts the in-flight one
  */
 const searchContainers = (token, input, options, requestID) =>
-  withToken(token, api.containers.search)(input, { sample_holding: true, ...options }, requestID).then(
-    (res) => res.data.results,
-  )
+  withToken(token, api.containers.search)(
+    input,
+    { sample_holding: true, ...options },
+    requestID,
+  ).then((res) => res.data.results)
 
 const searchIndividuals = (token, input, options) =>
   withToken(token, api.individuals.search)(input, options).then((res) => res.data.results)
