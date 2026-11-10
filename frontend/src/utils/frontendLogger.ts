@@ -31,7 +31,10 @@ let flushing = false
  * Call it once, at application start.
  */
 export function initFrontendLogger(appDispatch: AppDispatch) {
+  // Keep the store dispatch: flush() reads the user token through it and sends the batches with it.
+  // It is passed in, not imported, to prevent an import cycle with store.ts.
   dispatch = appDispatch
+  // On page hide or close, send what is still in the buffer. keepalive lets the request finish after unload.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") void flush(true)
   })
