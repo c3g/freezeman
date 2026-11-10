@@ -148,7 +148,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
             dispatch(flushSamplesAtStep(step.id))
             const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
             notification.info({
-              message: `Automation completed with success. Moving samples to next step.`,
+              title: `Automation completed with success. Moving samples to next step.`,
               key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
               duration: 5,
             })
@@ -157,7 +157,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
             const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
             const errors = response.data.errors
             notification.error({
-              message: `Automation failed. Errors:${Object.values(errors)
+              title: `Automation failed. Errors:${Object.values(errors)
                 .filter((value) => typeof value === "string" && value.length > 0)
                 .map((value) => "[" + value + "]")}`,
               key: AUTOMATION_FAILED_NOTIFICATION_KEY,
@@ -210,22 +210,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
         return
       }
       dispatch(setFilter(step.id, description, value, refresh))
-    },
-    [step, dispatch],
-  )
-
-  const handleSetFilterOptions = useCallback(
-    (
-      filterKey: string,
-      property: string,
-      value: boolean,
-      description: FilterDescription,
-      refresh = true,
-    ) => {
-      if (typeof description === "undefined") {
-        return
-      }
-      dispatch(setFilterOptions(step.id, description, { [property]: value }, refresh))
     },
     [step, dispatch],
   )
