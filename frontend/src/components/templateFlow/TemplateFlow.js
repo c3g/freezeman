@@ -102,7 +102,7 @@ const TemplateFlow = (props) => {
               <p>Please upload the file again, and ensure that it is not saved or otherwise modified until after it has been submitted.</p>
             </div>
           notification.error({
-            message: 'File Has Changed',
+            title: 'File Has Changed',
             description,
             duration: 0
           })
