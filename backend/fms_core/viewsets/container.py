@@ -213,6 +213,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                         # GREATEST ignores the NULL default.
                         Case(
                             When(id_text__startswith=fuzzy_input, then=FZY(fuzzy_input, F("id_text"))),
+                            # A 0 default raises negative barcode and name scores to 0, so correct results then depend on the score__gt=0 filter.
                             default=Value(None),
                             output_field=FloatField(),
                         ),
