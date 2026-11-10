@@ -1,4 +1,4 @@
-from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q, F
+from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef, Q, F, Value
 from rest_framework import viewsets
 from fms_core.models import DerivedBySample, Sample
 from ._constants import (
@@ -73,17 +73,19 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
             # Limit queries to DerivedBySamples that are in a pooled parent sample,
             # ie. a parent sample that contains more than one derived sample.
             self.queryset = self.queryset.filter(is_pooled=True)
-
-        root_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
-
-        self.queryset = self.queryset.annotate(
-            root_sample_name=Subquery(root_sample_subquery.values_list("sample__name", flat=True))
-        )
-
-        self.queryset = self.queryset.annotate(
-            root_sample_id=Subquery(root_sample_subquery.values_list("sample_id", flat=True))
-        )
-
+            # Return these fields (incredibly long) only when listing pools. TODO : find a cleaner way
+            root_sample_subquery = DerivedBySample.objects.filter(Q(derived_sample__biosample_id=OuterRef("derived_sample__biosample_id")) & Q(derived_sample__derived_from__isnull=True))[:1]
+            self.queryset = self.queryset.annotate(
+                root_sample_name=Subquery(root_sample_subquery.values_list("sample__name", flat=True))
+            )
+            self.queryset = self.queryset.annotate(
+                root_sample_id=Subquery(root_sample_subquery.values_list("sample_id", flat=True))
+            )
+        else:
+            # Send empty values 
+            self.queryset = self.queryset.annotate(root_sample_name=Value(""))
+            self.queryset = self.queryset.annotate(root_sample_id=Value(""))
+            
         return self.queryset
 
     def get_renderer_context(self):
