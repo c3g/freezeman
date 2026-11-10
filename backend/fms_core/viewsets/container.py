@@ -210,10 +210,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                         FZY(fuzzy_input, Lower("name")),
                         # fzy matches subsequences, so q=12 also matches ids 1002 and 312.
                         # The id must match from its most significant digit, so only a prefix match gets a score.
-                        # GREATEST ignores the NULL default.
                         Case(
                             When(id_text__startswith=fuzzy_input, then=FZY(fuzzy_input, F("id_text"))),
-                            # A 0 default raises negative barcode and name scores to 0, so correct results then depend on the score__gt=0 filter.
+                            # GREATEST ignores NULL.
                             default=Value(None),
                             output_field=FloatField(),
                         ),
