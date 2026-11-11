@@ -12,11 +12,17 @@ import * as Options from "../../utils/options"
 import { add, update } from "../../modules/containers/actions"
 import ContainersTableActions from "../../modules/containersTable/actions"
 import { container as EMPTY_CONTAINER } from "../../models/empty_models"
-import api, { withToken } from "../../utils/api"
+import api, { ABORT_ERROR_NAME, withToken } from "../../utils/api"
 import { requiredRules, barcodeRules, nameRules } from "../../constants"
 
-const searchContainers = (token, input, options) =>
-  withToken(token, api.containers.search)(input, options).then((res) => res.data.results)
+/**
+ * @param {string} token
+ * @param {string} input
+ * @param {object} options
+ * @param {string} [requestID] abort key: a new search with the same key aborts the in-flight one
+ */
+const searchContainers = (token, input, options, requestID) =>
+  withToken(token, api.containers.search)(input, options, requestID).then((res) => res.data.results)
 
 const searchCoordinates = (token, input, options) =>
   withToken(token, api.coordinates.search)(input, options).then((res) => res.data.results)
@@ -54,9 +60,15 @@ const ContainerEditContent = ({
     onSearchLocation(ev.target.value)
   }
   const onSearchLocation = (input, options) => {
-    searchContainers(token, input, { ...options, parent: true }).then((containers) => {
-      setLocationOptions(containers.map(Options.renderContainer))
-    })
+    searchContainers(token, input, { ...options, parent: true }, "container-edit-location")
+      .then((containers) => {
+        setLocationOptions(containers.map(Options.renderContainer))
+      })
+      .catch((error) => {
+        // A newer search aborted this one. Its results replace these.
+        if (error.name === ABORT_ERROR_NAME) return
+        throw error
+      })
   }
 
   /*
