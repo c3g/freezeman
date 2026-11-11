@@ -122,7 +122,7 @@ const ExternalProjectsPage = () => {
           (record.external_id || "").toLowerCase().includes(String(value).toLowerCase()),
 
         render: (externalID: string, parentProject: FMSParentProject) => (
-          <Link to={`/external-projects-overview/${parentProject.id}#projects`}>{externalID}</Link>
+          <Link to={`/external-projects-overview/${parentProject.id}#overview`}>{externalID}</Link>
         ),
       },
       {

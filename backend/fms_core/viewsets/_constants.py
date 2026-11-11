@@ -114,6 +114,7 @@ _sample_filterset_fields: FiltersetFields = {
     "container": FK_FILTERS,  # PK
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
     "derived_samples__biosample__id": FK_FILTERS,
+    "derived_samples__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "derived_samples__id": PK_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
     "container__location__barcode": CATEGORICAL_FILTERS_LOOSE,
@@ -274,6 +275,7 @@ _library_filterset_fields: FiltersetFields = {
 _dataset_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "project": FK_FILTERS,
+    "project__parent_project__id": FK_FILTERS,
     "project__parent_project__external_id": CATEGORICAL_FILTERS_LOOSE,
     "project__name": CATEGORICAL_FILTERS_LOOSE,
     "experiment_run": FK_FILTERS,
@@ -309,6 +311,7 @@ _readset_filterset_fields: FiltersetFields = {
     "validation_status_timestamp": DATE_FILTERS,
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__sample_identity__conclusive": ["exact"],
     "derived_sample__samples__id": ["exact"],
     **_prefix_keys("dataset__", _dataset_filterset_fields),

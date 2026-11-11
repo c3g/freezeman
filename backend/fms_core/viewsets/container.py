@@ -1,6 +1,8 @@
+import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
+from django.db.models import Q, F, Prefetch, CharField, FloatField, Case, When, Value
+from django.db.models.functions import Cast, Greatest, Lower
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -26,7 +28,7 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys, FZY
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
@@ -103,26 +105,42 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         coordinates = None
 
         try:
-            if container['name'] and Container.objects.filter(name=container['name']).exists():
-                raise ValidationError({"name": f"Container with name {container['name']} already exists."})
-            if not container['name'] and Container.objects.filter(name=container['barcode']).exists():
-                raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
+            if container.get("name") and Container.objects.filter(name=container['name']).exists():
+                raise ValidationError({"name": f"Container with name {container.get("name", "")} already exists."})
+            if not container.get("name") and Container.objects.filter(name=container.get("barcode")).exists():
+                raise ValidationError({"barcode": f"Container with name {container.get("barcode", "")} already exists. Missing container name, barcode will replace container name."})
             container = remove_empty_str_from_dict(container)
-            if container['location']:
+            if container.get("location"):
                 try:
-                    container_parent = Container.objects.get(id=container['location'])
+                    container_parent = Container.objects.get(id=container.get("location"))
                 except Exception as err:
-                    raise ValidationError({"location": f"Failed to find parent container with ID {container['location']}."})
-            if container['coordinate']:
+                    raise ValidationError({"location": f"Failed to find parent container with ID {container.get("location", "")}."})
+            if container.get("coordinate"):
                 try:
-                    coordinates = Coordinate.objects.get(id=container['coordinate']).name
+                    coordinates = Coordinate.objects.get(id=container.get("coordinate")).name
                 except Exception as err:
-                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container['coordinate']}."})
-            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=coordinates, container_parent=container_parent, creation_comment=container['comment'])
-            serializer = ContainerSerializer(container_obj)
+                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container.get("coordinate")}."})
+            container_obj, errors, warnings = create_container(barcode=container.get("barcode"), kind=container.get("kind"), name=container.get("name"), coordinates=coordinates, container_parent=container_parent, creation_comment=container.get("comment"))
+            if container_obj is None and errors:
+                patterns = [
+                    (r"^Invalid coordinates \S+ specified for coordinate system \S+$", "coordinate"),
+                    (r"^Parent container \S+ already contains container \S+ at coordinates \S+$", "coordinate"),
+                    (r"^Cannot specify coordinates in non-specified container$", "location")
+                ]
+                parsed_errors = defaultdict(str)
+                for error in errors:
+                    for pattern, field in patterns:
+                        if re.fullmatch(pattern, error):
+                            if parsed_errors[field]:
+                                parsed_errors[field] = parsed_errors[field] + ", " + error
+                            else:
+                                parsed_errors[field] = error
+                raise ValidationError(parsed_errors or {"barcode": ",".join(errors)}) # Default errors to the Barcode form field until we map it.
+            else:
+                serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
-        
+
         return Response(serializer.data)
 
     def get_renderer_context(self):
@@ -152,7 +170,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
-        Searches for parent containers that match the given query
+        Searches for containers that match the given query.
+        Without exact_match, the closest fuzzy (fzy) match on barcode, name or id comes first.
+        The id matches only when it starts with q.
         """
         search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
@@ -161,24 +181,51 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         qs_except_kinds = _request.GET.get("except_kinds")
         except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
-        if search_input is not None:
+        containers_data = Container.objects.all()
+
+        if is_parent:
+            kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+        if is_sample_holding:
+            kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
+            containers_data = containers_data.filter(kind__in=kinds)
+
+        if search_input:
             if is_exact_match:
-                query = Q(barcode=search_input)
-                query.add(Q(name=search_input), Q.OR)
-                query.add(Q(id=search_input), Q.OR)
+                exact_query = Q(barcode=search_input) | Q(name=search_input)
+                # Without the ASCII digit check, a non-numeric q (including "²") on the integer id gives HTTP 500.
+                if re.fullmatch(r"\d+", search_input, re.ASCII):
+                    exact_query |= Q(id=search_input)
+                containers_data = containers_data.filter(exact_query).order_by("id")
             else:
-                query = Q(barcode__icontains=search_input)
-                query.add(Q(name__icontains=search_input), Q.OR)
-                query.add(Q(id__icontains=search_input), Q.OR)
-            if is_parent:
-                kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            if is_sample_holding:
-                kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            containers_data = Container.objects.filter(query)
+                # fzy is smart-case: a lowercase letter in q matches both cases, but an uppercase letter in q matches only the same uppercase letter.
+                # Example: GET /api/containers/search/?q=BOX with FZY(q, F("barcode")) does not return box-1.
+                # Lowercasing q and the fields makes every query case-insensitive.
+                fuzzy_input = search_input.lower()
+                # Without Cast, fzy on the integer id gives HTTP 500.
+                containers_data = containers_data.annotate(id_text=Cast("id", CharField()))
+                containers_data = containers_data.annotate(
+                    score=Greatest(
+                        FZY(fuzzy_input, Lower("barcode")),
+                        FZY(fuzzy_input, Lower("name")),
+                        # fzy matches subsequences, so q=12 also matches ids 1002 and 312.
+                        # The id must match from its most significant digit, so only a prefix match gets a score.
+                        Case(
+                            When(id_text__startswith=fuzzy_input, then=FZY(fuzzy_input, F("id_text"))),
+                            # GREATEST ignores NULL.
+                            default=Value(None),
+                            output_field=FloatField(),
+                        ),
+                        # Without it, Django infers CharField for FZY and rejects the mix with the FloatField Case.
+                        output_field=FloatField(),
+                    )
+                )
+                # Without this filter, non-matches and very weak matches are returned.
+                containers_data = containers_data.filter(score__gt=0)
+                # Without "id" as a tiebreaker, containers with equal scores can change order between page queries, and then repeat or skip across pages.
+                containers_data = containers_data.order_by("-score", "-id")
         else:
-            containers_data = Container.objects.all()
+            containers_data = containers_data.none()
 
         page = self.paginate_queryset(containers_data)
         serializer = self.get_serializer(page, many=True)
@@ -222,5 +269,5 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         Lists all django_reversion Version objects associated with a container.
         """
         return versions_detail(self.get_object())
-    
-    
+
+

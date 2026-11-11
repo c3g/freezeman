@@ -31,7 +31,8 @@ from fms_core.services.archived_comment import (create_archived_comment_for_mode
                                                 AUTOMATED_COMMENT_DATASET_NEW_DATA,
                                                 AUTOMATED_COMMENT_DATASET_RESET,
                                                 AUTOMATED_COMMENT_DATASET_RELEASED,
-                                                AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED)
+                                                AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED,
+                                                AUTOMATED_COMMENT_DATASET_MISSING_IDENTITY_MATCH_INFO)
 
 def create_dataset(project_id: int,
                    experiment_run_id: int,
@@ -606,6 +607,7 @@ def ingest_run_validation_report(report_json, submitter_obj: User):
                         errors.append(f"Dataset file for readset [{readset_name}] cannot be created : missing {'final_path' if file.get('final_path') is None else 'size'}.")
                         return (datasets, dataset_files, errors, warnings)
 
+        dataset_missing_identity_info : set[int] = set()
         for run_validation in report_json["run_validation"]:
             readset_obj = readset_by_name[run_validation["sample"]]
             _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset_obj,
@@ -643,6 +645,14 @@ def ingest_run_validation_report(report_json, submitter_obj: User):
                                                                                   readset_obj=readset_obj)
                 errors.extend(errors_matches)
                 warnings.extend(warnings_matches)
+            elif self_match is None and other_matches is None: # If the script is not run, the identity match values are None.
+                tested_biosample_id = readset_obj.derived_sample.biosample_id
+                if SampleIdentity.objects.filter(biosample_id=tested_biosample_id).exists():
+                    dataset_missing_identity_info.add(readset_obj.dataset_id)
+                else:
+                    pass # This is the expected result. No match is to be expected from sample without identity.
+        for dataset_id in dataset_missing_identity_info: # write missing identity match warnings to the archived comments.
+            create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_MISSING_IDENTITY_MATCH_INFO())                    
 
     else:
         errors.append("Experiment run ID missing.")

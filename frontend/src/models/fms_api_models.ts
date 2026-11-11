@@ -146,6 +146,41 @@ export interface FMSReadset extends FMSTrackedModel {
   metrics?: FMSMetric[] | { [key: string]: FMSMetric }
 }
 
+export interface FMSReadsetReporting {
+  readset_id: FMSId
+  readset_name: string
+  sample_name: string
+  biosample_alias: string
+  cohort: string
+  library_type: string
+  run_name: string
+  run_start_date: string
+  validation_status: number
+  readset_files: string[]
+
+  nb_reads: number
+  avg_qual: number
+  pf_read_alignment_rate: number
+  duplicate_rate: number
+  base_yield: number
+}
+
+export interface FMSReadsetSummary {
+  total_readsets: number
+  total_runs: number
+  total_samples: number
+  complete_count: number
+  total_cohorts: number
+
+  library_type_distribution: { type: string; count: number }[]
+
+  nb_reads: number
+
+  avg_qual: number
+  pf_read_alignment_rate: number
+  duplicate_rate: number
+}
+
 export interface FMSDatasetFile extends FMSTrackedModel {
   dataset: FMSId // The dataset that owns this file
   file_path: string // The path to the dataset file (on Abacus?)
@@ -303,8 +338,8 @@ export interface FMSPooledSample extends FMSTrackedModel {
   experimental_group?: string[] // An array of experimental group names
   individual_id?: FMSId // The ID of the individual to whom this sample was extracted
   individual_name?: string // Individual name
-  parent_sample_id: FMSId // The id of the sample that was added to this pool
-  parent_sample_name: string // The name of the sample that was added to this pool
+  root_sample_id: FMSId // The id of the sample that was added to this pool
+  root_sample_name: string // The name of the sample that was added to this pool
   sample_kind: string // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
   container_id: FMSId
   container_barcode: string
@@ -634,6 +669,7 @@ export interface LabworkStepInfo {
       grouping_column: string
       groups: {
         name: string
+        id: FMSId | null
         count: number
         sample_locators: SampleLocator[]
       }[]

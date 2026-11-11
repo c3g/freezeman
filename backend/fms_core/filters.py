@@ -330,14 +330,14 @@ class ExperimentRunFilter(GenericFilter):
         fields = _experiment_run_filterset_fields
 
 class PooledSamplesFilter(GenericFilter):
-    parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")
-    parent_sample_name__startswith = django_filters.CharFilter(method="parent_sample_name_exact_filter")
+    root_sample_name__icontains = django_filters.CharFilter(method="root_sample_name_filter")
+    root_sample_name__startswith = django_filters.CharFilter(method="root_sample_name_exact_filter")
 
-    def parent_sample_name_filter(self, queryset, name, value):
-        return queryset.filter(parent_sample_name__icontains=value)
+    def root_sample_name_filter(self, queryset, name, value):
+        return queryset.filter(root_sample_name__icontains=value)
 
-    def parent_sample_name_exact_filter(self, queryset, name, value):
-        return queryset.filter(parent_sample_name__startswith=value)
+    def root_sample_name_exact_filter(self, queryset, name, value):
+        return queryset.filter(root_sample_name__startswith=value)
 
     class Meta:
         model = DerivedBySample

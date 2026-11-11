@@ -36,6 +36,7 @@ import api from "../../utils/api"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { DEFAULT_SMALL_PAGINATION_LIMIT } from "../../config"
 import { FastForwardOutlined, StopOutlined } from "@ant-design/icons"
+import { EMPTY_LIST } from "../../constants"
 
 interface StudyStepSamplesTableProps {
   studyID: FMSId
@@ -88,9 +89,9 @@ function StudyStepSamplesTable({
     [dispatch, studyID, step],
   )
 
-  const setSortBy = useCallback(
-    (sortBy: SortBy) => {
-      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortBy))
+  const setSortByList = useCallback(
+    (sortByList: SortBy[]) => {
+      dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortByList))
     },
     [studyID, step, dispatch],
   )
@@ -98,12 +99,13 @@ function StudyStepSamplesTable({
   const protocol: Protocol | undefined = protocolsByID[step.protocolID]
   const stepDefinition = stepsByID[step.stepID]
 
-  const actionColumn = useMemo(
+  const actionColumn = useMemo<IdentifiedTableColumnType<SampleAndLibraryAndIdentity>>(
     () => ({
       columnID: "Action",
       title: "Action",
       dataIndex: ["sample", "id"],
       width: 150,
+      fixed: "end",
       render: (_: any, { sample }: SampleAndLibraryAndIdentity) => {
         return sample && <ActionButton sample={sample} step={step} studyID={studyID} />
       },
@@ -140,7 +142,8 @@ function StudyStepSamplesTable({
       filters={settings?.filters ?? {}}
       setFilter={setFilter}
       setFilterOptions={setFilterOptions}
-      setSortBy={setSortBy}
+      sortByList={settings?.sortByList ?? EMPTY_LIST}
+      setSortByList={setSortByList}
       pagination={{
         pageNumber,
         pageSize,

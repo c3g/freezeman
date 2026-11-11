@@ -31,11 +31,12 @@ import {
   FMSTemplatePrefillOption,
   FMSVersion,
   FMSExperimentRun,
+  FMSReadsetSummary,
+  FMSReadsetReporting,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
 import { RootState } from "../store"
 import { notifyError } from "../modules/notification/actions"
-import { ProjectOverviewReadset } from "../components/projectOverview/types"
 
 const api = {
   auth: {
@@ -75,8 +76,12 @@ const api = {
       request: (options, template) =>
         filteredpost(`/containers/prefill_template/`, { ...options }, form({ template: template })),
     },
-    search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
-      get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }),
+    search: (q, { parent, sample_holding, exact_match, except_kinds }, requestID?: string) =>
+      get(
+        "/containers/search/",
+        { q, parent, sample_holding, exact_match, except_kinds },
+        { abort: true, requestID },
+      ),
   },
 
   coordinates: {
@@ -218,12 +223,8 @@ const api = {
         abort,
         requestID,
       }),
-    readsets: (parentProjectId: FMSId, options: QueryParams, abort?: boolean) =>
-      get<JsonResponse<FMSPagedResultsReponse<ProjectOverviewReadset>>>(
-        `/parent-projects/${parentProjectId}/readsets/`,
-        options,
-        { abort },
-      ),
+    update: (parentProject: Partial<FMSParentProject> & { id: FMSId }) =>
+      patch<JsonResponse<FMSParentProject>>(`/parent-projects/${parentProject.id}/`, parentProject),
   },
 
   platforms: {
@@ -295,6 +296,19 @@ const api = {
     },
   },
 
+  projectReadsets: {
+    list: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
+      get<JsonResponse<FMSPagedResultsReponse<FMSReadsetReporting>>>(
+        "/readset-reporting/",
+        options,
+        apiFetchOptions,
+      ),
+    listExport: (options: QueryParams = {}, apiFetchOptions?: APIFetchOptions) =>
+      get<StringResponse>("/readset-reporting/", { ...options, format: "csv" }, apiFetchOptions),
+    summary: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<FMSReadsetSummary>>(`/readset-reporting/summary/`, options, { abort }),
+  },
+
   propertyValues: {
     list: (options, abort?: boolean) => get("/property-values/", options, { abort }),
   },
@@ -349,6 +363,8 @@ const api = {
     update: (sample) => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
+    canSkip: (options: QueryParams, abort?: boolean) =>
+      get<JsonResponse<boolean>>("/samples/can_skip/", options, { abort }),
     listExport: (options) => get("/samples/list_export/", { format: "csv", ...options }),
     listExportMetadata: (options) =>
       get("/samples/list_export_metadata/", { format: "csv", ...options }),
@@ -557,6 +573,13 @@ const api = {
       get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
     list: (options: any, abort?: boolean) =>
       get<JsonResponse<FMSPagedResultsReponse<FMSWorkflow>>>("/workflows/", options, { abort }),
+    validStepOrdersForSampleQueueing: (workflowId: FMSWorkflow["id"], sampleIds: FMSId[]) =>
+      get<JsonResponse<WorkflowStepOrder[]>>(
+        `/workflows/${workflowId}/valid_step_orders_for_sample_queueing/`,
+        {
+          sample_ids: sampleIds.join(","),
+        },
+      ),
   },
 
   groups: {
@@ -674,7 +697,7 @@ function apiFetch<R extends ResponseWithData<any>>(
       if (ongoingRequests[requestID]) {
         ongoingRequests[requestID].abort({
           name: ABORT_ERROR_NAME,
-          message: `Request aborted for request to ${requestID}`,
+          message: `Request aborted for request ${requestID}`,
         })
       }
       ongoingRequests[requestID] = controller
@@ -717,7 +740,7 @@ function apiFetch<R extends ResponseWithData<any>>(
   }
 }
 
-export type QueryParams = Parameters<typeof qs>[0]
+export type QueryParams = Record<string, string | number>
 
 function get<R extends ResponseWithData<any>>(
   route: string,
