@@ -103,7 +103,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admi
 
 # Start dev, then apply the migrations of your branch that the dump does not have.
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd "$CONTAINER_FMS_ROOT/backend" && python manage.py migrate && python manage.py createinitialrevisions'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
@@ -120,19 +120,19 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd "$CONTAINE
 
 ### Run the servers and the tests
 
-In the `dev` shell:
+In the `dev` shell. The commands start in `$CONTAINER_FMS_ROOT`, where the shell starts:
 
 ```bash
 # First start and after each new migration:
-cd "$CONTAINER_FMS_ROOT/backend" && python manage.py migrate && python manage.py createinitialrevisions
+(cd backend && python manage.py migrate && python manage.py createinitialrevisions)
 
 # Backend: http://localhost:8000, reloads on code changes
 # 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd "$CONTAINER_FMS_ROOT/backend" && python manage.py runserver 0.0.0.0:8000
+(cd backend && python manage.py runserver 0.0.0.0:8000)
 
 # Frontend with live reload: http://localhost:9000 (proxies /api to port 8000)
 # --host 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd "$CONTAINER_FMS_ROOT/frontend" && npm ci && npm start -- --host 0.0.0.0
+(cd frontend && npm ci && npm start -- --host 0.0.0.0)
 ```
 
 - The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
@@ -142,13 +142,13 @@ cd "$CONTAINER_FMS_ROOT/frontend" && npm ci && npm start -- --host 0.0.0.0
 Run the backend tests in the `dev` shell:
 
 ```bash
-cd "$CONTAINER_FMS_ROOT/backend" && pytest
+(cd backend && pytest)
 ```
 
 Or run them from the host, in `oci/`, without a `dev` shell:
 
 ```bash
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd "$CONTAINER_FMS_ROOT/backend" && pytest'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && pytest'
 ```
 
 The tests need no database setup. pytest-django creates a separate test database and deletes it after the run.
