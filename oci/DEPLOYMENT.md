@@ -164,11 +164,11 @@ Run these steps as `<user>`.
 
 2. No directory to create: the checkout holds the directory of the logs (`oci/logs`) and the backend files, and podman-compose creates any missing bind-mount folder. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
 
-3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
+3. Create `.env` from the server template. The template has the values of the C3G production host (`<install-dir>` is `/data/freezeman`). Set the values of this table. On another host, also change the host paths.
 
    ```bash
    cd <install-dir>/oci
-   cp .env.example .env
+   cp .env.prod.example .env
    ```
 
    | Variable | Value |
@@ -177,12 +177,12 @@ Run these steps as `<user>`.
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-   | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
+   | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path). Template: `/data/freezeman/oci/logs` |
    | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
-   | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
+   | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Template: the C3G production folders in `/data`. Unset: the folder in the checkout. podman-compose creates a missing folder |
    | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
-   | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
-   | `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`). Default: `UTC`. Example: `America/Montreal` |
+   | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. Set the placeholders `FMS_EMAIL_FROM`, `FMS_EMAIL_USER` and `FMS_EMAIL_PASSWORD`. To turn TLS off, leave `FMS_EMAIL_TLS` empty. To log the emails to the console, comment out all six |
+   | `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`). Template: `America/Montreal`. Unset: `UTC` |
 
    <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
@@ -224,7 +224,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    pg_dump -U postgres -Fc fms > fms_classic.dump
    ```
 
-4. Choose where the backend files are. Compose binds the folders that `.env` names, so the stack can use the folders of the classic install directly, with no copy. To use them, set these variables:
+4. Choose where the backend files are. Compose binds the folders that `.env` names, so the stack can use the folders of the classic install directly, with no copy. `.env.prod.example` already names the folders of the C3G classic install. Check them against this table, and change a value only if the classic install differs:
 
    | Variable | Value |
    |---|---|
@@ -234,7 +234,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 
    The folders must be on this host. The backend writes as `<user>`, the host user that runs podman (`userns_mode: keep-id`), so `<user>` must be able to write into them.
 
-   You can also copy the files into the folders of the checkout instead (for example to keep the classic files unchanged for [To go back](#to-go-back)). Then leave these variables unset.
+   You can also copy the files into the folders of the checkout instead (for example to keep the classic files unchanged for [To go back](#to-go-back)). Then comment out these variables in `.env`.
 
 5. Start only the database, wait until it is ready, and restore the dump. The message "extension fzy already exists" is harmless.
 

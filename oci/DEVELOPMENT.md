@@ -46,8 +46,9 @@ For the services of the development stack, see [Development services](README.md#
 
 ## Start the development stack
 
-Set `HOST_LOG_DIR` in `.env` to the absolute path of `oci/logs` in your checkout, for example
-`HOST_LOG_DIR=/home/me/freezeman/oci/logs`. Compose stops without it. Start the stack and enter the `dev` container:
+If you do not have `.env` yet, run `cp .env.dev.example .env`. Set `HOST_LOG_DIR` in `.env` to the
+absolute path of `oci/logs` in your checkout, for example `HOST_LOG_DIR=/home/me/freezeman/oci/logs`.
+Compose stops without it. Start the stack and enter the `dev` container:
 
 ```bash
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
@@ -179,7 +180,7 @@ Use `psql` to look at the development database. There are three ways:
 
 ## Test the production stack locally
 
-Set `HOST_LOG_DIR` in `.env` to the absolute path of `oci/logs`, and `FMS_HOST` to `localhost`. Then build and start the stack. `web` is a default service:
+Use the `.env` of [Start the development stack](#start-the-development-stack) (from `.env.dev.example`, with `FMS_HOST=localhost` and `HOST_LOG_DIR` set). Then build and start the stack. `web` is a default service:
 
 ```bash
 # proxy host: set the variables before each podman-compose command, as in Proxy

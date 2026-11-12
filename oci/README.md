@@ -71,7 +71,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
-| `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
+| `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `logs/` | Usual `HOST_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEPLOYMENT.md` | Production deployment guide |
@@ -89,7 +89,10 @@ Do these steps for both environments:
   If it fails on the `git://` URL, set the HTTPS rule in [Submodule URL](../README.md#submodule-url) first.
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
-- Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `HOST_LOG_DIR`.
+- Copy the template of your environment to `.env`:
+  - On a server: `cd oci && cp .env.prod.example .env`. Then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST`
+    and the `FMS_EMAIL_*` placeholders. The host paths are the C3G production paths. Change them on another host.
+  - For development: `cd oci && cp .env.dev.example .env`. Then set `HOST_LOG_DIR`.
   - `HOST_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
   - `.env` has three parts. Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
     Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds. Host settings (`HOST_*`)
