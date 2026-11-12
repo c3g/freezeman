@@ -1,0 +1,41 @@
+# # FreezeMan database images
+#
+# This file makes the PostgreSQL server with the fzy extension (backend/dependencies/pg_fzy).
+#
+# Build context: repository root
+#   podman build -f oci/db/Containerfile .
+#
+# To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
+# (a new major version needs a dump and restore of existing data).
+
+# Name the PostgreSQL 15 base image.
+ARG POSTGRES_IMAGE=docker.io/library/postgres:15-trixie
+
+# This stage holds the compiler. The server stage copies only the compiled extension from it
+# (`COPY --from=build`), so the compiler stays out of the server image.
+FROM ${POSTGRES_IMAGE} AS build
+
+# Install the compiler and the PostgreSQL headers.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential "postgresql-server-dev-$PG_MAJOR" \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy the source of pg_fzy.
+COPY backend/dependencies/pg_fzy /src
+
+# Set working directory to /src
+WORKDIR /src
+
+# Compile from source; the binaries in pg_fzy/static target older PostgreSQL versions.
+# `make install DESTDIR=/out` puts the result in `/out`, and the server stage copies it.
+RUN make clean && make && make install DESTDIR=/out
+
+FROM ${POSTGRES_IMAGE}
+
+# Copy the compiled fzy extension into the system directories of the server.
+COPY --from=build /out/ /
+
+# Copy the `initdb` scripts. They enable the extension.
+# The PostgreSQL image runs the files in `/docker-entrypoint-initdb.d/` once, when it creates a
+# new data directory.
+COPY oci/db/initdb/ /docker-entrypoint-initdb.d/

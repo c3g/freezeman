@@ -29,6 +29,26 @@ cd freezeman
 git submodule update --init --recursive
 ```
 
+### Submodule URL
+
+The submodule `backend/dependencies/pg_fzy` has a `git://` URL in `.gitmodules`. GitHub does not
+serve the `git://` protocol, so `git submodule update` can fail. Before the submodule update, tell git
+to use HTTPS for GitHub `git://` URLs:
+
+```bash
+git config --global url."https://github.com/".insteadOf "git://github.com/"
+```
+
+To apply the rule to this checkout only, run the command without `--global` in the checkout,
+after the clone and before the submodule update:
+
+```bash
+git clone https://github.com/c3g/freezeman
+cd freezeman
+git config url."https://github.com/".insteadOf "git://github.com/"
+git submodule update --init --recursive
+```
+
 Next, follow the instructions in [/backend/](./backend/) and
 [/frontend/](./frontend/).
 
