@@ -256,7 +256,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 6. Apply the migrations while only `db` runs, then start all services and check them. The migration command prints the applied migrations and ends with exit code 0:
 
    ```bash
-   podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
    podman-compose up -d
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    ```
@@ -279,7 +279,7 @@ Start only `db`, apply the migrations in a one-off `backend` container, then sta
 ```bash
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
@@ -340,7 +340,7 @@ git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.
 podman-compose stop web backend
-podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d --force-recreate
 ```
 
@@ -371,7 +371,7 @@ until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c <install-dir>/oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 # Apply the migrations that the backup does not have, while only db runs.
-podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
 ```
 
@@ -391,7 +391,7 @@ podman-compose logs -f backend                                       # follow th
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from HOST_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
 tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
-podman-compose exec -T backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" prepare_report_data'  # run the report now (-T: no terminal)
+podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 ./jobs.py logrotate                                                  # rotate now (only a file larger than FMS_LOGROTATE_SIZE)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```

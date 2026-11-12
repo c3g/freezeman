@@ -137,7 +137,7 @@ services:
   # the container network. The port is not published. Only `web` connects to it.
   #
   # Migrations are manual. Stop `web` and `backend`, start only `db`, then run
-  #   podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
+  #   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
   # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
   # on QC/dev hosts. See DEPLOYMENT.md.
   backend:
