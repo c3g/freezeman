@@ -30,7 +30,7 @@ def main() -> int:
 
     hostenv.setup()
     # `run` refuses a service of a profile that is not active.
-    command = ["podman-compose", "--profile", "jobs", "run", "--rm", "jobs", JOBS[job], "now"]
+    command = ["podman-compose", "--profile", "jobs", "run", "--rm", "jobs", JOBS[job]]
     log(f"{job}: start")
     try:
         returncode = subprocess.run(command).returncode

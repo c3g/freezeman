@@ -300,7 +300,7 @@ If the host has no cron (the host is a container), start `start.py` as `<user>` 
 
 ## Daily jobs
 
-Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command> now`) and removes it after the job. Add these lines to the crontab (`crontab -e`):
+Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add these lines to the crontab (`crontab -e`):
 
 ```cron
 0 1 * * *  <install-dir>/oci/jobs.py report    >> <install-dir>/oci/logs/jobs.log 2>&1

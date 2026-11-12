@@ -283,7 +283,7 @@ EXPOSE 8000
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
 # This stage holds the three daily jobs. Host cron runs one of them per call through oci/jobs.py
-# (`podman-compose --profile jobs run --rm jobs <command> now`).
+# (`podman-compose --profile jobs run --rm jobs <command>`).
 #   fms-report      prepare_report_data (Django, from backend-prod)
 #   fms-backup      pg_dumpall into /backups
 #   fms-logrotate   logrotate of /logs/*.log

@@ -32,7 +32,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `jobs`| `localhost/freezeman-jobs` | not started by `up -d`. Host cron runs one job per crontab line with `jobs.py` (`podman-compose --profile jobs run --rm jobs <command> now`): `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates when it is larger than `FMS_LOGROTATE_SIZE`, default 100M). The crontab sets the time of each job. It gets only the settings that the jobs need, not the whole `.env` |
+| `jobs`| `localhost/freezeman-jobs` | not started by `up -d`. Host cron runs one job per crontab line with `jobs.py` (`podman-compose --profile jobs run --rm jobs <command>`): `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates when it is larger than `FMS_LOGROTATE_SIZE`, default 100M). The crontab sets the time of each job. It gets only the settings that the jobs need, not the whole `.env` |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).

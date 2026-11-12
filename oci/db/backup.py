@@ -13,7 +13,6 @@ from pathlib import Path
 # One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
 # result. Host cron starts it every day through oci/jobs.py,
 # after fms-report.
-#   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
 # `or` (rather than `.get(name, default)`) covers an empty string, for example `podman run -e VAR=` without compose.

@@ -241,7 +241,7 @@ services:
     restart: always
 
   # The image of the three daily jobs. Host cron runs one job per crontab line with jobs.py, which
-  # calls `podman-compose --profile jobs run --rm jobs <command> now` (DEPLOYMENT.md, "Daily jobs"):
+  # calls `podman-compose --profile jobs run --rm jobs <command>` (DEPLOYMENT.md, "Daily jobs"):
   #   fms-report      prepare_report_data
   #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz
   #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log

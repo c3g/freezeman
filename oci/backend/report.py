@@ -4,7 +4,6 @@ import sys
 
 # One prepare_report_data run, then exit with its exit code. Host cron starts it
 # every day through oci/jobs.py, before fms-backup.
-#   fms-report now    run once and exit (`now` is the only mode, the argument is optional)
 
 
 def main() -> int:

@@ -8,7 +8,6 @@ import sys
 # One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. Host cron starts it
 # every day through oci/jobs.py, after the other jobs.
 # The size directive (FMS_LOGROTATE_SIZE) decides whether a file rotates at a run.
-#   fms-logrotate now    run once and exit (`now` is the only mode, the argument is optional)
 TEMPLATE = "/etc/fms-logrotate/logrotate.conf.template"
 CONFIG = "/etc/fms-logrotate/logrotate.conf"
 # In the log directory, so logrotate keeps its record of the last rotations after `down` and
