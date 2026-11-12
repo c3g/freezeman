@@ -71,7 +71,6 @@ services:
     volumes:
       # Mount the repository at /workspace/freezeman, so backend/fms/info.py and
       # frontend/webpack.config.js find ../VERSION and .git as they do outside containers.
-      # `selinux: z` relabels the mount for SELinux (Rocky/RHEL/Fedora) and is ignored elsewhere.
       # backend/media, backend/triggers and backend/automations_work are in this mount, so they
       # need no mount of their own.
       - type: bind

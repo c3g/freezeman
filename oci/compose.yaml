@@ -142,9 +142,8 @@ services:
     # django owns the files on the host.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # `selinux: z` relabels the host directory for SELinux, so the container can use it. It has no effect
-    # where SELinux is absent. `create_host_path` makes podman-compose create a missing host
-    # directory (podman-compose 1.5 always does, and ignores the key).
+    # `create_host_path` makes podman-compose create a missing host directory (podman-compose 1.5
+    # always does, and ignores the key).
     # The container paths are fixed. The variables of .env choose only the host folders, so
     # the files stay where they are on the host (for example the folders of a classic install).
     # Django uses only the three trigger folders, not their parent, so each one has its own mount.
@@ -219,7 +218,6 @@ services:
       - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
 
     # `read_only` makes the mount read-only, because nginx only reads the media files.
-    # `selinux: z` is the SELinux label (see `backend`).
     volumes:
       - type: bind
         source: ${FMS_MEDIA_DIR:-../backend/media}
@@ -288,10 +286,9 @@ services:
     # backup and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # `selinux: z` is the SELinux label (see `backend`). FMS_LOG_DIR is mounted twice: /logs is the
-    # directory that logrotate rotates, and ~/reports/log is where prepare_report_data writes
-    # report_preparation.log, next to the service logs (<service>.log). podman-compose creates a
-    # missing backup directory.
+    # FMS_LOG_DIR is mounted twice: /logs is the directory that logrotate rotates, and
+    # ~/reports/log is where prepare_report_data writes report_preparation.log, next to the service
+    # logs (<service>.log). podman-compose creates a missing backup directory.
     volumes:
       - type: bind
         source: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}
