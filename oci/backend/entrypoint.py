@@ -13,7 +13,7 @@ def make_directories() -> None:
         # TEMPLATE_UPLOAD_PATH. Django does not create it, and each template submission fails
         # without it. The default media folder of the checkout has it (git tracks
         # backend/media/uploads/templates/.keep). Another FMS_MEDIA_DIR may not: a new or empty
-        # folder, a classic media folder with no upload yet, or an empty Kubernetes PVC.
+        # folder, or a classic media folder with no upload yet.
         "/workspace/freezeman/backend/media/uploads/templates",
         # TEMP_ROOT. The backend-prod image creates this directory. The "dev" image does not:
         # it mounts the repository at /workspace/freezeman, and git does not track backend/tmp.
@@ -27,8 +27,7 @@ def make_directories() -> None:
 def wait_for_database() -> None:
     # Wait for PostgreSQL. compose's `depends_on: condition: service_started` orders only the
     # start of the db container, not its readiness, so this wait is necessary. It also covers
-    # `podman-compose run --no-deps`, a db restart, and Kubernetes (no depends_on; keep this
-    # unless an initContainer replaces it).
+    # `podman-compose run --no-deps` and a db restart.
     host = os.environ.get("PG_HOST", "127.0.0.1")
     port = os.environ.get("PG_PORT", "5432")
     deadline = time.monotonic() + int(os.environ.get("FMS_DB_WAIT_SECONDS", "60"))

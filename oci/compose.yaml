@@ -22,7 +22,7 @@
 name: freezeman
 
 x-podman:
-  # Use a plain bridge network with service-name DNS, like Kubernetes Services. Each service finds
+  # Use a plain bridge network with service-name DNS. Each service finds
   # the others by name (for example `db` and `backend`).
   # (Pods would also conflict with userns_mode in compose.dev.yaml.)
   in_pod: false
@@ -194,7 +194,7 @@ services:
     restart: always
 
   # nginx in a container: the production entry. The host nginx passes HTTP to it.
-  # Also the model for Kubernetes. It serves the frontend build, the Django static files and
+  # It serves the frontend build, the Django static files and
   # `/media/`, and passes `/api/` to `backend`.
   web:
     # Build the `web` image of oci/Containerfile.
@@ -244,10 +244,9 @@ services:
 
   # The image of the three daily jobs. Host cron runs one job per crontab line with jobs.py, which
   # calls `podman-compose --profile jobs run --rm jobs <command> now` (DEPLOYMENT.md, "Daily jobs"):
-  #   fms-report      prepare_report_data (a CronJob in Kubernetes)
-  #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz (a CronJob in Kubernetes)
-  #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log. Kubernetes needs no such job: the cluster
-  #                   rotates the container logs.
+  #   fms-report      prepare_report_data
+  #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz
+  #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log
   # The crontab line redirects the output to ${FMS_LOG_DIR}/jobs.log.
   jobs:
     # Only `podman-compose run` starts it. `up -d` does not.

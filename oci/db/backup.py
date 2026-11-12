@@ -11,10 +11,11 @@ from datetime import date
 
 # One pg_dumpall of the whole cluster to /backups/<YYYY-MM-DD>.pgsql.gz, then exit with the
 # result. Host cron starts it every day through oci/jobs.py,
-# after fms-report. In Kubernetes a CronJob can call it too.
+# after fms-report.
 #   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
+# Not .get(name, default): a set but empty value (VAR=) must also fall back to the default.
 keep_days = int(os.environ.get("FMS_BACKUP_KEEP_DAYS") or "14")
 
 

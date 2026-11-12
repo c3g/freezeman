@@ -17,7 +17,6 @@ Contents:
 - [Docker compatibility](#docker-compatibility)
 - [Run the stack inside a container](#run-the-stack-inside-a-container)
   - [Known issues](#known-issues)
-- [Path to Kubernetes](#path-to-kubernetes)
 
 ## Overview
 
@@ -207,7 +206,7 @@ Reverse proxy and host design choices:
 
 - `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files, and
   the host user that runs the stack owns them on the host.
-- uwsgi listens on port 8000 (uwsgi protocol) in the container network, for the `web` service and Kubernetes.
+- uwsgi listens on port 8000 (uwsgi protocol) in the container network, for the `web` service.
 - Client address: the reverse proxy sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
   uwsgi gets the address of the podman port forwarder as `REMOTE_ADDR`, and the `web` access log shows that address.
   Nothing in FreezeMan uses the client address today. If it becomes necessary, add `set_real_ip_from` and
@@ -344,28 +343,3 @@ Issues:
     `podman run --tmpfs /run/user/<uid>:rw,mode=0700,U ...`. The tmpfs is empty on each start.
 - After the outer container starts again, the inner containers are stopped. Start the stack again
   (`podman-compose up -d`).
-
-## Path to Kubernetes
-
-The layout already maps onto Kubernetes objects:
-
-| Compose            | Kubernetes                                                        |
-|--------------------|-------------------------------------------------------------------|
-| `db`               | StatefulSet + PVC (or a managed PostgreSQL with the fzy extension) |
-| migrations (manual)| A Job that the operator starts, with the backend Deployment scaled to 0 |
-| `backend`, `web`   | Deployments + Services (`BACKEND_UPSTREAM` = backend Service name) |
-| `media`, `triggers`, `automations_work` | PVCs (`media` must be ReadWriteMany if `web` and `backend` run on different nodes). On the host, `media`, `triggers` and `automations_work` are bind-mounted directories |
-| `.env`             | ConfigMap (settings) + Secret (`POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, email password) |
-| `jobs`: `fms-report`, `fms-backup` | One CronJob per crontab line of the host (same `schedule`, `timeZone` from `TZ`) that runs `fms-report now` or `fms-backup now`. Keep the backup after the report, as in the crontab. Needs an image with `postgresql-client-15`, a backup PVC and a log PVC at `/home/fms/reports/log` (on the host, a bind mount of `FMS_LOG_DIR`) |
-| `jobs`: `fms-logrotate` | Not necessary: the cluster rotates the container logs. Do not deploy it |
-| `web` port mapping and the reverse proxy | Ingress (TLS)                                             |
-
-Notes:
-- Each job is a one-shot command (`fms-report now`, `fms-backup now`), so a CronJob calls it directly, as
-  host cron does through `jobs.py`. Set
-  `concurrencyPolicy: Forbid`. A failed run then shows as a failed Job.
-- Set `securityContext.fsGroup: 1000` so the `fms` user can write to PVCs.
-- Make sure the Ingress sets `X-Forwarded-Proto`. The `web` nginx turns it into `HTTPS=on` for uwsgi.
-  Expose only the `web` Service.
-- `podman kube generate <container...>` produces a first draft of the YAML. `podman kube play`
-  runs Kubernetes YAML directly on the podman host, which can be used to test the manifests before a cluster exists.

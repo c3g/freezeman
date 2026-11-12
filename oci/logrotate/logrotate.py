@@ -6,7 +6,6 @@ import sys
 
 # One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. Host cron starts it
 # every day through oci/jobs.py, after the other jobs.
-# Kubernetes needs no such job: the cluster rotates the container logs.
 # The frequency directive (FMS_LOGROTATE_FREQUENCY) decides whether a file rotates on a given day.
 #   fms-logrotate now    run once and exit (`now` is the only mode, the argument is optional)
 TEMPLATE = "/etc/fms-logrotate/logrotate.conf.template"
@@ -14,6 +13,7 @@ CONFIG = "/etc/fms-logrotate/logrotate.conf"
 # In the log directory, so the rotation period stays correct after `down` and `--force-recreate`.
 # The name does not end in .log, so logrotate does not rotate it.
 STATE = "/logs/logrotate.state"
+# Not .get(name, default): a set but empty value (VAR=) must also fall back to the default.
 keep = os.environ.get("FMS_LOGROTATE_KEEP") or "8"
 frequency = os.environ.get("FMS_LOGROTATE_FREQUENCY") or "weekly"
 
