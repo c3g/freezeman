@@ -1,7 +1,7 @@
 # # FreezeMan production-like stack
 #
 # This file starts the services of FreezeMan: the database, Django and nginx. It also defines the
-# `jobs` service (daily report, backup and log rotation) that host cron runs through jobs.py.
+# `jobs` service (daily report and backup) that host cron runs through jobs.py.
 # Run `podman-compose` from this directory.
 #
 #   cd oci && cp .env.example .env   # then edit .env
@@ -259,49 +259,40 @@ services:
 
     restart: always
 
-  # The image of the three daily jobs. Host cron runs one job per crontab line with jobs.py, which
+  # The image of the two daily jobs. Host cron runs one job per crontab line with jobs.py, which
   # calls `podman-compose --profile jobs run --rm jobs <command>` (DEPLOYMENT.md, "Daily jobs"):
   #   fms-report      prepare_report_data
   #   fms-backup      pg_dumpall into HOST_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz
-  #   fms-logrotate   logrotate of HOST_LOG_DIR/*.log
   # The crontab line redirects the output to ${HOST_LOG_DIR}/jobs.log.
   jobs:
     # Only `podman-compose run` starts it. `up -d` does not.
     profiles: ["jobs"]
 
     # Build the `jobs` image of oci/Containerfile (`backend-prod` plus
-    # postgresql-client-15 and logrotate).
+    # postgresql-client-15).
     image: localhost/freezeman-jobs:${FMS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: oci/Containerfile
       target: jobs
       args:
-        # apt-get (PostgreSQL client, logrotate) downloads packages.
+        # apt-get (PostgreSQL client) downloads packages.
         <<: [*proxy, *build-root]
 
-    # The container gets only what the three jobs need. `report` runs Django, so it needs the
+    # The container gets only what the two jobs need. `report` runs Django, so it needs the
     # Django settings (x-django-env). `backup` reads PG_* (x-backend-env).
     environment:
       <<: [*backend-env, *django-env, *no-proxy]
       FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
-      FMS_LOGROTATE_SIZE: ${FMS_LOGROTATE_SIZE:-100M}
-      FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
 
     # keep-id: the jobs run as uid 1000 (the image user fms), which is the host user. The log,
     # backup and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # HOST_LOG_DIR is mounted twice: /logs is the directory that logrotate rotates, and
-    # ~/reports/log is where prepare_report_data writes report_preparation.log, next to the service
-    # logs (<service>.log). podman-compose creates a missing backup directory.
+    # HOST_LOG_DIR is mounted at ~/reports/log, where prepare_report_data writes
+    # report_preparation.log, next to the service logs (<service>.log). podman-compose creates a
+    # missing backup directory.
     volumes:
-      - type: bind
-        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
-        target: /logs
-        bind:
-          selinux: z
-          create_host_path: true
       - type: bind
         source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
         target: /home/fms/reports/log

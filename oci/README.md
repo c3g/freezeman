@@ -32,7 +32,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `jobs`     | `localhost/freezeman-jobs`    | One daily job per run: the report (`prepare_report_data`), the database backup (`pg_dumpall`) or the log rotation (`logrotate`). Host cron starts it with `jobs.py`. `up -d` does not start it. See [Daily jobs](DEPLOYMENT.md#daily-jobs) |
+| `jobs`     | `localhost/freezeman-jobs`    | One daily job per run: the report (`prepare_report_data`), or the database backup (`pg_dumpall`). Host cron starts it with `jobs.py`. `up -d` does not start it. See [Daily jobs](DEPLOYMENT.md#daily-jobs) |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
@@ -66,8 +66,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
 | `db/` | `Containerfile` of the `db` image, `backup.py` (the `fms-backup` job), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
-| `logrotate/` | `logrotate.py` (the `fms-logrotate` job) and `logrotate.conf.template` |
-| `jobs.py` | Runs one daily job (`report`, `backup` or `logrotate`) in a `jobs` container. Host cron calls it |
+| `jobs.py` | Runs one daily job (`report` or `backup`) in a `jobs` container. Host cron calls it |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |

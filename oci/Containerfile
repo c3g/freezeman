@@ -9,7 +9,7 @@
 #                  the repository bind-mounted at $CONTAINER_FMS_ROOT. The developer starts
 #                  runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   jobs           backend-prod plus the report, backup and logrotate jobs (host cron runs them)
+#   jobs           backend-prod plus the report and backup jobs (host cron runs them)
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -306,11 +306,10 @@ EXPOSE 8000
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
-# This stage holds the three daily jobs. Host cron runs one of them per call through oci/jobs.py
+# This stage holds the two daily jobs. Host cron runs one of them per call through oci/jobs.py
 # (`podman-compose --profile jobs run --rm jobs <command>`).
 #   fms-report      prepare_report_data (Django, from backend-prod)
 #   fms-backup      pg_dumpall into /backups
-#   fms-logrotate   logrotate of /logs/*.log
 FROM backend-prod AS jobs
 
 # Install the tools as root. The user is `fms` again at the end of the stage.
@@ -326,17 +325,12 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates postgresql-client-common \
  && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
  && apt-get update \
- && apt-get install -y --no-install-recommends postgresql-client-15 logrotate \
+ && apt-get install -y --no-install-recommends postgresql-client-15 \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy the job scripts and the logrotate rules. `fms-report` comes from `python-base`.
+# Copy the job scripts. `fms-report` comes from `python-base`.
 # `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
 COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
-COPY --chmod=755 oci/logrotate/logrotate.py /usr/local/bin/fms-logrotate
-COPY oci/logrotate/logrotate.conf.template /etc/fms-logrotate/logrotate.conf.template
-
-# `fms-logrotate` writes `logrotate.conf` next to the template at each run, so `fms` needs to write there.
-RUN chown fms:fms /etc/fms-logrotate
 
 USER fms
 

@@ -24,12 +24,12 @@ Contents:
   - [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host): dump, copy the files, restore, cutover of the reverse proxy.
   - [Path B: new host](#path-b-new-host): first start with an empty database.
 - [Start at boot](#start-at-boot): the `@reboot` crontab line.
-- [Daily jobs](#daily-jobs): the crontab lines of the report, the backup and the log rotation.
+- [Daily jobs](#daily-jobs): the crontab lines of the report and the backup.
 - [Daily use](#daily-use)
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
   - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
   - [Database backups](#database-backups): settings, a backup now, a restore.
-  - [Report and logs](#report-and-logs): follow the logs, run the report or the log rotation now.
+  - [Report and logs](#report-and-logs): follow the logs, run the report now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
 - [To go back](#to-go-back): return to the classic setup.
 - [Troubleshooting](#troubleshooting): symptoms and likely causes.
@@ -184,14 +184,13 @@ Run these steps as `<user>`.
    | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
-   | `FMS_LOGROTATE_SIZE`, `FMS_LOGROTATE_KEEP` | The size above which a log rotates (a number with an optional `k`, `M` or `G` suffix) and how many rotated files to keep. Defaults: `100M`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
    <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
    | Area | `PROD` | Other value (`QC`, `DEV`) |
    |---|---|---|
-   | Django log | `WARNING` and higher goes to the console, so to `HOST_LOG_DIR/backend.log` | `DEBUG` and higher goes to `$CONTAINER_FMS_ROOT/backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
+   | Django log | `WARNING` and higher goes to the console, so to `HOST_LOG_DIR/backend.log` | `DEBUG` and higher goes to `$CONTAINER_FMS_ROOT/backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. Django rotates it at 2 GB and keeps 1 old file |
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
@@ -199,7 +198,7 @@ Run these steps as `<user>`.
 
    The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
 
-   **Daily jobs:** host cron runs the report, the backup and the log rotation. See [Daily jobs](#daily-jobs).
+   **Daily jobs:** host cron runs the report and the backup. See [Daily jobs](#daily-jobs).
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -304,15 +303,13 @@ If the host has no cron (the host is a container), start `start.py` as `<user>` 
 Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add these lines to the crontab (`crontab -e`):
 
 ```cron
-0 1 * * *  <install-dir>/oci/jobs.py report    >> <install-dir>/oci/logs/jobs.log 2>&1
-30 1 * * * <install-dir>/oci/jobs.py backup    >> <install-dir>/oci/logs/jobs.log 2>&1
-0 3 * * *  <install-dir>/oci/jobs.py logrotate >> <install-dir>/oci/logs/jobs.log 2>&1
+0 1 * * *  <install-dir>/oci/jobs.py report >> <install-dir>/oci/logs/jobs.log 2>&1
+30 1 * * * <install-dir>/oci/jobs.py backup >> <install-dir>/oci/logs/jobs.log 2>&1
 ```
 
 - Cron uses the time zone of the host.
-- Keep this order and leave enough time between the jobs: the backup includes the report data of the day, and the log rotation runs after the other jobs wrote their logs. Cron does not wait for a job to end.
+- Keep this order and leave enough time between the jobs: the backup includes the report data of the day. Cron does not wait for a job to end.
 - To turn a job off, remove its line.
-- The log rotation checks the size of each log only when it runs. A log can grow past `FMS_LOGROTATE_SIZE` until the next run. To check more often, run the `logrotate` line more often (for example every hour).
 - If `HOST_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
 - A host without cron (the host is a container) is not supported yet.
@@ -384,15 +381,14 @@ podman-compose up -d
 
 The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 3.
 
-Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, the log rotation, `jobs.py`, `start.py` and `autoupdate.py`.
+Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, `jobs.py`, `start.py` and `autoupdate.py`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from HOST_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
-tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
+tail -f <install-dir>/oci/logs/jobs.log                              # the report and backup jobs
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-./jobs.py logrotate                                                  # rotate now (only a file larger than FMS_LOGROTATE_SIZE)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```
 

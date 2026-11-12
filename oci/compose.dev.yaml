@@ -127,7 +127,7 @@ services:
     profiles: ["prod"]
 
   jobs:
-    # The daily report, backup and log rotation jobs do not run in development.
+    # The daily report and backup jobs do not run in development.
     profiles: ["jobs"]
 
 # Declare the volume for the Linux `node_modules` of `dev`.

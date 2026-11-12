@@ -17,9 +17,6 @@ TODO.txt
 oci/backups/
 oci/logs/*
 !oci/logs/.keep
-# Rendered logrotate config and state (the template stays tracked).
-oci/logrotate/logrotate.conf
-oci/logrotate/*.state
 
 # Database dumps
 *.dump
