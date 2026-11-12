@@ -117,7 +117,6 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd /workspace
   If `pytest` cannot create its test database, also run `ALTER ROLE admin CREATEDB` the same way.
 - The database has no media files. If you need the uploaded files, copy `backend/media` of the production host
   into `backend/media` of your checkout.
-- On a slow disk, start `db` with `-f compose.restore.yaml` added, as in [Restore on a slow disk](DEPLOYMENT.md#restore-on-a-slow-disk).
 
 ### Run the servers and the tests
 

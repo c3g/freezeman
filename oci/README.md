@@ -65,7 +65,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `Containerfile` | Images of the backend (`dev`, `backend-prod`), `jobs` and `web`. The build context is the repository root |
 | `compose.yaml` | The production-like stack (all services) |
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
-| `compose.restore.yaml` | Override of the `db` command for a restore on a slow disk |
 | `db/` | `Containerfile` of the `db` image, `backup.py` (the `fms-backup` job), `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `logrotate/` | `logrotate.py` (the `fms-logrotate` job) and `logrotate.conf.template` |

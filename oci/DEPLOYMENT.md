@@ -29,7 +29,6 @@ Contents:
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
   - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
   - [Database backups](#database-backups): settings, a backup now, a restore.
-  - [Restore on a slow disk](#restore-on-a-slow-disk): measure the disk, restore with `compose.restore.yaml`.
   - [Report and logs](#report-and-logs): follow the logs, run the report or the log rotation now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
 - [To go back](#to-go-back): return to the classic setup.
@@ -239,7 +238,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 
    You can also copy the files into the folders of the checkout instead (for example to keep the classic files unchanged for [To go back](#to-go-back)). Then leave these variables unset.
 
-5. Start only the database, wait until it is ready, and restore the dump. On a slow disk, follow [Restore on a slow disk](#restore-on-a-slow-disk) instead. The message "extension fzy already exists" is harmless.
+5. Start only the database, wait until it is ready, and restore the dump. The message "extension fzy already exists" is harmless.
 
    ```bash
    podman-compose up -d db
@@ -360,7 +359,7 @@ FMS_BACKUP_KEEP_DAYS=14
 ./jobs.py backup   # run one backup now
 ```
 
-To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest. On a slow disk, start `db` as in [Restore on a slow disk](#restore-on-a-slow-disk).
+To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest.
 
 ```bash
 podman-compose down
@@ -378,43 +377,6 @@ podman-compose up -d
 - Restore only into an empty `freezeman_pgdata` volume. If the volume is new (first start), skip the first two commands.
 - If `POSTGRES_PASSWORD` changed after the backup, set it back to the value at backup time.
 - Copy the backups off the host.
-
-### Restore on a slow disk
-
-Measure the flush rate of the disk:
-
-```bash
-podman-compose up -d db
-podman-compose exec db pg_test_fsync -f /var/lib/postgresql/data/fsync.test -s 2
-```
-
-If `fdatasync` is near 250 operations per second or less, use these steps. Use them only for a restore into a new, empty `freezeman_pgdata` volume. If the host crashes during the restore, run `podman-compose down`, run `podman volume rm freezeman_pgdata` and start again.
-
-1. Start only `db` with the override:
-
-   ```bash
-   podman-compose -f compose.yaml -f compose.restore.yaml up -d db
-   ```
-
-2. Wait for `db` (same `until` loop as in [Path A](#path-a-migrate-from-the-classic-host)), then run the restore command: `pg_restore` as in [Path A](#path-a-migrate-from-the-classic-host), or `psql` as in [Database backups](#database-backups).
-3. Start `db` again with the normal settings. The log of the new server must say "database system was shut down at":
-
-   ```bash
-   podman-compose up -d --force-recreate db
-   ```
-
-4. Check that `SHOW fsync` gives `on`, write the files to the disk, and start the other services:
-
-   ```bash
-   podman-compose exec db psql -U admin -d fms -c 'SHOW fsync'
-   # "For reliable recovery when changing fsync off to on, it is necessary to force all modified buffers in
-   # the kernel to durable storage. This can be done while the cluster is shutdown or while fsync is on by
-   # running initdb --sync-only, running sync, unmounting the file system, or rebooting the server."
-   # Source: https://www.postgresql.org/docs/15/runtime-config-wal.html#GUC-FSYNC
-   sync
-   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
-   podman-compose up -d
-   ```
 
 ### Report and logs
 
@@ -454,14 +416,12 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    # >> logs/autoupdate.log 2>&1: append the output and the errors to the log.
    # Optional --interval N: check every N seconds and never exit (default: check once).
    # Optional --force: deploy even if the commit is the last deployed one.
-   # Optional --fast-restore: restore with the settings of compose.restore.yaml (slow disk).
    */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --dump <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
    ```
 
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
 - Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
 - No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `logs/autoupdate.log`.
-- Slow disk (see [Restore on a slow disk](#restore-on-a-slow-disk)): add `--fast-restore`.
 - To deploy the same commit again: add `--force`.
 
 ## To go back
@@ -490,4 +450,3 @@ The stack writes after the cutover are not in the classic database. If step 4 of
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
 | `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration command of [Update to a new release](#update-to-a-new-release) |
-| Restore takes hours | The disk is slow at flushes. See [Restore on a slow disk](#restore-on-a-slow-disk) |
