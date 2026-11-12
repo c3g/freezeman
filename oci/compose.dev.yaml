@@ -70,14 +70,22 @@ services:
 
     volumes:
       # Mount the repository at /workspace/freezeman, so backend/fms/info.py and
-      # frontend/webpack.config.js find ../VERSION and .git as they do outside containers. ":z"
-      # relabels the mounts for SELinux (Rocky/RHEL/Fedora) and is ignored elsewhere.
+      # frontend/webpack.config.js find ../VERSION and .git as they do outside containers.
+      # `selinux: z` relabels the mount for SELinux (Rocky/RHEL/Fedora) and is ignored elsewhere.
       # backend/media, backend/triggers and backend/automations_work are in this mount, so they
       # need no mount of their own.
-      - ..:/workspace/freezeman:z
-      # Linux dependencies installed by the container, separate from the host's node_modules
-      # (":U" chowns the volume to the container user)
-      - frontend_node_modules:/workspace/freezeman/frontend/node_modules:U
+      - type: bind
+        source: ..
+        target: /workspace/freezeman
+        bind:
+          selinux: z
+          create_host_path: true
+      # Linux dependencies installed by the container, separate from the host's node_modules.
+      # Rootless podman creates the volume as the host user, and keep-id maps the host user to
+      # the container user, so `npm ci` can write to it.
+      - type: volume
+        source: frontend_node_modules
+        target: /workspace/freezeman/frontend/node_modules
 
     # Publish runserver (8000) and the webpack dev server (9000) on the host.
     ports:

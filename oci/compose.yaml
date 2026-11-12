@@ -91,7 +91,9 @@ services:
     # container.
     volumes:
       # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
-      - pgdata:/var/lib/postgresql/data
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data
 
     # Write the log of the container to ${FMS_LOG_DIR}/<service>.log on the host. Each service has
     # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`
@@ -140,18 +142,43 @@ services:
     # django owns the files on the host.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # `:z` relabels the host directory for SELinux, so the container can use it. It has no effect
-    # where SELinux is absent. Podman does not create a missing source directory, so create them
-    # first (see the commands at the top).
+    # `selinux: z` relabels the host directory for SELinux, so the container can use it. It has no effect
+    # where SELinux is absent. `create_host_path` makes podman-compose create a missing host
+    # directory (podman-compose 1.5 always does, and ignores the key).
     # The container paths are fixed. The variables of .env choose only the host folders, so
     # the files stay where they are on the host (for example the folders of a classic install).
     # Django uses only the three trigger folders, not their parent, so each one has its own mount.
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/workspace/freezeman/backend/media:z
-      - ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}:/workspace/freezeman/backend/triggers/lims-run-info:z
-      - ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}:/workspace/freezeman/backend/triggers/lims-validation-info:z
-      - ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}:/workspace/freezeman/backend/triggers/lims-release-info:z
-      - ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}:/workspace/freezeman/backend/automations_work:z
+      - type: bind
+        source: ${FMS_MEDIA_DIR:-../backend/media}
+        target: /workspace/freezeman/backend/media
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}
+        target: /workspace/freezeman/backend/triggers/lims-run-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}
+        target: /workspace/freezeman/backend/triggers/lims-validation-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}
+        target: /workspace/freezeman/backend/triggers/lims-release-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}
+        target: /workspace/freezeman/backend/automations_work
+        bind:
+          selinux: z
+          create_host_path: true
 
     # Start as soon as the `db` container starts. The entrypoint of the image waits until the
     # database accepts connections.
@@ -191,10 +218,16 @@ services:
     ports:
       - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
 
-    # `:ro` makes the mount read-only, because nginx only reads the media files. `:z` is the
-    # SELinux label (see `backend`).
+    # `read_only` makes the mount read-only, because nginx only reads the media files.
+    # `selinux: z` is the SELinux label (see `backend`).
     volumes:
-      - ${FMS_MEDIA_DIR:-../backend/media}:/workspace/freezeman/backend/media:ro,z
+      - type: bind
+        source: ${FMS_MEDIA_DIR:-../backend/media}
+        target: /workspace/freezeman/backend/media
+        read_only: true
+        bind:
+          selinux: z
+          create_host_path: true
 
     # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
     # and restart: always is the fallback if the name does not resolve yet.
@@ -256,14 +289,29 @@ services:
     # backup and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # `:z` is the SELinux label (see `backend`). FMS_LOG_DIR is mounted twice: /logs is the
+    # `selinux: z` is the SELinux label (see `backend`). FMS_LOG_DIR is mounted twice: /logs is the
     # directory that logrotate rotates, and ~/reports/log is where prepare_report_data writes
-    # report_preparation.log, next to the service logs (<service>.log). The backup directory must
-    # exist.
+    # report_preparation.log, next to the service logs (<service>.log). podman-compose creates a
+    # missing backup directory.
     volumes:
-      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/logs:z
-      - ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}:/home/fms/reports/log:z
-      - ${FMS_BACKUP_DIR:-./backups}:/backups:z
+      - type: bind
+        source: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}
+        target: /logs
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}
+        target: /home/fms/reports/log
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${FMS_BACKUP_DIR:-./backups}
+        target: /backups
+        bind:
+          selinux: z
+          create_host_path: true
 
     # Start as soon as the `db` container starts. The entrypoint of the image waits until the
     # database accepts connections.

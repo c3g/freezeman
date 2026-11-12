@@ -163,7 +163,7 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-2. No directory to create: the checkout holds the directories of the logs (`oci/logs`), the backups (`oci/backups`) and the backend files. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
+2. No directory to create: the checkout holds the directory of the logs (`oci/logs`) and the backend files, and podman-compose creates the backup directory (`oci/backups`) and any other missing bind-mount folder. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
 
@@ -180,7 +180,7 @@ Run these steps as `<user>`.
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `FMS_BACKUP_DIR` | Optional. Default: `<install-dir>/oci/backups` |
-   | `FMS_MEDIA_DIR`, `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH`, `FMS_AUTOMATIONS_WORK_PATH` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. Each folder must exist |
+   | `FMS_MEDIA_DIR`, `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH`, `FMS_AUTOMATIONS_WORK_PATH` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
@@ -351,7 +351,7 @@ Host cron runs the backup every day (see [Daily jobs](#daily-jobs)). Each run re
 
 ```bash
 # oci/.env
-# Host directory for the daily dumps. It must exist. Default (not set): <install-dir>/oci/backups.
+# Host directory for the daily dumps. podman-compose creates it if it is missing. Default (not set): <install-dir>/oci/backups.
 #FMS_BACKUP_DIR=
 # Delete backups older than this many days, but always keep the newest
 # FMS_BACKUP_KEEP_DAYS backups (0 keeps all).

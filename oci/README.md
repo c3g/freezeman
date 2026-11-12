@@ -216,7 +216,7 @@ Reverse proxy and host design choices:
 
 Portability:
 
-- `:z` on all bind mounts, with no exception: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
+- `bind.selinux: z` on all bind mounts, with no exception: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
 - Fully qualified image names (`docker.io/library/...`): RHEL-family systems enforce
   short-name resolution, and fully qualified names avoid prompts on any registry setup.
 - `x-podman: in_pod: false`: `userns_mode: keep-id` (development) cannot be used for containers inside a pod.
@@ -237,10 +237,9 @@ The Docker daemon rejects these podman-only settings:
 | Setting | Where | Why podman needs it |
 |---|---|---|
 | `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `jobs` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
-| `:U` mount option | `frontend_node_modules` volume of `dev` | Gives the volume to the container user. Docker has no `U` option |
 | `logging.driver: k8s-file` | All services | Writes each container log to `FMS_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
 
-`x-podman` is ignored by other tools. `:z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.
+`x-podman` is ignored by other tools. `bind.selinux: z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.
 
 The Docker Compose v2 program can also talk to the podman socket instead of a Docker daemon. This is not tested.
 

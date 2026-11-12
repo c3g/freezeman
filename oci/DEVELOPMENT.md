@@ -19,7 +19,7 @@ Contents:
 
 1. Do the steps of [Prerequisites](README.md#prerequisites) in README.md. They apply to both environments.
 2. If your host reaches the internet through an HTTP proxy, do the steps of [Proxy](README.md#proxy) in README.md.
-3. Install the tools. Development works on any OS with podman and podman-compose. The `:z` SELinux labels are ignored where SELinux is absent.
+3. Install the tools. Development works on any OS with podman and podman-compose. The `selinux: z` labels of the bind mounts are ignored where SELinux is absent.
 
    - Windows: [install Podman](https://podman.io/docs/installation#windows) and use `podman machine`.
    - macOS: [install Podman](https://podman.io/docs/installation#macos) and use `podman machine`.
@@ -37,7 +37,7 @@ For the services of the development stack, see [Development services](README.md#
     (for example webpack and esbuild). The Linux container and a macOS or Windows host need different binaries.
   - Faster installs and builds on macOS and Windows. `node_modules` has many small files, and a bind mount
     is slow through the Podman VM.
-  - Correct file owners (`:U` gives the volume to the container user), and no container files in your checkout.
+  - Correct file owners (rootless podman with `userns_mode: keep-id` gives the volume to your user), and no container files in your checkout.
 
   The host editor does not see this `node_modules`.
 - Bash in `dev` has tab completion (for example `git` and `psql`).
