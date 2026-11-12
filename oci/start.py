@@ -51,8 +51,9 @@ def main() -> int:
         if failed:
             print(f"FAILED: after {CHECK_DELAY} s these containers are not in the expected state:\n" + "\n".join(failed), file=sys.stderr, flush=True)
             return 1
-    except Exception:
-        print(f"FAILED: start.py\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+    except Exception as error:
+        # The cause goes on the FAILED: line: `grep -A3 "FAILED:"` cuts the traceback before its last line.
+        print(f"FAILED: start.py: {type(error).__name__}: {error}\n{traceback.format_exc()}", file=sys.stderr, flush=True)
         return 1
     return 0
 

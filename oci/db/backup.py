@@ -39,23 +39,14 @@ os.environ["PGPASSWORD"] = setting("POSTGRES_PASSWORD", "PG_PASSWORD")
 os.environ["PGDATABASE"] = setting("POSTGRES_DB", "PG_DATABASE")
 
 
-# Why the last run_backup() failed, for the failure log.
-failure_reason = ""
-
-
-def fail(reason: str) -> bool:
-    global failure_reason
-    failure_reason = reason
-    print(reason, file=sys.stderr)
-    return False
-
-
 def wait_for_database() -> bool:
     for _ in range(60):
         if subprocess.run(["pg_isready", "-q"]).returncode == 0:
             return True
         time.sleep(1)
-    return fail(f"Database {os.environ['PGHOST']} is not reachable")
+    print(f"FAILED: the daily pg_dumpall backup failed: database {os.environ['PGHOST']} is not reachable",
+          file=sys.stderr, flush=True)
+    return False
 
 
 def delete_old_backups() -> None:
@@ -96,7 +87,9 @@ def run_backup() -> bool:
         status = dump.wait()
     if status != 0:
         os.remove(partial)
-        return fail(f"pg_dumpall failed with status {status}")
+        print(f"FAILED: the daily pg_dumpall backup failed: pg_dumpall exited with status {status}",
+              file=sys.stderr, flush=True)
+        return False
     os.replace(partial, target)
     size = subprocess.run(["du", "-h", target], capture_output=True, text=True, check=True).stdout.split()[0]
     print(f"Backup written: {target} ({size})")
@@ -107,15 +100,13 @@ def run_backup() -> bool:
 
 
 def run_and_alert() -> bool:
-    global failure_reason
-    failure_reason = ""
     try:
-        ok = run_backup()
-    except Exception:
-        ok = fail(traceback.format_exc())
-    if not ok:
-        print(f"FAILED: the daily pg_dumpall backup failed.\n{failure_reason}", file=sys.stderr, flush=True)
-    return ok
+        return run_backup()
+    except Exception as error:
+        # The cause goes on the FAILED: line: `grep -A3 "FAILED:"` cuts the traceback before its last line.
+        print(f"FAILED: the daily pg_dumpall backup failed: {type(error).__name__}: {error}\n{traceback.format_exc()}",
+              file=sys.stderr, flush=True)
+        return False
 
 
 sys.exit(0 if run_and_alert() else 1)
