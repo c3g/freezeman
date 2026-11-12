@@ -31,13 +31,14 @@ with open(CONFIG, "w") as out:
     _ = out.write(config)
 
 
-def run_and_alert() -> bool:
+def main() -> int:
     returncode = subprocess.run(["logrotate", "-s", STATE, CONFIG]).returncode
     if returncode != 0:
         print(f"FAILED: logrotate exited with code {returncode}.", file=sys.stderr, flush=True)
-        return False
+        return returncode
     print("logrotate finished", flush=True)
-    return True
+    return 0
 
 
-sys.exit(0 if run_and_alert() else 1)
+if __name__ == "__main__":
+    sys.exit(main())

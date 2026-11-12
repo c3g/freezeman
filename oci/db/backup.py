@@ -99,14 +99,15 @@ def run_backup() -> bool:
     return True
 
 
-def run_and_alert() -> bool:
+def main() -> int:
     try:
-        return run_backup()
+        return 0 if run_backup() else 1
     except Exception as error:
         # The cause goes on the FAILED: line: `grep -A3 "FAILED:"` cuts the traceback before its last line.
         print(f"FAILED: the daily pg_dumpall backup failed: {type(error).__name__}: {error}\n{traceback.format_exc()}",
               file=sys.stderr, flush=True)
-        return False
+        return 1
 
 
-sys.exit(0 if run_and_alert() else 1)
+if __name__ == "__main__":
+    sys.exit(main())

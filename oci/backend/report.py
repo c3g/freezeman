@@ -7,15 +7,16 @@ import sys
 #   fms-report now    run once and exit (`now` is the only mode, the argument is optional)
 
 
-def run_and_alert() -> bool:
+def main() -> int:
     returncode = subprocess.run([sys.executable, "/workspace/freezeman/backend/manage.py", "prepare_report_data"]).returncode
     if returncode != 0:
         # "FAILED:" is the marker that DEPLOYMENT.md greps for.
         print(f"FAILED: prepare_report_data exited with code {returncode}. "
               + "The logs are report_preparation.log and jobs.log in FMS_LOG_DIR.", file=sys.stderr, flush=True)
-        return False
+        return returncode
     print("prepare_report_data finished", flush=True)
-    return True
+    return 0
 
 
-sys.exit(0 if run_and_alert() else 1)
+if __name__ == "__main__":
+    sys.exit(main())
