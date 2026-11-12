@@ -28,7 +28,7 @@ def setting(*names: str, default: str = "") -> str:
             return os.environ[name]
     if default:
         return default
-    print(f"Set one of: {', '.join(names)}", file=sys.stderr)
+    print(f"FAILED: the daily pg_dumpall backup failed: set one of: {', '.join(names)}", file=sys.stderr, flush=True)
     sys.exit(1)
 
 
