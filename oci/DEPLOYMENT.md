@@ -182,7 +182,7 @@ Run these steps as `<user>`.
    | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
    | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
-   | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
+   | `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`). Default: `UTC`. Example: `America/Montreal` |
 
    <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
