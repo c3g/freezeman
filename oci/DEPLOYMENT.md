@@ -394,16 +394,16 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    git pull --ff-only
    ```
 
-2. Add a line to the crontab of `<user>` (`crontab -e`). Give the absolute path of a dump (`.pgsql.gz`, `.pgsql` or `.dump`) to `--dump`:
+2. Add a line to the crontab of `<user>` (`crontab -e`). Give the absolute path of a dump (`.pgsql.gz`, `.pgsql` or `.dump`) to `--db-backup-filename`:
 
    ```cron
    # */10 * * * *: check every 10 minutes.
    # --branch: branch of origin to follow.
-   # --dump: absolute path of the dump to restore (.pgsql.gz, .pgsql or .dump).
+   # --db-backup-filename: absolute path of the dump to restore (.pgsql.gz, .pgsql or .dump).
    # >> logs/autoupdate.log 2>&1: append the output and the errors to the log.
    # Optional --interval N: check every N seconds and never exit (default: check once).
    # Optional --force: deploy even if the commit is the last deployed one.
-   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --dump <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
+   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
    ```
 
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
