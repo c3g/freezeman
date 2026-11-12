@@ -9,7 +9,7 @@
 #   podman-compose up -d
 #
 # The default services include "web" (container nginx). The host nginx (HTTPS) passes the requests to
-# 127.0.0.1:${FMS_HTTP_PORT} (see DEPLOYMENT.md, "Reverse proxy").
+# 127.0.0.1:${HOST_HTTP_PORT} (see DEPLOYMENT.md, "Reverse proxy").
 #
 # Development: see compose.dev.yaml and DEVELOPMENT.md.
 #
@@ -39,6 +39,23 @@ x-backend-env: &backend-env
   PG_PORT: "5432"
   TZ: ${TZ:-UTC}
 
+# Set the Django settings of the Django services (`backend`, `jobs`). The containers get no
+# env_file, so the HOST_* settings of .env never reach them.
+x-django-env: &django-env
+  FMS_SECRET_KEY: ${FMS_SECRET_KEY}
+  FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
+  FMS_DEBUG: ${FMS_DEBUG:-False}
+  FMS_HOST: ${FMS_HOST:-}
+  # A key with no value passes the value of .env, and leaves the variable unset if .env has
+  # none. Do not write `${FMS_EMAIL_HOST:-}` here: an empty value counts as set for Django
+  # (settings.py: an empty FMS_EMAIL_HOST turns on SMTP, an empty FMS_EMAIL_PORT stops `int()`).
+  FMS_EMAIL_HOST:
+  FMS_EMAIL_PORT:
+  FMS_EMAIL_FROM:
+  FMS_EMAIL_USER:
+  FMS_EMAIL_PASSWORD:
+  FMS_EMAIL_TLS:
+
 # Proxy for the image builds (apt, pip, npm). Compose reads the shell first, then .env, so a
 # developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
 # lists the service names, so traffic between the containers never goes through the proxy.
@@ -54,8 +71,8 @@ x-proxy: &proxy
   no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
 
 # Runtime: no proxy. Podman copies the proxy of its own environment into each container
-# (containers.conf http_proxy = true), and env_file gives the .env values. Empty values
-# override both. Only "dev" (compose.dev.yaml) keeps the proxy.
+# (containers.conf http_proxy = true). Empty values override it. Only "dev" (compose.dev.yaml)
+# keeps the proxy.
 x-no-proxy: &no-proxy
   HTTP_PROXY: ""
   HTTPS_PROXY: ""
@@ -63,6 +80,13 @@ x-no-proxy: &no-proxy
   http_proxy: ""
   https_proxy: ""
   no_proxy: ""
+
+# Path of the project in the containers, from .env (the single source of the value). The image
+# builds get it as a build argument and export it as ENV. The bind targets below use it too:
+# compose resolves them on the host, where the ENV of the image is not visible.
+# `db` does not use it.
+x-build-root: &build-root
+  CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
 
 services:
   # PostgreSQL 15 with the fzy extension.
@@ -95,15 +119,15 @@ services:
         source: pgdata
         target: /var/lib/postgresql/data
 
-    # Write the log of the container to ${FMS_LOG_DIR}/<service>.log on the host. Each service has
+    # Write the log of the container to ${HOST_LOG_DIR}/<service>.log on the host. Each service has
     # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`
-    # still reads it. FMS_LOG_DIR has no default: set it in .env. The path must be absolute: a
+    # still reads it. HOST_LOG_DIR has no default: set it in .env. The path must be absolute: a
     # relative path breaks `podman restart` from another directory. Do not use a nested default
     # such as ${A:-${B}}: podman-compose 1.5 (Rocky 9.6) stops at the first `}`.
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/db.log
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/db.log
 
     # Restart a container that exits while podman runs. It does not start containers at boot.
     # `start.py` does that (DEPLOYMENT.md: "Start at boot").
@@ -113,7 +137,7 @@ services:
   # the container network. The port is not published. Only `web` connects to it.
   #
   # Migrations are manual. Stop `web` and `backend`, start only `db`, then run
-  #   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+  #   podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
   # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
   # on QC/dev hosts. See DEPLOYMENT.md.
   backend:
@@ -125,18 +149,13 @@ services:
       target: backend-prod
       args:
         # apt-get (libpq, gcc) and pip (requirements.txt, uwsgi) download packages.
-        <<: *proxy
+        <<: [*proxy, *build-root]
 
-    env_file: .env
+    # No FMS_RUN_INFO_PATH and similar: the Django defaults (settings.py) are the mount targets of
+    # the volumes below.
     environment:
-      <<: [*backend-env, *no-proxy]
-      # env_file also passes the host paths of the trigger and automations folders (volumes below)
-      # to Django, which reads them as paths in the container. Set the fixed container paths, so
-      # Django writes into the mounts.
-      FMS_RUN_INFO_PATH: /workspace/freezeman/backend/triggers/lims-run-info
-      FMS_VALIDATED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-validation-info
-      FMS_RELEASED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-release-info
-      FMS_AUTOMATIONS_WORK_PATH: /workspace/freezeman/backend/automations_work
+      <<: [*backend-env, *django-env, *no-proxy]
+      UWSGI_PROCESSES: ${UWSGI_PROCESSES:-3}
 
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
@@ -149,32 +168,32 @@ services:
     # Django uses only the three trigger folders, not their parent, so each one has its own mount.
     volumes:
       - type: bind
-        source: ${FMS_MEDIA_DIR:-../backend/media}
-        target: /workspace/freezeman/backend/media
+        source: ${HOST_MEDIA_DIR:-../backend/media}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/media
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_RUN_INFO_PATH:-../backend/triggers/lims-run-info}
-        target: /workspace/freezeman/backend/triggers/lims-run-info
+        source: ${HOST_RUN_INFO_DIR:-../backend/triggers/lims-run-info}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-run-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_VALIDATED_FILES_PATH:-../backend/triggers/lims-validation-info}
-        target: /workspace/freezeman/backend/triggers/lims-validation-info
+        source: ${HOST_VALIDATED_FILES_DIR:-../backend/triggers/lims-validation-info}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-validation-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_RELEASED_FILES_PATH:-../backend/triggers/lims-release-info}
-        target: /workspace/freezeman/backend/triggers/lims-release-info
+        source: ${HOST_RELEASED_FILES_DIR:-../backend/triggers/lims-release-info}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-release-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_AUTOMATIONS_WORK_PATH:-../backend/automations_work}
-        target: /workspace/freezeman/backend/automations_work
+        source: ${HOST_AUTOMATIONS_WORK_DIR:-../backend/automations_work}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/automations_work
         bind:
           selinux: z
           create_host_path: true
@@ -188,7 +207,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/backend.log
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/backend.log
 
     restart: always
 
@@ -204,7 +223,7 @@ services:
       target: web
       args:
         # apt-get (git) and npm ci download packages for the frontend build that web copies.
-        <<: *proxy
+        <<: [*proxy, *build-root]
         FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
 
     environment:
@@ -213,15 +232,15 @@ services:
       TZ: ${TZ:-UTC}
 
     # Publish port 8080 of the container on the host.
-    # Only the host nginx can reach it. A developer in a VM or container sets FMS_HTTP_ADDR=0.0.0.0.
+    # Only the host nginx can reach it. A developer in a VM or container sets HOST_HTTP_ADDR=0.0.0.0.
     ports:
-      - "${FMS_HTTP_ADDR:-127.0.0.1}:${FMS_HTTP_PORT:-8080}:8080"
+      - "${HOST_HTTP_ADDR:-127.0.0.1}:${HOST_HTTP_PORT:-8080}:8080"
 
     # `read_only` makes the mount read-only, because nginx only reads the media files.
     volumes:
       - type: bind
-        source: ${FMS_MEDIA_DIR:-../backend/media}
-        target: /workspace/freezeman/backend/media
+        source: ${HOST_MEDIA_DIR:-../backend/media}
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/media
         read_only: true
         bind:
           selinux: z
@@ -236,16 +255,16 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/web.log
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/web.log
 
     restart: always
 
   # The image of the three daily jobs. Host cron runs one job per crontab line with jobs.py, which
   # calls `podman-compose --profile jobs run --rm jobs <command>` (DEPLOYMENT.md, "Daily jobs"):
   #   fms-report      prepare_report_data
-  #   fms-backup      pg_dumpall into FMS_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz
-  #   fms-logrotate   logrotate of FMS_LOG_DIR/*.log
-  # The crontab line redirects the output to ${FMS_LOG_DIR}/jobs.log.
+  #   fms-backup      pg_dumpall into HOST_BACKUP_DIR as <YYYY-MM-DD>.pgsql.gz
+  #   fms-logrotate   logrotate of HOST_LOG_DIR/*.log
+  # The crontab line redirects the output to ${HOST_LOG_DIR}/jobs.log.
   jobs:
     # Only `podman-compose run` starts it. `up -d` does not.
     profiles: ["jobs"]
@@ -259,25 +278,12 @@ services:
       target: jobs
       args:
         # apt-get (PostgreSQL client, logrotate) downloads packages.
-        <<: *proxy
+        <<: [*proxy, *build-root]
 
-    # No env_file: the container gets only what the three jobs need. `report` runs Django, so it
-    # needs the Django settings below. `backup` reads PG_* (x-backend-env).
+    # The container gets only what the three jobs need. `report` runs Django, so it needs the
+    # Django settings (x-django-env). `backup` reads PG_* (x-backend-env).
     environment:
-      <<: [*backend-env, *no-proxy]
-      FMS_SECRET_KEY: ${FMS_SECRET_KEY}
-      FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
-      FMS_DEBUG: ${FMS_DEBUG:-False}
-      FMS_HOST: ${FMS_HOST:-}
-      # A key with no value passes the value of .env, and leaves the variable unset if .env has
-      # none. Do not write `${FMS_EMAIL_HOST:-}` here: an empty value counts as set for Django
-      # (settings.py: an empty FMS_EMAIL_HOST turns on SMTP, an empty FMS_EMAIL_PORT stops `int()`).
-      FMS_EMAIL_HOST:
-      FMS_EMAIL_PORT:
-      FMS_EMAIL_FROM:
-      FMS_EMAIL_USER:
-      FMS_EMAIL_PASSWORD:
-      FMS_EMAIL_TLS:
+      <<: [*backend-env, *django-env, *no-proxy]
       FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
       FMS_LOGROTATE_SIZE: ${FMS_LOGROTATE_SIZE:-100M}
       FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
@@ -286,24 +292,24 @@ services:
     # backup and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
-    # FMS_LOG_DIR is mounted twice: /logs is the directory that logrotate rotates, and
+    # HOST_LOG_DIR is mounted twice: /logs is the directory that logrotate rotates, and
     # ~/reports/log is where prepare_report_data writes report_preparation.log, next to the service
     # logs (<service>.log). podman-compose creates a missing backup directory.
     volumes:
       - type: bind
-        source: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}
+        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
         target: /logs
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}
+        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
         target: /home/fms/reports/log
         bind:
           selinux: z
           create_host_path: true
       - type: bind
-        source: ${FMS_BACKUP_DIR:-./backups}
+        source: ${HOST_BACKUP_DIR:-./backups}
         target: /backups
         bind:
           selinux: z

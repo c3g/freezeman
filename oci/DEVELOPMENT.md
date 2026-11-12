@@ -30,7 +30,7 @@ Contents:
 
 For the services of the development stack, see [Development services](README.md#development-services) in README.md.
 
-- The repository is bind-mounted at `/workspace/freezeman`. Files that the container writes (`fms.log`, migrations, uploads)
+- The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`CONTAINER_FMS_ROOT` of `.env`, also an environment variable in `dev`). Files that the container writes (`fms.log`, migrations, uploads)
   belong to your host user (`userns_mode: keep-id`).
 - Container `node_modules` live in a named volume, separate from the host's. This gives you:
   - No clash between the host and the container. `npm ci` installs binaries for one OS and architecture
@@ -46,15 +46,15 @@ For the services of the development stack, see [Development services](README.md#
 
 ## Start the development stack
 
-Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs` in your checkout, for example
-`FMS_LOG_DIR=/home/me/freezeman/oci/logs`. Compose stops without it. Start the stack and enter the `dev` container:
+Set `HOST_LOG_DIR` in `.env` to the absolute path of `oci/logs` in your checkout, for example
+`HOST_LOG_DIR=/home/me/freezeman/oci/logs`. Compose stops without it. Start the stack and enter the `dev` container:
 
 ```bash
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
 
-The `dev` shell starts in `/workspace/freezeman`. The venv is ready: the `dev` image has the packages of
+The `dev` shell starts in `$CONTAINER_FMS_ROOT`. The venv is ready: the `dev` image has the packages of
 `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`. So `python`, `pip` and
 `pytest` are the ones of the venv, with no activation and no first `pip install`.
 
@@ -79,7 +79,7 @@ The steps run the migrations themselves.
 
 Get one of these files from the production host and copy it to `oci/backups/`:
 
-- A daily backup: `<FMS_BACKUP_DIR>/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
+- A daily backup: `<HOST_BACKUP_DIR>/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
 - A custom dump of the `fms` database only. Make it on the production host, in `oci/`. The site stays online:
 
   ```bash
@@ -103,7 +103,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admi
 
 # Start dev, then apply the migrations of your branch that the dump does not have.
 podman-compose -f compose.yaml -f compose.dev.yaml up -d
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py migrate && python /workspace/freezeman/backend/manage.py createinitialrevisions'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd "$CONTAINER_FMS_ROOT/backend" && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
@@ -124,15 +124,15 @@ In the `dev` shell:
 
 ```bash
 # First start and after each new migration:
-cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py migrate && python /workspace/freezeman/backend/manage.py createinitialrevisions
+cd "$CONTAINER_FMS_ROOT/backend" && python manage.py migrate && python manage.py createinitialrevisions
 
 # Backend: http://localhost:8000, reloads on code changes
 # 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd /workspace/freezeman/backend && python /workspace/freezeman/backend/manage.py runserver 0.0.0.0:8000
+cd "$CONTAINER_FMS_ROOT/backend" && python manage.py runserver 0.0.0.0:8000
 
 # Frontend with live reload: http://localhost:9000 (proxies /api to port 8000)
 # --host 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
-cd /workspace/freezeman/frontend && npm ci && npm start -- --host 0.0.0.0
+cd "$CONTAINER_FMS_ROOT/frontend" && npm ci && npm start -- --host 0.0.0.0
 ```
 
 - The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
@@ -142,13 +142,13 @@ cd /workspace/freezeman/frontend && npm ci && npm start -- --host 0.0.0.0
 Run the backend tests in the `dev` shell:
 
 ```bash
-cd /workspace/freezeman/backend && pytest
+cd "$CONTAINER_FMS_ROOT/backend" && pytest
 ```
 
 Or run them from the host, in `oci/`, without a `dev` shell:
 
 ```bash
-podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd /workspace/freezeman/backend && pytest'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd "$CONTAINER_FMS_ROOT/backend" && pytest'
 ```
 
 The tests need no database setup. pytest-django creates a separate test database and deletes it after the run.
@@ -179,7 +179,7 @@ Use `psql` to look at the development database. There are three ways:
 
 ## Test the production stack locally
 
-Set `FMS_LOG_DIR` in `.env` to the absolute path of `oci/logs`, and `FMS_HOST` to `localhost`. Then build and start the stack. `web` is a default service:
+Set `HOST_LOG_DIR` in `.env` to the absolute path of `oci/logs`, and `FMS_HOST` to `localhost`. Then build and start the stack. `web` is a default service:
 
 ```bash
 # proxy host: set the variables before each podman-compose command, as in Proxy
@@ -187,6 +187,6 @@ HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
 podman-compose up -d
 ```
 
-- Open `http://localhost:8080` (`FMS_HTTP_PORT`).
-- In a VM or container, set `FMS_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
+- Open `http://localhost:8080` (`HOST_HTTP_PORT`).
+- In a VM or container, set `HOST_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
 - The database is empty. To get data, restore a backup as in [Restore a production database](#restore-a-production-database).

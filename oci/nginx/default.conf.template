@@ -32,7 +32,7 @@ server {
     gzip_types text/css application/javascript application/json image/svg+xml;
 
     # Paths match the classic host setup (DEPLOYMENT.md), so both configs read the same.
-    root /workspace/freezeman/frontend/dist;
+    root ${CONTAINER_FMS_ROOT}/frontend/dist;
     index index.html;
 
     # Single-page application built by webpack
@@ -42,12 +42,12 @@ server {
 
     # Django collectstatic output, baked into this image
     location /static/ {
-        alias /workspace/freezeman/backend/staticfiles/;
+        alias ${CONTAINER_FMS_ROOT}/backend/staticfiles/;
     }
 
     # Uploaded files, shared with the backend through the media volume
     location /media/ {
-        alias /workspace/freezeman/backend/media/;
+        alias ${CONTAINER_FMS_ROOT}/backend/media/;
     }
 
     location /api/ {

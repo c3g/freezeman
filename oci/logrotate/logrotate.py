@@ -5,7 +5,7 @@ import string
 import subprocess
 import sys
 
-# One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. Host cron starts it
+# One logrotate run of /logs/*.log (HOST_LOG_DIR), then exit with the result. Host cron starts it
 # every day through oci/jobs.py, after the other jobs.
 # The size directive (FMS_LOGROTATE_SIZE) decides whether a file rotates at a run.
 TEMPLATE = "/etc/fms-logrotate/logrotate.conf.template"

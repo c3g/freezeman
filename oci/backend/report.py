@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import subprocess
 import sys
 
@@ -7,11 +8,11 @@ import sys
 
 
 def main() -> int:
-    returncode = subprocess.run([sys.executable, "/workspace/freezeman/backend/manage.py", "prepare_report_data"]).returncode
+    returncode = subprocess.run([sys.executable, f"{os.environ['CONTAINER_FMS_ROOT']}/backend/manage.py", "prepare_report_data"]).returncode
     if returncode != 0:
         # "FAILED:" is the marker that DEPLOYMENT.md greps for.
         print(f"FAILED: prepare_report_data exited with code {returncode}. "
-              + "The logs are report_preparation.log and jobs.log in FMS_LOG_DIR.", file=sys.stderr, flush=True)
+              + "The logs are report_preparation.log and jobs.log in HOST_LOG_DIR.", file=sys.stderr, flush=True)
         return returncode
     print("prepare_report_data finished", flush=True)
     return 0

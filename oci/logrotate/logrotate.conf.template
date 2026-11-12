@@ -1,6 +1,6 @@
 # Rotation rules for the log files of the stack. logrotate reads this file after logrotate.py
 # fills in the size limit and the number of files to keep. To change a directive, edit this file and rebuild the image.
-# /logs is the mount point of FMS_LOG_DIR in the container.
+# /logs is the mount point of HOST_LOG_DIR in the container.
 /logs/*.log {
     # Rotate a log when it is larger than this size, with no time condition. logrotate checks the
     # size only when the job runs (once a day from host cron), so a file can grow past it until the next run.

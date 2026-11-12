@@ -11,7 +11,7 @@ Conventions:
 - `<domain>`: the public host name of FreezeMan (`FMS_HOST`).
 - `<classic-dir>`: the checkout of a classic FreezeMan install (Path A only).
 - `<branch>`: the branch that `autoupdate.py` follows (Automatic update only).
-- The local checks use `http://127.0.0.1:8080/`. If you change `FMS_HTTP_PORT`, use your port.
+- The local checks use `http://127.0.0.1:8080/`. If you change `HOST_HTTP_PORT`, use your port.
 
 Contents:
 
@@ -70,7 +70,7 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 
 ## Reverse proxy
 
-The `web` container listens on `127.0.0.1:FMS_HTTP_PORT` (default 8080) and speaks plain HTTP. A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it. The reverse proxy must:
+The `web` container listens on `127.0.0.1:HOST_HTTP_PORT` (default 8080) and speaks plain HTTP. A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it. The reverse proxy must:
 
 - Pass `Host`, `X-Real-IP`, `X-Forwarded-For` and `X-Forwarded-Proto`. Django checks `Host` against `FMS_HOST`.
 - Allow uploads up to 50 MB, and requests up to 300 s.
@@ -82,7 +82,7 @@ client_max_body_size 50M;
 client_body_timeout 300s;
 
 location / {
-    proxy_pass http://127.0.0.1:8080;      # FMS_HTTP_PORT
+    proxy_pass http://127.0.0.1:8080;      # HOST_HTTP_PORT
     proxy_http_version 1.1;
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
@@ -177,10 +177,11 @@ Run these steps as `<user>`.
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-   | `FMS_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
-   | `FMS_BACKUP_DIR` | Optional. Default: `<install-dir>/oci/backups` |
-   | `FMS_MEDIA_DIR`, `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH`, `FMS_AUTOMATIONS_WORK_PATH` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
-   | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
+   | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
+   | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
+   | `HOST_BACKUP_DIR` | Optional. Default: `<install-dir>/oci/backups` |
+   | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
+   | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
    | `FMS_LOGROTATE_SIZE`, `FMS_LOGROTATE_KEEP` | The size above which a log rotates (a number with an optional `k`, `M` or `G` suffix) and how many rotated files to keep. Defaults: `100M`, 8 |
@@ -190,7 +191,7 @@ Run these steps as `<user>`.
 
    | Area | `PROD` | Other value (`QC`, `DEV`) |
    |---|---|---|
-   | Django log | `WARNING` and higher goes to the console, so to `FMS_LOG_DIR/backend.log` | `DEBUG` and higher goes to `/workspace/freezeman/backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
+   | Django log | `WARNING` and higher goes to the console, so to `HOST_LOG_DIR/backend.log` | `DEBUG` and higher goes to `$CONTAINER_FMS_ROOT/backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. `fms-logrotate` does not rotate it. Django rotates it at 2 GB and keeps 1 old file |
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
@@ -230,9 +231,9 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 
    | Variable | Value |
    |---|---|
-   | `FMS_MEDIA_DIR` | The media folder of the classic install (`MEDIA_ROOT`) |
-   | `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH`, `FMS_RELEASED_FILES_PATH` | The values of the classic `uwsgi.ini`, as absolute paths. If `uwsgi.ini` does not set one, the folder in `backend/triggers` of the classic checkout |
-   | `FMS_AUTOMATIONS_WORK_PATH` | The value of the classic `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the classic checkout |
+   | `HOST_MEDIA_DIR` | The media folder of the classic install (`MEDIA_ROOT`) |
+   | `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR` | The values of `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH` and `FMS_RELEASED_FILES_PATH` in the classic `uwsgi.ini`, as absolute paths. If `uwsgi.ini` does not set one, the folder in `backend/triggers` of the classic checkout |
+   | `HOST_AUTOMATIONS_WORK_DIR` | The value of `FMS_AUTOMATIONS_WORK_PATH` in the classic `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the classic checkout |
 
    The folders must be on this host. The backend writes as `<user>`, the host user that runs podman (`userns_mode: keep-id`), so `<user>` must be able to write into them.
 
@@ -255,7 +256,7 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
 6. Apply the migrations while only `db` runs, then start all services and check them. The migration command prints the applied migrations and ends with exit code 0:
 
    ```bash
-   podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+   podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
    podman-compose up -d
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
    ```
@@ -278,7 +279,7 @@ Start only `db`, apply the migrations in a one-off `backend` container, then sta
 ```bash
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
-podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
 podman-compose up -d
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
@@ -312,7 +313,7 @@ Run this step as `<user>`, after the first start works. Host cron runs each dail
 - Keep this order and leave enough time between the jobs: the backup includes the report data of the day, and the log rotation runs after the other jobs wrote their logs. Cron does not wait for a job to end.
 - To turn a job off, remove its line.
 - The log rotation checks the size of each log only when it runs. A log can grow past `FMS_LOGROTATE_SIZE` until the next run. To check more often, run the `logrotate` line more often (for example every hour).
-- If `FMS_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
+- If `HOST_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
 - A host without cron (the host is a container) is not supported yet.
 
@@ -339,9 +340,26 @@ git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.
 podman-compose stop web backend
-podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
 podman-compose up -d --force-recreate
 ```
+
+**Changed variables:** if `.env` was made from an older `.env.example`, change it before `build`:
+
+- Add `CONTAINER_FMS_ROOT=/workspace/freezeman` (new, required). Compose stops without it.
+- The host settings of `.env` have the `HOST_` prefix. Rename these variables. Compose ignores the old names and uses the folders of the checkout:
+
+| Old name | New name |
+|---|---|
+| `FMS_LOG_DIR` | `HOST_LOG_DIR` |
+| `FMS_BACKUP_DIR` | `HOST_BACKUP_DIR` |
+| `FMS_MEDIA_DIR` | `HOST_MEDIA_DIR` |
+| `FMS_RUN_INFO_PATH` | `HOST_RUN_INFO_DIR` |
+| `FMS_VALIDATED_FILES_PATH` | `HOST_VALIDATED_FILES_DIR` |
+| `FMS_RELEASED_FILES_PATH` | `HOST_RELEASED_FILES_DIR` |
+| `FMS_AUTOMATIONS_WORK_PATH` | `HOST_AUTOMATIONS_WORK_DIR` |
+| `FMS_HTTP_PORT` | `HOST_HTTP_PORT` |
+| `FMS_HTTP_ADDR` | `HOST_HTTP_ADDR` |
 
 The migration command runs in a one-off container. It needs the new image (the `build` above) and a running `db`. If it fails, the stack stays down: fix the error, then run it again.
 
@@ -352,7 +370,7 @@ Host cron runs the backup every day (see [Daily jobs](#daily-jobs)). Each run re
 ```bash
 # oci/.env
 # Host directory for the daily dumps. podman-compose creates it if it is missing. Default (not set): <install-dir>/oci/backups.
-#FMS_BACKUP_DIR=
+#HOST_BACKUP_DIR=
 # Delete backups older than this many days, but always keep the newest
 # FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
 FMS_BACKUP_KEEP_DAYS=14
@@ -370,7 +388,7 @@ until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c <install-dir>/oci/backups/2026-10-21.pgsql.gz | podman-compose exec -T db psql -U admin -d postgres
 # Apply the migrations that the backup does not have, while only db runs.
-podman-compose run --rm --no-deps backend sh -c "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
 podman-compose up -d
 ```
 
@@ -387,10 +405,10 @@ Failures: when a job fails, it writes a line that starts with `FAILED:` to its l
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
-tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from FMS_LOG_DIR (works after `down`)
+tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from HOST_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
 tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
-podman-compose exec -T backend python /workspace/freezeman/backend/manage.py prepare_report_data  # run the report now (-T: no terminal)
+podman-compose exec -T backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" prepare_report_data'  # run the report now (-T: no terminal)
 ./jobs.py logrotate                                                  # rotate now (only a file larger than FMS_LOGROTATE_SIZE)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```
@@ -446,7 +464,7 @@ The stack writes after the cutover are not in the classic database. If step 4 of
 
 | Symptom | Likely cause |
 |---|---|
-| 502 at the reverse proxy | `web` is not running, or `FMS_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<FMS_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration |
+| 502 at the reverse proxy | `web` is not running, or `HOST_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<HOST_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration |
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |

@@ -32,7 +32,7 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL 15 with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: port 8000 uwsgi protocol (internal)                 |
-| `jobs`| `localhost/freezeman-jobs` | not started by `up -d`. Host cron runs one job per crontab line with `jobs.py` (`podman-compose --profile jobs run --rm jobs <command>`): `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `FMS_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `FMS_LOG_DIR/*.log`, each file rotates when it is larger than `FMS_LOGROTATE_SIZE`, default 100M). The crontab sets the time of each job. It gets only the settings that the jobs need, not the whole `.env` |
+| `jobs`| `localhost/freezeman-jobs` | not started by `up -d`. Host cron runs one job per crontab line with `jobs.py` (`podman-compose --profile jobs run --rm jobs <command>`): `fms-report` (`prepare_report_data`), `fms-backup` (`pg_dumpall` to `HOST_BACKUP_DIR` as `<YYYY-MM-DD>.pgsql.gz`) and `fms-logrotate` (`logrotate` of `HOST_LOG_DIR/*.log`, each file rotates when it is larger than `FMS_LOGROTATE_SIZE`, default 100M). The crontab sets the time of each job. It gets only the settings that the jobs need |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](DEPLOYMENT.md#reverse-proxy) in DEPLOYMENT.md).
@@ -73,8 +73,8 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.example` | Template of `.env`. Copy it to `.env`. Commit only the template |
-| `logs/` | Usual `FMS_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
-| `backups/` | Default `FMS_BACKUP_DIR`, for the database backups. The directory is in the checkout, its contents are git-ignored |
+| `logs/` | Usual `HOST_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
+| `backups/` | Default `HOST_BACKUP_DIR`, for the database backups. The directory is in the checkout, its contents are git-ignored |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
 
@@ -90,8 +90,17 @@ Do these steps for both environments:
   If it fails on the `git://` URL, set the HTTPS rule in [Submodule URL](../README.md#submodule-url) first.
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
-- Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `FMS_LOG_DIR`.
-  - `FMS_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
+- Run `cd oci && cp .env.example .env`, then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST` and `HOST_LOG_DIR`.
+  - `HOST_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
+  - `.env` has three parts. Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
+    Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds. Host settings (`HOST_*`)
+    are paths and ports on the host: only compose and the host scripts read them. No service loads the whole `.env`
+    (`env_file`). Each service gets an explicit list of variables in the compose files.
+  - `CONTAINER_FMS_ROOT`: the path of the project in the containers (default `/workspace/freezeman`). It is the single
+    source of that path: the images get it as a build argument and export it as an environment variable of the same
+    name, and compose uses it for the mount targets. These documents write container paths as `$CONTAINER_FMS_ROOT/...`.
+    In a command that runs in a container, put the command in single quotes (`sh -c '...'`), so the shell of the
+    container expands the variable, not the host shell. After a change, rebuild all images.
 
 Then continue with the environment steps:
 
@@ -126,7 +135,7 @@ Without a proxy, skip it and leave the variables unset. The stack then works as 
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
   - The other services (`db`, `backend`, `jobs`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
-    `containers.conf`) and the proxy values of `.env` (`env_file`).
+    `containers.conf`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
   - Only in `dev` does `NO_PROXY` get the service names.
 - Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
@@ -140,8 +149,8 @@ Without a proxy, skip it and leave the variables unset. The stack then works as 
 podman-compose ps                                  # containers of the stack and their state
 podman-compose logs -f backend                     # follow the backend logs
 podman-compose logs -f -n                          # follow the logs of all services, each line with its container name
-podman-compose exec backend python /workspace/freezeman/backend/manage.py shell  # Django shell in the backend
-podman-compose exec -T backend python /workspace/freezeman/backend/manage.py prepare_report_data  # run the fms-report job now
+podman-compose exec backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" shell'  # Django shell in the backend
+podman-compose exec -T backend sh -c 'python "$CONTAINER_FMS_ROOT/backend/manage.py" prepare_report_data'  # run the fms-report job now
 podman-compose exec db psql -U admin -d fms        # psql session on the fms database
 # -T: no pseudo-TTY, which would turn the dump's line endings into CRLF
 podman-compose exec -T db pg_dumpall -U admin > backup_$(date +%F).pgsql  # manual dump of all databases
@@ -235,7 +244,7 @@ The Docker daemon rejects these podman-only settings:
 | Setting | Where | Why podman needs it |
 |---|---|---|
 | `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `jobs` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
-| `logging.driver: k8s-file` | All services | Writes each container log to `FMS_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
+| `logging.driver: k8s-file` | All services | Writes each container log to `HOST_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
 
 `x-podman` is ignored by other tools. `bind.selinux: z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.
 
@@ -287,6 +296,8 @@ podman run -d --name freezeman-outer --init \
 - `-p`: the ports of the development stack (5432, 8000, 9000) and of `web` (8080), on loopback only.
 
 Open a shell with `podman exec -it freezeman-outer bash -l`. Then `cd /workspace/freezeman/oci` and use `podman-compose`.
+`/workspace/freezeman` here is the path of the checkout in the outer container. It is not `CONTAINER_FMS_ROOT`,
+the path of the project in the containers of the stack.
 
 ### Known issues
 

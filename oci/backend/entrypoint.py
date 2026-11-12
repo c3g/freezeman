@@ -9,15 +9,16 @@ import psycopg2
 def make_directories() -> None:
     # Create the directories that Django writes into but does not create itself. The trigger
     # and automations folders need nothing here: each one is a mount target, so it exists.
+    root = os.environ["CONTAINER_FMS_ROOT"]
     for path in (
         # TEMPLATE_UPLOAD_PATH. Django does not create it, and each template submission fails
         # without it. The default media folder of the checkout has it (git tracks
-        # backend/media/uploads/templates/.keep). Another FMS_MEDIA_DIR may not: a new or empty
+        # backend/media/uploads/templates/.keep). Another HOST_MEDIA_DIR may not: a new or empty
         # folder, or a classic media folder with no upload yet.
-        "/workspace/freezeman/backend/media/uploads/templates",
+        f"{root}/backend/media/uploads/templates",
         # TEMP_ROOT. The backend-prod image creates this directory. The "dev" image does not:
-        # it mounts the repository at /workspace/freezeman, and git does not track backend/tmp.
-        "/workspace/freezeman/backend/tmp",
+        # it mounts the repository at CONTAINER_FMS_ROOT, and git does not track backend/tmp.
+        f"{root}/backend/tmp",
     ):
         os.makedirs(path, exist_ok=True)
 

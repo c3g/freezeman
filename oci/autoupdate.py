@@ -30,7 +30,8 @@ RESTORE_PSQL = 'psql -U "$POSTGRES_USER" -d postgres'
 RESTORE_PG_RESTORE = 'pg_restore -U "$POSTGRES_USER" --no-owner --no-acl --verbose -d "$POSTGRES_DB"'
 
 # Runs in a one-off backend container while only `db` runs. The dump does not have the newest migrations.
-MIGRATE = "python /workspace/freezeman/backend/manage.py migrate --noinput && python /workspace/freezeman/backend/manage.py createinitialrevisions"
+# The shell of the container expands CONTAINER_FMS_ROOT (an ENV of the image).
+MIGRATE = 'python "$CONTAINER_FMS_ROOT/backend/manage.py" migrate --noinput && python "$CONTAINER_FMS_ROOT/backend/manage.py" createinitialrevisions'
 
 
 class Abort(Exception):
@@ -61,7 +62,7 @@ def run(command: list[str]) -> None:
 
 def log_directory(env: Mapping[str, str]) -> str:
     # Only .env counts, not the shell: the script must see the same values as the stack.
-    return env.get("FMS_LOG_DIR") or os.path.join(OCI_DIR, "logs")
+    return env.get("HOST_LOG_DIR") or os.path.join(OCI_DIR, "logs")
 
 
 def alert_failure(args: Args) -> None:

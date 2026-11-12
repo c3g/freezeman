@@ -6,7 +6,7 @@
 # --target <target> .` or let `podman-compose build` do it. The targets are:
 #
 #   dev            Idle development container with the venv, Python 3.14 and Node 24. It expects
-#                  the repository bind-mounted at /workspace/freezeman. The developer starts
+#                  the repository bind-mounted at $CONTAINER_FMS_ROOT. The developer starts
 #                  runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
 #   jobs           backend-prod plus the report, backup and logrotate jobs (host cron runs them)
@@ -17,6 +17,11 @@ ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
 ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
 ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
 
+# Path of the project in the containers. No default: compose passes CONTAINER_FMS_ROOT of oci/.env,
+# the single source of the value. Each stage that uses it declares it again: an ARG before the
+# first FROM is not visible in a stage until the stage declares it.
+ARG CONTAINER_FMS_ROOT
+
 ############
 # Backend  #
 ############
@@ -25,6 +30,13 @@ ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
 # `backend-deps`, `dev` and `backend-prod` stages start from it (`FROM python-base`), so they all
 # get these files.
 FROM ${PYTHON_IMAGE} AS python-base
+
+# Export the project path to the stages built on this one and to the containers. uwsgi.ini,
+# entrypoint.py and report.py read it. Stop the build if it is not set.
+ARG CONTAINER_FMS_ROOT
+ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
+RUN test -n "$CONTAINER_FMS_ROOT" \
+ || { echo "Set the build argument CONTAINER_FMS_ROOT (oci/.env)" >&2; exit 1; }
 
 # `PYTHONDONTWRITEBYTECODE` stops Python from writing `.pyc` files. `PYTHONUNBUFFERED` sends the
 # output at once.
@@ -53,8 +65,8 @@ COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
 # Copy the uwsgi configuration.
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
 
-# Set working directory to /workspace/freezeman/backend
-WORKDIR /workspace/freezeman/backend
+# Set working directory to $CONTAINER_FMS_ROOT/backend
+WORKDIR ${CONTAINER_FMS_ROOT}/backend
 
 # Create the directories that Django writes into, wait until the database accepts connections,
 # then run the command (the `CMD`, or the `command` of the compose service).
@@ -107,6 +119,12 @@ FROM ${NODE_IMAGE} AS node-runtime
 # This stage adds git to Node. The `frontend-build` and `build-info` stages start from it.
 FROM node-runtime AS node-base
 
+# Export the project path to the stages built on this one. Stop the build if it is not set.
+ARG CONTAINER_FMS_ROOT
+ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
+RUN test -n "$CONTAINER_FMS_ROOT" \
+ || { echo "Set the build argument CONTAINER_FMS_ROOT (oci/.env)" >&2; exit 1; }
+
 # Install git.
 # webpack.config.js shells out to git for the commit hash, branch and date.
 # `safe.directory '*'` lets git read a `.git` directory that another user owns. The build mounts
@@ -116,8 +134,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory '*'
 
-# Set working directory to /workspace/freezeman/frontend
-WORKDIR /workspace/freezeman/frontend
+# Set working directory to $CONTAINER_FMS_ROOT/frontend
+WORKDIR ${CONTAINER_FMS_ROOT}/frontend
 
 # This stage builds the frontend. The `web` stage copies only the result (`dist/`), so Node and
 # the packages stay out of it.
@@ -125,7 +143,7 @@ FROM node-base AS frontend-build
 
 # Copy `package.json` and `package-lock.json` alone, before the source.
 # The build reuses the `npm ci` layer until the packages change.
-COPY frontend/package.json frontend/package-lock.json /workspace/freezeman/frontend/
+COPY frontend/package.json frontend/package-lock.json ${CONTAINER_FMS_ROOT}/frontend/
 
 # Install the packages.
 # `--mount=type=cache` keeps the npm download cache between builds, outside the image.
@@ -133,30 +151,36 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
 # Copy VERSION next to `frontend/`, then the source.
-# The layout mirrors the repository (/workspace/freezeman/frontend,
-# /workspace/freezeman/VERSION), because the code reads ../VERSION relative to frontend/.
-COPY VERSION /workspace/freezeman/VERSION
-COPY frontend/ /workspace/freezeman/frontend/
+# The layout mirrors the repository ($CONTAINER_FMS_ROOT/frontend,
+# $CONTAINER_FMS_ROOT/VERSION), because the code reads ../VERSION relative to frontend/.
+COPY VERSION ${CONTAINER_FMS_ROOT}/VERSION
+COPY frontend/ ${CONTAINER_FMS_ROOT}/frontend/
 
 # Set `FMS_ENV` for the build. Compose passes the value of `.env` as a build argument.
 ARG FMS_ENV=PROD
 ENV FMS_ENV=${FMS_ENV}
 
+# Declare the ARG again: the `--mount` target below uses it.
+ARG CONTAINER_FMS_ROOT
+
 # Build the app. The build writes `dist/`, and the `web` stage copies it.
 # `--mount=type=bind,source=.git` shows the repository `.git` to this one command, so webpack can
 # read the commit information. The mount does not copy `.git` into the image.
-RUN --mount=type=bind,source=.git,target=/workspace/freezeman/.git \
+RUN --mount=type=bind,source=.git,target=${CONTAINER_FMS_ROOT}/.git \
     npm run build
 
 # This stage records the commit information. It starts from `node-base`, which has git.
 FROM node-base AS build-info
 
+# Declare the ARG again: the `--mount` target below uses it.
+ARG CONTAINER_FMS_ROOT
+
 # Write the commit date, hash, tag and branch to `/build_info.json`. The `backend-prod` stage
 # copies it.
 # backend/fms/info.py has no git repository at runtime. The image has no `.git`, so it reads
 # this file.
-RUN --mount=type=bind,source=.git,target=/workspace/freezeman/.git \
-    cd /workspace/freezeman \
+RUN --mount=type=bind,source=.git,target=${CONTAINER_FMS_ROOT}/.git \
+    cd ${CONTAINER_FMS_ROOT} \
  && printf '{"commit_date": "%s", "commit_full_hash": "%s", "commit_small_hash": "%s", "commit_tagged_version": "%s", "branch": "%s"}\n' \
       "$(git show --quiet --format=%cI)" \
       "$(git show --quiet --format=%H)" \
@@ -205,9 +229,9 @@ RUN install -d -m 1777 /home/dev
 ENV HOME=/home/dev \
     NPM_CONFIG_CACHE=/home/dev/.npm
 
-# Set working directory to /workspace/freezeman
+# Set working directory to $CONTAINER_FMS_ROOT
 # Shells start in the repository root.
-WORKDIR /workspace/freezeman
+WORKDIR ${CONTAINER_FMS_ROOT}
 
 # Create the directories that Django writes into, wait until the database accepts connections,
 # then run the command.
@@ -230,12 +254,12 @@ CMD ["sleep", "infinity"]
 FROM python-base AS backend-prod
 
 # Copy the venv, the source and the commit information.
-# The layout mirrors the repository (/workspace/freezeman/backend,
-# /workspace/freezeman/VERSION), because the code reads ../VERSION relative to backend/.
+# The layout mirrors the repository ($CONTAINER_FMS_ROOT/backend,
+# $CONTAINER_FMS_ROOT/VERSION), because the code reads ../VERSION relative to backend/.
 COPY --from=backend-deps /opt/venv /opt/venv
-COPY VERSION /workspace/freezeman/VERSION
-COPY backend/ /workspace/freezeman/backend/
-COPY --from=build-info /build_info.json /workspace/freezeman/backend/fms/build_info.json
+COPY VERSION ${CONTAINER_FMS_ROOT}/VERSION
+COPY backend/ ${CONTAINER_FMS_ROOT}/backend/
+COPY --from=build-info /build_info.json ${CONTAINER_FMS_ROOT}/backend/fms/build_info.json
 
 # `FMS_ENV=PROD` and `FMS_DEBUG=False` set the production mode of Django. `UWSGI_PROCESSES` is the
 # number of uwsgi workers.
@@ -257,20 +281,20 @@ ENV FMS_ENV=PROD \
 #   tmp                      TEMP_ROOT. Not a mount: the image is its only source.
 # The backend directory itself stays writable for fms.log, which settings.py
 # writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
-RUN python /workspace/freezeman/backend/manage.py collectstatic --noinput \
+RUN python ${CONTAINER_FMS_ROOT}/backend/manage.py collectstatic --noinput \
  && mkdir -p \
-      /workspace/freezeman/backend/media/uploads/templates \
-      /workspace/freezeman/backend/triggers/lims-run-info \
-      /workspace/freezeman/backend/triggers/lims-validation-info \
-      /workspace/freezeman/backend/triggers/lims-release-info \
-      /workspace/freezeman/backend/automations_work \
-      /workspace/freezeman/backend/tmp \
+      ${CONTAINER_FMS_ROOT}/backend/media/uploads/templates \
+      ${CONTAINER_FMS_ROOT}/backend/triggers/lims-run-info \
+      ${CONTAINER_FMS_ROOT}/backend/triggers/lims-validation-info \
+      ${CONTAINER_FMS_ROOT}/backend/triggers/lims-release-info \
+      ${CONTAINER_FMS_ROOT}/backend/automations_work \
+      ${CONTAINER_FMS_ROOT}/backend/tmp \
  && chown -R fms:fms \
-      /workspace/freezeman/backend/media \
-      /workspace/freezeman/backend/triggers \
-      /workspace/freezeman/backend/automations_work \
-      /workspace/freezeman/backend/tmp \
- && chown fms:fms /workspace/freezeman/backend
+      ${CONTAINER_FMS_ROOT}/backend/media \
+      ${CONTAINER_FMS_ROOT}/backend/triggers \
+      ${CONTAINER_FMS_ROOT}/backend/automations_work \
+      ${CONTAINER_FMS_ROOT}/backend/tmp \
+ && chown fms:fms ${CONTAINER_FMS_ROOT}/backend
 
 # Run the container process as `fms`, a user that is not root.
 USER fms
@@ -321,14 +345,18 @@ USER fms
 # This stage is last because it copies from the stages above it.
 FROM ${NGINX_IMAGE} AS web
 
+# Export the project path. The nginx image fills it into default.conf.template (envsubst).
+ARG CONTAINER_FMS_ROOT
+ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
+
 # Set the address of uwsgi. nginx passes `/api` to it.
 ENV BACKEND_UPSTREAM=backend:8000
 
 # Copy the nginx configuration, the frontend build and the Django static files.
 # `COPY --from` takes the files of the build stages, so the image gets none of the build tools.
 COPY oci/nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY --from=frontend-build /workspace/freezeman/frontend/dist /workspace/freezeman/frontend/dist
-COPY --from=backend-prod /workspace/freezeman/backend/staticfiles /workspace/freezeman/backend/staticfiles
+COPY --from=frontend-build ${CONTAINER_FMS_ROOT}/frontend/dist ${CONTAINER_FMS_ROOT}/frontend/dist
+COPY --from=backend-prod ${CONTAINER_FMS_ROOT}/backend/staticfiles ${CONTAINER_FMS_ROOT}/backend/staticfiles
 
 # Document port 8080. compose.yaml publishes it.
 # The nginx image runs as a user that is not root, so it cannot use a port below 1024.

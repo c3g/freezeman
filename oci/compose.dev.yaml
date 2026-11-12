@@ -40,12 +40,27 @@ services:
       args:
         # apt-get (git, psql client), pip and npm download packages while the image builds.
         <<: *proxy
+        # Path of the project in the container (x-build-root of compose.yaml).
+        CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
 
-    env_file: .env
+    # No env_file, so the HOST_* settings of .env never reach the container. The Django settings
+    # repeat x-django-env of compose.yaml (YAML anchors do not cross files).
+    # No FMS_RUN_INFO_PATH and similar: the Django defaults are in the repository mount.
     environment:
       <<: *proxy
       FMS_ENV: LOCAL
       FMS_DEBUG: "True"
+      FMS_SECRET_KEY: ${FMS_SECRET_KEY}
+      FMS_HOST: ${FMS_HOST:-}
+      # A key with no value passes the value of .env, and leaves the variable unset if .env has
+      # none (see x-django-env in compose.yaml).
+      FMS_EMAIL_HOST:
+      FMS_EMAIL_PORT:
+      FMS_EMAIL_FROM:
+      FMS_EMAIL_USER:
+      FMS_EMAIL_PASSWORD:
+      FMS_EMAIL_TLS:
+      TZ: ${TZ:-UTC}
       PG_DATABASE: ${POSTGRES_DB}
       PG_USER: ${POSTGRES_USER}
       PG_PASSWORD: ${POSTGRES_PASSWORD}
@@ -57,25 +72,19 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
-      # env_file also passes the host paths of the trigger and automations folders to Django. Use
-      # the folders of the repository mount instead.
-      FMS_RUN_INFO_PATH: /workspace/freezeman/backend/triggers/lims-run-info
-      FMS_VALIDATED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-validation-info
-      FMS_RELEASED_FILES_PATH: /workspace/freezeman/backend/triggers/lims-release-info
-      FMS_AUTOMATIONS_WORK_PATH: /workspace/freezeman/backend/automations_work
 
     # Run the container as the host user. keep-id keeps files written into the repository
     # (fms.log, migrations, uploads) owned by the host user.
     userns_mode: keep-id
 
     volumes:
-      # Mount the repository at /workspace/freezeman, so backend/fms/info.py and
+      # Mount the repository at CONTAINER_FMS_ROOT, so backend/fms/info.py and
       # frontend/webpack.config.js find ../VERSION and .git as they do outside containers.
       # backend/media, backend/triggers and backend/automations_work are in this mount, so they
       # need no mount of their own.
       - type: bind
         source: ..
-        target: /workspace/freezeman
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
         bind:
           selinux: z
           create_host_path: true
@@ -84,7 +93,7 @@ services:
       # the container user, so `npm ci` can write to it.
       - type: volume
         source: frontend_node_modules
-        target: /workspace/freezeman/frontend/node_modules
+        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/frontend/node_modules
 
     # Publish runserver (8000) and the webpack dev server (9000) on the host.
     ports:
@@ -94,7 +103,7 @@ services:
     logging:
       driver: k8s-file
       options:
-        path: ${FMS_LOG_DIR:?set FMS_LOG_DIR in .env to an absolute path}/dev.log
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/dev.log
 
     # The entrypoint waits until the database accepts connections.
     depends_on:
