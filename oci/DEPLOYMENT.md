@@ -344,23 +344,6 @@ podman-compose run --rm --no-deps backend sh -c 'python "$CONTAINER_FMS_ROOT/bac
 podman-compose up -d --force-recreate
 ```
 
-**Changed variables:** if `.env` was made from an older `.env.example`, change it before `build`:
-
-- Add `CONTAINER_FMS_ROOT=/workspace/freezeman` (new, required). Compose stops without it.
-- The host settings of `.env` have the `HOST_` prefix. Rename these variables. Compose ignores the old names and uses the folders of the checkout:
-
-| Old name | New name |
-|---|---|
-| `FMS_LOG_DIR` | `HOST_LOG_DIR` |
-| `FMS_BACKUP_DIR` | `HOST_BACKUP_DIR` |
-| `FMS_MEDIA_DIR` | `HOST_MEDIA_DIR` |
-| `FMS_RUN_INFO_PATH` | `HOST_RUN_INFO_DIR` |
-| `FMS_VALIDATED_FILES_PATH` | `HOST_VALIDATED_FILES_DIR` |
-| `FMS_RELEASED_FILES_PATH` | `HOST_RELEASED_FILES_DIR` |
-| `FMS_AUTOMATIONS_WORK_PATH` | `HOST_AUTOMATIONS_WORK_DIR` |
-| `FMS_HTTP_PORT` | `HOST_HTTP_PORT` |
-| `FMS_HTTP_ADDR` | `HOST_HTTP_ADDR` |
-
 The migration command runs in a one-off container. It needs the new image (the `build` above) and a running `db`. If it fails, the stack stays down: fix the error, then run it again.
 
 ### Database backups
