@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Run one daily job of the stack in a fresh `jobs` container. Host cron calls it, one crontab line
 # per job (DEPLOYMENT.md, "Daily jobs"):
-#   jobs.py report|backup
+#   jobs.py report
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 import argparse
 import subprocess
@@ -13,7 +13,6 @@ import hostenv
 # The job name of the crontab line -> the command in the `jobs` image.
 JOBS = {
     "report": "fms-report",
-    "backup": "fms-backup",
 }
 
 

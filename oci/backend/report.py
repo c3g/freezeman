@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 # One prepare_report_data run, then exit with its exit code. Host cron starts it
-# every day through oci/jobs.py, before fms-backup.
+# every day through oci/jobs.py.
 
 
 def main() -> int:

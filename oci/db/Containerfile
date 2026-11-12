@@ -1,7 +1,6 @@
 # # FreezeMan database images
 #
 # This file makes the PostgreSQL server with the fzy extension (backend/dependencies/pg_fzy).
-# The backup job runs in the `jobs` image (oci/Containerfile).
 #
 # Build context: repository root
 #   podman build -f oci/db/Containerfile .

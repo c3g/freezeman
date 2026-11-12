@@ -9,7 +9,7 @@
 #                  the repository bind-mounted at $CONTAINER_FMS_ROOT. The developer starts
 #                  runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   jobs           backend-prod plus the report and backup jobs (host cron runs them)
+#   jobs           backend-prod for the report job (host cron runs it)
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -306,33 +306,10 @@ EXPOSE 8000
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
 
-# This stage holds the two daily jobs. Host cron runs one of them per call through oci/jobs.py
+# This stage holds the daily jobs. Host cron runs one of them per call through oci/jobs.py
 # (`podman-compose --profile jobs run --rm jobs <command>`).
-#   fms-report      prepare_report_data (Django, from backend-prod)
-#   fms-backup      pg_dumpall into /backups
+#   fms-report      prepare_report_data (Django; the script comes from `python-base`)
 FROM backend-prod AS jobs
-
-# Install the tools as root. The user is `fms` again at the end of the stage.
-USER root
-
-# `pg_dumpall` must have the major version of the server (15). Debian trixie has client 17, and a
-# dump of a newer client may not restore into 15. So install `postgresql-client-15` from the
-# PostgreSQL apt repository (apt.postgresql.org).
-# Some proxies block www.postgresql.org (the PGDG key) and apt.postgresql.org on 443. So take the
-# same key from Debian's `postgresql-client-common`, and use http like the `db` build (apt checks the
-# signatures).
-RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates postgresql-client-common \
- && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
- && apt-get update \
- && apt-get install -y --no-install-recommends postgresql-client-15 \
- && rm -rf /var/lib/apt/lists/*
-
-# Copy the job scripts. `fms-report` comes from `python-base`.
-# `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
-COPY --chmod=755 oci/db/backup.py /usr/local/bin/fms-backup
-
-USER fms
 
 # No CMD of its own: jobs.py always gives the job command.
 

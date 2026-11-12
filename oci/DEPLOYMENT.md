@@ -24,11 +24,11 @@ Contents:
   - [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host): dump, copy the files, restore, cutover of the reverse proxy.
   - [Path B: new host](#path-b-new-host): first start with an empty database.
 - [Start at boot](#start-at-boot): the `@reboot` crontab line.
-- [Daily jobs](#daily-jobs): the crontab lines of the report and the backup.
+- [Daily jobs](#daily-jobs): the crontab line of the report.
 - [Daily use](#daily-use)
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
   - [Update to a new release](#update-to-a-new-release): back up, check out the tag, build, recreate.
-  - [Database backups](#database-backups): settings, a backup now, a restore.
+  - [Database backups](#database-backups): a dump now, a restore.
   - [Report and logs](#report-and-logs): follow the logs, run the report now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
 - [To go back](#to-go-back): return to the classic setup.
@@ -58,7 +58,7 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
 | `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com` |
 | `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
-| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. Image build of `jobs`: `postgresql-client-15` (`pg_dumpall` must match the server version 15). The repository key comes from the Debian package `postgresql-client-common` |
+| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image. |
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` (for example `smtp.office365.com`) | The value of `FMS_EMAIL_PORT` (for example 587) | Django email, only if `FMS_EMAIL_HOST` is set |
@@ -162,7 +162,7 @@ Run these steps as `<user>`.
    git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
    ```
 
-2. No directory to create: the checkout holds the directory of the logs (`oci/logs`) and the backend files, and podman-compose creates the backup directory (`oci/backups`) and any other missing bind-mount folder. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
+2. No directory to create: the checkout holds the directory of the logs (`oci/logs`) and the backend files, and podman-compose creates any missing bind-mount folder. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
 
 3. Create `.env` and set these values. The other values in `.env.example` have working defaults.
 
@@ -179,12 +179,10 @@ Run these steps as `<user>`.
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path) |
    | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
-   | `HOST_BACKUP_DIR` | Optional. Default: `<install-dir>/oci/backups` |
    | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Default: the folder in the checkout. podman-compose creates a missing folder |
    | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
-   | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
    <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
@@ -194,11 +192,11 @@ Run these steps as `<user>`.
    | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
    | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
    | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-   | Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database. To stop the backup, remove its crontab line |
+   | Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
 
    The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack (`compose.dev.yaml`). Do not use it on a server.
 
-   **Daily jobs:** host cron runs the report and the backup. See [Daily jobs](#daily-jobs).
+   **Daily jobs:** host cron runs the report. See [Daily jobs](#daily-jobs).
 
 4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
 
@@ -300,15 +298,13 @@ If the host has no cron (the host is a container), start `start.py` as `<user>` 
 
 ## Daily jobs
 
-Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add these lines to the crontab (`crontab -e`):
+Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add this line to the crontab (`crontab -e`):
 
 ```cron
 0 1 * * *  <install-dir>/oci/jobs.py report >> <install-dir>/oci/logs/jobs.log 2>&1
-30 1 * * * <install-dir>/oci/jobs.py backup >> <install-dir>/oci/logs/jobs.log 2>&1
 ```
 
 - Cron uses the time zone of the host.
-- Keep this order and leave enough time between the jobs: the backup includes the report data of the day. Cron does not wait for a job to end.
 - To turn a job off, remove its line.
 - If `HOST_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
@@ -330,7 +326,7 @@ Run these commands in `oci/`. Use `--force-recreate` after a build or an `.env` 
 ### Update to a new release
 
 ```bash
-./jobs.py backup
+mkdir -p backups && podman-compose exec -T db pg_dumpall -U admin | gzip > backups/$(date +%F).pgsql.gz
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # set FMS_IMAGE_TAG=vX.Y.Z in .env
 # proxy host: set the variables before each podman-compose command, as in Proxy
@@ -345,17 +341,10 @@ The migration command runs in a one-off container. It needs the new image (the `
 
 ### Database backups
 
-Host cron runs the backup every day (see [Daily jobs](#daily-jobs)). Each run reads `.env`. To run a backup now, use the last command:
+The stack has no automatic backup yet. To dump all databases now, run this command in `oci/` while `db` runs. `pg_dumpall` copies the roles too:
 
 ```bash
-# oci/.env
-# Host directory for the daily dumps. podman-compose creates it if it is missing. Default (not set): <install-dir>/oci/backups.
-#HOST_BACKUP_DIR=
-# Delete backups older than this many days, but always keep the newest
-# FMS_BACKUP_KEEP_DAYS backups (0 keeps all).
-FMS_BACKUP_KEEP_DAYS=14
-
-./jobs.py backup   # run one backup now
+mkdir -p backups && podman-compose exec -T db pg_dumpall -U admin | gzip > backups/$(date +%F).pgsql.gz
 ```
 
 To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest.
@@ -381,13 +370,13 @@ podman-compose up -d
 
 The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 3.
 
-Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, the backup, `jobs.py`, `start.py` and `autoupdate.py`.
+Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, `jobs.py`, `start.py` and `autoupdate.py`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from HOST_LOG_DIR (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
-tail -f <install-dir>/oci/logs/jobs.log                              # the report and backup jobs
+tail -f <install-dir>/oci/logs/jobs.log                              # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```

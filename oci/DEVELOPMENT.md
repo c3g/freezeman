@@ -79,7 +79,7 @@ The steps run the migrations themselves.
 
 Get one of these files from the production host and copy it to `oci/backups/`:
 
-- A daily backup: `<HOST_BACKUP_DIR>/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
+- A dump of all databases: `oci/backups/<YYYY-MM-DD>.pgsql.gz` (`pg_dumpall`, see [Database backups](DEPLOYMENT.md#database-backups)).
 - A custom dump of the `fms` database only. Make it on the production host, in `oci/`. The site stays online:
 
   ```bash
@@ -95,7 +95,7 @@ podman volume rm freezeman_pgdata     # deletes the development database
 podman-compose -f compose.yaml -f compose.dev.yaml up -d db
 until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
 
-# Daily backup (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+# Dump of all databases (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U admin -d postgres
 # Or the custom dump (pg_dump -Fc).
 # --no-owner: give all objects to POSTGRES_USER. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
@@ -107,7 +107,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
-- A daily backup also restores the roles, so `admin` gets the production password. If `dev` reports
+- A dump of all databases also restores the roles, so `admin` gets the production password. If `dev` reports
   "password authentication failed", set it back to `POSTGRES_PASSWORD` of your `.env`. The socket connection in `db` needs no password:
 
   ```bash
