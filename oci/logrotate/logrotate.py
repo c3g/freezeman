@@ -15,7 +15,7 @@ CONFIG = "/etc/fms-logrotate/logrotate.conf"
 # `--force-recreate`. The name does not end in .log, so logrotate does not rotate it.
 STATE = "/logs/logrotate.state"
 DEFAULT_SIZE = "100M"
-# Not .get(name, default): a set but empty value (VAR=) must also fall back to the default.
+# `or` (rather than `.get(name, default)`) covers an empty string, for example `podman run -e VAR=` without compose.
 keep = os.environ.get("FMS_LOGROTATE_KEEP") or "8"
 size = os.environ.get("FMS_LOGROTATE_SIZE") or DEFAULT_SIZE
 

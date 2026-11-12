@@ -16,7 +16,7 @@ from pathlib import Path
 #   fms-backup now    run one backup and exit (`now` is the only mode, the argument is optional)
 # Restore: gunzip -c <date>.pgsql.gz | psql -U "$POSTGRES_USER" -d postgres
 BACKUP_DIR = "/backups"
-# Not .get(name, default): a set but empty value (VAR=) must also fall back to the default.
+# `or` (rather than `.get(name, default)`) covers an empty string, for example `podman run -e VAR=` without compose.
 keep_days = int(os.environ.get("FMS_BACKUP_KEEP_DAYS") or "14")
 
 
