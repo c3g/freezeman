@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 import os
+import re
 import string
 import subprocess
 import sys
 
 # One logrotate run of /logs/*.log (FMS_LOG_DIR), then exit with the result. Host cron starts it
 # every day through oci/jobs.py, after the other jobs.
-# The frequency directive (FMS_LOGROTATE_FREQUENCY) decides whether a file rotates on a given day.
+# The size directive (FMS_LOGROTATE_SIZE) decides whether a file rotates at a run.
 #   fms-logrotate now    run once and exit (`now` is the only mode, the argument is optional)
 TEMPLATE = "/etc/fms-logrotate/logrotate.conf.template"
 CONFIG = "/etc/fms-logrotate/logrotate.conf"
-# In the log directory, so the rotation period stays correct after `down` and `--force-recreate`.
-# The name does not end in .log, so logrotate does not rotate it.
+# In the log directory, so logrotate keeps its record of the last rotations after `down` and
+# `--force-recreate`. The name does not end in .log, so logrotate does not rotate it.
 STATE = "/logs/logrotate.state"
+DEFAULT_SIZE = "100M"
 # Not .get(name, default): a set but empty value (VAR=) must also fall back to the default.
 keep = os.environ.get("FMS_LOGROTATE_KEEP") or "8"
-frequency = os.environ.get("FMS_LOGROTATE_FREQUENCY") or "weekly"
+size = os.environ.get("FMS_LOGROTATE_SIZE") or DEFAULT_SIZE
 
-# The script runs once a day, so a period shorter than a day has no effect. logrotate only
-# warns about an unknown directive and then rotates at each run, so check the value here.
-# Fall back to weekly instead of exiting, so the logs still rotate.
-if frequency not in ("daily", "weekly", "monthly", "yearly"):
-    message = f"FMS_LOGROTATE_FREQUENCY must be daily, weekly, monthly or yearly, not '{frequency}'."
-    print(f"FAILED: {message} Using weekly until you fix .env.", file=sys.stderr, flush=True)
-    frequency = "weekly"
+# A bad size makes logrotate reject the whole config, so no log rotates. Check the value here and
+# fall back to the default instead of exiting, so the logs still rotate.
+if not re.fullmatch(r"[1-9][0-9]*[kMG]?", size):
+    message = f"FMS_LOGROTATE_SIZE must be a number with an optional k, M or G suffix, not '{size}'."
+    print(f"FAILED: {message} Using {DEFAULT_SIZE} until you fix .env.", file=sys.stderr, flush=True)
+    size = DEFAULT_SIZE
 
 with open(TEMPLATE) as template:
-    config = string.Template(template.read()).substitute(FMS_LOGROTATE_FREQUENCY=frequency, FMS_LOGROTATE_KEEP=keep)
+    config = string.Template(template.read()).substitute(FMS_LOGROTATE_SIZE=size, FMS_LOGROTATE_KEEP=keep)
 with open(CONFIG, "w") as out:
     _ = out.write(config)
 

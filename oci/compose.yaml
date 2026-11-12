@@ -281,7 +281,7 @@ services:
       FMS_EMAIL_PASSWORD:
       FMS_EMAIL_TLS:
       FMS_BACKUP_KEEP_DAYS: ${FMS_BACKUP_KEEP_DAYS:-14}
-      FMS_LOGROTATE_FREQUENCY: ${FMS_LOGROTATE_FREQUENCY:-weekly}
+      FMS_LOGROTATE_SIZE: ${FMS_LOGROTATE_SIZE:-100M}
       FMS_LOGROTATE_KEEP: ${FMS_LOGROTATE_KEEP:-8}
 
     # keep-id: the jobs run as uid 1000 (the image user fms), which is the host user. The log,

@@ -183,7 +183,7 @@ Run these steps as `<user>`.
    | `FMS_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
    | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. To turn TLS off, leave `FMS_EMAIL_TLS` empty |
    | `TZ` | The time zone of the services. Default: `UTC`. Example: `America/Montreal` |
-   | `FMS_LOGROTATE_FREQUENCY`, `FMS_LOGROTATE_KEEP` | How often each log rotates (`daily`, `weekly`, `monthly` or `yearly`) and how many rotated files to keep. Defaults: `weekly`, 8 |
+   | `FMS_LOGROTATE_SIZE`, `FMS_LOGROTATE_KEEP` | The size above which a log rotates (a number with an optional `k`, `M` or `G` suffix) and how many rotated files to keep. Defaults: `100M`, 8 |
    | `FMS_BACKUP_KEEP_DAYS` | Delete backups older than this many days, but always keep the newest `FMS_BACKUP_KEEP_DAYS` backups (0 keeps all). Default: 14 |
 
    <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
@@ -311,6 +311,7 @@ Run this step as `<user>`, after the first start works. Host cron runs each dail
 - Cron uses the time zone of the host.
 - Keep this order and leave enough time between the jobs: the backup includes the report data of the day, and the log rotation runs after the other jobs wrote their logs. Cron does not wait for a job to end.
 - To turn a job off, remove its line.
+- The log rotation checks the size of each log only when it runs. A log can grow past `FMS_LOGROTATE_SIZE` until the next run. To check more often, run the `logrotate` line more often (for example every hour).
 - If `FMS_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
 - A host without cron (the host is a container) is not supported yet.
@@ -390,7 +391,7 @@ tail -f <install-dir>/oci/logs/backend.log                           # the same 
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
 tail -f <install-dir>/oci/logs/jobs.log                              # the report, backup and log rotation jobs
 podman-compose exec -T backend python /workspace/freezeman/backend/manage.py prepare_report_data  # run the report now (-T: no terminal)
-./jobs.py logrotate                                                  # rotate now (only a file that is due)
+./jobs.py logrotate                                                  # rotate now (only a file larger than FMS_LOGROTATE_SIZE)
 grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
 ```
 
