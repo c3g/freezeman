@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Q, F, Prefetch, CharField
+from django.db.models import Q, F, Prefetch, CharField, FloatField, Case, When, Value
 from django.db.models.functions import Cast, Greatest, Lower
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
@@ -172,6 +172,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         """
         Searches for containers that match the given query.
         Without exact_match, the closest fuzzy (fzy) match on barcode, name or id comes first.
+        The id matches only when it starts with q.
         """
         search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
@@ -201,12 +202,22 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 # Example: GET /api/containers/search/?q=BOX with FZY(q, F("barcode")) does not return box-1.
                 # Lowercasing q and the fields makes every query case-insensitive.
                 fuzzy_input = search_input.lower()
+                # Without Cast, fzy on the integer id gives HTTP 500.
+                containers_data = containers_data.annotate(id_text=Cast("id", CharField()))
                 containers_data = containers_data.annotate(
                     score=Greatest(
                         FZY(fuzzy_input, Lower("barcode")),
                         FZY(fuzzy_input, Lower("name")),
-                        # Without Cast, fzy on the integer id gives HTTP 500.
-                        FZY(fuzzy_input, Cast("id", CharField())),
+                        # fzy matches subsequences, so q=12 also matches ids 1002 and 312.
+                        # The id must match from its most significant digit, so only a prefix match gets a score.
+                        Case(
+                            When(id_text__startswith=fuzzy_input, then=FZY(fuzzy_input, F("id_text"))),
+                            # GREATEST ignores NULL.
+                            default=Value(None),
+                            output_field=FloatField(),
+                        ),
+                        # Without it, Django infers CharField for FZY and rejects the mix with the FloatField Case.
+                        output_field=FloatField(),
                     )
                 )
                 # Without this filter, non-matches and very weak matches are returned.
