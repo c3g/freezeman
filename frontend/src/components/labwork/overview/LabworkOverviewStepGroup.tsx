@@ -1,4 +1,4 @@
-import { List, Typography } from 'antd'
+import { Listy, Typography } from 'antd'
 import React from 'react'
 import { LabworkStepGroup } from '../../../modules/labwork/models'
 import LabworkOverviewStep from './LabworkOverviewStep'
@@ -20,16 +20,19 @@ const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStep
 	return (
 		<div style={{ padding: '1rem' }}>
 			{renderNamedGroup && <Title level={5}>{group.name}</Title>}
-			<List
-				size="small"
-				dataSource={listData}
+			<Listy
+				items={listData}
+				rowKey="id"
 				style={{ marginRight: '0.5rem' }}
-				renderItem={(item) => (
-					<List.Item>
-						<LabworkOverviewStep step={item} />
-					</List.Item>
+				styles={{
+					item: {
+					padding: '8px 0',
+					},
+				}}
+				itemRender={(item) => (
+					<LabworkOverviewStep step={item} />
 				)}
-			/>
+            />
 		</div>
 	)
 }
