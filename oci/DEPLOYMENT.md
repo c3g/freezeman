@@ -178,7 +178,7 @@ Run these steps as `<user>`.
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-   | `FMS_IMAGE_TAG` | The release version (`vX.Y.Z`). Required: compose stops if it is not set. The template leaves it empty |
+   | `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION` (`cat ../VERSION`). Required: compose stops if it is not set. The template leaves it empty |
    | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path). Template: `/data/freezeman/oci/logs` |
    | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
    | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Template: the C3G production folders in `/data`. Unset: the folder in the checkout. podman-compose creates a missing folder |
@@ -329,7 +329,8 @@ Run these commands in `oci/`. Use `--force-recreate` after a build or an `.env` 
 ```bash
 mkdir -p backups && podman-compose exec -T db pg_dumpall -U admin | gzip > backups/$(date +%F).pgsql.gz
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
-# set FMS_IMAGE_TAG=vX.Y.Z in .env
+# Set FMS_IMAGE_TAG in .env to the value in VERSION.
+sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat ../VERSION)/" .env
 # proxy host: set the variables before each podman-compose command, as in Proxy
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.

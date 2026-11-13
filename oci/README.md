@@ -97,7 +97,7 @@ Do these steps for both environments:
   - For development: `cd oci && cp .env.dev.example .env`. Then set `HOST_LOG_DIR`.
   - `HOST_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
   - `FMS_IMAGE_TAG`: the tag of the built images. It has no default: compose stops if it is not set. The dev template
-    sets `latest`. On a server, set the release version (`vX.Y.Z`).
+    sets `latest`. On a server, set the value in the `VERSION` file of the project root (`cat ../VERSION`).
   - `.env` has three parts. Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
     Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds. Host settings (`HOST_*`)
     are paths and ports on the host: only compose and the host scripts read them. No service loads the whole `.env`
