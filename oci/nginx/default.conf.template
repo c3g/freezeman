@@ -37,7 +37,6 @@ server {
 
     # Single-page application built by webpack
     location / {
-        try_files $uri $uri/ /index.html;
     }
 
     # Django collectstatic output, baked into this image
@@ -61,4 +60,8 @@ server {
         access_log off;
         log_not_found off;
     }
+
+    # Same as the production host nginx: the frontend app handles unknown paths
+    # (client-side routes), with status 404.
+    error_page 404 /index.html;
 }
