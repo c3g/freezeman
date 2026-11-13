@@ -8,10 +8,11 @@ Conventions:
 
 - `<user>`: the non-root account that runs the stack with rootless podman.
 - `<install-dir>`: the absolute path of the FreezeMan checkout for the stack.
+- `<HOST_LOG_DIR>`: the value of `HOST_LOG_DIR` in `.env` (usually `<install-dir>/oci/logs`).
 - `<domain>`: the public host name of FreezeMan (`FMS_HOST`).
 - `<classic-dir>`: the checkout of a classic FreezeMan install (Path A only).
 - `<branch>`: the branch that `autoupdate.py` follows (Automatic update only).
-- The local checks use `http://127.0.0.1:8080/`. If you change `HOST_HTTP_PORT`, use your port.
+- `<HOST_HTTP_PORT>`: the value of `HOST_HTTP_PORT` in `.env` (default 8080).
 
 Contents:
 
@@ -82,7 +83,7 @@ client_max_body_size 50M;
 client_body_timeout 300s;
 
 location / {
-    proxy_pass http://127.0.0.1:8080;      # HOST_HTTP_PORT
+    proxy_pass http://127.0.0.1:<HOST_HTTP_PORT>;
     proxy_http_version 1.1;
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
@@ -255,13 +256,13 @@ Use this path to keep the data of a classic FreezeMan install ([../DEPLOYMENT.md
    ```bash
    podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
    podman-compose up -d
-   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
+   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
    ```
 
 7. Switch the reverse proxy to the containers, as in [Reverse proxy](#reverse-proxy) (migration on the same domain). Then check the site:
 
    ```bash
-   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
+   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200, through the reverse proxy
    ```
 
 8. Disable the `@reboot` and cron entries of the classic setup (report, backup) in the crontab of its user, so they do not run against the old database.
@@ -278,8 +279,8 @@ podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
-curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/    # 200
-curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/         # 200, through the reverse proxy
+curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
+curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200, through the reverse proxy
 ```
 
 Then continue with [Start at boot](#start-at-boot).
@@ -289,7 +290,7 @@ Then continue with [Start at boot](#start-at-boot).
 Run this step as `<user>`, after the first start works. Add this line to the crontab (`crontab -e`):
 
 ```cron
-@reboot <install-dir>/oci/start.py >> <install-dir>/oci/logs/boot.log 2>&1
+@reboot <install-dir>/oci/start.py >> <HOST_LOG_DIR>/boot.log 2>&1
 ```
 
 `start.py` needs the directory `/run/user/<uid>` at boot (see [Prerequisites](#prerequisites)).
@@ -301,12 +302,11 @@ If the host has no cron (the host is a container), start `start.py` as `<user>` 
 Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add this line to the crontab (`crontab -e`):
 
 ```cron
-0 1 * * *  <install-dir>/oci/jobs.py report >> <install-dir>/oci/logs/jobs.log 2>&1
+0 1 * * *  <install-dir>/oci/jobs.py report >> <HOST_LOG_DIR>/jobs.log 2>&1
 ```
 
 - Cron uses the time zone of the host.
 - To turn a job off, remove its line.
-- If `HOST_LOG_DIR` is not `<install-dir>/oci/logs`, use that directory in the redirection.
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
 - A host without cron (the host is a container) is not supported yet.
 
@@ -374,11 +374,11 @@ Failures: when a job fails, it writes a line that starts with `FAILED:` to its l
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
-tail -f <install-dir>/oci/logs/backend.log                           # the same log, read from HOST_LOG_DIR (works after `down`)
+tail -f <HOST_LOG_DIR>/backend.log                                   # the same log, read from the host file (works after `down`)
 podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
-tail -f <install-dir>/oci/logs/jobs.log                              # the report job
+tail -f <HOST_LOG_DIR>/jobs.log                                      # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-grep -h -A3 "FAILED:" <install-dir>/oci/logs/*.log                  # the job failures
+grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the job failures
 ```
 
 ### Automatic update (test hosts)
@@ -400,15 +400,15 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    # */10 * * * *: check every 10 minutes.
    # --branch: branch of origin to follow.
    # --db-backup-filename: absolute path of the dump to restore (.pgsql.gz, .pgsql or .dump).
-   # >> logs/autoupdate.log 2>&1: append the output and the errors to the log.
+   # >> <HOST_LOG_DIR>/autoupdate.log 2>&1: append the output and the errors to the log.
    # Optional --interval N: check every N seconds and never exit (default: check once).
    # Optional --force: deploy even if the commit is the last deployed one.
-   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <install-dir>/oci/logs/autoupdate.log 2>&1
+   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <HOST_LOG_DIR>/autoupdate.log 2>&1
    ```
 
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
 - Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
-- No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `logs/autoupdate.log`.
+- No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `<HOST_LOG_DIR>/autoupdate.log`.
 - To deploy the same commit again: add `--force`.
 
 ## To go back
