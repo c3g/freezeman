@@ -13,6 +13,7 @@ Contents:
   - [Prerequisites](#prerequisites)
   - [Proxy](#proxy)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
+- [Identify the format of a database backup](#identify-the-format-of-a-database-backup)
 - [Additional notes](#additional-notes)
 - [Docker compatibility](#docker-compatibility)
 - [Run the stack inside a container](#run-the-stack-inside-a-container)
@@ -170,6 +171,26 @@ podman info --format '{{.Host.CgroupManager}}'     # cgroupfs on the deployment 
 ```
 
 For the restore, see [Database backups](DEPLOYMENT.md#database-backups) in DEPLOYMENT.md.
+
+## Identify the format of a database backup
+
+The restore command depends on the format of the dump. Find the format before you restore:
+
+```bash
+file <backup>                     # "PostgreSQL custom database dump": a pg_dump -Fc file
+gunzip -c <backup>.gz | head -5   # a .gz file: the first lines of the SQL script
+head -5 <backup>                  # a plain .pgsql file
+```
+
+| What you see | Format | Restore with | Parallel restore (`pg_restore -j`) |
+|---|---|---|---|
+| `PostgreSQL database cluster dump` | `pg_dumpall` SQL script (the `.pgsql.gz` files of [Database backups](DEPLOYMENT.md#database-backups)) | `psql -d postgres` | No |
+| `PostgreSQL database dump` | `pg_dump` SQL script (one database) | `psql -d fms` | No |
+| `PostgreSQL custom database dump` (`file`), or `PGDMP` as the first bytes | `pg_dump -Fc` | `pg_restore` ([Path A](DEPLOYMENT.md#path-a-migrate-from-the-classic-host)) | Yes, from a file, not from stdin |
+| A directory with `toc.dat` | `pg_dump -Fd` | `pg_restore` | Yes |
+
+- `psql` runs a SQL script one statement at a time. Only `pg_restore` can restore in parallel.
+- `pg_restore -j` needs the dump as a file in the container (a bind mount or `podman cp`). It cannot read from `<` or a pipe.
 
 ## Keep the base images up to date
 
