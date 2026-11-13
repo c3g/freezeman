@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Any
 
 from django.conf import settings
 from rest_framework import serializers, status, viewsets
@@ -53,21 +52,6 @@ class FrontendLogBatchSerializer(serializers.Serializer):
     A batch of log entries sent by the frontend in one request.
     """
     entries = FrontendLogEntrySerializer(many=True, allow_empty=False)
-
-    def validate_entries(self, value: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """
-        Reject batches larger than `FRONTEND_LOGGING["client"]["max_batch_size"]`.
-
-        Args:
-            `value`: Validated entries of the batch.
-
-        Returns:
-            The unchanged entries.
-        """
-        max_batch_size: int = settings.FRONTEND_LOGGING["client"]["max_batch_size"]
-        if len(value) > max_batch_size:
-            raise serializers.ValidationError(f"Ensure this field has no more than {max_batch_size} elements.")
-        return value
 
 
 class FrontendLogViewSet(viewsets.ViewSet):

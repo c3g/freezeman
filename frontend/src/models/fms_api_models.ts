@@ -760,8 +760,6 @@ export interface FMSFrontendLogEntry {
 
 // Keys match FRONTEND_LOGGING["client"] in backend/fms/settings.py.
 export interface FMSFrontendLogConfig {
-  max_batch_size: number
-  flush_threshold: number
-  flush_interval_ms: number
   max_buffer_size: number
+  flush_delay_ms: number
 }

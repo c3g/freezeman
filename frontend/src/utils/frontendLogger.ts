@@ -6,10 +6,8 @@ type LogContext = Record<string, unknown>
 
 // Fallback only. Source of truth: FRONTEND_LOGGING in backend/fms/settings.py, served by GET /api/frontend-logs/config/.
 const DEFAULT_CONFIG: FMSFrontendLogConfig = {
-  max_batch_size: 100,
-  flush_threshold: 50,
-  flush_interval_ms: 2000,
-  max_buffer_size: 500,
+  max_buffer_size: 100,
+  flush_delay_ms: 60000,
 }
 
 const CONSOLE_METHODS: Record<FMSFrontendLogLevel, (...args: unknown[]) => void> = {
@@ -24,7 +22,6 @@ let configRequested = false
 let dispatch: AppDispatch | undefined
 let buffer: FMSFrontendLogEntry[] = []
 let timer: ReturnType<typeof setTimeout> | undefined
-let flushing = false
 
 /**
  * Connect the logger to the Redux store and flush the buffer when the page is hidden or closed.
@@ -36,9 +33,9 @@ export function initFrontendLogger(appDispatch: AppDispatch) {
   dispatch = appDispatch
   // On page hide or close, send what is still in the buffer. keepalive lets the request finish after unload.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") void flush(true)
+    if (document.visibilityState === "hidden") flush(true)
   })
-  window.addEventListener("pagehide", () => void flush(true))
+  window.addEventListener("pagehide", () => flush(true))
 }
 
 function hasAccessToken(appDispatch: AppDispatch): boolean {
@@ -56,34 +53,25 @@ async function loadConfig(appDispatch: AppDispatch) {
 }
 
 /**
- * Send the buffered entries to the backend, in batches of `config.max_batch_size`.
- * Keep the buffer if no user is logged in. Drop a batch that the backend rejects.
+ * Send all buffered entries to the backend in one request.
+ * If no user is logged in, keep the newest `config.max_buffer_size` entries.
+ * Drop a batch that the backend rejects.
  */
-async function flush(keepalive = false) {
-  if (timer !== undefined) {
-    clearTimeout(timer)
-    timer = undefined
-  }
-  if (!dispatch || buffer.length === 0 || flushing) return
-  if (!hasAccessToken(dispatch)) return
+function flush(keepalive = false) {
+  clearTimeout(timer)
+  timer = undefined
+  // Trim before the guards: entries pile up while no user is logged in.
+  if (buffer.length > config.max_buffer_size) buffer = buffer.slice(-config.max_buffer_size)
+  if (!dispatch || buffer.length === 0 || !hasAccessToken(dispatch)) return
+  // A request on page hide must not start a config request.
+  if (!configRequested && !keepalive) void loadConfig(dispatch)
 
-  flushing = true
-  try {
-    // A request on page hide must not wait for the config.
-    if (!configRequested && !keepalive) await loadConfig(dispatch)
-
-    while (buffer.length > 0) {
-      const batch = buffer.splice(0, config.max_batch_size)
-      try {
-        await dispatch(api.frontendLogs.send(batch, { keepalive }))
-      } catch (error) {
-        // Use console only: a call to the logger here can loop.
-        console.warn(`Frontend logger: ${batch.length} log entries were not sent.`, error)
-      }
-    }
-  } finally {
-    flushing = false
-  }
+  const batch = buffer
+  buffer = []
+  dispatch(api.frontendLogs.send(batch, { keepalive })).catch((error: unknown) => {
+    // Use console only: a call to the logger here can loop.
+    console.warn(`Frontend logger: ${batch.length} log entries were not sent.`, error)
+  })
 }
 
 function log(level: FMSFrontendLogLevel, message: string, context?: LogContext) {
@@ -97,22 +85,20 @@ function log(level: FMSFrontendLogLevel, message: string, context?: LogContext) 
     url: window.location.pathname + window.location.search,
     context,
   })
-  if (buffer.length > config.max_buffer_size) {
-    buffer = buffer.slice(buffer.length - config.max_buffer_size)
-  }
 
-  if (level === "error" || buffer.length >= config.flush_threshold) {
-    void flush()
-  } else if (timer === undefined) {
-    // Fixed window, not a debounce: a steady stream of logs does not delay the flush.
-    timer = setTimeout(() => void flush(), config.flush_interval_ms)
+  if (buffer.length >= config.max_buffer_size) {
+    flush()
+  } else {
+    // Debounce: send when no entry has come for flush_delay_ms. The size limit above bounds the wait.
+    clearTimeout(timer)
+    timer = setTimeout(() => flush(), config.flush_delay_ms)
   }
 }
 
 /**
  * Logger for messages that must reach the backend log (`fms.frontend`).
  * Each call also writes to the browser console.
- * Entries are sent in batches. An `error` entry is sent at once.
+ * Entries are sent when no entry has come for `flush_delay_ms` (1 minute), or when the buffer is full.
  */
 export const frontendLogger = {
   debug: (message: string, context?: LogContext) => log("debug", message, context),

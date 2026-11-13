@@ -129,10 +129,8 @@ FRONTEND_LOGGING = {
     "THROTTLE_RATE": "120/min",
     "MAX_MESSAGE_LENGTH": 10000,
     "client": {
-        "max_batch_size": 100,  # also the server limit per POST
-        "flush_threshold": 50,  # flush when the buffer has this many entries
-        "flush_interval_ms": 2000,  # fixed flush window
-        "max_buffer_size": 500,  # drop the oldest entries above this
+        "max_buffer_size": 100,  # flush at once at this size. Soft limit: the server accepts larger batches.
+        "flush_delay_ms": 60000,  # flush when no entry has come for this time
     },
 }
 
