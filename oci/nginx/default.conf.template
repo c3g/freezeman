@@ -1,0 +1,67 @@
+# Rendered by the nginx image entrypoint (envsubst) into /etc/nginx/conf.d/default.conf.
+# Only variables defined in the environment are substituted, so nginx's own
+# $uri, $host, ... are left untouched.
+
+# HTTPS=on makes uwsgi set wsgi.url_scheme=https, so Django builds https URLs
+# (request.build_absolute_uri) behind an outer TLS proxy (host nginx, Ingress)
+# without SECURE_PROXY_SSL_HEADER. Direct access falls back to our own $https.
+map $http_x_forwarded_proto $fms_https {
+    https   on;
+    default $https;
+}
+
+# uwsgi does not log requests (backend/uwsgi.ini), so this log has the response times.
+# Same as the image's "main" format, plus rt (total time) and urt (time that uwsgi took).
+# urt is "-" for files that nginx serves itself.
+log_format fms '$remote_addr - $remote_user [$time_local] "$request" '
+               '$status $body_bytes_sent "$http_referer" '
+               '"$http_user_agent" "$http_x_forwarded_for" '
+               'rt=$request_time urt=$upstream_response_time';
+
+server {
+    listen 8080;
+    server_name _;
+
+    access_log /var/log/nginx/access.log fms;
+
+    # Same values as the production host nginx.
+    client_max_body_size 50m;
+    client_body_timeout 300s;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Paths match the classic host setup (DEPLOYMENT.md), so both configs read the same.
+    root ${CONTAINER_FMS_ROOT}/frontend/dist;
+    index index.html;
+
+    # Single-page application built by webpack
+    location / {
+    }
+
+    # Django collectstatic output, baked into this image
+    location /static/ {
+        alias ${CONTAINER_FMS_ROOT}/backend/staticfiles/;
+    }
+
+    # Uploaded files, shared with the backend through the media volume
+    location /media/ {
+        alias ${CONTAINER_FMS_ROOT}/backend/media/;
+    }
+
+    location /api/ {
+        include uwsgi_params;
+        uwsgi_param HTTPS $fms_https if_not_empty;
+        uwsgi_pass ${BACKEND_UPSTREAM};
+        uwsgi_read_timeout 300s;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+
+    # Same as the production host nginx: the frontend app handles unknown paths
+    # (client-side routes), with status 404.
+    error_page 404 /index.html;
+}

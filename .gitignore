@@ -8,6 +8,20 @@ instance/
 launch.json
 fms.log*
 .python-version
+__pycache__/
 .coverage
 TODO.txt
 
+# Ignore the contents of the container log and backup directories. Keep oci/logs in the checkout:
+# podman does not create the directory of a k8s-file log. oci/backups holds manual database dumps.
+oci/backups/
+oci/logs/*
+!oci/logs/.keep
+
+# Database dumps
+*.dump
+*.pgdump
+*.pgsql
+*.sql.gz
+*.dump.gz
+*.pgsql.gz
