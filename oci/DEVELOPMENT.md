@@ -88,7 +88,8 @@ Get one of these files from the production host and copy it to `oci/backups/`:
   podman-compose exec -T db pg_dump -U admin -Fc fms > fms.dump
   ```
 
-Restore the file (in `oci/`):
+Restore the file (in `oci/`). Use the restore command that matches the format of the file. To find the format, see
+[Identify the format of a database backup](README.md#identify-the-format-of-a-database-backup).
 
 ```bash
 podman-compose -f compose.yaml -f compose.dev.yaml down

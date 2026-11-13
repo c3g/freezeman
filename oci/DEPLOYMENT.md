@@ -362,6 +362,8 @@ podman-compose up -d
 ```
 
 - The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
+- The `psql` command restores a `pg_dumpall` script. For a file of another format, see
+  [Identify the format of a database backup](README.md#identify-the-format-of-a-database-backup).
 - Restore only into an empty `freezeman_pgdata` volume. If the volume is new (first start), skip the first two commands.
 - If `POSTGRES_PASSWORD` changed after the backup, set it back to the value at backup time.
 - Copy the backups off the host.
@@ -406,6 +408,9 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <HOST_LOG_DIR>/autoupdate.log 2>&1
    ```
 
+- `autoupdate.py` selects the restore command from the extension: `psql` for `.pgsql.gz` and `.pgsql` (`pg_dumpall`),
+  `pg_restore` for `.dump` (`pg_dump -Fc`). The extension must match the format of the file. To find the format, see
+  [Identify the format of a database backup](README.md#identify-the-format-of-a-database-backup).
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
 - Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
 - No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `<HOST_LOG_DIR>/autoupdate.log`.
