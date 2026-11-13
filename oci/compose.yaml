@@ -92,7 +92,7 @@ services:
   # PostgreSQL 15 with the fzy extension.
   db:
     # Build the server image of oci/db/Containerfile (default target).
-    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-db:${FMS_IMAGE_TAG:?set FMS_IMAGE_TAG in .env (for example the release version)}
     build:
       context: ..
       dockerfile: oci/db/Containerfile
@@ -141,7 +141,7 @@ services:
   # (a one-off container of this service, with the same image and settings). autoupdate.py runs it
   # on QC/dev hosts. See DEPLOYMENT.md.
   backend:
-    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:?set FMS_IMAGE_TAG in .env (for example the release version)}
     # Build the `backend-prod` image of oci/Containerfile. `jobs` builds on it.
     build:
       context: ..
@@ -216,7 +216,7 @@ services:
   # `/media/`, and passes `/api/` to `backend`.
   web:
     # Build the `web` image of oci/Containerfile.
-    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:?set FMS_IMAGE_TAG in .env (for example the release version)}
     build:
       context: ..
       dockerfile: oci/Containerfile
@@ -268,7 +268,7 @@ services:
     profiles: ["jobs"]
 
     # Build the `jobs` image of oci/Containerfile (`backend-prod`).
-    image: localhost/freezeman-jobs:${FMS_IMAGE_TAG:-latest}
+    image: localhost/freezeman-jobs:${FMS_IMAGE_TAG:?set FMS_IMAGE_TAG in .env (for example the release version)}
     build:
       context: ..
       dockerfile: oci/Containerfile
