@@ -33,7 +33,6 @@ import {
   FMSExperimentRun,
   FMSReadsetSummary,
   FMSReadsetReporting,
-  FMSFrontendLogConfig,
   FMSFrontendLogEntry,
 } from "../models/fms_api_models"
 import { AnyAction, Dispatch } from "redux"
@@ -49,9 +48,7 @@ const api = {
   },
 
   frontendLogs: {
-    send: (entries: FMSFrontendLogEntry[], options?: APIFetchOptions) =>
-      post<StringResponse>("/frontend-logs/", { entries }, options),
-    getConfig: () => get<JsonResponse<FMSFrontendLogConfig>>("/frontend-logs/config/"),
+    send: (entry: FMSFrontendLogEntry) => post<StringResponse>("/frontend-logs/", entry),
   },
 
   biosamples: {

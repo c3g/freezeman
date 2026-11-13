@@ -124,14 +124,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Frontend logging. The frontend reads the "client" values from GET /api/frontend-logs/config/.
+# Frontend logging (POST /api/frontend-logs/, one entry per request).
 FRONTEND_LOGGING = {
     "THROTTLE_RATE": "120/min",
     "MAX_MESSAGE_LENGTH": 10000,
-    "client": {
-        "max_buffer_size": 100,  # flush at once at this size. Soft limit: the server accepts larger batches.
-        "flush_delay_ms": 60000,  # flush when no entry has come for this time
-    },
 }
 
 REST_FRAMEWORK = {

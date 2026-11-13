@@ -3,7 +3,6 @@ import logging
 
 from django.conf import settings
 from rest_framework import serializers, status, viewsets
-from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -47,13 +46,6 @@ class FrontendLogEntrySerializer(serializers.Serializer):
         return value
 
 
-class FrontendLogBatchSerializer(serializers.Serializer):
-    """
-    A batch of log entries sent by the frontend in one request.
-    """
-    entries = FrontendLogEntrySerializer(many=True, allow_empty=False)
-
-
 class FrontendLogViewSet(viewsets.ViewSet):
     """
     Receive log entries that the frontend sends explicitly and write them to the `fms.frontend` logger.
@@ -63,40 +55,27 @@ class FrontendLogViewSet(viewsets.ViewSet):
 
     def create(self, request: Request) -> Response:
         """
-        Write a batch of frontend log entries to the `fms.frontend` logger.
+        Write one frontend log entry to the `fms.frontend` logger.
 
         Args:
-            `request`: Request with body `{"entries": [{"level", "message", "timestamp", "url"?, "context"?}, ...]}`.
+            `request`: Request with body `{"level", "message", "timestamp", "url"?, "context"?}`.
 
         Returns:
-            204 if the batch is valid, else 400 with the validation errors.
+            204 if the entry is valid, else 400 with the validation errors.
         """
-        serializer = FrontendLogBatchSerializer(data=request.data)
+        serializer = FrontendLogEntrySerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        username = request.user.get_username()
-        for entry in serializer.validated_data["entries"]:
-            logger.log(
-                LEVELS[entry["level"]],
-                "[frontend] user=%s url=%s client_time=%s %s context=%s",
-                username,
-                entry.get("url", ""),
-                entry["timestamp"].isoformat(),
-                entry["message"],
-                json.dumps(entry.get("context"), default=str),
-            )
+        entry = serializer.validated_data
+        logger.log(
+            LEVELS[entry["level"]],
+            "[frontend] user=%s url=%s client_time=%s %s context=%s",
+            request.user.get_username(),
+            entry.get("url", ""),
+            entry["timestamp"].isoformat(),
+            entry["message"],
+            json.dumps(entry.get("context"), default=str),
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=["get"], throttle_classes=[])
-    def config(self, request: Request) -> Response:
-        """
-        Give the frontend logger its settings (`FRONTEND_LOGGING["client"]`).
-
-        Args:
-            `request`: Request without parameters.
-
-        Returns:
-            The client settings.
-        """
-        return Response(settings.FRONTEND_LOGGING["client"])

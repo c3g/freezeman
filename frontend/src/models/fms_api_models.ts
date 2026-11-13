@@ -757,9 +757,3 @@ export interface FMSFrontendLogEntry {
   url?: string
   context?: Record<string, unknown>
 }
-
-// Keys match FRONTEND_LOGGING["client"] in backend/fms/settings.py.
-export interface FMSFrontendLogConfig {
-  max_buffer_size: number
-  flush_delay_ms: number
-}
