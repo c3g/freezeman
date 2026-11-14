@@ -11,6 +11,25 @@ const CONSOLE_METHODS: Record<FMSFrontendLogLevel, (...args: unknown[]) => void>
   error: console.error,
 }
 
+// A div or tr with only a React onClick is not visible in the DOM. To log it, add data-log-click to that element.
+// TODO(PR review): decide which custom clickable elements (for example table rows that open a detail page)
+// get data-log-click. No element has the attribute yet.
+const CLICKABLE_SELECTOR = [
+  "button",
+  "a",
+  "label",
+  "summary",
+  "input[type=checkbox]",
+  "input[type=radio]",
+  "[role=button]",
+  "[role=checkbox]",
+  "[role=switch]",
+  "[role=menuitem]",
+  "[role=tab]",
+  "[role=option]",
+  "[data-log-click]",
+].join(", ")
+
 let dispatch: AppDispatch | undefined
 
 /**
@@ -20,6 +39,31 @@ export function initFrontendLogger(appDispatch: AppDispatch) {
   // Keep the store dispatch: log() reads the user token through it and sends the entries with it.
   // It is passed in, not imported, to prevent an import cycle with store.ts.
   dispatch = appDispatch
+
+  // Log each click on a clickable element. Capture phase still sees a click when a component calls stopPropagation.
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!(event.target instanceof Element)) return
+      const control = event.target.closest(CLICKABLE_SELECTOR)
+      if (!control) return
+
+      // TODO(PR review) privacy: the text of a control can contain sample names or other data.
+      // Option: log only id, aria-label and data-* attributes.
+      const label =
+        control.getAttribute("aria-label") ||
+        control.textContent?.trim().slice(0, 50) ||
+        control.id ||
+        control.tagName.toLowerCase()
+
+      // TODO(PR review) level: debug (production can filter it) or info (always kept).
+      // TODO(PR review) volume: log() sends one request per call and the backend throttles the requests.
+      // Many clicks can hit the throttle and drop other entries, errors included.
+      // Options: batch the click entries, or raise the throttle rate.
+      frontendLogger.debug("Click", { label, tag: control.tagName.toLowerCase() })
+    },
+    { capture: true },
+  )
 }
 
 function hasAccessToken(appDispatch: AppDispatch): boolean {
