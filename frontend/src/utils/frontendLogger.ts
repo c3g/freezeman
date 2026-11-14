@@ -36,7 +36,7 @@ function log(level: FMSFrontendLogLevel, message: string, context?: LogContext) 
     level,
     message,
     timestamp: new Date().toISOString(),
-    url: window.location.pathname + window.location.search,
+    url: window.location.pathname + window.location.search + window.location.hash,
     context,
   }
   dispatch(api.frontendLogs.send(entry)).catch((error: unknown) => {

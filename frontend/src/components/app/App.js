@@ -22,7 +22,7 @@ import {
 import { Layout, Menu, Spin, Typography } from "antd"
 import React, { useEffect, useMemo } from "react"
 import { connect } from "react-redux"
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
+import { Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from "react-router-dom"
 
 import About from "../About"
 import ContainersPage from "../containers/ContainersPage"
@@ -72,6 +72,7 @@ import {
 } from "../management/WorkflowAssignmentPage"
 import { getProfile } from "../../modules/profiles"
 import api from "../../utils/api"
+import frontendLogger from "../../utils/frontendLogger"
 
 const { Title } = Typography
 
@@ -150,6 +151,16 @@ const App = ({ userID, usersByID, logOut }) => {
   }, [userID, isLoggedIn, dispatch])
 
   useRefreshHook(isLoggedIn)
+
+  const location = useLocation()
+  const navigationType = useNavigationType()
+  // Log each address-bar change (path, query, hash) for user activity tracing.
+  // useLocation() sees only changes made through React Router (navigate, <Link>, useSearchParams, useHashURL)
+  // and browser back/forward. A direct call to window.history.pushState/replaceState or a write to
+  // window.location.hash bypasses it and is not logged. Use React Router to change the URL.
+  useEffect(() => {
+    frontendLogger.info("URL change", { navigationType })
+  }, [location.pathname, location.search, location.hash, navigationType])
 
   const user = usersByID[userID]
 
