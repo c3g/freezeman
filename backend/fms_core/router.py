@@ -51,6 +51,7 @@ from .viewsets import (
     ProfileViewSet,
     DerivedSampleViewSet,
     ParentProjectViewSet,
+    FrontendLogViewSet,
 )
 
 __all__ = ["router"]
@@ -106,3 +107,4 @@ router.register(r"sample-identities", SampleIdentityViewSet)
 router.register(r"sample-identity-matches", SampleIdentityMatchViewSet)
 router.register(r"profiles", ProfileViewSet, basename="profiles")
 router.register(r"parent-projects", ParentProjectViewSet)
+router.register(r"frontend-logs", FrontendLogViewSet, basename="frontend-logs")

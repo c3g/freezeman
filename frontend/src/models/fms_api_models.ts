@@ -747,3 +747,13 @@ export interface FMSContentType {
   app_label: string
   model: string
 }
+
+export type FMSFrontendLogLevel = "debug" | "info" | "warning" | "error"
+
+export interface FMSFrontendLogEntry {
+  level: FMSFrontendLogLevel
+  message: string
+  timestamp: string
+  url?: string
+  context?: Record<string, unknown>
+}

@@ -4,6 +4,7 @@ import rootReducer from './reducers'
 import { NotifyProps, notifyError } from './modules/notification/actions'
 import { logOut } from './modules/auth/actions'
 import shouldIgnoreError from './utils/shouldIgnoreError'
+import frontendLogger from './utils/frontendLogger'
 
 
 const logger = createLogger({
@@ -69,6 +70,11 @@ const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 		...error,
 		duration: 0,
 	}))
+	frontendLogger.error(error.title ?? 'Unknown error', {
+		action: action.type,
+		status: action.error.status,
+		requestUrl: action.error.url,
+	})
 
 	return next(action)
 }
