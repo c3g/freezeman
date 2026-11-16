@@ -11,6 +11,7 @@ Contents:
 - [Layout](#layout)
 - [Shared setup](#shared-setup)
   - [Prerequisites](#prerequisites)
+  - [The .env file](#the-env-file)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
 - [Identify the format of a database backup](#identify-the-format-of-a-database-backup)
 - [Additional notes](#additional-notes)
@@ -89,28 +90,21 @@ Do these steps for both environments:
   If it fails on the `git://` URL, set the HTTPS rule in [Submodule URL](../README.md#submodule-url) first.
 - Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
   The frontend build and `build_info.json` read commit information from it.
-- Copy the template of your environment to `.env`:
-  - On a server: `cd oci && cp .env.prod.example .env`. Then set at least `POSTGRES_PASSWORD`, `FMS_SECRET_KEY`, `FMS_HOST`,
-    `FMS_IMAGE_TAG` and the `FMS_EMAIL_*` placeholders. The host paths are the C3G production paths. Change them on
-    another host.
-  - For development: `cd oci && cp .env.dev.example .env`. Then set `HOST_LOG_DIR`.
-  - `HOST_LOG_DIR`: the absolute path of the log directory. It has no default: compose stops if it is not set.
-  - `FMS_IMAGE_TAG`: the tag of the built images. It has no default: compose stops if it is not set. The dev template
-    sets `latest`. On a server, set the value in the `VERSION` file of the project root (`cat ../VERSION`).
-  - `.env` has three parts. Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
-    Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds. Host settings (`HOST_*`)
-    are paths and ports on the host: only compose and the host scripts read them. No service loads the whole `.env`
-    (`env_file`). Each service gets an explicit list of variables in the compose files.
-  - `CONTAINER_FMS_ROOT`: the path of the project in the containers (default `/workspace/freezeman`). It is the single
-    source of that path: the images get it as a build argument and export it as an environment variable of the same
-    name, and compose uses it for the mount targets. These documents write container paths as `$CONTAINER_FMS_ROOT/...`.
-    In a command that runs in a container, put the command in single quotes (`sh -c '...'`), so the shell of the
-    container expands the variable, not the host shell. After a change, rebuild all images.
 
 Then continue with the environment steps:
 
 - Production: [Prerequisites](DEPLOYMENT.md#prerequisites) in DEPLOYMENT.md.
 - Development: [Prerequisites](DEVELOPMENT.md#prerequisites) in DEVELOPMENT.md.
+
+### The .env file
+
+- `.env` has three parts:
+  - Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
+  - Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds.
+  - Host settings (`HOST_*`) are paths and ports on the host: only compose and the host scripts read them.
+
+  No service loads the whole `.env` (`env_file`). Each service gets an explicit list of variables in the compose files.
+- `CONTAINER_FMS_ROOT`: the path of the FreezeMan project in the containers (default `/workspace/freezeman`).
 
 ## Useful podman and podman-compose commands
 

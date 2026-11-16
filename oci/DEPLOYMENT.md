@@ -219,7 +219,7 @@ Run these steps as `<user>`.
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
    | `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION` (`cat ../VERSION`). Required: compose stops if it is not set. The template leaves it empty |
-   | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path). Template: `/data/freezeman/oci/logs` |
+   | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path). Required: compose stops if it is not set. Template: `/data/freezeman/oci/logs` |
    | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
    | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Template: the C3G production folders in `/data`. Unset: the folder in the checkout. podman-compose creates a missing folder |
    | `HOST_HTTP_PORT` | The port that the reverse proxy passes to. Default: 8080 |
