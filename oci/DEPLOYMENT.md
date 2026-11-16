@@ -17,8 +17,10 @@ Conventions:
 Contents:
 
 - [Prerequisites](#prerequisites): shared setup, the host requirements, the proxy.
-- [Network access](#network-access): the outbound domains of the build.
-- [Reverse proxy](#reverse-proxy): TLS and the forward to the `web` container.
+- [Networking](#networking)
+  - [Network access](#network-access): the outbound domains of the build.
+  - [Proxy](#proxy): the proxy variables for pulls, builds and `dev`.
+  - [Reverse proxy](#reverse-proxy): TLS and the forward to the `web` container.
 - [Set up the account of the user](#set-up-the-account-of-the-user): podman without systemd, `podman system migrate`, podman-compose.
 - [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, image build.
 - Do one of these two paths:
@@ -45,9 +47,11 @@ Contents:
    - A cron daemon, or another way to start `start.py` as `<user>` at boot.
    - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
    - Outbound access for the build. The domains are in [Network access](#network-access). The running stack needs only the SMTP server.
-3. If the host reaches the internet through an HTTP proxy, see [Proxy](README.md#proxy). Without a proxy, leave the proxy variables unset.
+3. If the host reaches the internet through an HTTP proxy, see [Proxy](#proxy). Without a proxy, leave the proxy variables unset.
 
-## Network access
+## Networking
+
+### Network access
 
 If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic. If the host has open outbound access, no change is necessary.
 
@@ -69,7 +73,43 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 - The build needs the domains. The running stack needs only `FMS_EMAIL_HOST` and no other outbound connection.
 - All traffic is outbound. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
 
-## Reverse proxy
+### Proxy
+
+Do this section only if your host reaches the internet through an HTTP proxy (for example a development server).
+Without a proxy, skip it and leave the variables unset. The stack then works as before.
+
+- Give the proxy to the `podman-compose` command. Use the uppercase names. Set them before the command, so
+  they apply only to this command and not to other commands of the shell:
+
+  ```bash
+  HTTP_PROXY=http://<proxy-host>:<port> \
+  HTTPS_PROXY=http://<proxy-host>:<port> \
+  NO_PROXY=localhost,127.0.0.1 \
+  podman-compose build
+  ```
+
+  Do the same for `podman pull` and `podman-compose up`.
+
+- Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
+- The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
+  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy.
+  Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
+- `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
+  You do not add them.
+- Runtime proxy:
+  - The proxy values are build arguments of podman and stay out of the images.
+  - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
+  - The other services (`db`, `backend`, `jobs`, `web`) get empty proxy variables from `compose.yaml`.
+  - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
+    `containers.conf`).
+  - These services make no outbound HTTP calls, so they do not need a proxy.
+  - Only in `dev` does `NO_PROXY` get the service names.
+- Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
+  `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
+- Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.
+  If the host has no direct route to the SMTP server, leave `FMS_EMAIL_HOST` unset. Emails then go to the console.
+
+### Reverse proxy
 
 The `web` container listens on `127.0.0.1:HOST_HTTP_PORT` (default 8080) and speaks plain HTTP. A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it. The reverse proxy must:
 
@@ -200,9 +240,10 @@ Run these steps as `<user>`.
 
    **Daily jobs:** host cron runs the report. See [Daily jobs](#daily-jobs).
 
-4. Build the images. If the host uses a proxy, set the variables before the command, as in [Proxy](README.md#proxy).
+4. Build the images.
 
    ```bash
+   # Proxy host: this command needs the proxy. See Proxy in Networking.
    podman-compose build
    ```
 
@@ -331,7 +372,7 @@ mkdir -p backups && podman-compose exec -T db pg_dumpall -U admin | gzip > backu
 git fetch && git checkout vX.Y.Z && git submodule update --init --recursive
 # Set FMS_IMAGE_TAG in .env to the value in VERSION.
 sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat ../VERSION)/" .env
-# proxy host: set the variables before each podman-compose command, as in Proxy
+# Proxy host: the build needs the proxy. See Proxy in Networking.
 podman-compose build
 # Stop the services that use the database, so no request meets a schema that does not match the code.
 podman-compose stop web backend
@@ -407,6 +448,7 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
    # >> <HOST_LOG_DIR>/autoupdate.log 2>&1: append the output and the errors to the log.
    # Optional --interval N: check every N seconds and never exit (default: check once).
    # Optional --force: deploy even if the commit is the last deployed one.
+   # Proxy host: autoupdate.py needs the proxy (git, image pulls, builds). See Proxy in Networking.
    */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz >> <HOST_LOG_DIR>/autoupdate.log 2>&1
    ```
 
@@ -414,7 +456,6 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
   `pg_restore` for `.dump` (`pg_dump -Fc`). The extension must match the format of the file. To find the format, see
   [Identify the format of a database backup](README.md#identify-the-format-of-a-database-backup).
 - `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
-- Proxy host: set `HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=...` before the command in the crontab line.
 - No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `<HOST_LOG_DIR>/autoupdate.log`.
 - To deploy the same commit again: add `--force`.
 

@@ -18,7 +18,7 @@ Contents:
 ## Prerequisites
 
 1. Do the steps of [Prerequisites](README.md#prerequisites) in README.md. They apply to both environments.
-2. If your host reaches the internet through an HTTP proxy, do the steps of [Proxy](README.md#proxy) in README.md.
+2. If your host reaches the internet through an HTTP proxy, do the steps of [Proxy](DEPLOYMENT.md#proxy) in DEPLOYMENT.md.
 3. Install the tools. Development works on any OS with podman and podman-compose. The `selinux: z` labels of the bind mounts are ignored where SELinux is absent.
 
    - Windows: [install Podman](https://podman.io/docs/installation#windows) and use `podman machine`.

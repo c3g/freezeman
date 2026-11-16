@@ -11,7 +11,6 @@ Contents:
 - [Layout](#layout)
 - [Shared setup](#shared-setup)
   - [Prerequisites](#prerequisites)
-  - [Proxy](#proxy)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
 - [Identify the format of a database backup](#identify-the-format-of-a-database-backup)
 - [Additional notes](#additional-notes)
@@ -113,42 +112,6 @@ Then continue with the environment steps:
 - Production: [Prerequisites](DEPLOYMENT.md#prerequisites) in DEPLOYMENT.md.
 - Development: [Prerequisites](DEVELOPMENT.md#prerequisites) in DEVELOPMENT.md.
 
-### Proxy
-
-Do this section only if your host reaches the internet through an HTTP proxy (for example a development server).
-Without a proxy, skip it and leave the variables unset. The stack then works as before.
-
-- Give the proxy to the `podman-compose` command. Use the uppercase names. Set them before the command, so
-  they apply only to this command and not to other commands of the shell:
-
-  ```bash
-  HTTP_PROXY=http://<proxy-host>:<port> \
-  HTTPS_PROXY=http://<proxy-host>:<port> \
-  NO_PROXY=localhost,127.0.0.1 \
-  podman-compose build
-  ```
-
-  Do the same for `podman pull` and `podman-compose up`.
-
-- Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
-- The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
-  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy.
-  Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
-- `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
-  You do not add them.
-- Runtime proxy:
-  - The proxy values are build arguments of podman and stay out of the images.
-  - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `backend`, `jobs`, `web`) get empty proxy variables from `compose.yaml`.
-  - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
-    `containers.conf`).
-  - These services make no outbound HTTP calls, so they do not need a proxy.
-  - Only in `dev` does `NO_PROXY` get the service names.
-- Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
-  `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
-- Email ignores the proxy. Django opens a direct connection to `FMS_EMAIL_HOST:587`, and the proxy does not carry SMTP.
-  If the host has no direct route to the SMTP server, leave `FMS_EMAIL_HOST` unset. Emails then go to the console.
-
 ## Useful podman and podman-compose commands
 
 ```bash
@@ -215,7 +178,7 @@ How to update (on each host, QC first, prod after QC works):
    podman-compose build --pull --no-cache
    ```
 
-   With a proxy, use the proxy variables of [Proxy](#proxy).
+   With a proxy, use the proxy variables of [Proxy](DEPLOYMENT.md#proxy) in DEPLOYMENT.md.
 2. Recreate the containers: `podman-compose up -d`.
 3. Check the versions, and write them in the deployment notes:
 
