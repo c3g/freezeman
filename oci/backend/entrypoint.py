@@ -43,9 +43,11 @@ def wait_for_database() -> None:
                 connect_timeout=3,
             ).close()
             return
-        except psycopg2.Error:
+        except psycopg2.Error as error:
             if time.monotonic() >= deadline:
-                print(f"Database {host}:{port} is not reachable", file=sys.stderr)
+                # Print the cause: a wrong password or a missing database also lands here, and
+                # "not reachable" alone reads as a network problem.
+                print(f"Database {host}:{port} is not reachable: {error}", file=sys.stderr)
                 sys.exit(1)
             time.sleep(1)
 
