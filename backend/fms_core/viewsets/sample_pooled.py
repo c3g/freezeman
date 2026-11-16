@@ -59,12 +59,8 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
 
         self.queryset = DerivedBySample.objects.all()
 
-        self.queryset = self.queryset.annotate(
-            count_derived_samples=Count('sample__derived_samples')
-        )
-
         self.queryset = self.queryset.annotate(is_pooled=Case(
-            When(count_derived_samples__gt=1, then=True),
+            When(volume_ratio__lt=1, then=True),
             default=False,
             output_field=BooleanField()
         )).distinct()
