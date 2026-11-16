@@ -30,19 +30,7 @@ Contents:
 
 For the services of the development stack, see [Development services](README.md#development-services) in README.md.
 
-- The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`CONTAINER_FMS_ROOT` of `.env`, also an environment variable in `dev`). Files that the container writes (`fms.log`, migrations, uploads)
-  belong to your host user (`userns_mode: keep-id`).
-- Container `node_modules` live in a named volume, separate from the host's. This gives you:
-  - No clash between the host and the container. `npm ci` installs binaries for one OS and architecture
-    (for example webpack and esbuild). The Linux container and a macOS or Windows host need different binaries.
-  - Faster installs and builds on macOS and Windows. `node_modules` has many small files, and a bind mount
-    is slow through the Podman VM.
-  - Correct file owners (rootless podman with `userns_mode: keep-id` gives the volume to your user), and no container files in your checkout.
-
-  The host editor does not see this `node_modules`.
-- Bash in `dev` has tab completion (for example `git` and `psql`).
-- The production services `backend` and `web` have the profile `prod` in development,
-  so they don't get started for development stack. `jobs` does not start either (only host cron runs it in production).
+- The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`CONTAINER_FMS_ROOT` of `.env`, also an environment variable in `dev`).
 
 ## Start the development stack
 
@@ -117,12 +105,12 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
   ```
 
   If `pytest` cannot create its test database, also run `ALTER ROLE admin CREATEDB` the same way.
-- The database has no media files. If you need the uploaded files, copy `backend/media` of the production host
+- If you need the uploaded files, copy `backend/media` of the production host
   into `backend/media` of your checkout.
 
 ### Run the servers and the tests
 
-In the `dev` shell. The commands start in `$CONTAINER_FMS_ROOT`, where the shell starts:
+In the `dev` shell (`podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`, where the shell starts:
 
 ```bash
 # First start and after each new migration:
@@ -136,6 +124,9 @@ In the `dev` shell. The commands start in `$CONTAINER_FMS_ROOT`, where the shell
 # --host 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
 (cd frontend && npm ci && npm start -- --host 0.0.0.0)
 ```
+
+When both servers run, open FreezeMan in your browser at <http://localhost:9000>.
+The backend at <http://localhost:8000> serves the Django admin (`/`), the API (`/api/`) and Swagger (`/api/swagger/`).
 
 - The webpack proxy still reaches `localhost:8000`, because both servers run in the same container.
 - Run the servers in two shells (or in the background).
@@ -184,11 +175,10 @@ Use `psql` to look at the development database. There are three ways:
 Use the `.env` of [Start the development stack](#start-the-development-stack) (from `.env.dev.example`, with `FMS_HOST=localhost` and `HOST_LOG_DIR` set). Then build and start the stack. `web` is a default service:
 
 ```bash
-# proxy host: set the variables before each podman-compose command, as in Proxy
-HTTP_PROXY=... HTTPS_PROXY=... NO_PROXY=... podman-compose build
+podman-compose build  # Proxy host: see DEPLOYMENT.md#proxy
 podman-compose up -d
 ```
 
 - Open `http://localhost:8080` (`HOST_HTTP_PORT`).
-- In a VM or container, set `HOST_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
-- The database is empty. To get data, restore a backup as in [Restore a production database](#restore-a-production-database).
+- When running podman-compose inside a VM or container (i.e. nested container), set `HOST_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
+- Restore a backup as in [Restore a production database](#restore-a-production-database).
