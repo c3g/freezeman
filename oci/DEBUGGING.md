@@ -3,26 +3,36 @@
 This guide tells you how to find the cause of a fault in the FreezeMan container stack.
 Read [README.md](README.md) first. It describes the services and the layout.
 
-Run all commands in `<install-dir>/oci` as `<user>`. The placeholders are the same as in
-[DEPLOYMENT.md](DEPLOYMENT.md): `<user>`, `<install-dir>`, `<HOST_LOG_DIR>`, `<HOST_HTTP_PORT>`, `<domain>`.
-On a development machine, add `-f compose.yaml -f compose.dev.yaml` to each `podman-compose` command.
+> [!IMPORTANT]
+> - Run all commands in `<install-dir>/oci` as `<user>`.
+> - The `podman-compose` commands in this guide are for production. Use the flags of your stack:
+>   - Production: no `-f` flag. podman-compose reads `compose.yaml` in the current directory.
+>   - Development: add `-f compose.yaml -f compose.dev.yaml`. For `backend` and `web`, also add
+>     `--profile prod`. `compose.dev.yaml` puts these services in the profile `prod`.
+> - The placeholders are the same as in [DEPLOYMENT.md](DEPLOYMENT.md): `<user>`, `<install-dir>`,
+>   `<HOST_LOG_DIR>`, `<HOST_HTTP_PORT>`, `<domain>`.
 
 The guide has three layers. Each layer has two parts:
 
 - Debug with the tool: use the tool to find the fault in the stack.
 - Debug the tool itself: the tool is the fault.
 
-Start at layer 1. Go down one layer only when the current layer shows that the fault is below it.
+Start at layer 1. Go to a lower layer only when its condition in the table is true.
 
-| Layer | Tool | Go to the next layer when |
+| Layer | Tool | Use this layer when |
 |---|---|---|
-| 1 | podman-compose | podman-compose fails before it starts a container, or its output does not explain the fault |
-| 2 | podman | podman fails, or a container fails for a reason outside the container |
-| 3 | The host system, then IT | The fault is in a part of the host that `<user>` cannot change |
+| 1 | podman-compose | Always. Start here |
+| 2 | podman | The podman commands from `podman-compose --dry-run` fail when you run them manually |
+| 3 | The host system | A layer 2 check points to the host: a package, the subuid or subgid range, the runtime directory, disk, memory, network or cron |
 
-The target host is Rocky Linux 9.6 with podman 5.4 and podman-compose 1.5. `<user>` has no `sudo` and no
-user systemd (`systemctl --user` and `journalctl --user` do not work). Podman uses the `cgroupfs` cgroup
-manager and the `file` event logger ([Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user)).
+This guide assumes the host setup of [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user):
+
+- Rocky Linux 9.6 with podman 5.4 and podman-compose 1.5.
+- No user systemd: `systemctl --user` and `journalctl --user` do not work.
+- Podman uses the `cgroupfs` cgroup manager and the `file` event logger.
+
+If your host is different, check these first ([Debug podman itself](#debug-podman-itself)).
+Layer 3 gives the commands without sudo and with sudo.
 
 Contents:
 
@@ -34,9 +44,9 @@ Contents:
   - [Debug with podman](#debug-with-podman)
   - [Debug podman itself](#debug-podman-itself)
 - [Layer 3: system](#layer-3-system)
-  - [What you can do without root](#what-you-can-do-without-root)
-  - [Debug with the system](#debug-with-the-system)
-  - [Debug the system itself with IT](#debug-the-system-itself-with-it)
+  - [Debug without sudo](#debug-without-sudo)
+  - [Debug with sudo](#debug-with-sudo)
+  - [Ask IT](#ask-it)
 
 ## First checks
 
@@ -182,7 +192,7 @@ podman inspect --format '{{json .Config.Env}}' freezeman_backend_1  # the enviro
 ```
 
 - `restarts` higher than 0: the container stops and `restart: always` starts it again. Read its log.
-- `oom=true`: the kernel stopped the process for lack of memory. See [Layer 3](#debug-with-the-system).
+- `oom=true`: the kernel stopped the process for lack of memory. See [Layer 3](#debug-without-sudo).
 
 Logs and events:
 
@@ -254,7 +264,7 @@ The configuration files of `<user>`:
 
 - `~/.config/containers/containers.conf`: the engine settings (`cgroup_manager`, `events_logger`).
 - `~/.config/containers/storage.conf`, `~/.config/containers/registries.conf`: only if they exist.
-- The files in `/etc/containers` apply too. You can read them, but only IT can change them.
+- The files in `/etc/containers` apply too. You can read them. A change needs sudo ([Debug with sudo](#debug-with-sudo)), or ask IT.
 
 Common errors:
 
@@ -262,12 +272,12 @@ Common errors:
 |---|---|---|
 | `podman ps` shows no containers, but the site works | This shell uses another runtime directory than cron. `RunRoot` is `/tmp/storage-run-<uid>`, not `/run/user/<uid>/containers` | Use a login shell (`bash -l`), so `~/.bash_profile` sets `XDG_RUNTIME_DIR`. See [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user) |
 | `current system boot ID differs from cached boot ID` | The runtime directory survived a reboot | See [Known issues](README.md#known-issues) |
-| `cannot find newuidmap` | The `shadow-utils` package is missing | Ask IT ([Layer 3](#debug-the-system-itself-with-it)) |
-| `there might not be enough IDs available in the namespace` | `<user>` has no subuid or subgid range, or it is too small | Check `grep "^$USER:" /etc/subuid /etc/subgid`. Ask IT for a range of 65536 IDs. Then run `podman system migrate` |
+| `cannot find newuidmap` | The `shadow-utils` package is missing | Install it with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT |
+| `there might not be enough IDs available in the namespace` | `<user>` has no subuid or subgid range, or it is too small | Check `grep "^$USER:" /etc/subuid /etc/subgid`. Add a range of 65536 IDs with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT. Then run `podman system migrate` |
 | Errors after a podman upgrade or a subuid change | Old state of podman | `podman system migrate` |
 | `short-name resolution enforced` | An image name without a registry | Use the full name (`docker.io/library/...`) |
 | An image pull fails or stops | No access to the registry, or no proxy in the shell | See [Network access](DEPLOYMENT.md#network-access) and [Proxy](DEPLOYMENT.md#proxy) |
-| An error of `crun` or `conmon` | The OCI runtime or the container monitor | Run the command again with `--log-level=debug`. Send the output to IT with `rpm -q crun conmon` |
+| An error of `crun` or `conmon` | The OCI runtime or the container monitor | Run the command again with `--log-level=debug`. Read the kernel log with sudo ([Debug with sudo](#debug-with-sudo)), or send the output to IT with `rpm -q crun conmon` |
 | `podman stats` fails or shows no data | Rootless podman with `cgroupfs` and no systemd has no cgroup controllers | Normal on this host. Use `podman top` and `ps` |
 
 Last step, only if all else fails: `podman system reset` deletes all images, containers and volumes of `<user>`,
@@ -276,20 +286,9 @@ Do not use it to repair one container.
 
 ## Layer 3: system
 
-### What you can do without root
+### Debug without sudo
 
-| You can | You cannot |
-|---|---|
-| Read `/proc`, `/etc/os-release`, `/etc/subuid`, `/etc/subgid`, `/etc/containers` | Change any file in `/etc` |
-| See and stop your own processes | See the details of the processes of other users |
-| `crontab -l`, `crontab -e` | Read `/var/log/cron` |
-| `systemctl status <unit>`, `systemctl is-active <unit>` of system units | Start, stop or change a system unit |
-| `loginctl show-user $USER` | Use `systemctl --user` or `journalctl --user`: there is no user systemd |
-| `rpm -q`, `rpm -qi` | Install or remove packages |
-| `journalctl` for your own messages only | Read the system journal, `/var/log/messages`, `/var/log/audit`, the logs of the host reverse proxy |
-| `dmesg`, only if `kernel.dmesg_restrict` is 0 | Change kernel settings |
-
-### Debug with the system
+These commands need no sudo. Without sudo, `journalctl` shows only your own messages.
 
 User and session:
 
@@ -321,6 +320,7 @@ cat /proc/pressure/memory /proc/pressure/io        # memory and disk pressure
 ulimit -a                                          # the limits of your shell (open files, processes)
 cat /proc/sys/user/max_user_namespaces             # must be more than 0 for rootless podman
 quota -s 2>/dev/null                               # your disk quota, if the host has quotas
+dmesg -T | tail                                    # the kernel log, only if kernel.dmesg_restrict is 0
 ```
 
 Also check the host folders of the bind mounts (`HOST_MEDIA_DIR` and the others of `.env`).
@@ -346,7 +346,8 @@ curl -sI -x http://<proxy-host>:<port> https://registry-1.docker.io/v2/   # the 
 timeout 5 bash -c '</dev/tcp/<FMS_EMAIL_HOST>/<FMS_EMAIL_PORT>' && echo open   # the SMTP server is reachable
 ```
 
-If `web` answers on `127.0.0.1` but `https://<domain>/` does not, the fault is in the host reverse proxy. Ask IT.
+If `web` answers on `127.0.0.1` but `https://<domain>/` does not, the fault is in the host reverse proxy.
+See [Debug with sudo](#debug-with-sudo).
 
 Cron:
 
@@ -363,7 +364,7 @@ line by hand in an environment like the one of cron:
 env -i HOME=$HOME LOGNAME=$USER SHELL=/bin/sh PATH=/usr/bin:/bin /bin/sh -c '<the command of the crontab line>'
 ```
 
-If the line works by hand but not from cron, ask IT to read the cron log ([next section](#debug-the-system-itself-with-it)).
+If the line works by hand but not from cron, read the cron log with sudo ([Debug with sudo](#debug-with-sudo)).
 
 Boot:
 
@@ -381,16 +382,49 @@ SELinux:
 getenforce                                 # Enforcing, Permissive or Disabled
 ```
 
-### Debug the system itself with IT
+### Debug with sudo
 
-`<user>` can only read and record on this layer. Do not try root changes. Do not work around a host fault with another
-runtime directory, another storage path or another boot method. IT (the host administrator) does all root steps.
+These commands need sudo. Each change with sudo affects the whole host: record the command and its undo command.
+Do not work around a host fault with another runtime directory, another storage path or another boot method. Fix the host.
 
-Ask IT when:
+Processes, units, packages and kernel:
 
-- The fault is in a part that root owns: packages, subuid and subgid, linger, `crond`, the host reverse proxy, the firewall or the allow list, the proxy, the disk or the quota, kernel limits, SELinux.
-- The evidence is in a log that only root can read.
+```bash
+sudo ps -ef                                # the processes of all users
+sudo systemctl restart <unit>              # restart a system unit, for example crond
+sudo loginctl enable-linger <user>         # keep /run/user/<uid> from boot to shutdown
+sudo dnf install <package>                 # install a package, or `dnf upgrade` to upgrade it
+sudo dmesg -T | tail                       # the kernel log, also if kernel.dmesg_restrict is 1
+sudo sysctl <key>=<value>                  # change a kernel setting until the next boot
+```
 
+Logs to read with sudo:
+
+| Question | Command |
+|---|---|
+| Did cron start `start.py` or a job? | `sudo journalctl -u crond --since <time>` or `sudo tail /var/log/cron` |
+| Did `/run/user/<uid>` exist at boot? Is linger on? | `sudo journalctl -u systemd-logind --since <time>`, `loginctl show-user <user>` |
+| Did the kernel stop a process for lack of memory? | `sudo journalctl -k --since <time> \| grep -i oom` or `sudo dmesg -T \| grep -i oom` |
+| Did the kernel refuse a user namespace or a mount? | `sudo journalctl -k --since <time>` or `sudo tail /var/log/messages` |
+| Why does the host reverse proxy give 502, 504 or 413? | The error log of the reverse proxy, and its configuration (for nginx: `sudo nginx -T`) |
+| Did SELinux block a container? (only if SELinux is on) | `sudo ausearch -m avc -ts <time>` or `sudo tail /var/log/audit/audit.log` |
+| Did the firewall or the proxy block a domain? | The firewall and proxy logs, for the domains of [Network access](DEPLOYMENT.md#network-access) |
+
+Fixes with sudo:
+
+| Symptom | Check | Fix |
+|---|---|---|
+| `podman` or `podman-compose` is missing or too old | `rpm -q podman podman-compose` | `sudo dnf install` or `sudo dnf upgrade` |
+| `not enough IDs available in the namespace` | `grep '^<user>:' /etc/subuid /etc/subgid` | `sudo usermod --add-subuids <START>-<END> --add-subgids <START>-<END> <user>`, then `podman system migrate` as `<user>` |
+| The stack does not start after a reboot, and `boot.log` has no new run | `loginctl show-user <user> -p Linger`, `systemctl is-active crond` | `sudo loginctl enable-linger <user>`, `sudo systemctl enable --now crond` |
+| 502 or 413 at `https://<domain>/`, but `web` answers on `127.0.0.1` | The error log of the host reverse proxy | Change its configuration. See [Reverse proxy](DEPLOYMENT.md#reverse-proxy) |
+| A pull or a build cannot reach a domain | The firewall and proxy logs | Add the domains of [Network access](DEPLOYMENT.md#network-access) to the allow list |
+| The disk is full, or `quota` shows the limit | `df -h`, `sudo quota -s -u <user>` | Free disk space, or increase the quota |
+| A container has `oom=true` | `sudo journalctl -k \| grep -i oom`, `free -h` | Add memory or swap to the host |
+
+### Ask IT
+
+If you have no sudo, send the commands of [Debug with sudo](#debug-with-sudo) to IT (the host administrator).
 Write each request so that IT can act with no questions. Use this template:
 
 ```text
@@ -404,29 +438,3 @@ Check:           <the command that shows the result>
 Expected output: <the output of the check after the change>
 Undo:            <the command that removes the change>
 ```
-
-Logs that IT can read for you:
-
-| Question | What IT reads |
-|---|---|
-| Did cron start `start.py` or a job? | `journalctl -u crond --since <time>` or `/var/log/cron` |
-| Did `/run/user/<uid>` exist at boot? Is linger on? | `journalctl -u systemd-logind --since <time>`, `loginctl show-user <user>` |
-| Did the kernel stop a process for lack of memory? | `journalctl -k --since <time> \| grep -i oom` or `dmesg -T \| grep -i oom` |
-| Did the kernel refuse a user namespace or a mount? | `journalctl -k --since <time>` or `/var/log/messages` |
-| Why does the host reverse proxy give 502, 504 or 413? | The error log of the reverse proxy, and its configuration (for nginx: `nginx -T`) |
-| Did SELinux block a container? (only if SELinux is on) | `ausearch -m avc -ts <time>` or `/var/log/audit/audit.log` |
-| Did the firewall or the proxy block a domain? | The firewall and proxy logs, for the domains of [Network access](DEPLOYMENT.md#network-access) |
-
-Symptoms that need IT:
-
-| Symptom | What IT checks | Command for IT |
-|---|---|---|
-| `podman` or `podman-compose` is missing or too old | The packages | `rpm -q podman podman-compose`, then `dnf install` or `dnf upgrade` |
-| `not enough IDs available in the namespace` | The subuid and subgid ranges of `<user>` | `grep '^<user>:' /etc/subuid /etc/subgid`, then `usermod --add-subuids <START>-<END> --add-subgids <START>-<END> <user>` |
-| The stack does not start after a reboot, and `boot.log` has no new run | Linger and `crond` | `loginctl show-user <user> -p Linger`, `systemctl is-active crond` |
-| 502 or 413 at `https://<domain>/`, but `web` answers on `127.0.0.1` | The host reverse proxy | Its error log and configuration. See [Reverse proxy](DEPLOYMENT.md#reverse-proxy) |
-| A pull or a build cannot reach a domain | The allow list or the proxy | The domains of [Network access](DEPLOYMENT.md#network-access) |
-| The disk is full, or `quota` shows the limit | The disk or the quota | `df -h`, the quota of `<user>` |
-| A container has `oom=true` | The memory of the host | The kernel log, `free -h` |
-
-Do not ask IT for a root shell or a `sudo` rule for `<user>`. The stack stays rootless.

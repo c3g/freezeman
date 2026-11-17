@@ -3,6 +3,9 @@
 This guide tells you how to run the FreezeMan container stack for development.
 For the overview, the layout and the shared setup, read [README.md](README.md).
 
+> [!IMPORTANT]
+> Run all `podman-compose` commands from `oci/`.
+
 Contents:
 
 - [Prerequisites](#prerequisites)
@@ -12,8 +15,6 @@ Contents:
   - [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
-
-## Run all `podman-compose` commands from `oci/`.
 
 ## Prerequisites
 

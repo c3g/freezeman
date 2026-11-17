@@ -2,7 +2,8 @@
 
 Read [README.md](README.md) first. It describes the services, the layout and the shared setup.
 
-Run all `podman-compose` commands in `<install-dir>/oci` as `<user>`.
+> [!IMPORTANT]
+> Run all `podman-compose` commands in `<install-dir>/oci` as `<user>`.
 
 Conventions:
 

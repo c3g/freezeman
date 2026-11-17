@@ -2,6 +2,9 @@
 
 Container images and podman-compose configuration for FreezeMan.
 
+> [!IMPORTANT]
+> Run all `podman-compose` commands from `oci/`.
+
 Contents:
 
 - [Overview](#overview)
@@ -25,7 +28,6 @@ Contents:
 - The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
 - The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
 - uwsgi settings are in `backend/uwsgi.ini`.
-- Run all `podman-compose` commands from `oci/`.
 
 ### Production services
 
