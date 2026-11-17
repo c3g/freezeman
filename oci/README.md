@@ -55,6 +55,7 @@ For the bind mount, the `node_modules` volume and the `prod` profiles, see [Deve
 | Host administrator | The host requirements in [Prerequisites](DEPLOYMENT.md#prerequisites) and [Network access](DEPLOYMENT.md#network-access) of DEPLOYMENT.md |
 | Deployment team | [DEPLOYMENT.md](DEPLOYMENT.md): production deployment and daily use |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
+| Anyone who debugs the stack | [DEBUGGING.md](DEBUGGING.md): debugging by layer (podman-compose, podman, the host system and IT) |
 
 Both guides use the [Shared setup](#shared-setup) below. Read it once.
 
@@ -77,6 +78,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
+| `DEBUGGING.md` | Debugging guide |
 
 ## Shared setup
 

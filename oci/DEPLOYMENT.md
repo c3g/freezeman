@@ -485,3 +485,5 @@ The stack writes after the cutover are not in the classic database. If step 4 of
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
 | `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration command of [Update to a new release](#update-to-a-new-release) |
+
+For other faults, see [DEBUGGING.md](DEBUGGING.md).
