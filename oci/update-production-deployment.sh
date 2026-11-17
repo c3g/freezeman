@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Update the production stack to the checked-out release (DEPLOYMENT.md: "Update to a new release").
 # Run it manually in oci/ after `git fetch && git checkout vX.Y.Z`:
-#   ./deploy.sh
+#   ./update-production-deployment.sh
 # It prints each command before it runs. If a step fails, fix the error, then run the remaining
 # steps of this file manually.
 set -euo pipefail
@@ -17,7 +17,7 @@ export PATH="$HOME/.local/bin:$PATH"
 cd "$(dirname "$(readlink -f "$0")")"
 
 fail() {
-    echo "deploy.sh: $*" >&2
+    echo "update-production-deployment.sh: $*" >&2
     exit 1
 }
 

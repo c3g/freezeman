@@ -31,7 +31,7 @@ Contents:
 - [Daily jobs](#daily-jobs): the crontab line of the report.
 - [Daily use](#daily-use)
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
-  - [Update to a new release](#update-to-a-new-release): check out the tag, then run `deploy.sh` (back up, build, migrate, recreate).
+  - [Update to a new release](#update-to-a-new-release): check out the tag, then run `update-production-deployment.sh` (back up, build, migrate, recreate).
   - [Database backups](#database-backups): a dump now, a restore.
   - [Report and logs](#report-and-logs): follow the logs, run the report now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
@@ -219,7 +219,7 @@ Run these steps as `<user>`.
    | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
    | `FMS_HOST` | `<domain>` |
    | `FMS_ENV` | Required: compose stops if it is not set. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-   | `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION` (`cat ../VERSION`). Required: compose stops if it is not set. The template leaves it empty. `deploy.sh` sets it at each update |
+   | `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION` (`cat ../VERSION`). Required: compose stops if it is not set. The template leaves it empty. `update-production-deployment.sh` sets it at each update |
    | `HOST_LOG_DIR` | `<install-dir>/oci/logs` (absolute path of an existing directory). Required: compose stops if it is not set. The template leaves it empty. A relative path or a missing directory gives `[conmon:e]: Failed to open log file No such file or directory` |
    | `CONTAINER_FMS_ROOT` | Keep `/workspace/freezeman`. The path of the project in the containers. Required |
    | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container, so the files stay where they are. Template: the C3G production folders in `/data`. Unset: the folder in the checkout. podman-compose creates a missing folder |
@@ -368,16 +368,16 @@ Run these commands in `oci/`. Use `--force-recreate` after a build or an `.env` 
 
 ### Update to a new release
 
-Run these commands in `oci/`. Proxy host: `deploy.sh` needs the proxy for the build. See [Proxy](#proxy).
+Run these commands in `oci/`. Proxy host: `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy).
 
 ```bash
 git fetch && git checkout vX.Y.Z
-./deploy.sh
+./update-production-deployment.sh
 ```
 
-`deploy.sh` checks that the tag of the commit is `v` + the value in `VERSION`. Then it backs up the database to `backups/`, builds the images with the new tag, sets `FMS_IMAGE_TAG` in `.env`, stops `web` and `backend`, applies the migrations and recreates the containers. It prints each command before it runs.
+`update-production-deployment.sh` checks that the tag of the commit is `v` + the value in `VERSION`. Then it backs up the database to `backups/`, builds the images with the new tag, sets `FMS_IMAGE_TAG` in `.env`, stops `web` and `backend`, applies the migrations and recreates the containers. It prints each command before it runs.
 
-If the script fails, read `deploy.sh`, fix the error, then run the remaining steps of the script manually. The last command in the output is the one that failed. If the build fails, the old containers keep running and `.env` keeps the old tag. If the migration fails, the stack stays down.
+If the script fails, read `update-production-deployment.sh`, fix the error, then run the remaining steps of the script manually. The last command in the output is the one that failed. If the build fails, the old containers keep running and `.env` keeps the old tag. If the migration fails, the stack stays down.
 
 ### Database backups
 
@@ -481,7 +481,7 @@ The stack writes after the cutover are not in the classic database. If step 4 of
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
-| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of `deploy.sh` (see [Update to a new release](#update-to-a-new-release)) |
+| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of `update-production-deployment.sh` (see [Update to a new release](#update-to-a-new-release)) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` in `.env` is a relative path or the directory does not exist. Set it to an existing absolute path, then run `podman-compose up -d --force-recreate` |
 
 For other faults, see [DEBUGGING.md](DEBUGGING.md).

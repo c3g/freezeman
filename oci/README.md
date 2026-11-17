@@ -73,7 +73,7 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `jobs.py` | Runs one daily job (`report`) in a `jobs` container. Host cron calls it |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
 | `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
-| `deploy.sh` | Updates a production stack to the checked-out release. Run it manually |
+| `update-production-deployment.sh` | Updates a production stack to the checked-out release. Run it manually |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
