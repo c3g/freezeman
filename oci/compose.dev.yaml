@@ -32,7 +32,13 @@ services:
 
     # Accept `postgres` only through the Unix socket in the container (db/pg_hba.dev.conf).
     # Compose replaces `command` of compose.yaml, so the log_timezone flag is repeated.
-    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.dev.conf"]
+    # max_locks_per_transaction: pytest-xdist workers migrate their test databases at the same
+    # time, and migration 0055 changes 46 primary keys in one transaction. The default shared lock
+    # table (64 × max_connections) is too small and PostgreSQL stops with "out of shared memory".
+    # Cost: about 14 MB of shared memory. PostgreSQL 18 also fixes the problem with the defaults:
+    # its fast-path lock slots per connection scale with max_locks_per_transaction, so fewer locks
+    # use the shared table. On PostgreSQL 18 or later, the flag is probably not necessary.
+    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.dev.conf", "-c", "max_locks_per_transaction=512"]
     volumes:
       - type: bind
         source: ./db/pg_hba.dev.conf
