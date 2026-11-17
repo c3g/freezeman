@@ -22,8 +22,26 @@ x-proxy: &proxy
   no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
 
 services:
-  # Publish the database port, so a host `psql` or a GUI client can connect to `localhost:5432`.
   db:
+    # Make `postgres` the superuser, not the app role of .env (POSTGRES_USER, `admin`). A dump of
+    # all databases (pg_dumpall) runs `ALTER ROLE admin` with the production attributes (no
+    # SUPERUSER, no CREATEDB). If `admin` were the only superuser, the restore would remove its
+    # privileges and nothing could give them back. DEVELOPMENT.md creates `admin` by hand.
+    environment:
+      POSTGRES_USER: postgres
+
+    # Accept `postgres` only through the Unix socket in the container (db/pg_hba.dev.conf).
+    # Compose replaces `command` of compose.yaml, so the log_timezone flag is repeated.
+    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.dev.conf"]
+    volumes:
+      - type: bind
+        source: ./db/pg_hba.dev.conf
+        target: /etc/postgresql/pg_hba.dev.conf
+        read_only: true
+        bind:
+          selinux: z
+
+    # Publish the database port, so a host `psql` or a GUI client can connect to `localhost:5432`.
     ports:
       - "5432:5432"
 

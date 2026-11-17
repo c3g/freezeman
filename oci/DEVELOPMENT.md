@@ -45,6 +45,21 @@ podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 ```
 
+In development, `postgres` is the superuser of the database. It works only through the Unix socket in the
+`db` container (`podman-compose -f compose.yaml -f compose.dev.yaml exec db ...`). Django and `dev` connect
+as the app role `admin` (`POSTGRES_USER` of `.env`). On the first start of a new database volume, create
+`admin`. Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
+
+```bash
+podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U postgres -d postgres \
+  -c "CREATE ROLE admin LOGIN CREATEDB PASSWORD '<POSTGRES_PASSWORD>'" \
+  -c "ALTER DATABASE fms OWNER TO admin"
+```
+
+- `CREATEDB`: pytest creates its own test database.
+- If you restore a dump of all databases (`pg_dumpall`), skip this step. The dump creates `admin`
+  (see [Restore a production database](#restore-a-production-database)).
+
 The `dev` shell starts in `$CONTAINER_FMS_ROOT`. The venv is ready: the `dev` image has the packages of
 `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`. So `python`, `pip` and
 `pytest` are the ones of the venv, with no activation and no first `pip install`.
@@ -85,12 +100,12 @@ Restore the file (in `oci/`). Use the restore command that matches the format of
 podman-compose -f compose.yaml -f compose.dev.yaml down
 podman volume rm freezeman_pgdata     # deletes the development database
 podman-compose -f compose.yaml -f compose.dev.yaml up -d db
-until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U admin -d fms; do sleep 2; done
+until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U postgres -d fms; do sleep 2; done
 
 # Dump of all databases (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U admin -d postgres
-# Or the custom dump (pg_dump -Fc).
-# --no-owner: give all objects to POSTGRES_USER. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
+gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U postgres -d postgres
+# Or the custom dump (pg_dump -Fc). First create admin as in "Start the development stack".
+# --no-owner: give all objects to admin, the role that connects. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
 podman-compose -f compose.yaml -f compose.dev.yaml exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.dump
 
 # Start dev, then apply the migrations of your branch that the dump does not have.
@@ -98,15 +113,17 @@ podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
-- The messages "role admin already exists", "database fms already exists" and "extension fzy already exists" are harmless.
-- A dump of all databases also restores the roles, so `admin` gets the production password. If `dev` reports
-  "password authentication failed", set it back to `POSTGRES_PASSWORD` of your `.env`. The socket connection in `db` needs no password:
+- The messages "role postgres already exists", "database fms already exists" and "extension fzy already exists" are harmless.
+- A dump of all databases also restores the roles. `admin` gets the production password and the production
+  privileges (no `CREATEDB`). Then `dev` reports "password authentication failed", and `pytest` cannot create
+  its test database. After the restore, set them back. Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
 
   ```bash
-  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d postgres -c "ALTER ROLE admin PASSWORD '<POSTGRES_PASSWORD>'"
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U postgres -d postgres \
+    -c "ALTER ROLE admin LOGIN CREATEDB PASSWORD '<POSTGRES_PASSWORD>'" \
+    -c "ALTER DATABASE fms OWNER TO admin"
   ```
 
-  If `pytest` cannot create its test database, also run `ALTER ROLE admin CREATEDB` the same way.
 - If you need the uploaded files, copy `backend/media` of the production host
   into `backend/media` of your checkout.
 
