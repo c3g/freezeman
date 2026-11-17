@@ -37,7 +37,8 @@ For the services of the development stack, see [Development services](README.md#
 
 If you do not have `.env` yet, run `cp .env.dev.example .env`. Set `HOST_LOG_DIR` in `.env` to the
 absolute path of `oci/logs` in your checkout, for example `HOST_LOG_DIR=/home/me/freezeman/oci/logs`.
-Compose stops without it. Start the stack and enter the `dev` container:
+Compose stops without it. If the path is relative or the directory does not exist, the containers
+fail with `[conmon:e]: Failed to open log file No such file or directory`. Start the stack and enter the `dev` container:
 
 ```bash
 podman-compose -f compose.yaml -f compose.dev.yaml up -d

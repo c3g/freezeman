@@ -150,6 +150,7 @@ Restart or recreate:
 | 502 on `/api/` | `podman-compose logs backend` |
 | Error about missing tables or columns | `showmigrations`, then the migration command of [Update to a new release](DEPLOYMENT.md#update-to-a-new-release) |
 | The report did not run | `tail <HOST_LOG_DIR>/jobs.log`, then run the job in the foreground (above) |
+| `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` is relative or missing. Check the log paths with `podman-compose config`, fix `.env`, then `up -d --force-recreate` |
 
 More symptoms are in [Troubleshooting](DEPLOYMENT.md#troubleshooting) of DEPLOYMENT.md.
 

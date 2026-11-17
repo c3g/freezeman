@@ -122,8 +122,9 @@ services:
     # Write the log of the container to ${HOST_LOG_DIR}/<service>.log on the host. Each service has
     # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`
     # still reads it. HOST_LOG_DIR has no default: set it in .env. The path must be absolute: a
-    # relative path breaks `podman restart` from another directory. Do not use a nested default
-    # such as ${A:-${B}}: podman-compose 1.5 (Rocky 9.6) stops at the first `}`.
+    # relative path breaks `podman restart` from another directory. A relative path or a missing
+    # directory gives "[conmon:e]: Failed to open log file No such file or directory". Do not use
+    # a nested default such as ${A:-${B}}: podman-compose 1.5 (Rocky 9.6) stops at the first `}`.
     logging:
       driver: k8s-file
       options:
