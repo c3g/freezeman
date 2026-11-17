@@ -31,7 +31,7 @@ Contents:
 - [Daily jobs](#daily-jobs): the crontab line of the report.
 - [Daily use](#daily-use)
   - [Start, stop and restart](#start-stop-and-restart): the `podman-compose` commands and when to use each.
-  - [Update to a new release](#update-to-a-new-release): check out the tag, then run `update-production-deployment.sh` (back up, build, migrate, recreate).
+  - [Update to a new release](#update-to-a-new-release): check out the tag, then run `update-production-deployment.sh` (back up, build, migrate, back up, recreate).
   - [Database backups](#database-backups): a dump now, a restore.
   - [Report and logs](#report-and-logs): follow the logs, run the report now.
   - [Automatic update (test hosts)](#automatic-update-test-hosts): `autoupdate.py` on test hosts.
@@ -375,7 +375,7 @@ git fetch && git checkout vX.Y.Z
 ./update-production-deployment.sh
 ```
 
-`update-production-deployment.sh` checks that the tag of the commit is `v` + the value in `VERSION`. Then it backs up the database to `backups/`, builds the images with the new tag, sets `FMS_IMAGE_TAG` in `.env`, stops `web` and `backend`, applies the migrations and recreates the containers. It prints each command before it runs.
+`update-production-deployment.sh` checks that the tag of the commit is `v` + the value in `VERSION`. Then it backs up the database to `backups/`, builds the images with the new tag, sets `FMS_IMAGE_TAG` in `.env`, stops `web` and `backend`, applies the migrations, backs up the migrated database to `backups/` and recreates the containers. It prints each command before it runs.
 
 If the script fails, read `update-production-deployment.sh`, fix the error, then run the remaining steps of the script manually. The last command in the output is the one that failed. If the build fails, the old containers keep running and `.env` keeps the old tag. If the migration fails, the stack stays down.
 
