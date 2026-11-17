@@ -59,10 +59,5 @@ podman-compose stop web backend
 # Migrate in a one-off container of the new backend image, while db runs.
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 
-# Back up the migrated database while web and backend are stopped, so no request writes during the dump.
-# set -e stops the script before this step if the migration fails.
-# shellcheck disable=SC2016
-podman-compose exec -T db sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip > "backups/$(date +%F_%H%M%S)-after-$version.pgsql.gz"
-
 # Replace all containers with new ones from the new images and .env.
 podman-compose up -d --force-recreate
