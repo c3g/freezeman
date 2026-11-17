@@ -25,3 +25,6 @@ oci/logs/*
 *.sql.gz
 *.dump.gz
 *.pgsql.gz
+
+# Personal compose overrides of each developer (for example editor tools in "dev").
+oci/compose.local.yaml
