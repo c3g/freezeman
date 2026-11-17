@@ -23,7 +23,7 @@ Contents:
   - [Proxy](#proxy): the proxy variables for pulls, builds and `dev`.
   - [Reverse proxy](#reverse-proxy): TLS and the forward to the `web` container.
 - [Set up the account of the user](#set-up-the-account-of-the-user): podman without systemd, `podman system migrate`, podman-compose.
-- [Get the release and configure](#get-the-release-and-configure): clone, directories, `.env`, image build.
+- [Get the release and configure](#get-the-release-and-configure): `.env`, image build.
 - Do one of these two paths:
   - [Path A: migrate from the classic host](#path-a-migrate-from-the-classic-host): dump, copy the files, restore, cutover of the reverse proxy.
   - [Path B: new host](#path-b-new-host): first start with an empty database.
@@ -198,15 +198,7 @@ Run these steps as `<user>`.
 
 Run these steps as `<user>`.
 
-1. Get the release. If a classic FreezeMan runs on the host, use a directory other than its checkout.
-
-   ```bash
-   git clone --recurse-submodules https://github.com/c3g/freezeman.git <install-dir>
-   ```
-
-2. No directory to create: the checkout holds the directory of the logs (`oci/logs`) and the backend files, and podman-compose creates any missing bind-mount folder. [Path A](#path-a-migrate-from-the-classic-host) can use the folders of the classic install for the backend files.
-
-3. Create `.env` from the server template. The template has the values of the C3G production host (`<install-dir>` is `/data/freezeman`). Set the values of this table. On another host, also change the host paths.
+1. Create `.env` from the server template. The template has the values of the C3G production host (`<install-dir>` is `/data/freezeman`). Set the values of this table. On another host, also change the host paths.
 
    ```bash
    cd <install-dir>/oci
@@ -241,7 +233,7 @@ Run these steps as `<user>`.
 
    **Daily jobs:** host cron runs the report. See [Daily jobs](#daily-jobs).
 
-4. Build the images.
+2. Build the images.
 
    ```bash
    # Proxy host: this command needs the proxy. See Proxy in Networking.
@@ -410,7 +402,7 @@ podman-compose up -d
 
 ### Report and logs
 
-The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 3.
+The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 1.
 
 Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, `jobs.py`, `start.py` and `autoupdate.py`.
 
