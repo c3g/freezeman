@@ -118,6 +118,10 @@ In the `dev` shell (`podman-compose -f compose.yaml -f compose.dev.yaml exec dev
 # First start and after each new migration:
 (cd backend && python manage.py migrate && python manage.py createinitialrevisions)
 
+# First start and after each change to the static files (backend/static, the templates in
+# backend/fms_core/static/submission_templates):
+(cd backend && python manage.py collectstatic --noinput)
+
 # Backend: http://localhost:8000, reloads on code changes
 # 0.0.0.0: listen on all addresses, because the published port connects to the container IP.
 (cd backend && python manage.py runserver 0.0.0.0:8000)
