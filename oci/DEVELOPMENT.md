@@ -203,5 +203,4 @@ podman-compose up -d
 ```
 
 - Open `http://localhost:8080` (`HOST_HTTP_PORT`).
-- When running podman-compose inside a VM or container (i.e. nested container), set `HOST_HTTP_ADDR=0.0.0.0` in `.env` first: the default binds the port to `127.0.0.1` of the host.
 - Restore a backup as in [Restore a production database](#restore-a-production-database).
