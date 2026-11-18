@@ -168,6 +168,39 @@ podman-compose --podman-args '--log-level=debug' ps     # give a debug flag to e
 To find out if the fault is in podman-compose or in podman, copy one `podman run` line from `--dry-run` and run it by hand.
 If the line fails, go to [Layer 2](#layer-2-podman). If it works, the fault is in podman-compose.
 
+Debug the Python code of podman-compose:
+
+First check that the fault is in podman-compose. If `--verbose` shows a podman command with exit code
+139 or -11, podman crashed, not podman-compose. Go to [Layer 2](#layer-2-podman).
+
+The commands below use `python3`. If they fail with `No module named podman_compose`, use the Python
+on the first line (`#!`) of `$(command -v podman-compose)`.
+
+A crash: `Segmentation fault` or exit code 139, and no `Error:` line.
+
+```bash
+# Print the Python traceback when the process crashes.
+python3 -X faulthandler -m podman_compose up -d
+```
+
+- The traceback shows the Python line and the C module at the crash. Give this output and
+  `rpm -q python3 python3-pyyaml podman-compose` to IT, or use it in a bug report.
+
+A Python exception, or a wrong result:
+
+```bash
+# Run in the debugger. pdb stops at an exception that is not caught.
+python3 -m pdb -c continue -m podman_compose up -d
+# Stop at a line of the source file.
+python3 -m pdb -c 'break podman_compose.py:<line>' -c continue -m podman_compose up -d
+```
+
+- In pdb: `bt` shows the stack, `p <name>` shows a value, `n` runs the next line, `s` steps into a call,
+  `c` continues, `q` stops.
+- An `Error: <message>` line has no traceback, and pdb does not stop on it. Find the message in the
+  source file, and set a breakpoint above that line:
+  `grep -n '<message>' "$(python3 -c 'import podman_compose; print(podman_compose.__file__)')"`.
+
 Known behaviour of podman-compose 1.5:
 
 - It reads `.env` and the relative paths of `compose.yaml` from the current directory. Run it in `oci/`. The host scripts change to `oci/` themselves (`hostenv.py`).
