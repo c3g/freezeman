@@ -101,7 +101,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
       const barcodeExistsError = () => {
         const EXISTING_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-barcode`
         notification.error({
-          message: `New container barcode already exists.`,
+          title: `New container barcode already exists.`,
           key: EXISTING_BARCODE_NOTIFICATION_KEY,
           duration: 20,
         })
@@ -109,7 +109,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
       const nameExistsError = () => {
         const EXISTING_NAME_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-name`
         notification.error({
-          message: `New container name already exists.`,
+          title: `New container name already exists.`,
           key: EXISTING_NAME_NOTIFICATION_KEY,
           duration: 20,
         })
@@ -150,8 +150,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
       if (name_exists) {
         nameExistsError()
       }
-      exists = name_exists || barcode_exists
-      return exists
+      return name_exists || barcode_exists
     }
 
     const addContainer = (container: DestinationContainer) => {
@@ -179,7 +178,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
               if (barCodeResults.length > 0) {
                 const INVALID_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-barcode`
                 notification.error({
-                  message: `Container Barcode -- ${barCodeResults.map((rule) => rule.message).join(" ")}`,
+                  title: `Container Barcode -- ${barCodeResults.map((rule) => rule.message).join(" ")}`,
                   key: INVALID_BARCODE_NOTIFICATION_KEY,
                   duration: 20,
                 })
@@ -187,7 +186,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
               if (nameResults.length > 0) {
                 const INVALID_NAME_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-name`
                 notification.error({
-                  message: `Container Name -- ${nameResults.map((rule) => rule.message).join(" ")}`,
+                  title: `Container Name -- ${nameResults.map((rule) => rule.message).join(" ")}`,
                   key: INVALID_NAME_NOTIFICATION_KEY,
                   duration: 20,
                 })
@@ -201,7 +200,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
     } else {
       const INVALID_KIND_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-kind`
       notification.error({
-        message: `Invalid destination container kind.`,
+        title: `Invalid destination container kind.`,
         key: INVALID_KIND_NOTIFICATION_KEY,
         duration: 20,
       })
