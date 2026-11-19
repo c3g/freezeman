@@ -32,7 +32,7 @@ export const notify = (props: NotifyProps) => (dispatch: AppDispatch, getState: 
     }
 
     notification[convertToAntdNotificationAPI[props.type]]({
-        message: props.title,
+        title: props.title,
         description: props.description ? <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre> : undefined,
         duration: props.duration,
         key: id,

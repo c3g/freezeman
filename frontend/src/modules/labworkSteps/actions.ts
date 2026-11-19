@@ -506,7 +506,7 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 			}, {} as PlacementData)
 		} catch (e) {
 			notification.error({
-				message: e.message,
+				title: e.message,
 				key: 'LabworkStep.Placement.Prefilling-Failed',
 				duration: 20
 			})
@@ -545,7 +545,7 @@ export function fetchSamplesheet(activeDestinationContainer: LabworkStepPlacemen
 			}
 		} catch (e) {
 			notification.error({
-				message: e.message,
+				title: e.message,
 				key: 'LabworkStep.Placement.GetSamplesheet',
 				duration: 20
 			})
@@ -560,7 +560,7 @@ export function fetchSamplesheet(activeDestinationContainer: LabworkStepPlacemen
 		}
 		catch (e) {
 			notification.error({
-				message: e.data,
+				title: e.data,
 				key: 'LabworkStep.Placement.GetSamplesheet',
 				duration: 20
 			})
