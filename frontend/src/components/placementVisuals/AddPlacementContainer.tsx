@@ -114,8 +114,6 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
           duration: 20,
         })
       }
-
-      let exists: boolean
       /* Get locally created containers first */
       /* Check if the barcode is used in the destinationContainerList */
       let barcode_exists: boolean = destinationContainerList.some(
@@ -131,7 +129,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
       if (name_exists) {
         nameExistsError()
       }
-      exists = name_exists || barcode_exists
+      const exists = name_exists || barcode_exists
       if (exists) {
         /* Fast return if already exists in frontend display */
         return exists
