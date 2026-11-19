@@ -23,10 +23,10 @@ const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStep
       <Listy
         items={listData}
         rowKey="id"
-        style={{ marginRight: "0.5rem" }}
         styles={{
           item: {
             padding: "8px 0",
+            marginRight: "0.5rem",
           },
         }}
         itemRender={(item) => <LabworkOverviewStep step={item} />}
