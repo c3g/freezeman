@@ -92,7 +92,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
                 })
             }
     
-            let exists = false
+            let exists : boolean;
             /* Get locally created containers first */
             /* Check if the barcode is used in the destinationContainerList */
             let barcode_exists: boolean = destinationContainerList.some(containerSample => containerSample.container_barcode === container.container_barcode)
