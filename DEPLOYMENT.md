@@ -15,6 +15,8 @@ Placeholders used in this guide:
 - `<YYYY-MM-DD>`: the date in the name of a database backup file.
 - `<branch>`: the branch that you give to `autoupdate.py --branch`.
 
+Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`. podman-compose then works in any directory. It reads `.env` from the directory of the compose file.
+
 Contents:
 
 - [Initial deployment](#initial-deployment)
@@ -29,7 +31,6 @@ Contents:
   - [Reverse proxy](#reverse-proxy)
   - [Start at boot](#start-at-boot)
   - [Daily jobs](#daily-jobs)
-  - [Proxy (optional)](#proxy-optional)
 - [Routine deployments](#routine-deployments)
   - [Start, stop and restart](#start-stop-and-restart)
   - [Update to a new release](#update-to-a-new-release)
@@ -40,13 +41,11 @@ Contents:
 - [Specific deployments](#specific-deployments)
   - [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600)
 - [Additional information](#additional-information)
-  - [Proxy internals](#proxy-internals)
+  - [Proxy](#proxy)
   - [Design choices](#design-choices)
   - [Troubleshooting](#troubleshooting)
 
 # Initial deployment
-
-Do these sections in order. The optional [Proxy](#proxy-optional) section is at the end.
 
 ## Production services
 
@@ -79,7 +78,8 @@ Summary:
 - Running stack: outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST` only. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
 - Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails. To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
 
-If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic. If the host has open outbound access, no change is necessary.
+If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic.
+Only podman image pulls and builds use the proxy. The running services do not.
 
 | Domain | Port | Used by |
 |---|---|---|
@@ -100,9 +100,8 @@ Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pul
 
 Run these steps as `<user>`.
 
-1. Follow [Installation](README.md#installation) in the root README.md: the HTTPS rule for the submodule URL, the clone and the submodule update. Clone into `<install-dir>`.
-2. Check the rule of [Prerequisites](oci/README.md#prerequisites) in oci/README.md: the checkout must have a real `.git` directory.
-3. Check out the release that you deploy (`git checkout vX.Y.Z`).
+1. Follow [Installation](README.md#installation) in the root README.md. Clone into `<install-dir>`.
+2. Check out the release that you deploy (`git checkout vX.Y.Z`).
 
 ## Set up the account of the user
 
@@ -123,7 +122,7 @@ Run these steps as `<user>`.
       EOF
       ```
 
-   b. Set `XDG_RUNTIME_DIR` and `COMPOSE_FILE` in every login shell. Replace the two placeholders with their values.
+   b. Set `XDG_RUNTIME_DIR` in every login shell. Replace the placeholder with its value.
 
       ```bash
       cp ~/.bash_profile ~/.bash_profile.bak
@@ -133,8 +132,6 @@ Run these steps as `<user>`.
       # the running containers there, so every shell of this user must use the same directory.
       # The usual value is /run/user/<uid>.
       export XDG_RUNTIME_DIR=<runtime-dir>
-      # podman-compose then works in any directory. It reads .env from the directory of this file.
-      export COMPOSE_FILE=<install-dir>/oci/compose.yaml
       EOF
       ```
 
@@ -154,39 +151,35 @@ Run these steps as `<user>`.
 
 Run these steps as `<user>`.
 
-1. Create `.env` from the server template. The template has a comment with the default of each variable. Set the values of this table:
+```bash
+cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
+```
 
-   ```bash
-   cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
-   ```
+| Variable | Value |
+|---|---|
+| `POSTGRES_PASSWORD` | A new password |
+| `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
+| `FMS_HOST` | `<domain>` |
+| `FMS_ENV` | Required. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
+| `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION`. Required when `FMS_ENV` is `PROD`: `freezeman.py`, `jobs.py` and `autoupdate.py` stop if it is empty. `update-production-deployment.sh` sets it at each update. On other `FMS_ENV` values it is optional |
+| `HOST_LOG_DIR` | The absolute path of an existing directory, for example `<install-dir>/logs`. Required. A relative path or a missing directory gives `[conmon:e]: Failed to open log file No such file or directory` |
+| `CONTAINER_FMS_ROOT` | Required. The path of the project in the containers. Keep the value of the template |
+| `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container. Change the template values on a host with other folders. podman-compose creates a missing folder |
+| `HOST_HTTP_PORT` | The port that the reverse proxy sends the requests to (`<HOST_HTTP_PORT>`) |
+| `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. See [Network access](#network-access) when the host has no route to it. To turn TLS off, leave `FMS_EMAIL_TLS` empty. To log the emails to the console, comment out all six |
+| `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`) |
 
-   | Variable | Value |
-   |---|---|
-   | `POSTGRES_PASSWORD` | A new password |
-   | `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
-   | `FMS_HOST` | `<domain>` |
-   | `FMS_ENV` | Required. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-   | `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION`. Required when `FMS_ENV` is `PROD`: `freezeman.py`, `jobs.py` and `autoupdate.py` stop if it is empty. `update-production-deployment.sh` sets it at each update. On other `FMS_ENV` values it is optional |
-   | `HOST_LOG_DIR` | The absolute path of an existing directory, for example `<install-dir>/logs`. Required. A relative path or a missing directory gives `[conmon:e]: Failed to open log file No such file or directory` |
-   | `CONTAINER_FMS_ROOT` | Required. The path of the project in the containers. Keep the value of the template |
-   | `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container. Change the template values on a host with other folders. podman-compose creates a missing folder |
-   | `HOST_HTTP_PORT` | The port that the reverse proxy sends the requests to (`<HOST_HTTP_PORT>`) |
-   | `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. See [Network access](#network-access) when the host has no route to it. To turn TLS off, leave `FMS_EMAIL_TLS` empty. To log the emails to the console, comment out all six |
-   | `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`) |
+<a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
-   <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
+| Area | `PROD` | Other value (`QC`, `DEV`) |
+|---|---|---|
+| Django log | `WARNING` and higher goes to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher goes to `backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. Django rotates it at 2 GB and keeps 1 old file |
+| Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
+| Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
+| `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
+| Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
 
-   | Area | `PROD` | Other value (`QC`, `DEV`) |
-   |---|---|---|
-   | Django log | `WARNING` and higher goes to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher goes to `backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. Django rotates it at 2 GB and keeps 1 old file |
-   | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
-   | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
-   | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-   | Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
-
-   The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack. Do not use it on a server.
-
-2. A manual `podman-compose` command on `PROD` without `FMS_IMAGE_TAG` uses the tag `latest`, which does not exist on a production host. The scripts stop before that.
+The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack. Do not use it on a server.
 
 ## Build the images
 
@@ -196,7 +189,7 @@ Run this step as `<user>`.
 podman-compose build
 ```
 
-Proxy host: this command needs the proxy. See [Proxy](#proxy-optional).
+Proxy host: this command needs the proxy. See [Proxy](#proxy).
 
 ## Start a new database
 
@@ -271,23 +264,6 @@ Run this step as `<user>`, after the first start works. Host cron runs each dail
 - Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
 - A host without cron (the host is a container) is not supported yet.
 
-## Proxy (optional)
-
-Do this section only if your host reaches the internet through an HTTP proxy.
-
-Only image pulls and builds use the proxy. The running services do not. You can clear the proxy variables after the install. Set them again for each update, because each update builds the images.
-
-Give the proxy to the command. Use the uppercase names. Set them before the command, so they apply only to this command and not to other commands of the shell:
-
-```bash
-HTTP_PROXY=http://<proxy-host>:<port> \
-HTTPS_PROXY=http://<proxy-host>:<port> \
-NO_PROXY=localhost,127.0.0.1 \
-podman-compose build
-```
-
-Do the same for `podman pull`, `podman-compose up`, `update-production-deployment.sh` and `autoupdate.py`. For the details, see [Proxy internals](#proxy-internals).
-
 # Routine deployments
 
 ## Start, stop and restart
@@ -303,7 +279,7 @@ Use `--force-recreate` after a build or an `.env` change.
 
 ## Update to a new release
 
-Proxy host: `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy-optional).
+Proxy host: `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy).
 
 ```bash
 cd <install-dir>
@@ -366,7 +342,7 @@ How to update (on each host, QC first, prod after QC works):
    podman-compose build --pull --no-cache
    ```
 
-   Proxy host: set the proxy variables as in [Proxy](#proxy-optional).
+   Proxy host: set the proxy variables as in [Proxy](#proxy).
 2. Recreate the containers: `podman-compose up -d`.
 3. Check the versions, and write them in the deployment notes:
 
@@ -436,13 +412,13 @@ Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env`
 
 # Specific deployments
 
-* Version 3.1 : 
+* Version 3.1:
   * Upgrade Python version to 3.8.
   * Clone the new repository.
   * Modify the nginx and uwsgi for the new locations.
-* Version 3.2 : 
+* Version 3.2:
   * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
-* Version 3.3 :
+* Version 3.3:
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
   * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
@@ -537,23 +513,26 @@ Before you start, do the sections of [Initial deployment](#initial-deployment) u
 8. Disable the `@reboot` and cron entries of the old setup (report, backup) in the crontab of its user, so they do not run against the old database.
 9. Continue with [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs).
 
-### Go back to the earlier version
-
-1. Stop the stack:
-
-   ```bash
-   podman-compose down
-   ```
-
-2. Remove the `@reboot` and the job lines from the crontab of `<user>`.
-3. Restore the copy of the old reverse proxy configuration (`/`, `/static/`, `/media/` and `/api/`) that you kept in step 7.
-4. Start the old uwsgi and its cron entries.
-
-The stack writes after the cutover are not in the old database. If step 4 used the folders of the old install, the files that the stack wrote are in them.
-
 # Additional information
 
-## Proxy internals
+## Proxy
+
+Do this section only if your host reaches the internet through an HTTP proxy.
+
+Only image pulls and builds use the proxy. The running services do not. You can clear the proxy variables after the install. Set them again for each update, because each update builds the images.
+
+Give the proxy to the command. Use the uppercase names. Set them before the command, so they apply only to this command and not to other commands of the shell:
+
+```bash
+HTTP_PROXY=http://<proxy-host>:<port> \
+HTTPS_PROXY=http://<proxy-host>:<port> \
+NO_PROXY=localhost,127.0.0.1 \
+podman-compose build
+```
+
+Do the same for `podman pull`, `podman-compose up`, `update-production-deployment.sh` and `autoupdate.py`.
+
+### Internals
 
 - Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
 - The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
