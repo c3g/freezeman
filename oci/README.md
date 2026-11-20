@@ -2,8 +2,10 @@
 
 Container images and podman-compose configuration for FreezeMan.
 
-> [!IMPORTANT]
-> Run all `podman-compose` commands from `oci/`.
+> [!NOTE]
+> You can run `podman-compose` from any directory. Give it the compose file once:
+> `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`. podman-compose reads `.env` from the directory of the
+> compose file.
 
 Contents:
 

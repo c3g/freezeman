@@ -4,11 +4,13 @@ This guide tells you how to find the cause of a fault in the FreezeMan container
 Read [README.md](README.md) first. It describes the services and the layout.
 
 > [!IMPORTANT]
-> - Run all commands in `<install-dir>/oci` as `<user>`.
-> - The `podman-compose` commands in this guide are for production. Use the flags of your stack:
->   - Production: no `-f` flag. podman-compose reads `compose.yaml` in the current directory.
->   - Development: add `-f compose.yaml -f compose.dev.yaml`. For `backend` and `web`, also add
->     `--profile prod`. `compose.dev.yaml` puts these services in the profile `prod`.
+> - Run all commands as `<user>`. You can run them from any directory.
+> - The `podman-compose` commands in this guide are for production. Give podman-compose the compose files of
+>   your stack once with `COMPOSE_FILE`. podman-compose reads `.env` from the directory of the compose file:
+>   - Production: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
+>   - Development: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml:<install-dir>/oci/compose.dev.yaml`.
+>     For `backend` and `web`, also add `--profile prod`. `compose.dev.yaml` puts these services in the
+>     profile `prod`.
 > - The placeholders are the same as in [DEPLOYMENT.md](DEPLOYMENT.md): `<user>`, `<install-dir>`,
 >   `<HOST_LOG_DIR>`, `<HOST_HTTP_PORT>`, `<domain>`.
 
@@ -203,7 +205,7 @@ python3 -m pdb -c 'break podman_compose.py:<line>' -c continue -m podman_compose
 
 Known behaviour of podman-compose 1.5:
 
-- It reads `.env` and the relative paths of `compose.yaml` from the current directory. Run it in `oci/`. The host scripts change to `oci/` themselves (`hostenv.py`).
+- It reads `.env` from the directory of the compose file, not from the current directory. Give the compose file with `-f` or `COMPOSE_FILE` and run it from any directory.
 - It stops at the first `}` of a nested default such as `${A:-${B}}`. Do not use nested defaults.
 - It interpolates the `environment` of a service two times. See the `NO_PROXY` quirk in [Proxy](DEPLOYMENT.md#proxy).
 - It ignores `create_host_path` and always creates a missing bind-mount folder. A wrong `HOST_*` path gives an empty folder, not an error.

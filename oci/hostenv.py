@@ -23,10 +23,8 @@ def setup() -> None:
     # Cron has a short PATH. podman-compose can be in ~/.local/bin.
     os.environ["PATH"] = os.path.expanduser("~/.local/bin") + os.pathsep + os.environ.get("PATH", "")
 
-    # podman-compose reads .env and the relative paths of compose.yaml from the current directory.
-    # compose.yaml builds the default log path from PWD, so set it.
+    # Run in oci/, so that the relative paths of compose.yaml and the commands in .env are the same for each caller.
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    os.environ["PWD"] = os.getcwd()
 
 
 def read_env(path: str) -> dict[str, str]:
