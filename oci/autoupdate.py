@@ -80,7 +80,7 @@ def main() -> None:
             hostenv.setup()
             env = hostenv.read_env(os.path.join(OCI_DIR, ".env"))
             # Only .env counts, not the shell: the script must see the same values as the stack.
-            log_dir = env.get("HOST_LOG_DIR") or os.path.join(OCI_DIR, "logs")
+            log_dir = env.get("HOST_LOG_DIR") or os.path.join(REPO_ROOT, "logs")
             os.makedirs(log_dir, exist_ok=True)
             state_path = os.path.join(log_dir, "autoupdate.state")
 

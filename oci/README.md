@@ -79,7 +79,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
 | `hostenv.py` | Environment of the host scripts (`freezeman.py`, `jobs.py`, `autoupdate.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
-| `logs/` | Usual `HOST_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEPLOYMENT.md` | Production deployment guide |
 | `DEVELOPMENT.md` | Development setup guide |
@@ -221,6 +220,7 @@ Portability:
 Files outside `oci/`:
 
 - `.containerignore`: build context exclusions. The build context is the repository root, so the file must be there.
+- `logs/`: the usual `HOST_LOG_DIR` (`<install-dir>/logs`). The directory is in the checkout, its contents are git-ignored. Podman does not create the directory of a `k8s-file` log, so it must exist.
 - `backend/fms/info.py`: reads `fms/build_info.json`, which the image build writes.
   Images contain no `.git`. Without this change `git show` returns an empty string on master,
   the tuple unpacking raises `ValueError` at import, and Django does not start.
