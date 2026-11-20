@@ -26,7 +26,20 @@
 # Clone the repository
 git clone https://github.com/c3g/freezeman
 cd freezeman
+# Use HTTPS for the git:// URL of the submodule (see "Submodule URL" below)
+git config url."https://github.com/".insteadOf "git://github.com/"
 git submodule update --init --recursive
+```
+
+### Submodule URL
+
+The submodule `backend/dependencies/pg_fzy` has a `git://` URL in `.gitmodules`. GitHub does not
+serve the `git://` protocol, so `git submodule update` can fail. The `git config` command above tells
+git to use HTTPS for GitHub `git://` URLs in this checkout only. Run it after the clone and before
+`git submodule update`. To apply the rule to all your checkouts, add `--global`:
+
+```bash
+git config --global url."https://github.com/".insteadOf "git://github.com/"
 ```
 
 Next, follow the instructions in [/backend/](./backend/) and
