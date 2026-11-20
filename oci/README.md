@@ -32,13 +32,10 @@ Contents:
 
 | Reader | Read |
 |---|---|
-| Agents | This file first. Then the guide that fits the task. |
 | Host administrator | The host requirements in [Host requirements](../DEPLOYMENT.md#host-requirements) and [Network access](../DEPLOYMENT.md#network-access) of the deployment guide |
 | Deployment team | [DEPLOYMENT.md](../DEPLOYMENT.md) in the repository root: the initial, routine and specific deployments |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 | Anyone who debugs the stack | [DEBUGGING.md](DEBUGGING.md): debugging by layer (podman-compose, podman, the host system and IT) |
-
-Both guides use the [Shared setup](#shared-setup) below. Read it once. The two guides do not link to each other: the facts that both need are in this file.
 
 ## Layout
 
@@ -59,27 +56,6 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once. The two g
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
 | `DEBUGGING.md` | Debugging guide |
-
-## Shared setup
-
-Do this setup once for each checkout. It applies to production and to development.
-
-### Prerequisites
-
-Use a checkout with a real `.git` directory (not a `git worktree`, whose `.git` is a file pointing elsewhere).
-The frontend build and `build_info.json` read commit information from it. For the clone and the submodules, see
-[Installation](../README.md#installation) in the root README.md.
-
-### The .env file
-
-- `.env` has three parts:
-  - Container settings (`FMS_*`, `POSTGRES_*`, `TZ`, `UWSGI_PROCESSES`) go into the containers.
-  - Build settings (`FMS_IMAGE_TAG`, `CONTAINER_FMS_ROOT`, the proxy) are for the image builds.
-  - Host settings (`HOST_*`) are paths and ports on the host: only compose and the host scripts read them.
-
-  No service loads the whole `.env` (`env_file`). Each service gets an explicit list of variables in the compose files.
-- `CONTAINER_FMS_ROOT`: the path of the FreezeMan project in the containers. The templates give its value.
-- Each variable has its default in the comments of the templates `.env.prod.example` and `.env.dev.example`.
 
 ## Useful podman and podman-compose commands
 
@@ -121,26 +97,6 @@ head -5 <backup>                  # a plain .pgsql file
 - `psql` runs a SQL script one statement at a time. Only `pg_restore` can restore in parallel.
 - `pg_restore -j` needs the dump as a file in the container (a bind mount or `podman cp`). It cannot read from `<` or a pipe.
 
-## Additional notes
-
-For the reverse proxy and the host design choices, see [Design choices](../DEPLOYMENT.md#design-choices) in the deployment guide.
-
-Portability:
-
-- `bind.selinux: z` on all bind mounts, with no exception: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
-- Fully qualified image names (`docker.io/library/...`): RHEL-family systems enforce
-  short-name resolution, and fully qualified names avoid prompts on any registry setup.
-- `x-podman: in_pod: false`: `userns_mode: keep-id` (development) cannot be used for containers inside a pod.
-
-Files outside `oci/`:
-
-- `.containerignore`: build context exclusions. The build context is the repository root, so the file must be there.
-- `logs/`: the usual `HOST_LOG_DIR` (`<install-dir>/logs`). The directory is in the checkout, its contents are git-ignored. Podman does not create the directory of a `k8s-file` log, so it must exist.
-- `backend/fms/info.py`: reads `fms/build_info.json`, which the image build writes.
-  Images contain no `.git`. Without this change `git show` returns an empty string on master,
-  the tuple unpacking raises `ValueError` at import, and Django does not start.
-  Without the file, info.py runs git as before, so behavior outside containers is the same.
-
 ## Docker compatibility
 
 The stack targets rootless podman and podman-compose. Docker Engine with Docker Compose does not run it.
@@ -156,3 +112,12 @@ The Docker daemon rejects these podman-only settings:
 The Docker Compose v2 program can also talk to the podman socket instead of a Docker daemon. This is not tested.
 
 Docker support would need a separate override file and another way to set file owners. It is not planned.
+
+## Additional notes
+
+Portability:
+
+- `bind.selinux: z` on all bind mounts, with no exception: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
+- Fully qualified image names (`docker.io/library/...`): RHEL-family systems enforce
+  short-name resolution, and fully qualified names avoid prompts on any registry setup.
+- `x-podman: in_pod: false`: `userns_mode: keep-id` (development) cannot be used for containers inside a pod.

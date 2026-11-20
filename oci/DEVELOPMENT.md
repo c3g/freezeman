@@ -1,7 +1,8 @@
 # Development setup
 
 This guide tells you how to run the FreezeMan container stack for development.
-For the overview, the layout and the shared setup, read [README.md](README.md). For the clone and the submodules, see [Installation](../README.md#installation) in the root README.md.
+For the overview and layout of oci, read [README.md](README.md).
+For the clone and the submodules, see [Installation](../README.md#installation) in the root README.md.
 
 > [!NOTE]
 > You can run `podman-compose` from any directory. Give it the compose files once:
@@ -22,18 +23,14 @@ Contents:
 
 ## Prerequisites
 
-1. Do the steps of [Prerequisites](README.md#prerequisites) in README.md. They apply to both environments.
-2. If your host reaches the internet through an HTTP proxy, give the proxy to the commands that pull or build images. Use the uppercase names, in front of the command: `HTTP_PROXY=http://<proxy-host>:<port> HTTPS_PROXY=http://<proxy-host>:<port> podman-compose build`. Do the same for `podman pull`. The builds and the `dev` container can also read the proxy block of `.env`. The image pulls cannot, because podman does the pull.
-3. Install the tools. Development works on any OS with podman and podman-compose. The `selinux: z` labels of the bind mounts are ignored where SELinux is absent.
+Install the tools. Development works on any OS with podman and podman-compose. The `selinux: z` labels of the bind mounts are ignored where SELinux is absent.
 
-   - Windows: [install Podman](https://podman.io/docs/installation#windows) and use `podman machine`.
-   - macOS: [install Podman](https://podman.io/docs/installation#macos) and use `podman machine`.
-   - Ubuntu 26.04 Desktop: [install Podman](https://podman.io/docs/installation#ubuntu).
-   - All systems: [install podman-compose](https://github.com/containers/podman-compose#installation).
+- Windows: [install Podman](https://podman.io/docs/installation#windows) and use `podman machine`.
+- macOS: [install Podman](https://podman.io/docs/installation#macos) and use `podman machine`.
+- Ubuntu 26.04 Desktop: [install Podman](https://podman.io/docs/installation#ubuntu).
+- All systems: [install podman-compose](https://github.com/containers/podman-compose#installation).
 
-## Development notes
-
-### Development services
+## Services
 
 | Service    | Image                         | What it runs                                                    |
 |------------|-------------------------------|-----------------------------------------------------------------|
@@ -49,17 +46,22 @@ Contents:
 If you do not have `.env` yet, run `cp .env.dev.example .env`. Set `HOST_LOG_DIR` in `.env` to the
 absolute path of `logs` in your checkout, for example `HOST_LOG_DIR=/home/me/freezeman/logs`.
 Compose stops without it. If the path is relative or the directory does not exist, the containers
-fail with `[conmon:e]: Failed to open log file No such file or directory`. Start the stack and enter the `dev` container:
+fail with `[conmon:e]: Failed to open log file No such file or directory`.
+
+Start the stack and enter the `dev` container:
 
 ```bash
 podman-compose up -d
 podman-compose exec dev bash
 ```
 
+The `dev` shell starts in `$CONTAINER_FMS_ROOT`.
+
 In development, `postgres` is the superuser of the database. It works only through the Unix socket in the
 `db` container (`podman-compose exec db ...`). Django and `dev` connect
-as the app role `admin` (`POSTGRES_USER` of `.env`). On the first start of a new database volume, create
-`admin`. Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
+as the app role `admin` (`POSTGRES_USER` of `.env`).
+
+On the first start of a new database volume, create `admin`. Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
 
 ```bash
 podman-compose exec db psql -U postgres -d postgres \
@@ -68,23 +70,24 @@ podman-compose exec db psql -U postgres -d postgres \
 ```
 
 - `CREATEDB`: pytest creates its own test database.
-- If you restore a dump of all databases (`pg_dumpall`), skip this step. The dump creates `admin`
-  (see [Restore a production database](#restore-a-production-database)).
+- If you restore from a database dump see
+  [Restore a production database](#restore-a-production-database).
 
-The `dev` shell starts in `$CONTAINER_FMS_ROOT`. The venv is ready: the `dev` image has the packages of
-`backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`. So `python`, `pip` and
-`pytest` are the ones of the venv, with no activation and no first `pip install`.
+Python virtual environment is ready:
 
-`pip install` works in the `dev` shell, for example to try a package. The venv is in the image, not in
-the bind-mounted checkout, so the package stays only until `dev` is recreated. To keep a package, add it to
-`backend/requirements.txt`, then build the image again and recreate `dev` (on the host):
+- the `dev` image has the packages of `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin`
+  is first in `PATH`. So `python`, `pip` and `pytest` are the ones of the venv, with no activation
+  and no first `pip install`.
+- `pip install` works in the `dev` shell, for example to try a package. The venv is in the image, not in
+  the bind-mounted checkout, so the package stays only until `dev` is recreated. To keep a package, add it to
+  `backend/requirements.txt`, then build the image again and recreate `dev` (on the host):
 
-```bash
-podman-compose build dev
-podman-compose up -d dev
-```
+  ```bash
+  podman-compose build dev
+  podman-compose up -d dev
+  ```
 
-### Restore a production database
+## Restore a production database
 
 Optional. Do this before `migrate` and `runserver` to get production data into the development database.
 The steps run the migrations themselves.
@@ -138,7 +141,7 @@ podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python 
 - If you need the uploaded files, copy `backend/media` of the production host
   into `backend/media` of your checkout.
 
-### Run the servers and the tests
+## Run the servers and the tests
 
 In the `dev` shell (`podman-compose exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`, where the shell starts:
 
