@@ -24,6 +24,12 @@ def setup() -> None:
     # Run in oci/, so that the relative paths of compose.yaml and the commands in .env are the same for each caller.
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+    # Compose cannot require a variable for one FMS_ENV value only, so check it here. On PROD, the default
+    # tag "latest" matches no image: production images have the tag of the release version.
+    env = read_env(".env")
+    if env.get("FMS_ENV") == "PROD" and not (os.environ.get("FMS_IMAGE_TAG") or env.get("FMS_IMAGE_TAG")):
+        raise RuntimeError("FMS_IMAGE_TAG is required in .env when FMS_ENV is PROD.")
+
 
 def read_env(path: str) -> dict[str, str]:
     values: dict[str, str] = {}
