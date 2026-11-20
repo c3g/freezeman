@@ -478,10 +478,6 @@ Before you start, do the sections of [Initial deployment](#initial-deployment) u
    | `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR` | The values of `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH` and `FMS_RELEASED_FILES_PATH` in the old `uwsgi.ini`, as absolute paths. If `uwsgi.ini` does not set one, the folder in `backend/triggers` of the old checkout |
    | `HOST_AUTOMATIONS_WORK_DIR` | The value of `FMS_AUTOMATIONS_WORK_PATH` in the old `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the old checkout |
 
-   The folders must be on this host. The backend writes as `<user>`, the host user that runs podman (`userns_mode: keep-id`), so `<user>` must be able to write into them.
-
-   You can also copy the files into the folders of the new checkout instead (for example to keep the old files unchanged for the [way back](#go-back-to-the-earlier-version)). Then comment out these variables in `.env`.
-
 5. Start only the database, wait until it is ready, and restore the dump. The message "extension fzy already exists" is harmless.
 
    ```bash
