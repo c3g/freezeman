@@ -131,7 +131,7 @@ services:
         path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/db.log
 
     # Restart a container that exits while podman runs. It does not start containers at boot.
-    # `start.py` does that (DEPLOYMENT.md: "Start at boot").
+    # `freezeman.py` does that (DEPLOYMENT.md: "Start at boot").
     restart: always
 
   # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in

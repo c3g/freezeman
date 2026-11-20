@@ -41,11 +41,11 @@ mkdir -p backups
 podman-compose exec -T db sh -c 'pg_dumpall -U "$POSTGRES_USER"' | gzip > "backups/$(date +%F_%H%M%S)-before-$version.pgsql.gz"
 
 # Build with the new tag before .env changes: if the build fails, .env keeps the old tag, so
-# start.py still finds the images at boot. The shell value overrides .env.
+# freezeman.py still finds the images at boot. The shell value overrides .env.
 # --profile jobs also builds the jobs image, which jobs.py runs.
 FMS_IMAGE_TAG="$version" podman-compose --profile jobs build
 
-# Set the new tag in .env, so start.py, jobs.py and manual podman-compose commands use the new images.
+# Set the new tag in .env, so freezeman.py, jobs.py and manual podman-compose commands use the new images.
 if grep -q '^FMS_IMAGE_TAG=' .env; then
     sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$version/" .env
 else

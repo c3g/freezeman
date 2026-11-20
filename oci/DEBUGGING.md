@@ -65,7 +65,7 @@ The logs:
 | File | Written by | Contents |
 |---|---|---|
 | `<HOST_LOG_DIR>/db.log`, `backend.log`, `web.log` | podman (`k8s-file` driver) | The output of each service. The files stay after `down` |
-| `<HOST_LOG_DIR>/boot.log` | `start.py` (cron `@reboot`) | The start at boot |
+| `<HOST_LOG_DIR>/freezeman.log` | `freezeman.py` (cron `@reboot`) | The start at boot |
 | `<HOST_LOG_DIR>/jobs.log` | `jobs.py` (cron) | The daily jobs |
 | `<HOST_LOG_DIR>/report_preparation.log` | The `report` job | The details of the report |
 | `<HOST_LOG_DIR>/autoupdate.log` | `autoupdate.py` (cron, test hosts) | The automatic updates |
@@ -388,9 +388,9 @@ See [Debug with sudo](#debug-with-sudo).
 Cron:
 
 ```bash
-crontab -l                                 # the @reboot line of start.py and the lines of the jobs
+crontab -l                                 # the @reboot line of freezeman.py and the lines of the jobs
 systemctl is-active crond                  # active
-tail -n 50 <HOST_LOG_DIR>/boot.log         # the last start at boot
+tail -n 50 <HOST_LOG_DIR>/freezeman.log         # the last start at boot
 ```
 
 Cron starts the scripts with a short `PATH` and no `XDG_RUNTIME_DIR`. `hostenv.py` sets `PATH`. It stops with an error if `XDG_RUNTIME_DIR` is not set or is not a directory, so set it at the top of the crontab. To run a crontab
@@ -407,10 +407,10 @@ Boot:
 ```bash
 uptime -s                                  # the time of the last boot
 last reboot 2>/dev/null | head             # the boots, if you can read /var/log/wtmp
-grep -n "FAILED:" <HOST_LOG_DIR>/boot.log  # a failed start at boot
+grep -n "FAILED:" <HOST_LOG_DIR>/freezeman.log  # a failed start at boot
 ```
 
-Compare the time of the boot with the time of the last run in `boot.log`. No run after the boot: cron did not start `start.py`.
+Compare the time of the boot with the time of the last run in `freezeman.log`. No run after the boot: cron did not start `freezeman.py`.
 
 SELinux:
 
@@ -438,7 +438,7 @@ Logs to read with sudo:
 
 | Question | Command |
 |---|---|
-| Did cron start `start.py` or a job? | `sudo journalctl -u crond --since <time>` or `sudo tail /var/log/cron` |
+| Did cron start `freezeman.py` or a job? | `sudo journalctl -u crond --since <time>` or `sudo tail /var/log/cron` |
 | Did `/run/user/<uid>` exist at boot? Is linger on? | `sudo journalctl -u systemd-logind --since <time>`, `loginctl show-user <user>` |
 | Did the kernel stop a process for lack of memory? | `sudo journalctl -k --since <time> \| grep -i oom` or `sudo dmesg -T \| grep -i oom` |
 | Did the kernel refuse a user namespace or a mount? | `sudo journalctl -k --since <time>` or `sudo tail /var/log/messages` |
@@ -452,7 +452,7 @@ Fixes with sudo:
 |---|---|---|
 | `podman` or `podman-compose` is missing or too old | `rpm -q podman podman-compose` | `sudo dnf install` or `sudo dnf upgrade` |
 | `not enough IDs available in the namespace` | `grep '^<user>:' /etc/subuid /etc/subgid` | `sudo usermod --add-subuids <START>-<END> --add-subgids <START>-<END> <user>`, then `podman system migrate` as `<user>` |
-| The stack does not start after a reboot, and `boot.log` has no new run | `loginctl show-user <user> -p Linger`, `systemctl is-active crond` | `sudo loginctl enable-linger <user>`, `sudo systemctl enable --now crond` |
+| The stack does not start after a reboot, and `freezeman.log` has no new run | `loginctl show-user <user> -p Linger`, `systemctl is-active crond` | `sudo loginctl enable-linger <user>`, `sudo systemctl enable --now crond` |
 | 502 or 413 at `https://<domain>/`, but `web` answers on `127.0.0.1` | The error log of the host reverse proxy | Change its configuration. See [Reverse proxy](DEPLOYMENT.md#reverse-proxy) |
 | A pull or a build cannot reach a domain | The firewall and proxy logs | Add the domains of [Network access](DEPLOYMENT.md#network-access) to the allow list |
 | The disk is full, or `quota` shows the limit | `df -h`, `sudo quota -s -u <user>` | Free disk space, or increase the quota |

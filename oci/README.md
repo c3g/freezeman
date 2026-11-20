@@ -74,10 +74,10 @@ Both guides use the [Shared setup](#shared-setup) below. Read it once.
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `jobs.py` | Runs one daily job (`report`) in a `jobs` container. Host cron calls it |
 | `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
-| `start.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
+| `freezeman.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `update-production-deployment.sh` | Updates a production stack to the checked-out release. Run it manually |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
-| `hostenv.py` | Sets `XDG_RUNTIME_DIR` for the host scripts (`start.py`, `autoupdate.py`) |
+| `hostenv.py` | Environment of the host scripts (`freezeman.py`, `jobs.py`, `autoupdate.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `logs/` | Usual `HOST_LOG_DIR`. The directory is in the checkout, its contents are git-ignored |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |

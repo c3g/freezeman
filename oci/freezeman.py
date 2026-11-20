@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Start the stack. Run it from cron: `@reboot <install-dir>/oci/start.py` (DEPLOYMENT.md).
+# Start the stack. Run it from cron: `@reboot <install-dir>/oci/freezeman.py` (DEPLOYMENT.md).
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
 # Log a failure if `podman-compose up -d` fails or if a container is in a wrong state after CHECK_DELAY.
 import json
@@ -53,7 +53,7 @@ def main() -> int:
             return 1
     except Exception as error:
         # The cause goes on the FAILED: line: `grep -A3 "FAILED:"` cuts the traceback before its last line.
-        print(f"FAILED: start.py: {type(error).__name__}: {error}\n{traceback.format_exc()}", file=sys.stderr, flush=True)
+        print(f"FAILED: freezeman.py: {type(error).__name__}: {error}\n{traceback.format_exc()}", file=sys.stderr, flush=True)
         return 1
     return 0
 

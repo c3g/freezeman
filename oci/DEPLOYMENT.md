@@ -45,7 +45,7 @@ Contents:
    - A Linux host with podman 5.4 or later and podman-compose 1.5 or later.
    - A non-root `<user>` with subuid and subgid ranges, for rootless containers.
    - A directory `/run/user/<uid>` of `<user>` that stays from boot to shutdown (for example systemd linger). Rootless podman keeps the state of the running containers there.
-   - A cron daemon, or another way to start `start.py` as `<user>` at boot.
+   - A cron daemon, or another way to start `freezeman.py` as `<user>` at boot.
    - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
    - Outbound access for the build. The domains are in [Network access](#network-access). The running stack needs only the SMTP server.
 3. If the host reaches the internet through an HTTP proxy, see [Proxy](#proxy). Without a proxy, leave the proxy variables unset.
@@ -325,12 +325,12 @@ Then continue with [Start at boot](#start-at-boot).
 Run this step as `<user>`, after the first start works. Add this line to the crontab (`crontab -e`):
 
 ```cron
-@reboot <install-dir>/oci/start.py >> <HOST_LOG_DIR>/boot.log 2>&1
+@reboot <install-dir>/oci/freezeman.py >> <HOST_LOG_DIR>/freezeman.log 2>&1
 ```
 
-`start.py` needs the directory `/run/user/<uid>` at boot (see [Prerequisites](#prerequisites)).
+`freezeman.py` needs the directory `/run/user/<uid>` at boot (see [Prerequisites](#prerequisites)).
 
-If the host has no cron (the host is a container), start `start.py` as `<user>` from the init of the outer container.
+If the host has no cron (the host is a container), start `freezeman.py` as `<user>` from the init of the outer container.
 
 ## Daily jobs
 
@@ -404,7 +404,7 @@ podman-compose up -d
 
 The crontab lines are in [Daily jobs](#daily-jobs). The log settings are in [Get the release and configure](#get-the-release-and-configure), step 1.
 
-Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, `jobs.py`, `start.py` and `autoupdate.py`.
+Failures: when a job fails, it writes a line that starts with `FAILED:` to its log, followed by the details. The jobs are the report, `jobs.py`, `freezeman.py` and `autoupdate.py`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
