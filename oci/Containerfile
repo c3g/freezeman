@@ -76,7 +76,7 @@ ENTRYPOINT ["fms-entrypoint"]
 # (`COPY --from=backend-deps`), so the compiler stays out of them.
 FROM python-base AS backend-deps
 
-# Set the uwsgi version. The major version matches DEPLOYMENT.md (uwsgi 2.0).
+# Set the uwsgi version. The major version is the one of the deployments before 6.0.0 (uwsgi 2.0).
 ARG UWSGI_VERSION=2.0.31
 
 # Install the compiler packages (`gcc`, `libc6-dev`, `libpq-dev`).

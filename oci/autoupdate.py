@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Update a QC/dev stack from a GitHub branch (DEPLOYMENT.md: "Automatic update (QC)").
+# Update a QC/dev stack from a GitHub branch (DEPLOYMENT.md: "Automatic update (test hosts)").
 # If origin/<branch> has a new commit: pull it, rebuild the images, delete the database, restore
 # the dump, apply the migrations and recreate the stack. Never use it on production: it deletes the database.
 #   autoupdate.py --branch qc --db-backup-filename <install-dir>/oci/backups/2026-10-21.pgsql.gz [--interval 600] [--force]

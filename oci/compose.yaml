@@ -165,7 +165,7 @@ services:
     # `create_host_path` makes podman-compose create a missing host directory (podman-compose 1.5
     # always does, and ignores the key).
     # The container paths are fixed. The variables of .env choose only the host folders, so
-    # the files stay where they are on the host (for example the folders of a classic install).
+    # the files stay where they are on the host (for example the folders of an install of a version earlier than 6.0.0).
     # Django uses only the three trigger folders, not their parent, so each one has its own mount.
     volumes:
       - type: bind

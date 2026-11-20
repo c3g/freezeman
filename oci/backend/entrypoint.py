@@ -14,7 +14,7 @@ def make_directories() -> None:
         # TEMPLATE_UPLOAD_PATH. Django does not create it, and each template submission fails
         # without it. The default media folder of the checkout has it (git tracks
         # backend/media/uploads/templates/.keep). Another HOST_MEDIA_DIR may not: a new or empty
-        # folder, or a classic media folder with no upload yet.
+        # folder, or a media folder of a version earlier than 6.0.0 with no upload yet.
         f"{root}/backend/media/uploads/templates",
         # TEMP_ROOT. The backend-prod image creates this directory. The "dev" image does not:
         # it mounts the repository at CONTAINER_FMS_ROOT, and git does not track backend/tmp.

@@ -11,7 +11,7 @@ Read [README.md](README.md) first. It describes the services and the layout.
 >   - Development: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml:<install-dir>/oci/compose.dev.yaml`.
 >     For `backend` and `web`, also add `--profile prod`. `compose.dev.yaml` puts these services in the
 >     profile `prod`.
-> - The placeholders are the same as in [DEPLOYMENT.md](DEPLOYMENT.md): `<user>`, `<install-dir>`,
+> - The placeholders are the same as in [DEPLOYMENT.md](../DEPLOYMENT.md): `<user>`, `<install-dir>`,
 >   `<HOST_LOG_DIR>`, `<HOST_HTTP_PORT>`, `<domain>`.
 
 The guide has three layers. Each layer has two parts:
@@ -27,7 +27,7 @@ Start at layer 1. Go to a lower layer only when its condition in the table is tr
 | 2 | podman | The podman commands from `podman-compose --dry-run` fail when you run them manually |
 | 3 | The host system | A layer 2 check points to the host: a package, the subuid or subgid range, the runtime directory, disk, memory, network or cron |
 
-This guide assumes the host setup of [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user):
+This guide assumes the host setup of [Set up the account of the user](../DEPLOYMENT.md#set-up-the-account-of-the-user):
 
 - Rocky Linux 9.6 with podman 5.4 and podman-compose 1.5.
 - No user systemd: `systemctl --user` and `journalctl --user` do not work.
@@ -113,7 +113,7 @@ Use it to check:
 
 - The values that `.env` gives to each service. An error such as `set FMS_ENV in .env` comes from a `${VAR:?...}` check: set the variable in `.env`.
 - The host paths of the bind mounts (`HOST_*`) and the log paths. They must be absolute.
-- The proxy variables. See [Proxy](DEPLOYMENT.md#proxy).
+- The proxy variables. See [Proxy internals](../DEPLOYMENT.md#proxy-internals).
 
 Checks for each service:
 
@@ -143,18 +143,18 @@ Restart or recreate:
 - `podman-compose restart <service>` keeps the container. A change of `.env` or of an image does not apply.
 - `podman-compose up -d` recreates a container only if the resolved configuration changed.
 - After a build or a change of `.env`, use `podman-compose up -d --force-recreate`.
-  See [Start, stop and restart](DEPLOYMENT.md#start-stop-and-restart).
+  See [Start, stop and restart](../DEPLOYMENT.md#start-stop-and-restart).
 
 | Symptom | Command |
 |---|---|
 | A service is not `Up` | `podman-compose logs --tail 100 <service>`, then `run --rm --no-deps <service> sh` |
 | A change of `.env` has no effect | `podman-compose config`, then `up -d --force-recreate` |
 | 502 on `/api/` | `podman-compose logs backend` |
-| Error about missing tables or columns | `showmigrations`, then the migration step of `update-production-deployment.sh` (see [Update to a new release](DEPLOYMENT.md#update-to-a-new-release)) |
+| Error about missing tables or columns | `showmigrations`, then the migration step of `update-production-deployment.sh` (see [Update to a new release](../DEPLOYMENT.md#update-to-a-new-release)) |
 | The report did not run | `tail <HOST_LOG_DIR>/jobs.log`, then run the job in the foreground (above) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` is relative or missing. Check the log paths with `podman-compose config`, fix `.env`, then `up -d --force-recreate` |
 
-More symptoms are in [Troubleshooting](DEPLOYMENT.md#troubleshooting) of DEPLOYMENT.md.
+More symptoms are in [Troubleshooting](../DEPLOYMENT.md#troubleshooting) of the deployment guide.
 
 ### Debug podman-compose itself
 
@@ -207,7 +207,7 @@ Known behaviour of podman-compose 1.5:
 
 - It reads `.env` from the directory of the compose file, not from the current directory. Give the compose file with `-f` or `COMPOSE_FILE` and run it from any directory.
 - It stops at the first `}` of a nested default such as `${A:-${B}}`. Do not use nested defaults.
-- It interpolates the `environment` of a service two times. See the `NO_PROXY` quirk in [Proxy](DEPLOYMENT.md#proxy).
+- It interpolates the `environment` of a service two times. See the `NO_PROXY` quirk in [Proxy internals](../DEPLOYMENT.md#proxy-internals).
 - It ignores `create_host_path` and always creates a missing bind-mount folder. A wrong `HOST_*` path gives an empty folder, not an error.
 - It puts two project labels on each container: `io.podman.compose.project=freezeman` and `com.docker.compose.project=freezeman`. Use them to filter `podman ps`.
 
@@ -306,18 +306,18 @@ Common errors:
 
 | Error or symptom | Cause | Fix |
 |---|---|---|
-| `podman ps` shows no containers, but the site works | This shell uses another runtime directory than cron. `RunRoot` is `/tmp/storage-run-<uid>`, not `/run/user/<uid>/containers` | Use a login shell (`bash -l`), so `~/.bash_profile` sets `XDG_RUNTIME_DIR`. Cron needs the same value as a line at the top of the crontab. See [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user) |
-| `current system boot ID differs from cached boot ID` | The runtime directory survived a reboot | See [Known issues](README.md#known-issues) |
+| `podman ps` shows no containers, but the site works | This shell uses another runtime directory than cron. `RunRoot` is `/tmp/storage-run-<uid>`, not `/run/user/<uid>/containers` | Use a login shell (`bash -l`), so `~/.bash_profile` sets `XDG_RUNTIME_DIR`. Cron needs the same value as a line at the top of the crontab. See [Set up the account of the user](../DEPLOYMENT.md#set-up-the-account-of-the-user) |
+| `current system boot ID differs from cached boot ID` | The runtime directory survived a reboot | See [Known issues](DEVELOPMENT.md#known-issues) |
 | `cannot find newuidmap` | The `shadow-utils` package is missing | Install it with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT |
 | `there might not be enough IDs available in the namespace` | `<user>` has no subuid or subgid range, or it is too small | Check `grep "^$USER:" /etc/subuid /etc/subgid`. Add a range of 65536 IDs with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT. Then run `podman system migrate` |
 | Errors after a podman upgrade or a subuid change | Old state of podman | `podman system migrate` |
 | `short-name resolution enforced` | An image name without a registry | Use the full name (`docker.io/library/...`) |
-| An image pull fails or stops | No access to the registry, or no proxy in the shell | See [Network access](DEPLOYMENT.md#network-access) and [Proxy](DEPLOYMENT.md#proxy) |
+| An image pull fails or stops | No access to the registry, or no proxy in the shell | See [Network access](../DEPLOYMENT.md#network-access) and [Proxy](../DEPLOYMENT.md#proxy-optional) |
 | An error of `crun` or `conmon` | The OCI runtime or the container monitor | Run the command again with `--log-level=debug`. Read the kernel log with sudo ([Debug with sudo](#debug-with-sudo)), or send the output to IT with `rpm -q crun conmon` |
 | `podman stats` fails or shows no data | Rootless podman with `cgroupfs` and no systemd has no cgroup controllers | Normal on this host. Use `podman top` and `ps` |
 
 Last step, only if all else fails: `podman system reset` deletes all images, containers and volumes of `<user>`,
-also the database volume `freezeman_pgdata`. Make a backup first ([Database backups](DEPLOYMENT.md#database-backups)).
+also the database volume `freezeman_pgdata`. Make a backup first ([Database backups](../DEPLOYMENT.md#database-backups)).
 Do not use it to repair one container.
 
 ## Layer 3: system
@@ -444,7 +444,7 @@ Logs to read with sudo:
 | Did the kernel refuse a user namespace or a mount? | `sudo journalctl -k --since <time>` or `sudo tail /var/log/messages` |
 | Why does the host reverse proxy give 502, 504 or 413? | The error log of the reverse proxy, and its configuration (for nginx: `sudo nginx -T`) |
 | Did SELinux block a container? (only if SELinux is on) | `sudo ausearch -m avc -ts <time>` or `sudo tail /var/log/audit/audit.log` |
-| Did the firewall or the proxy block a domain? | The firewall and proxy logs, for the domains of [Network access](DEPLOYMENT.md#network-access) |
+| Did the firewall or the proxy block a domain? | The firewall and proxy logs, for the domains of [Network access](../DEPLOYMENT.md#network-access) |
 
 Fixes with sudo:
 
@@ -453,8 +453,8 @@ Fixes with sudo:
 | `podman` or `podman-compose` is missing or too old | `rpm -q podman podman-compose` | `sudo dnf install` or `sudo dnf upgrade` |
 | `not enough IDs available in the namespace` | `grep '^<user>:' /etc/subuid /etc/subgid` | `sudo usermod --add-subuids <START>-<END> --add-subgids <START>-<END> <user>`, then `podman system migrate` as `<user>` |
 | The stack does not start after a reboot, and `freezeman.log` has no new run | `loginctl show-user <user> -p Linger`, `systemctl is-active crond` | `sudo loginctl enable-linger <user>`, `sudo systemctl enable --now crond` |
-| 502 or 413 at `https://<domain>/`, but `web` answers on `127.0.0.1` | The error log of the host reverse proxy | Change its configuration. See [Reverse proxy](DEPLOYMENT.md#reverse-proxy) |
-| A pull or a build cannot reach a domain | The firewall and proxy logs | Add the domains of [Network access](DEPLOYMENT.md#network-access) to the allow list |
+| 502 or 413 at `https://<domain>/`, but `web` answers on `127.0.0.1` | The error log of the host reverse proxy | Change its configuration. See [Reverse proxy](../DEPLOYMENT.md#reverse-proxy) |
+| A pull or a build cannot reach a domain | The firewall and proxy logs | Add the domains of [Network access](../DEPLOYMENT.md#network-access) to the allow list |
 | The disk is full, or `quota` shows the limit | `df -h`, `sudo quota -s -u <user>` | Free disk space, or increase the quota |
 | A container has `oom=true` | `sudo journalctl -k \| grep -i oom`, `free -h` | Add memory or swap to the host |
 
