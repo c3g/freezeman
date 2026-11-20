@@ -26,7 +26,11 @@ def main() -> int:
     # `choices` makes it one of the JOBS keys.
     job = str(parser.parse_args().job)
 
-    hostenv.setup()
+    try:
+        hostenv.setup()
+    except RuntimeError as error:
+        print(f"FAILED: {job}: {error}", file=sys.stderr, flush=True)
+        return 1
     # `run` refuses a service of a profile that is not active.
     command = ["podman-compose", "--profile", "jobs", "run", "--rm", "jobs", JOBS[job]]
     log(f"{job}: start")

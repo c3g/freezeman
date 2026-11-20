@@ -8,10 +8,6 @@ set -euo pipefail
 
 # Same environment as hostenv.py. Rootless podman keeps its state in XDG_RUNTIME_DIR, and
 # podman-compose can be in ~/.local/bin.
-uid=$(id -u)
-if [ -z "${XDG_RUNTIME_DIR:-}" ] && [ -d "/run/user/$uid" ]; then
-    export XDG_RUNTIME_DIR="/run/user/$uid"
-fi
 export PATH="$HOME/.local/bin:$PATH"
 # podman-compose reads .env and the relative paths of compose.yaml from the current directory.
 cd "$(dirname "$(readlink -f "$0")")"
@@ -20,6 +16,9 @@ fail() {
     echo "update-production-deployment.sh: $*" >&2
     exit 1
 }
+
+[ -n "${XDG_RUNTIME_DIR:-}" ] || fail "XDG_RUNTIME_DIR is not set. See DEPLOYMENT.md."
+[ -d "$XDG_RUNTIME_DIR" ] || fail "XDG_RUNTIME_DIR is $XDG_RUNTIME_DIR, but this directory does not exist."
 
 set -x
 

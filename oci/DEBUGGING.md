@@ -306,7 +306,7 @@ Common errors:
 
 | Error or symptom | Cause | Fix |
 |---|---|---|
-| `podman ps` shows no containers, but the site works | This shell uses another runtime directory than cron. `RunRoot` is `/tmp/storage-run-<uid>`, not `/run/user/<uid>/containers` | Use a login shell (`bash -l`), so `~/.bash_profile` sets `XDG_RUNTIME_DIR`. See [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user) |
+| `podman ps` shows no containers, but the site works | This shell uses another runtime directory than cron. `RunRoot` is `/tmp/storage-run-<uid>`, not `/run/user/<uid>/containers` | Use a login shell (`bash -l`), so `~/.bash_profile` sets `XDG_RUNTIME_DIR`. Cron needs the same value as a line at the top of the crontab. See [Set up the account of the user](DEPLOYMENT.md#set-up-the-account-of-the-user) |
 | `current system boot ID differs from cached boot ID` | The runtime directory survived a reboot | See [Known issues](README.md#known-issues) |
 | `cannot find newuidmap` | The `shadow-utils` package is missing | Install it with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT |
 | `there might not be enough IDs available in the namespace` | `<user>` has no subuid or subgid range, or it is too small | Check `grep "^$USER:" /etc/subuid /etc/subgid`. Add a range of 65536 IDs with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT. Then run `podman system migrate` |
@@ -393,7 +393,7 @@ systemctl is-active crond                  # active
 tail -n 50 <HOST_LOG_DIR>/boot.log         # the last start at boot
 ```
 
-Cron starts the scripts with a short `PATH` and no `XDG_RUNTIME_DIR`. `hostenv.py` sets both. To run a crontab
+Cron starts the scripts with a short `PATH` and no `XDG_RUNTIME_DIR`. `hostenv.py` sets `PATH`. It stops with an error if `XDG_RUNTIME_DIR` is not set or is not a directory, so set it at the top of the crontab. To run a crontab
 line by hand in an environment like the one of cron:
 
 ```bash

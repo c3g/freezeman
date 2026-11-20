@@ -1,24 +1,22 @@
 # Environment of the host scripts (start.py, autoupdate.py, jobs.py) that run podman-compose from cron.
 # Python 3.9 compatible: the Rocky 9 system python3 runs it.
-import getpass
 import os
 import time
 
 
 def setup() -> None:
-    if not os.environ.get("XDG_RUNTIME_DIR"):
-        # Rootless podman keeps its state in XDG_RUNTIME_DIR. Cron does not set it, so use the same rule
-        # as ~/.bash_profile: all shells of the user then see the same containers.
-        runtime_dir = f"/run/user/{os.getuid()}"
-        # At boot, cron can start before logind creates the directory. Wait only if the user has linger:
-        # logind then creates the directory without a login.
-        if os.path.exists(f"/var/lib/systemd/linger/{getpass.getuser()}"):
-            for _ in range(60):
-                if os.path.isdir(runtime_dir):
-                    break
-                time.sleep(1)
+    # Rootless podman keeps its state in XDG_RUNTIME_DIR. Cron does not set it, and a guess can point to
+    # another directory than the one of the login shells, so the caller must set it.
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if not runtime_dir:
+        raise RuntimeError("XDG_RUNTIME_DIR is not set. Set it in the environment of the script, as in ~/.bash_profile.")
+    # At boot, cron can start before logind creates the directory.
+    for _ in range(60):
         if os.path.isdir(runtime_dir):
-            os.environ["XDG_RUNTIME_DIR"] = runtime_dir
+            break
+        time.sleep(1)
+    else:
+        raise RuntimeError(f"XDG_RUNTIME_DIR is {runtime_dir}, but this directory does not exist.")
 
     # Cron has a short PATH. podman-compose can be in ~/.local/bin.
     os.environ["PATH"] = os.path.expanduser("~/.local/bin") + os.pathsep + os.environ.get("PATH", "")
