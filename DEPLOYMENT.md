@@ -77,7 +77,7 @@ Summary:
 
 - Install and update: outbound ports 80 and 443 to the domains below.
 - Running stack: outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST` only. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
-- No route to the SMTP server: Django cannot send emails, so users get no password reset emails. A proxy does not carry SMTP. To log the emails to the console, comment out all `FMS_EMAIL_*` variables in `.env`.
+- Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails. To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
 
 If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic. If the host has open outbound access, no change is necessary.
 
