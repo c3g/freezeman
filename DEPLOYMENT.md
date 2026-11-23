@@ -13,7 +13,6 @@ Placeholders used in this guide:
 - `<HOST_HTTP_PORT>`: the value of `HOST_HTTP_PORT` in `.env`. It is the host port where the `web` container listens, and where the reverse proxy sends the requests.
 - `<POSTGRES_USER>`, `<POSTGRES_DB>`: the values of `POSTGRES_USER` and `POSTGRES_DB` in `.env`.
 - `<YYYY-MM-DD>`: the date in the name of a database backup file.
-- `<branch>`: the branch that you give to `autoupdate.py --branch`.
 
 Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`. podman-compose then works in any directory. It reads `.env` from the directory of the compose file.
 
@@ -37,7 +36,6 @@ Contents:
   - [Database backups](#database-backups)
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
   - [Report and logs](#report-and-logs)
-  - [Automatic update (test hosts)](#automatic-update-test-hosts)
 - [Specific deployments](#specific-deployments)
   - [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600)
 - [Additional information](#additional-information)
@@ -112,7 +110,7 @@ Only podman image pulls and builds use the proxy. The running services do not.
 |---|---|---|
 | The package repositories of the host OS | 443 or 80 | Installation of `podman`, `podman-compose` and a cron daemon |
 | `pypi.org`, `files.pythonhosted.org` | 443 | `pip install podman-compose`, only if the OS gives no `podman-compose` |
-| `github.com` | 443 | `git clone --recurse-submodules` of the source and its submodules. `autoupdate.py` (test hosts only) also uses it |
+| `github.com` | 443 | `git clone --recurse-submodules` of the source and its submodules. |
 | `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
 | `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com` |
 | `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
@@ -283,17 +281,33 @@ Use `--force-recreate` after a build or an `.env` change.
 
 ## Update to a new release
 
-**Proxy host:** `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy).
+Run these steps as `<user>`. Test the release on a test host first.
 
-```bash
-cd <install-dir>
-git fetch && git checkout vX.Y.Z
-oci/update-production-deployment.sh
-```
+1. Back up the database, as in [Database backups](#database-backups).
+2. Check out the release, and set its version in `.env`. `FMS_IMAGE_TAG` is the value in the `VERSION` file.
 
-`update-production-deployment.sh` checks that the tag of the commit is `v` + the value in `VERSION`. Then it backs up the database to `oci/backups/`, builds the images with the new tag, sets `FMS_IMAGE_TAG` in `.env`, stops `web` and `backend`, applies the migrations and recreates the containers. It prints each command before it runs. It stops with an error if `XDG_RUNTIME_DIR` is not set.
+   ```bash
+   cd <install-dir>
+   git fetch && git checkout vX.Y.Z
+   git submodule update --init --recursive
+   sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat VERSION)/" oci/.env
+   ```
 
-If the script fails, read `update-production-deployment.sh`, fix the error, then run the remaining steps of the script manually. The last command in the output is the one that failed. If the build fails, the old containers keep running and `.env` keeps the old tag. If the migration fails, the stack stays down.
+3. Build the images. **Proxy host:** this command needs the proxy. See [Proxy](#proxy).
+
+   ```bash
+   podman-compose build
+   ```
+
+4. Stop `web` and `backend`, apply the migrations, then start the stack with the new images:
+
+   ```bash
+   podman-compose stop web backend
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+   podman-compose up -d --force-recreate
+   ```
+
+If the build fails, the old containers keep running. Set `FMS_IMAGE_TAG` back to the old version. If the migration fails, the stack stays down.
 
 ## Database backups
 
@@ -361,16 +375,11 @@ A new patch release can break the stack. Test on QC before prod.
 Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15). A major change is a [specific deployment](#specific-deployments).
 For PostgreSQL it also needs a dump and restore of the data.
 
-Ideas for later (not done):
-
-- A scheduled GitHub workflow or Renovate that opens a PR when a base image changes.
-- Pinning to patch tags or digests (`tag@sha256:...`) if all hosts must run the same bytes.
-
 ## Report and logs
 
 The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
 
-Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
+Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
@@ -380,39 +389,6 @@ tail -f <HOST_LOG_DIR>/report_preparation.log                        # the repor
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the failures
 ```
-
-## Automatic update (test hosts)
-
-Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env` must be set and must not be `PROD` (see [FMS_ENV values](oci/README.md#fms_env-values)). Otherwise `autoupdate.py` stops.
-
-1. Put the checkout on the followed branch, with no local changes:
-
-   ```bash
-   cd <install-dir>
-   git status --short          # no output for tracked files: no local changes
-   git switch <branch>         # the branch that --branch names
-   git pull --ff-only
-   ```
-
-2. Add a line to the crontab of `<user>` (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot). Give the absolute path of a dump (`.pgsql.gz`, `.pgsql` or `.dump`) to `--db-backup-filename`:
-
-   ```cron
-   # */10 * * * *: check every 10 minutes.
-   # --branch: branch of origin to follow.
-   # --db-backup-filename: absolute path of the dump to restore (.pgsql.gz, .pgsql or .dump).
-   # >> <HOST_LOG_DIR>/autoupdate.log 2>&1: append the output and the errors to the log.
-   # Optional --interval N: check every N seconds and never exit (default: check once).
-   # Optional --force: deploy even if the commit is the last deployed one.
-   # Proxy host: autoupdate.py needs the proxy (git, image pulls, builds). See Proxy.
-   */10 * * * * <install-dir>/oci/autoupdate.py --branch <branch> --db-backup-filename <install-dir>/oci/backups/<YYYY-MM-DD>.pgsql.gz >> <HOST_LOG_DIR>/autoupdate.log 2>&1
-   ```
-
-- `autoupdate.py` selects the restore command from the extension: `psql` for `.pgsql.gz` and `.pgsql` (`pg_dumpall`),
-  `pg_restore` for `.dump` (`pg_dump -Fc`). The extension must match the format of the file. To find the format, see
-  [Identify the format of a database backup](oci/README.md#identify-the-format-of-a-database-backup).
-- `autoupdate.py` applies the migrations after the restore, while only `db` runs, and before it starts the stack. If a migration fails, the stack stays down (only `db` runs) and the script logs the failure.
-- No cron (the host is a container): add `--interval 600` and start the command as `<user>` from the init of the outer container. Redirect its output to `<HOST_LOG_DIR>/autoupdate.log`.
-- To deploy the same commit again: add `--force`.
 
 # Specific deployments
 
@@ -530,7 +506,7 @@ NO_PROXY=localhost,127.0.0.1 \
 podman-compose build
 ```
 
-Do the same for `podman pull`, `podman-compose up`, `update-production-deployment.sh` and `autoupdate.py`.
+Do the same for `podman pull` and `podman-compose up`.
 
 ### Internals
 
@@ -559,7 +535,7 @@ Do the same for `podman pull`, `podman-compose up`, `update-production-deploymen
 | 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
 | 400 Bad Request | `FMS_HOST` is not the host name of the request |
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
-| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of `update-production-deployment.sh` (see [Update to a new release](#update-to-a-new-release)) |
+| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of [Update to a new release](#update-to-a-new-release) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` in `.env` is a relative path or the directory does not exist. Set it to an existing absolute path, then run `podman-compose up -d --force-recreate` |
 | `XDG_RUNTIME_DIR is not set` from a script | The environment has no `XDG_RUNTIME_DIR`. Set it in `~/.bash_profile` and at the top of the crontab (see [Set up the account of the user](#set-up-the-account-of-the-user) and [Start at boot](#start-at-boot)) |
 

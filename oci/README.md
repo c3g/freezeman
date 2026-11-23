@@ -48,9 +48,7 @@ Contents:
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
 | `freezeman.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
-| `update-production-deployment.sh` | Updates a production stack to the checked-out release. Run it manually |
-| `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
-| `hostenv.py` | Environment of the host scripts (`freezeman.py`, `autoupdate.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
+| `hostenv.py` | Environment of the host scripts (`freezeman.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
@@ -79,7 +77,6 @@ A reverse proxy on the host terminates TLS and passes the requests to `web` (see
 | Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
 | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
 | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
-| `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
 
 The `web` image gets `FMS_ENV` when it is built. `backend` reads it when it starts. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
 

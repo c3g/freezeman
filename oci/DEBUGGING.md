@@ -69,7 +69,6 @@ The logs:
 | `<HOST_LOG_DIR>/freezeman.log` | `freezeman.py` (cron `@reboot`) | The start at boot |
 | `<HOST_LOG_DIR>/report_preparation.log` | `prepare_report_data` (cron) | The daily report |
 | `<HOST_LOG_DIR>/report_preparation.log` | The `report` job | The details of the report |
-| `<HOST_LOG_DIR>/autoupdate.log` | `autoupdate.py` (cron, test hosts) | The automatic updates |
 
 ## Layer 1: podman-compose
 
@@ -150,7 +149,7 @@ Restart or recreate:
 | A service is not `Up` | `podman-compose logs --tail 100 <service>`, then `run --rm --no-deps <service> sh` |
 | A change of `.env` has no effect | `podman-compose config`, then `up -d --force-recreate` |
 | 502 on `/api/` | `podman-compose logs backend` |
-| Error about missing tables or columns | `showmigrations`, then the migration step of `update-production-deployment.sh` (see [Update to a new release](../DEPLOYMENT.md#update-to-a-new-release)) |
+| Error about missing tables or columns | `showmigrations`, then the migration step of [Update to a new release](../DEPLOYMENT.md#update-to-a-new-release) |
 | The report did not run | `tail <HOST_LOG_DIR>/report.log <HOST_LOG_DIR>/report_preparation.log`, then run the report in the foreground (above) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` is relative or missing. Check the log paths with `podman-compose config`, fix `.env`, then `up -d --force-recreate` |
 
