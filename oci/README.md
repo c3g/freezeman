@@ -41,17 +41,16 @@ Contents:
 
 | Item | What it is |
 |---|---|
-| `Containerfile` | Images of the backend (`dev`, `backend-prod`), `jobs` and `web`. The build context is the repository root |
+| `Containerfile` | Images of the backend (`dev`, `backend-prod`) and `web`. The build context is the repository root |
 | `compose.yaml` | The production-like stack (all services) |
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
 | `db/` | `Containerfile` of the `db` image, `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
-| `jobs.py` | Runs one daily job (`report`) in a `jobs` container. Host cron calls it |
-| `backend/` | `entrypoint.py` (container entrypoint), `report.py` (the `fms-report` job) and `uwsgi.ini` |
+| `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
 | `freezeman.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
 | `update-production-deployment.sh` | Updates a production stack to the checked-out release. Run it manually |
 | `autoupdate.py` | Updates a test stack (QC, dev) from a GitHub branch |
-| `hostenv.py` | Environment of the host scripts (`freezeman.py`, `jobs.py`, `autoupdate.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
+| `hostenv.py` | Environment of the host scripts (`freezeman.py`, `autoupdate.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
@@ -63,7 +62,6 @@ Contents:
 |------------|-------------------------------|-----------------------------------------------------------------|
 | `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port             |
-| `jobs`     | `localhost/freezeman-jobs`    | One daily job per run: the report (`prepare_report_data`). Host cron starts it with `jobs.py`. `up -d` does not start it. See [Daily jobs](../DEPLOYMENT.md#daily-jobs) |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
 A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](../DEPLOYMENT.md#reverse-proxy)).
@@ -82,9 +80,8 @@ A reverse proxy on the host terminates TLS and passes the requests to `web` (see
 | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
 | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
 | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-| Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
 
-The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
+The `web` image gets `FMS_ENV` when it is built. `backend` reads it when it starts. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
 
 ## Design choices
 
@@ -143,7 +140,7 @@ The Docker daemon rejects these podman-only settings:
 
 | Setting | Where | Why podman needs it |
 |---|---|---|
-| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`), `backend` and `jobs` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
+| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`) and `backend` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
 | `logging.driver: k8s-file` | All services | Writes each container log to `HOST_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
 
 `x-podman` is ignored by other tools. `bind.selinux: z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.

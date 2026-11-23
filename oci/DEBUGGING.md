@@ -57,7 +57,7 @@ Do these three checks first. They often show the layer of the fault.
 ```bash
 podman-compose ps                                                         # each service must be "Up"
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200: web and backend answer
-grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                                # failures of the host scripts and jobs
+grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                                # failures of the host scripts
 ```
 
 The logs:
@@ -65,9 +65,9 @@ The logs:
 | File | Written by | Contents |
 |---|---|---|
 | `<HOST_LOG_DIR>/db.log`, `backend.log`, `web.log` | podman (`k8s-file` driver) | The output of each service. The files stay after `down` |
-| `<HOST_LOG_DIR>/fms.log` | Django (`FMS_LOG_DIR`), in `backend`, `jobs` and `dev` | The Django log: `WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere |
+| `<HOST_LOG_DIR>/fms.log` | Django (`FMS_LOG_DIR`), in `backend` and `dev` | The Django log: `WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere |
 | `<HOST_LOG_DIR>/freezeman.log` | `freezeman.py` (cron `@reboot`) | The start at boot |
-| `<HOST_LOG_DIR>/jobs.log` | `jobs.py` (cron) | The daily jobs |
+| `<HOST_LOG_DIR>/report_preparation.log` | `prepare_report_data` (cron) | The daily report |
 | `<HOST_LOG_DIR>/report_preparation.log` | The `report` job | The details of the report |
 | `<HOST_LOG_DIR>/autoupdate.log` | `autoupdate.py` (cron, test hosts) | The automatic updates |
 
@@ -131,8 +131,8 @@ podman-compose exec web nginx -t                                   # the nginx c
 podman-compose exec web nginx -T                                   # the full nginx configuration
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/api/   # not 502 or 504: uwsgi answers
 
-# jobs
-podman-compose --profile jobs run --rm jobs fms-report             # run the report job now, in the foreground
+# report
+podman-compose exec -T backend python manage.py prepare_report_data  # run the report now, in the foreground
 ```
 
 - `backend` listens on port 8000 with the uwsgi protocol, not HTTP. `curl` to `backend:8000` does not work. Test `/api/` through `web`.
@@ -151,7 +151,7 @@ Restart or recreate:
 | A change of `.env` has no effect | `podman-compose config`, then `up -d --force-recreate` |
 | 502 on `/api/` | `podman-compose logs backend` |
 | Error about missing tables or columns | `showmigrations`, then the migration step of `update-production-deployment.sh` (see [Update to a new release](../DEPLOYMENT.md#update-to-a-new-release)) |
-| The report did not run | `tail <HOST_LOG_DIR>/jobs.log`, then run the job in the foreground (above) |
+| The report did not run | `tail <HOST_LOG_DIR>/report.log <HOST_LOG_DIR>/report_preparation.log`, then run the report in the foreground (above) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` is relative or missing. Check the log paths with `podman-compose config`, fix `.env`, then `up -d --force-recreate` |
 
 More symptoms are in [Troubleshooting](../DEPLOYMENT.md#troubleshooting) of the deployment guide.
@@ -265,7 +265,7 @@ podman images                                                      # the images 
 
 File owners:
 
-`backend` and `jobs` use `userns_mode: keep-id:uid=1000,gid=1000`. The image user `fms` (uid 1000) is `<user>` on the host.
+`backend` uses `userns_mode: keep-id:uid=1000,gid=1000`. The image user `fms` (uid 1000) is `<user>` on the host.
 If a container cannot write into a bind mount, compare the owners as the container sees them:
 
 ```bash
@@ -388,7 +388,7 @@ See [Debug with sudo](#debug-with-sudo).
 Cron:
 
 ```bash
-crontab -l                                 # the @reboot line of freezeman.py and the lines of the jobs
+crontab -l                                 # the @reboot line of freezeman.py and the report line
 systemctl is-active crond                  # active
 tail -n 50 <HOST_LOG_DIR>/freezeman.log         # the last start at boot
 ```

@@ -158,10 +158,6 @@ services:
     # The production nginx image is not used in development.
     profiles: ["prod"]
 
-  jobs:
-    # The daily report job does not run in development.
-    profiles: ["jobs"]
-
 # Declare the volume for the Linux `node_modules` of `dev`.
 volumes:
   frontend_node_modules:

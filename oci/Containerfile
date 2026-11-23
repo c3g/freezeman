@@ -9,7 +9,6 @@
 #                  the repository bind-mounted at $CONTAINER_FMS_ROOT. The developer starts
 #                  runserver and npm by hand
 #   backend-prod   Django served by uwsgi, source baked in
-#   jobs           backend-prod for the report job (host cron runs it)
 #   web            nginx serving the built frontend + Django static files, passing /api to uwsgi
 
 # Name the three base images: Python 3.14, Node 24 and nginx.
@@ -31,8 +30,8 @@ ARG CONTAINER_FMS_ROOT
 # get these files.
 FROM ${PYTHON_IMAGE} AS python-base
 
-# Export the project path to the stages built on this one and to the containers. uwsgi.ini,
-# entrypoint.py and report.py read it. Stop the build if it is not set.
+# Export the project path to the stages built on this one and to the containers.
+# uwsgi.ini and entrypoint.py read it. Stop the build if it is not set.
 ARG CONTAINER_FMS_ROOT
 ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
 RUN test -n "$CONTAINER_FMS_ROOT" \
@@ -46,9 +45,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/venv/bin:$PATH
 
 # Install `libpq5` (the PostgreSQL client library).
-# Create the (non-root) user `fms` with uid 1000 and the directory for the report log.
+# Create the (non-root) user `fms` with uid 1000 and the directory for the report log (~/reports/log).
 #
-# Uid 1000 is the user that `userns_mode: keep-id` gives to `backend` and `report` in compose.yaml,
+# Uid 1000 is the user that `userns_mode: keep-id` gives to `backend` in compose.yaml,
 # so the files of the bind mounts belong to the host user.
 # `rm -rf /var/lib/apt/lists/*` keeps the package lists out of the layer, so the image is smaller.
 RUN apt-get update \
@@ -57,10 +56,9 @@ RUN apt-get update \
  && useradd --uid 1000 --create-home --shell /bin/sh fms \
  && install -d -o fms -g fms /home/fms/reports
 
-# Copy the helper scripts: the entrypoint (`fms-entrypoint`) and the report job (`fms-report`).
+# Copy the entrypoint (`fms-entrypoint`).
 # `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.
 COPY --chmod=755 oci/backend/entrypoint.py /usr/local/bin/fms-entrypoint
-COPY --chmod=755 oci/backend/report.py /usr/local/bin/fms-report
 
 # Copy the uwsgi configuration.
 COPY oci/backend/uwsgi.ini /etc/uwsgi/fms.ini
@@ -253,7 +251,7 @@ CMD ["sleep", "infinity"]
 #####################
 
 # This stage is the production backend: Django on uwsgi, with the source baked in. The
-# `backend` service of compose.yaml runs it. The `jobs` stage builds on it.
+# `backend` service of compose.yaml runs it.
 FROM python-base AS backend-prod
 
 # Copy the venv, the source and the commit information.
@@ -308,13 +306,6 @@ EXPOSE 8000
 
 # Start uwsgi. The entrypoint of `python-base` runs this command.
 CMD ["uwsgi", "--ini", "/etc/uwsgi/fms.ini"]
-
-# This stage holds the daily jobs. Host cron runs one of them per call through oci/jobs.py
-# (`podman-compose --profile jobs run --rm jobs <command>`).
-#   fms-report      prepare_report_data (Django; the script comes from `python-base`)
-FROM backend-prod AS jobs
-
-# No CMD of its own: jobs.py always gives the job command.
 
 # This stage is last because it copies from the stages above it.
 FROM ${NGINX_IMAGE} AS web

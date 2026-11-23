@@ -30,7 +30,7 @@ Contents:
   - [Start a new database](#start-a-new-database)
   - [Reverse proxy](#reverse-proxy)
   - [Start at boot](#start-at-boot)
-  - [Daily jobs](#daily-jobs)
+  - [Daily report](#daily-report)
 - [Routine deployments](#routine-deployments)
   - [Start, stop and restart](#start-stop-and-restart)
   - [Update to a new release](#update-to-a-new-release)
@@ -77,7 +77,7 @@ podman-compose up -d
 Then:
 
 1. Set up the [Reverse proxy](#reverse-proxy).
-2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs).
+2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
 To keep the data of a version earlier than 6.0.0, do [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600) instead of "Start a new database".
 
@@ -256,18 +256,17 @@ XDG_RUNTIME_DIR=<runtime-dir>
 
 If the host has no cron (the host is a container), start `freezeman.py` as `<user>` from the init of the outer container.
 
-## Daily jobs
+## Daily report
 
-Run this step as `<user>`, after the first start works. Host cron runs each daily job with `jobs.py`. Each call starts a new `jobs` container (`podman-compose --profile jobs run --rm jobs <command>`) and removes it after the job. Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot):
+Run this step as `<user>`, after the first start works. FreezeMan needs a daily run of `prepare_report_data`, the command that prepares the data of the reports. Host cron must call it in the running `backend` container. Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot):
 
 ```cron
-0 1 * * *  <install-dir>/oci/jobs.py report >> <HOST_LOG_DIR>/jobs.log 2>&1
+0 1 * * * cd <install-dir>/oci && podman-compose exec -T backend python manage.py prepare_report_data >> <HOST_LOG_DIR>/report.log 2>&1
 ```
 
 - Cron uses the time zone of the host.
-- To turn a job off, remove its line.
-- Each job reads `.env` when it starts, so a change of `.env` needs no restart. A change of the job scripts needs `podman-compose build jobs`.
-- A host without cron (the host is a container) is not supported yet.
+- `-T`: cron has no terminal.
+- `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
 
 # Routine deployments
 
@@ -369,15 +368,15 @@ Ideas for later (not done):
 
 ## Report and logs
 
-The crontab lines are in [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
+The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
 
-Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `jobs.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
+Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <HOST_LOG_DIR>/backend.log                                   # the same log, read from the host file (works after `down`)
 tail -f <HOST_LOG_DIR>/fms.log                                       # the Django log (WARNING+ on PROD, DEBUG+ elsewhere)
-tail -f <HOST_LOG_DIR>/jobs.log                                      # the report job
+tail -f <HOST_LOG_DIR>/report_preparation.log                        # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the failures
 ```
@@ -466,7 +465,7 @@ Before you start, do the sections of [Initial deployment](#initial-deployment) u
    psql -U postgres -d fms -c 'SHOW timezone'
    ```
 
-   Cron runs the daily jobs in the time zone of the host, not `TZ`.
+   Cron runs the daily report in the time zone of the host, not `TZ`.
 
 3. Dump the old database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the old host.
 
@@ -512,7 +511,7 @@ Before you start, do the sections of [Initial deployment](#initial-deployment) u
    ```
 
 8. Disable the `@reboot` and cron entries of the old setup (report, backup) in the crontab of its user, so they do not run against the old database.
-9. Continue with [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs).
+9. Continue with [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
 # Additional information
 
@@ -544,7 +543,7 @@ Do the same for `podman pull`, `podman-compose up`, `update-production-deploymen
 - Runtime proxy:
   - The proxy values are build arguments of podman and stay out of the images.
   - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `backend`, `jobs`, `web`) get empty proxy variables from `compose.yaml`.
+  - The other services (`db`, `backend`, `web`) get empty proxy variables from `compose.yaml`.
   - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
     `containers.conf`).
   - These services make no outbound HTTP calls, so they do not need a proxy.
