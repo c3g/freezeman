@@ -155,19 +155,12 @@ Run these steps as `<user>`.
 cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 ```
 
-| Variable | Value |
-|---|---|
-| `POSTGRES_PASSWORD` | A new password |
-| `FMS_SECRET_KEY` | A new secret key (`python3 -c "import secrets; print(secrets.token_urlsafe(50))"`) |
-| `FMS_HOST` | `<domain>` |
-| `FMS_ENV` | Required. `PROD` on the production host. `QC` or `DEV` on a test host. See [FMS_ENV values](#fms_env-values) |
-| `FMS_IMAGE_TAG` | The value in `<install-dir>/VERSION`. Required when `FMS_ENV` is `PROD`: `freezeman.py`, `jobs.py` and `autoupdate.py` stop if it is empty. `update-production-deployment.sh` sets it at each update. On other `FMS_ENV` values it is optional |
-| `HOST_LOG_DIR` | The absolute path of an existing directory, for example `<install-dir>/logs`. Required. A relative path or a missing directory gives `[conmon:e]: Failed to open log file No such file or directory` |
-| `CONTAINER_FMS_ROOT` | Required. The path of the project in the containers. Keep the value of the template |
-| `HOST_MEDIA_DIR`, `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR`, `HOST_AUTOMATIONS_WORK_DIR` | Optional. The host folders of the media files, the three trigger folders and the automations work directory. Compose binds each one at a fixed path in the backend container. Change the template values on a host with other folders. podman-compose creates a missing folder |
-| `HOST_HTTP_PORT` | The port that the reverse proxy sends the requests to (`<HOST_HTTP_PORT>`) |
-| `FMS_EMAIL_HOST`, `FMS_EMAIL_PORT`, `FMS_EMAIL_FROM`, `FMS_EMAIL_USER`, `FMS_EMAIL_PASSWORD`, `FMS_EMAIL_TLS` | The SMTP server. See [Network access](#network-access) when the host has no route to it. To turn TLS off, leave `FMS_EMAIL_TLS` empty. To log the emails to the console, comment out all six |
-| `TZ` | The time zone of the services and their logs. Django still stores dates in UTC (`TIME_ZONE`) |
+`.env.prod.example` is a template with the values of the C3G production host. Personalize `.env` before the first start:
+
+1. Open `<install-dir>/oci/.env`. The comment above each variable explains it: what it does, if it is required, and when to change it. A comment gives the default only for a variable that the file does not set.
+2. Replace each `change-me` value.
+3. Set the required values that are empty: `FMS_IMAGE_TAG` and `HOST_LOG_DIR`.
+4. On a host other than C3G production, also change `FMS_HOST`, the `FMS_EMAIL_*` values and the host paths.
 
 <a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
 
@@ -364,7 +357,7 @@ Ideas for later (not done):
 
 ## Report and logs
 
-The crontab lines are in [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs). The log settings are in [Configure .env](#configure-env).
+The crontab lines are in [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
 
 Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `jobs.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
 
