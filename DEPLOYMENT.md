@@ -162,9 +162,15 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 3. Set the required values that are empty: `FMS_IMAGE_TAG` and `HOST_LOG_DIR`.
 4. On a host other than C3G production, also change `FMS_HOST`, the `FMS_EMAIL_*` values and the host paths.
 
-<a id="fms_env-values"></a>**FMS_ENV values:** only `PROD` is special. Every other value has the same behaviour, and the web page shows the value.
+<a id="fms_env-values"></a>**FMS_ENV values:**
 
-| Area | `PROD` | Other value (`QC`, `DEV`) |
+- Use `PROD` on the production host, and `QC` or `DEV` on a test host.
+- The code does not validate the value. It only tests if the value is `PROD`.
+- `PROD` gives the production behaviour (column `PROD` below).
+- Any other value gives the test behaviour (right column). `QC` and `DEV` behave the same. They only label the host: the web page shows the value. A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
+- `LOCAL` is the value of the development stack.
+
+| Area | `PROD` | Any other value (`QC`, `DEV`, `LOCAL`) |
 |---|---|---|
 | Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
 | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
@@ -172,7 +178,7 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
 | Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
 
-The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`. `LOCAL` is the value of the development stack. Do not use it on a server.
+The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
 
 ## Build the images
 
