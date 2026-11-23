@@ -35,7 +35,6 @@ Contents:
 | Host administrator | The host requirements in [Host requirements](../DEPLOYMENT.md#host-requirements) and [Network access](../DEPLOYMENT.md#network-access) of the deployment guide |
 | Deployment team | [DEPLOYMENT.md](../DEPLOYMENT.md) in the repository root: the initial, routine and specific deployments |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
-| Anyone who debugs the stack | [DEBUGGING.md](DEBUGGING.md): the deployment checklist and the known issues |
 
 ## Layout
 
@@ -50,7 +49,6 @@ Contents:
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `backups/` | Usual directory of the database backup files. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
-| `DEBUGGING.md` | Deployment checklist and known issues |
 
 ## Production services
 
