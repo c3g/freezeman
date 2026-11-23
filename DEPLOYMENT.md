@@ -482,14 +482,4 @@ Do the same for `podman pull` and `podman-compose up`.
 
 ## Troubleshooting
 
-| Symptom | Likely cause |
-|---|---|
-| 502 at the reverse proxy | `web` is not running, or `HOST_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<HOST_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration |
-| 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
-| 400 Bad Request | `FMS_HOST` is not the host name of the request |
-| 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
-| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of [Update to a new release](#update-to-a-new-release) |
-| `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` in `.env` is a relative path or the directory does not exist. Set it to an existing absolute path, then run `podman-compose up -d --force-recreate` |
-| The stack does not start at boot, or a podman error about the runtime directory | The environment has no `XDG_RUNTIME_DIR`. Set it in `~/.bash_profile` and at the top of the crontab (see [Set up the account of the user](#set-up-the-account-of-the-user) and [Start at boot](#start-at-boot)) |
-
-For other faults, see [oci/DEBUGGING.md](oci/DEBUGGING.md).
+The deployment checklist and the known issues are in [oci/DEBUGGING.md](oci/DEBUGGING.md).
