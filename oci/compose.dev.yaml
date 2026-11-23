@@ -76,6 +76,8 @@ services:
       FMS_DEBUG: "True"
       FMS_SECRET_KEY: ${FMS_SECRET_KEY}
       FMS_HOST: ${FMS_HOST:-}
+      # Django writes fms.log in the mount of HOST_LOG_DIR below.
+      FMS_LOG_DIR: /var/log/fms
       # A key with no value passes the value of .env, and leaves the variable unset if .env has
       # none (see x-django-env in compose.yaml).
       FMS_EMAIL_HOST:
@@ -118,6 +120,12 @@ services:
       - type: volume
         source: frontend_node_modules
         target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/frontend/node_modules
+      - type: bind
+        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
+        target: /var/log/fms
+        bind:
+          selinux: z
+          create_host_path: true
 
     # Publish runserver (8000) and the webpack dev server (9000) on the host.
     ports:

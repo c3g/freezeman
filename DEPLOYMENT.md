@@ -173,7 +173,7 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 
 | Area | `PROD` | Other value (`QC`, `DEV`) |
 |---|---|---|
-| Django log | `WARNING` and higher goes to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher goes to `backend/fms.log` in the `backend` container. These messages do not go to `backend.log`. The file is not a bind mount, so it is lost when the container is recreated. Django rotates it at 2 GB and keeps 1 old file |
+| Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
 | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
 | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
 | `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
@@ -366,12 +366,12 @@ Ideas for later (not done):
 
 The crontab lines are in [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs). The log settings are in [Configure .env](#configure-env).
 
-Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `jobs.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
+Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`, `jobs.log`, `autoupdate.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
 tail -f <HOST_LOG_DIR>/backend.log                                   # the same log, read from the host file (works after `down`)
-podman-compose exec backend tail -f fms.log                          # the Django log if FMS_ENV is not PROD
+tail -f <HOST_LOG_DIR>/fms.log                                       # the Django log (WARNING+ on PROD, DEBUG+ elsewhere)
 tail -f <HOST_LOG_DIR>/jobs.log                                      # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
 grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the failures

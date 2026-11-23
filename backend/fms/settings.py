@@ -220,41 +220,30 @@ TEMP_ROOT = os.path.join(BASE_DIR, 'tmp/') # for temporary files created during 
 TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
 
 # Logging
-handler = {}
-logger = {}
 MAX_SIZE_LOG = 2000000000
 LOG_BACKUP_COUNT = 1
-if FMS_ENV == "PROD":
-    handler = {
-        "console": {
-            "formatter": "fms",
-            "class": "logging.StreamHandler",
-        },
-    }
-    logger = {
-        "handlers": ["console"],
-        "level": "WARNING",
-    }
-else:
-    handler = {
-        "file": {
-            "level": "DEBUG",
-            "class": 'logging.handlers.RotatingFileHandler',
-            "filename": "fms.log",
-            "formatter": "fms",
-            "maxBytes": MAX_SIZE_LOG,
-            "backupCount": LOG_BACKUP_COUNT
-        },
-        "console": {
-            "formatter": "fms",
-            "class": "logging.StreamHandler",
-        }
-    }
-    logger = {
-        "handlers": ["file"],
+# The containers set FMS_LOG_DIR to the mount of HOST_LOG_DIR, so the log stays on the host.
+LOG_FILE = os.path.join(os.environ["FMS_LOG_DIR"], "fms.log") if os.environ.get("FMS_LOG_DIR") else "fms.log"
+handler = {
+    "file": {
         "level": "DEBUG",
-        "propagate": True,
-    }
+        "class": 'logging.handlers.RotatingFileHandler',
+        "filename": LOG_FILE,
+        "formatter": "fms",
+        "maxBytes": MAX_SIZE_LOG,
+        "backupCount": LOG_BACKUP_COUNT
+    },
+    "console": {
+        "formatter": "fms",
+        "class": "logging.StreamHandler",
+    },
+}
+logger = {
+    # PROD also sends its WARNING+ lines to the console, so `podman-compose logs backend` shows them.
+    "handlers": ["file", "console"] if FMS_ENV == "PROD" else ["file"],
+    "level": "WARNING" if FMS_ENV == "PROD" else "DEBUG",
+    "propagate": True,
+}
 
 LOGGING = {
     "version": 1,

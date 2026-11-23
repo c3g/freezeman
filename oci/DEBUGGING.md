@@ -65,11 +65,11 @@ The logs:
 | File | Written by | Contents |
 |---|---|---|
 | `<HOST_LOG_DIR>/db.log`, `backend.log`, `web.log` | podman (`k8s-file` driver) | The output of each service. The files stay after `down` |
+| `<HOST_LOG_DIR>/fms.log` | Django (`FMS_LOG_DIR`), in `backend`, `jobs` and `dev` | The Django log: `WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere |
 | `<HOST_LOG_DIR>/freezeman.log` | `freezeman.py` (cron `@reboot`) | The start at boot |
 | `<HOST_LOG_DIR>/jobs.log` | `jobs.py` (cron) | The daily jobs |
 | `<HOST_LOG_DIR>/report_preparation.log` | The `report` job | The details of the report |
 | `<HOST_LOG_DIR>/autoupdate.log` | `autoupdate.py` (cron, test hosts) | The automatic updates |
-| `fms.log` in the `backend` container | Django, only if `FMS_ENV` is not `PROD` | The Django `DEBUG` log. It is lost when the container is recreated |
 
 ## Layer 1: podman-compose
 

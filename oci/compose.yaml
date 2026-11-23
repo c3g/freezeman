@@ -157,6 +157,8 @@ services:
     environment:
       <<: [*backend-env, *django-env, *no-proxy]
       UWSGI_PROCESSES: ${UWSGI_PROCESSES:-3}
+      # Django writes fms.log in the mount of HOST_LOG_DIR below.
+      FMS_LOG_DIR: /var/log/fms
 
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
@@ -195,6 +197,12 @@ services:
       - type: bind
         source: ${HOST_AUTOMATIONS_WORK_DIR:-../backend/automations_work}
         target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/automations_work
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
+        target: /var/log/fms
         bind:
           selinux: z
           create_host_path: true
@@ -282,13 +290,15 @@ services:
     # database settings (x-backend-env) and the Django settings (x-django-env).
     environment:
       <<: [*backend-env, *django-env, *no-proxy]
+      # Django writes fms.log in the mount of HOST_LOG_DIR below.
+      FMS_LOG_DIR: /home/fms/reports/log
 
     # keep-id: the jobs run as uid 1000 (the image user fms), which is the host user. The log
     # and report files keep the host owner, like `backend`.
     userns_mode: keep-id:uid=1000,gid=1000
 
     # HOST_LOG_DIR is mounted at ~/reports/log, where prepare_report_data writes
-    # report_preparation.log, next to the service logs (<service>.log).
+    # report_preparation.log and Django writes fms.log, next to the service logs (<service>.log).
     volumes:
       - type: bind
         source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}

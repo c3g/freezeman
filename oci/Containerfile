@@ -283,7 +283,7 @@ ENV FMS_ENV=PROD \
 #   automations_work         FMS_AUTOMATIONS_WORK_PATH, same reason as media.
 #   tmp                      TEMP_ROOT. Not a mount: the image is its only source.
 # The backend directory itself stays writable for fms.log, which settings.py
-# writes when FMS_ENV is not PROD (e.g. DEV or QC servers).
+# writes there when FMS_LOG_DIR is not set (an image run without compose.yaml).
 RUN python ${CONTAINER_FMS_ROOT}/backend/manage.py collectstatic --noinput \
  && mkdir -p \
       ${CONTAINER_FMS_ROOT}/backend/media/uploads/templates \
