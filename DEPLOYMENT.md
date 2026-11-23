@@ -27,6 +27,7 @@ Contents:
   - [Configure .env](#configure-env)
   - [Build the images](#build-the-images)
   - [Start the database](#start-the-database)
+  - [Start the stack](#start-the-stack)
   - [Reverse proxy](#reverse-proxy)
   - [Start at boot](#start-at-boot)
   - [Daily report](#daily-report)
@@ -67,6 +68,8 @@ podman-compose build
 # Start the database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+
+# Start the stack
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
 ```
@@ -195,7 +198,7 @@ podman-compose build
 
 ## Start the database
 
-Run these steps as `<user>`. Nothing applies migrations automatically.
+Run these steps as `<user>`.
 
 1. Start only `db`, and wait until it is ready:
 
@@ -213,19 +216,17 @@ Run these steps as `<user>`. Nothing applies migrations automatically.
 
    Then remove the daily report line of the old version from the crontab of its user.
 
-3. Apply the migrations in a one-off `backend` container, then start the stack:
+## Start the stack
 
-   ```bash
-   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
-   podman-compose up -d
-   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
-   ```
+Run these steps as `<user>`, while `db` runs. Nothing applies migrations automatically.
 
-4. Set up the [Reverse proxy](#reverse-proxy), then check the site through it:
+Apply the migrations in a one-off `backend` container, then start all services and check `web`:
 
-   ```bash
-   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200
-   ```
+```bash
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+podman-compose up -d
+curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
+```
 
 ## Reverse proxy
 
@@ -253,6 +254,12 @@ location / {
 ```
 
 Other reverse proxies need the same settings.
+
+Check the site through the reverse proxy:
+
+```bash
+curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/   # 200
+```
 
 If the reverse proxy served a version earlier than 6.0.0, replace its old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the block above. The `web` container serves all these paths.
 
