@@ -91,7 +91,7 @@ These steps need root.
 - podman-compose 1.5 or later (the package of the OS, or `pip install podman-compose`).
 - A non-root `<user>` with subuid and subgid ranges, for rootless containers.
 - A `<runtime-dir>` of `<user>` that stays from boot to shutdown. With systemd, enable linger for `<user>` (`loginctl enable-linger <user>`).
-- A cron daemon, or another way to start `freezeman.py` as `<user>` at boot.
+- A cron daemon, to start the stack at boot and to run the daily report.
 - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
 - Outbound access, as in [Network access](#network-access).
 
@@ -243,16 +243,16 @@ Other reverse proxies need the same settings.
 
 ## Start at boot
 
-Run this step as `<user>`, after the first start works. Add these lines to the crontab (`crontab -e`). Cron does not set `XDG_RUNTIME_DIR`, so the variable line must be at the top of the crontab:
+Run this step as `<user>`, after the first start works. Add these lines to the crontab (`crontab -e`):
 
 ```cron
 XDG_RUNTIME_DIR=<runtime-dir>
-@reboot <install-dir>/oci/freezeman.py >> <HOST_LOG_DIR>/freezeman.log 2>&1
+PATH=<podman-compose-dir>:/usr/bin:/bin
+@reboot cd <install-dir>/oci && podman-compose up -d >> <HOST_LOG_DIR>/boot.log 2>&1
 ```
 
-`freezeman.py` stops with an error if `XDG_RUNTIME_DIR` is not set. It waits up to 60 s for the directory, because cron can start before the system creates it at boot.
-
-If the host has no cron (the host is a container), start `freezeman.py` as `<user>` from the init of the outer container.
+- Cron does not set `XDG_RUNTIME_DIR`, and its `PATH` is short. Put the two variable lines at the top of the crontab. `<podman-compose-dir>` is the directory of `command -v podman-compose` (for example `/home/<user>/.local/bin`).
+- `podman-compose` reads `.env` in `oci/`.
 
 ## Daily report
 
@@ -379,7 +379,7 @@ For PostgreSQL it also needs a dump and restore of the data.
 
 The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
 
-Each host script writes to `<HOST_LOG_DIR>/<script-file-name>.log` (for example `freezeman.log`). The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`. When a script fails, it writes a line that starts with `FAILED:` to its log, followed by the details.
+The crontab lines write to `<HOST_LOG_DIR>/boot.log` and `<HOST_LOG_DIR>/report.log`. The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
@@ -387,7 +387,6 @@ tail -f <HOST_LOG_DIR>/backend.log                                   # the same 
 tail -f <HOST_LOG_DIR>/fms.log                                       # the Django log (WARNING+ on PROD, DEBUG+ elsewhere)
 tail -f <HOST_LOG_DIR>/report_preparation.log                        # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the failures
 ```
 
 # Specific deployments
@@ -537,6 +536,6 @@ Do the same for `podman pull` and `podman-compose up`.
 | 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
 | `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of [Update to a new release](#update-to-a-new-release) |
 | `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` in `.env` is a relative path or the directory does not exist. Set it to an existing absolute path, then run `podman-compose up -d --force-recreate` |
-| `XDG_RUNTIME_DIR is not set` from a script | The environment has no `XDG_RUNTIME_DIR`. Set it in `~/.bash_profile` and at the top of the crontab (see [Set up the account of the user](#set-up-the-account-of-the-user) and [Start at boot](#start-at-boot)) |
+| The stack does not start at boot, or a podman error about the runtime directory | The environment has no `XDG_RUNTIME_DIR`. Set it in `~/.bash_profile` and at the top of the crontab (see [Set up the account of the user](#set-up-the-account-of-the-user) and [Start at boot](#start-at-boot)) |
 
 For other faults, see [oci/DEBUGGING.md](oci/DEBUGGING.md).

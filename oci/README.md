@@ -47,8 +47,6 @@ Contents:
 | `db/` | `Containerfile` of the `db` image, `initdb/10-fzy.sql` (enables `fzy` at the first start) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
-| `freezeman.py` | Starts the stack at boot (cron `@reboot`) and checks the containers |
-| `hostenv.py` | Environment of the host scripts (`freezeman.py`): checks `XDG_RUNTIME_DIR`, sets `PATH` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
