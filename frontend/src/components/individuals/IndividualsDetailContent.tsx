@@ -58,18 +58,30 @@ const IndividualsDetailContent = () => {
     <>
       <AppPageHeader title={title} extra={<EditButton url={`/individuals/${id}/update`} />} />
       <PageContent loading={individual && individual.individual?.isFetching}>
-        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
-          <Tabs.TabPane tab="Overview" key="overview">
-            <IndividualOverview
-              individual={individual && individual ? individual.individual : {}}
-            />
-          </Tabs.TabPane>
-          <Tabs.TabPane tab="Associated Samples" key="samples">
-            {individual && individual.individual.id && (
-              <IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
-            )}
-          </Tabs.TabPane>
-        </Tabs>
+        <Tabs
+          activeKey={activeKey}
+          onChange={setActiveKey}
+          size="large"
+          type="card"
+          items={[
+            {
+              label: "Overview",
+              key: "overview",
+              children: (
+                <IndividualOverview
+                  individual={individual && individual ? individual.individual : {}}
+                />
+              ),
+            },
+            {
+              label: "Associated Samples",
+              key: "samples",
+              children: individual && individual.individual.id && (
+                <IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
+              ),
+            },
+          ]}
+        />
       </PageContent>
     </>
   )
