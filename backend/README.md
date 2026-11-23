@@ -6,6 +6,7 @@ tracking of biological samples in a laboratory environment.
 ## Table of contents
 
   * [Dependencies](#dependencies)
+  * [Running in containers](#running-in-containers)
   * [Running locally for development](#running-locally-for-development)
   * [Running tests](#running-tests)
   * [Creating releases](#creating-releases)
@@ -21,6 +22,12 @@ tracking of biological samples in a laboratory environment.
   
 Python package dependencies are listed in `requirements.txt`.
   
+## Running in containers
+
+You can run the backend in a container stack. See [oci/DEVELOPMENT.md](../oci/DEVELOPMENT.md).
+
+The sections below describe the setup without containers.
+
 ## Running locally for development
 
   1. Set up a virtual environment with Python 3.14 or later, and install 

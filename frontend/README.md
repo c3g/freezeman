@@ -2,6 +2,12 @@
 
 React-based front-end for the FreezeMan system.
 
+## Running in containers
+
+You can run the frontend in a container stack. See [oci/DEVELOPMENT.md](../oci/DEVELOPMENT.md).
+
+The sections below describe the setup without containers.
+
 ## Installation
 
 Install the dependencies in the project folder:
