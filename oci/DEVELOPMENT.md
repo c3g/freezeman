@@ -55,6 +55,12 @@ podman-compose up -d
 podman-compose exec dev bash
 ```
 
+- After a change to `.env`, run `podman-compose up -d` again. It compares the configuration of the
+  containers with the compose files and `.env`. If a value changed, it removes all containers of the
+  stack and creates them again. The data in the volumes stays.
+- `up` does not build an image again. `CONTAINER_FMS_ROOT` is also in the `dev` image. After a change
+  to it, run `podman-compose build dev`, then `podman-compose up -d`.
+
 The `dev` shell starts in `$CONTAINER_FMS_ROOT`.
 
 In development, `postgres` is the superuser of the database. It works only through the Unix socket in the
@@ -218,4 +224,3 @@ podman-compose -f <install-dir>/oci/compose.yaml up -d
 
 - Open `http://localhost:<HOST_HTTP_PORT>` (`HOST_HTTP_PORT` of `.env`).
 - Restore a backup as in [Restore a production database](#restore-a-production-database).
-
