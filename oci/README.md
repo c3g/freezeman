@@ -47,7 +47,6 @@ Contents:
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
-| `backups/` | Usual directory of the database backup files. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
 
 ## Production services

@@ -92,14 +92,14 @@ Python virtual environment is ready:
 Optional. Do this before `migrate` and `runserver` to get production data into the development database.
 The steps run the migrations themselves.
 
-- The files have production data. Keep them on your machine, in `oci/backups/` (git-ignored).
+- The files have production data. Keep them on your machine, in `<install-dir>/backups/` (git-ignored).
   Do not commit or share them. Delete them when you are done.
 - The restore deletes the current development database. The production-like local stack
   ([Test the production stack locally](#test-the-production-stack-locally)) uses the same volume `freezeman_pgdata`.
 
-Get one of these files from the production host and copy it to `oci/backups/`:
+Get one of these files from the production host and copy it to `<install-dir>/backups/`:
 
-- A database backup file of all databases: `oci/backups/<YYYY-MM-DD>.pgsql.gz` (made with `pg_dumpall` on the production host).
+- A database backup file of all databases: `backups/<YYYY-MM-DD>.pgsql.gz` (made with `pg_dumpall` on the production host).
 - A database backup file of the `fms` database only, in the custom format. Make it on the production host. The site stays online:
 
   ```bash
@@ -117,10 +117,10 @@ podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U postgres -d fms; do sleep 2; done
 
 # Backup file of all databases (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
 # Or the custom-format backup file (pg_dump -Fc). First create admin as in "Start the development stack".
 # --no-owner: give all objects to admin, the role that connects. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
-podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.backup
+podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < <install-dir>/backups/fms.backup
 
 # Start dev, then apply the migrations of your branch that the backup file does not have.
 podman-compose up -d

@@ -336,9 +336,9 @@ If the build fails, the old containers keep running. Set `FMS_IMAGE_TAG` back to
 The stack has no automatic backup yet. To create a database backup file of all databases now, run this command while `db` runs. `pg_dumpall` copies the roles too:
 
 ```bash
-mkdir -p <install-dir>/oci/backups
+mkdir -p <install-dir>/backups
 # -T: no pseudo-TTY, which would turn the line endings of the backup file into CRLF.
-podman-compose exec -T db pg_dumpall -U <POSTGRES_USER> | gzip > <install-dir>/oci/backups/$(date +%F).pgsql.gz
+podman-compose exec -T db pg_dumpall -U <POSTGRES_USER> | gzip > <install-dir>/backups/$(date +%F).pgsql.gz
 ```
 
 To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest.
@@ -349,7 +349,7 @@ podman volume rm freezeman_pgdata     # deletes the current database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c <install-dir>/oci/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U <POSTGRES_USER> -d postgres
+gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U <POSTGRES_USER> -d postgres
 # Apply the migrations that the backup does not have, while only db runs.
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
@@ -360,7 +360,7 @@ podman-compose up -d
   [Identify the format of a database backup](oci/README.md#identify-the-format-of-a-database-backup).
 - Restore only into an empty `freezeman_pgdata` volume. If the volume is new (first start), skip the first two commands.
 - If `POSTGRES_PASSWORD` changed after the backup, set it back to the value at backup time.
-- Copy the backups off the host.
+- `backups/` is git-ignored. Copy the backups off the host.
 
 ## Keep the base images up to date
 
