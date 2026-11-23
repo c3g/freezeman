@@ -23,8 +23,8 @@ x-proxy: &proxy
 
 services:
   db:
-    # Make `postgres` the superuser, not the app role of .env (POSTGRES_USER, `admin`). A dump of
-    # all databases (pg_dumpall) runs `ALTER ROLE admin` with the production attributes (no
+    # Make `postgres` the superuser, not the app role of .env (POSTGRES_USER, `admin`). A backup file
+    # of all databases (pg_dumpall) runs `ALTER ROLE admin` with the production attributes (no
     # SUPERUSER, no CREATEDB). If `admin` were the only superuser, the restore would remove its
     # privileges and nothing could give them back. DEVELOPMENT.md creates `admin` by hand.
     environment:

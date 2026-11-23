@@ -26,7 +26,7 @@ Contents:
   - [Set up the account of the user](#set-up-the-account-of-the-user)
   - [Configure .env](#configure-env)
   - [Build the images](#build-the-images)
-  - [Start a new database](#start-a-new-database)
+  - [Start the database](#start-the-database)
   - [Reverse proxy](#reverse-proxy)
   - [Start at boot](#start-at-boot)
   - [Daily report](#daily-report)
@@ -37,14 +37,13 @@ Contents:
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
   - [Report and logs](#report-and-logs)
 - [Specific deployments](#specific-deployments)
-  - [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600)
 - [Additional information](#additional-information)
   - [Proxy](#proxy)
   - [Troubleshooting](#troubleshooting)
 
 # Quick start
 
-The short install procedure for a new host with a new database. Each step links to its detailed section below.
+The short install procedure for a new host. Each step links to its detailed section below.
 
 Before you start, the host must meet [Host requirements](#host-requirements) and [Network access](#network-access), and `<user>` must be set up ([Set up the account of the user](#set-up-the-account-of-the-user)). On a host with an HTTP proxy, see [Proxy](#proxy).
 
@@ -65,7 +64,7 @@ cp oci/.env.prod.example oci/.env
 export COMPOSE_FILE=<install-dir>/oci/compose.yaml
 podman-compose build
 
-# Start a new database
+# Start the database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
@@ -77,7 +76,7 @@ Then:
 1. Set up the [Reverse proxy](#reverse-proxy).
 2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
-To keep the data of a version earlier than 6.0.0, do [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600) instead of "Start a new database".
+To keep the data of a version earlier than 6.0.0, do the optional step of [Start the database](#start-the-database).
 
 # Initial deployment
 
@@ -180,7 +179,7 @@ Run these steps as `<user>`.
 cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 ```
 
-`.env.prod.example` is a template with the values of the C3G production host. Personalize `.env` before the first start:
+`.env.prod.example` is a template. Personalize `.env` before the first start. The comments in the file explain each value. To keep the files of a version earlier than 6.0.0, set the `HOST_*_DIR` folders to the folders of the old install.
 
 The effect of each `FMS_ENV` value is in [FMS_ENV values](oci/README.md#fms_env-values).
 
@@ -194,25 +193,39 @@ podman-compose build
 
 **Proxy host:** this command needs the proxy. See [Proxy](#proxy).
 
-## Start a new database
+## Start the database
 
-Run these steps as `<user>`. Use them when there is no data to keep. To keep the data of an earlier version, use [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600) instead.
+Run these steps as `<user>`. Nothing applies migrations automatically.
 
-Start only `db`, apply the migrations in a one-off `backend` container, then start the stack. Nothing applies migrations automatically.
+1. Start only `db`, and wait until it is ready:
 
-```bash
-podman-compose up -d db
-until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
-podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
-podman-compose up -d
-curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
-```
+   ```bash
+   podman-compose up -d db
+   until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+   ```
 
-Set up the [Reverse proxy](#reverse-proxy), then check the site through it:
+2. Optional. To keep the data of a version earlier than 6.0.0, stop the old uwsgi, create a database backup file of the old database, and restore it into `db`. The message "extension fzy already exists" is harmless.
 
-```bash
-curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200
-```
+   ```bash
+   pg_dump -U postgres -Fc fms > fms_old.backup   # on the old PostgreSQL server
+   podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < fms_old.backup
+   ```
+
+   Then remove the daily report line of the old version from the crontab of its user.
+
+3. Apply the migrations in a one-off `backend` container, then start the stack:
+
+   ```bash
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+   podman-compose up -d
+   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
+   ```
+
+4. Set up the [Reverse proxy](#reverse-proxy), then check the site through it:
+
+   ```bash
+   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200
+   ```
 
 ## Reverse proxy
 
@@ -240,6 +253,8 @@ location / {
 ```
 
 Other reverse proxies need the same settings.
+
+If the reverse proxy served a version earlier than 6.0.0, replace its old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the block above. The `web` container serves all these paths.
 
 ## Start at boot
 
@@ -311,11 +326,11 @@ If the build fails, the old containers keep running. Set `FMS_IMAGE_TAG` back to
 
 ## Database backups
 
-The stack has no automatic backup yet. To dump all databases now, run this command while `db` runs. `pg_dumpall` copies the roles too:
+The stack has no automatic backup yet. To create a database backup file of all databases now, run this command while `db` runs. `pg_dumpall` copies the roles too:
 
 ```bash
 mkdir -p <install-dir>/oci/backups
-# -T: no pseudo-TTY, which would turn the line endings of the dump into CRLF.
+# -T: no pseudo-TTY, which would turn the line endings of the backup file into CRLF.
 podman-compose exec -T db pg_dumpall -U <POSTGRES_USER> | gzip > <install-dir>/oci/backups/$(date +%F).pgsql.gz
 ```
 
@@ -373,7 +388,7 @@ How to update (on each host, QC first, prod after QC works):
 A new patch release can break the stack. Test on QC before prod.
 
 Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15). A major change is a [specific deployment](#specific-deployments).
-For PostgreSQL it also needs a dump and restore of the data.
+For PostgreSQL it also needs a backup and restore of the data.
 
 ## Report and logs
 
@@ -425,68 +440,7 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
 * Version 5.9.0:
   * Upgrade node.js to v24.18.0.
 * Version 6.0.0:
-  * FreezeMan runs as containers. Migrate a host that runs an earlier version as in [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600).
-
-## Migrate from a version earlier than 6.0.0
-
-Use these steps to keep the data of an install that runs a version earlier than 6.0.0 (uwsgi and nginx on the host, PostgreSQL on the host). Run the steps as `<user>`.
-
-Before you start, do the sections of [Initial deployment](#initial-deployment) up to [Build the images](#build-the-images). Skip [Start a new database](#start-a-new-database).
-
-1. Announce the downtime. Stop the old uwsgi, so no write happens after the dump.
-2. Optional. Tools that query the database outside Django (`psql`, reports) use the default time zone of the database. Django is not affected. To keep the old dates in these tools, set `TZ` in `.env` to the result of this command, before step 5:
-
-   ```bash
-   psql -U postgres -d fms -c 'SHOW timezone'
-   ```
-
-   Cron runs the daily report in the time zone of the host, not `TZ`.
-
-3. Dump the old database. Do not use `pg_dumpall` or the `backup_release_*.pgsql` files of the old host.
-
-   ```bash
-   # -Fc: custom format, restore with pg_restore.
-   pg_dump -U postgres -Fc fms > fms_old.dump
-   ```
-
-4. Choose where the backend files are. Compose binds the folders that `.env` names, so the stack can use the folders of the old install directly, with no copy. Set the values of this table in `.env`:
-
-   | Variable | Value |
-   |---|---|
-   | `HOST_MEDIA_DIR` | The media folder of the old install (`MEDIA_ROOT`) |
-   | `HOST_RUN_INFO_DIR`, `HOST_VALIDATED_FILES_DIR`, `HOST_RELEASED_FILES_DIR` | The values of `FMS_RUN_INFO_PATH`, `FMS_VALIDATED_FILES_PATH` and `FMS_RELEASED_FILES_PATH` in the old `uwsgi.ini`, as absolute paths. If `uwsgi.ini` does not set one, the folder in `backend/triggers` of the old checkout |
-   | `HOST_AUTOMATIONS_WORK_DIR` | The value of `FMS_AUTOMATIONS_WORK_PATH` in the old `uwsgi.ini`, as an absolute path. If `uwsgi.ini` does not set it, `backend/automations_work` of the old checkout |
-
-5. Start only the database, wait until it is ready, and restore the dump. The message "extension fzy already exists" is harmless.
-
-   ```bash
-   podman-compose up -d db
-   until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
-   # -T: no pseudo-TTY, keeps the binary dump intact.
-   # PGOPTIONS: log each statement of this session.
-   # --no-owner: give all objects to POSTGRES_USER.
-   # --no-acl: skip GRANT and REVOKE of old roles, which do not exist here.
-   # --verbose: print each restored object.
-   podman-compose exec -T db env PGOPTIONS='-c log_statement=all' \
-     pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl --verbose < fms_old.dump
-   ```
-
-6. Apply the migrations while only `db` runs, then start all services and check them. The migration command prints the applied migrations and ends with exit code 0:
-
-   ```bash
-   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
-   podman-compose up -d
-   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
-   ```
-
-7. Switch the reverse proxy to the containers, as in [Reverse proxy](#reverse-proxy). Keep a copy of the old configuration before the change, so you can restore it. The new `location /` replaces the old `location /`. Also remove the old `/static/`, `/media/` and `/api/` locations. The `web` container serves these paths. Then check the site:
-
-   ```bash
-   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200, through the reverse proxy
-   ```
-
-8. Disable the `@reboot` and cron entries of the old setup (report, backup) in the crontab of its user, so they do not run against the old database.
-9. Continue with [Start at boot](#start-at-boot) and [Daily report](#daily-report).
+  * FreezeMan runs as containers. To keep the data of an earlier version, restore its database as in the optional step of [Start the database](#start-the-database), and set the `HOST_*_DIR` folders of `.env`.
 
 # Additional information
 

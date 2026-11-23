@@ -6,7 +6,7 @@
 #   podman build -f oci/db/Containerfile .
 #
 # To change the PostgreSQL major version, only POSTGRES_IMAGE needs to change
-# (a new major version needs a dump and restore of existing data).
+# (a new major version needs a backup and restore of existing data).
 
 # Name the PostgreSQL 15 base image.
 ARG POSTGRES_IMAGE=docker.io/library/postgres:15-trixie

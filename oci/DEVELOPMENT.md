@@ -70,7 +70,7 @@ podman-compose exec db psql -U postgres -d postgres \
 ```
 
 - `CREATEDB`: pytest creates its own test database.
-- If you restore from a database dump see
+- If you restore a database backup file, see
   [Restore a production database](#restore-a-production-database).
 
 Python virtual environment is ready:
@@ -99,12 +99,12 @@ The steps run the migrations themselves.
 
 Get one of these files from the production host and copy it to `oci/backups/`:
 
-- A dump of all databases: `oci/backups/<YYYY-MM-DD>.pgsql.gz` (made with `pg_dumpall` on the production host).
-- A custom dump of the `fms` database only. Make it on the production host. The site stays online:
+- A database backup file of all databases: `oci/backups/<YYYY-MM-DD>.pgsql.gz` (made with `pg_dumpall` on the production host).
+- A database backup file of the `fms` database only, in the custom format. Make it on the production host. The site stays online:
 
   ```bash
-  # -T: no pseudo-TTY, keeps the binary dump intact.
-  podman-compose -f <install-dir>/oci/compose.yaml exec -T db pg_dump -U admin -Fc fms > fms.dump
+  # -T: no pseudo-TTY, keeps the binary file intact.
+  podman-compose -f <install-dir>/oci/compose.yaml exec -T db pg_dump -U admin -Fc fms > fms.backup
   ```
 
 Restore the file. Use the restore command that matches the format of the file. To find the format, see
@@ -116,19 +116,19 @@ podman volume rm freezeman_pgdata     # deletes the development database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U postgres -d fms; do sleep 2; done
 
-# Dump of all databases (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+# Backup file of all databases (pg_dumpall). -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
-# Or the custom dump (pg_dump -Fc). First create admin as in "Start the development stack".
+# Or the custom-format backup file (pg_dump -Fc). First create admin as in "Start the development stack".
 # --no-owner: give all objects to admin, the role that connects. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
-podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.dump
+podman-compose exec -T db pg_restore -U admin -d fms --no-owner --no-acl < backups/fms.backup
 
-# Start dev, then apply the migrations of your branch that the dump does not have.
+# Start dev, then apply the migrations of your branch that the backup file does not have.
 podman-compose up -d
 podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
 - The messages "role postgres already exists", "database fms already exists" and "extension fzy already exists" are harmless.
-- A dump of all databases also restores the roles. `admin` gets the production password and the production
+- A backup file of all databases also restores the roles. `admin` gets the production password and the production
   privileges (no `CREATEDB`). Then `dev` reports "password authentication failed", and `pytest` cannot create
   its test database. After the restore, set them back. Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
 

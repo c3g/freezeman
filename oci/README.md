@@ -48,7 +48,7 @@ Contents:
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
-| `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
+| `backups/` | Usual directory of the database backup files. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
 | `DEBUGGING.md` | Debugging guide |
 
@@ -110,7 +110,7 @@ podman info --format '{{.Host.CgroupManager}}'     # cgroupfs on the deployment 
 
 ## Identify the format of a database backup
 
-The restore command depends on the format of the dump. Find the format before you restore:
+The restore command depends on the format of the database backup file. Find the format before you restore:
 
 ```bash
 file <backup>                     # "PostgreSQL custom database dump": a pg_dump -Fc file
@@ -122,11 +122,11 @@ head -5 <backup>                  # a plain .pgsql file
 |---|---|---|---|
 | `PostgreSQL database cluster dump` | `pg_dumpall` SQL script (the `.pgsql.gz` files of [Database backups](../DEPLOYMENT.md#database-backups)) | `psql -d postgres` | No |
 | `PostgreSQL database dump` | `pg_dump` SQL script (one database) | `psql -d fms` | No |
-| `PostgreSQL custom database dump` (`file`), or `PGDMP` as the first bytes | `pg_dump -Fc` | `pg_restore` ([migration](../DEPLOYMENT.md#migrate-from-a-version-earlier-than-600)) | Yes, from a file, not from stdin |
+| `PostgreSQL custom database dump` (`file`), or `PGDMP` as the first bytes | `pg_dump -Fc` | `pg_restore` ([Start the database](../DEPLOYMENT.md#start-the-database)) | Yes, from a file, not from stdin |
 | A directory with `toc.dat` | `pg_dump -Fd` | `pg_restore` | Yes |
 
 - `psql` runs a SQL script one statement at a time. Only `pg_restore` can restore in parallel.
-- `pg_restore -j` needs the dump as a file in the container (a bind mount or `podman cp`). It cannot read from `<` or a pipe.
+- `pg_restore -j` needs the backup file in the container (a bind mount or `podman cp`). It cannot read from `<` or a pipe.
 
 ## Docker compatibility
 
