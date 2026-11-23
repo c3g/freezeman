@@ -16,6 +16,7 @@ Contents:
 - [Start the development stack](#start-the-development-stack)
   - [Restore a production database](#restore-a-production-database)
   - [Run the servers and the tests](#run-the-servers-and-the-tests)
+- [Use VS Code Dev Containers](#use-vs-code-dev-containers)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
 
@@ -190,6 +191,40 @@ podman-compose exec dev sh -c 'cd backend && pytest'
 The tests need no database setup. pytest-django creates a separate test database and deletes it after the run.
 PostgreSQL makes each new database as a copy of `template1`. On the first start of `db`,
 `db/initdb/10-fzy.sql` installs the `fzy` extension in `template1`, so the test database gets `fzy` too.
+
+## Use VS Code Dev Containers
+
+Optional. VS Code can run in the `dev` container. `.devcontainer/devcontainer.json` starts `db` and `dev`
+with the same compose files and `oci/.env`.
+
+1. Install the VS Code extension
+   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+2. In the VS Code user settings (`settings.json`), set podman in place of Docker:
+
+   ```json
+   "dev.containers.dockerPath": "podman",
+   "dev.containers.dockerComposePath": "podman-compose"
+   ```
+
+3. Make `oci/.env` as in [Start the development stack](#start-the-development-stack).
+   Keep `CONTAINER_FMS_ROOT=/workspace/freezeman`: `devcontainer.json` repeats this path in `workspaceFolder`.
+4. Open only the repository folder in VS Code (File > Open Folder, or `code <repo>`), not a
+   multi-root workspace (`.code-workspace`). In a workspace, VS Code looks for `.devcontainer`
+   next to the `.code-workspace` file and asks to create a new configuration.
+5. Run the command "Dev Containers: Reopen in Container".
+6. On the first start of a new database volume, create `admin` from a host shell as in
+   [Start the development stack](#start-the-development-stack).
+7. In the VS Code terminal, run the servers as in [Run the servers and the tests](#run-the-servers-and-the-tests).
+   Give `runserver` the address `0.0.0.0:8000`, also in a debug configuration (`launch.json`).
+
+- The containers are the same as those of `podman-compose`, so the shell commands of this guide still work.
+- VS Code stops `db` and `dev` when you close its last window.
+- After a change to `.env`, run "Dev Containers: Rebuild Container", or `podman-compose up -d` on the host.
+- To [restore a production database](#restore-a-production-database), use a host shell, not the VS Code
+  terminal in the container. The restore removes the `dev` container, and `dev` has no podman.
+  1. Run "Dev Containers: Reopen Folder Locally".
+  2. In a host shell, run the restore commands.
+  3. Run "Dev Containers: Reopen in Container".
 
 ## Database access
 
