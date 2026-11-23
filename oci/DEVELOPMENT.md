@@ -12,7 +12,7 @@ For the clone and the submodules, see [Installation](../README.md#installation) 
 Contents:
 
 - [Prerequisites](#prerequisites)
-- [Development notes](#development-notes)
+- [Services](#services)
 - [Start the development stack](#start-the-development-stack)
   - [Restore a production database](#restore-a-production-database)
   - [Run the servers and the tests](#run-the-servers-and-the-tests)

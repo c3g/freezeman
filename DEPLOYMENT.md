@@ -19,8 +19,8 @@ Before you run `podman-compose` commands, set the compose file in the current sh
 
 Contents:
 
+- [Quick start](#quick-start)
 - [Initial deployment](#initial-deployment)
-  - [Production services](#production-services)
   - [Host requirements](#host-requirements)
   - [Network access](#network-access)
   - [Checkout](#checkout)
@@ -42,21 +42,48 @@ Contents:
   - [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600)
 - [Additional information](#additional-information)
   - [Proxy](#proxy)
-  - [Design choices](#design-choices)
   - [Troubleshooting](#troubleshooting)
+
+# Quick start
+
+The short install procedure for a new host with a new database. Each step links to its detailed section below.
+
+Before you start, the host must meet [Host requirements](#host-requirements) and [Network access](#network-access), and `<user>` must be set up ([Set up the account of the user](#set-up-the-account-of-the-user)). On a host with an HTTP proxy, see [Proxy](#proxy).
+
+Run these commands as `<user>`:
+
+```bash
+# Checkout
+git clone https://github.com/c3g/freezeman <install-dir>
+cd <install-dir>
+git checkout vX.Y.Z
+git config url."https://github.com/".insteadOf "git://github.com/"
+git submodule update --init --recursive
+
+# Configure .env: copy the template, then personalize oci/.env (see the comments in the file)
+cp oci/.env.prod.example oci/.env
+
+# Build the images
+export COMPOSE_FILE=<install-dir>/oci/compose.yaml
+podman-compose build
+
+# Start a new database
+podman-compose up -d db
+until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+podman-compose up -d
+```
+
+Then:
+
+1. Set up the [Reverse proxy](#reverse-proxy).
+2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily jobs](#daily-jobs).
+
+To keep the data of a version earlier than 6.0.0, do [Migrate from a version earlier than 6.0.0](#migrate-from-a-version-earlier-than-600) instead of "Start a new database".
 
 # Initial deployment
 
-## Production services
-
-| Service    | Image                         | What it runs                                                    |
-|------------|-------------------------------|-----------------------------------------------------------------|
-| `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
-| `backend`  | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port             |
-| `jobs`     | `localhost/freezeman-jobs`    | One daily job per run: the report (`prepare_report_data`). Host cron starts it with `jobs.py`. `up -d` does not start it. See [Daily jobs](#daily-jobs) |
-| `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
-
-A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](#reverse-proxy)). For the layout of `oci/` and the shared setup, see [oci/README.md](oci/README.md).
+The services of the stack are in [Production services](oci/README.md#production-services).
 
 ## Host requirements
 
@@ -157,28 +184,7 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 
 `.env.prod.example` is a template with the values of the C3G production host. Personalize `.env` before the first start:
 
-1. Open `<install-dir>/oci/.env`. The comment above each variable explains it: what it does, if it is required, and when to change it. A comment gives the default only for a variable that the file does not set.
-2. Replace each `change-me` value.
-3. Set the required values that are empty: `FMS_IMAGE_TAG` and `HOST_LOG_DIR`.
-4. On a host other than C3G production, also change `FMS_HOST`, the `FMS_EMAIL_*` values and the host paths.
-
-<a id="fms_env-values"></a>**FMS_ENV values:**
-
-- Use `PROD` on the production host, and `QC` or `DEV` on a test host.
-- The code does not validate the value. It only tests if the value is `PROD`.
-- `PROD` gives the production behaviour (column `PROD` below).
-- Any other value gives the test behaviour (right column). `QC` and `DEV` behave the same. They only label the host: the web page shows the value. A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
-- `LOCAL` is the value of the development stack.
-
-| Area | `PROD` | Any other value (`QC`, `DEV`, `LOCAL`) |
-|---|---|---|
-| Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
-| Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
-| Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
-| `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
-| Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
-
-The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
+The effect of each `FMS_ENV` value is in [FMS_ENV values](oci/README.md#fms_env-values).
 
 ## Build the images
 
@@ -188,7 +194,7 @@ Run this step as `<user>`.
 podman-compose build
 ```
 
-Proxy host: this command needs the proxy. See [Proxy](#proxy).
+**Proxy host:** this command needs the proxy. See [Proxy](#proxy).
 
 ## Start a new database
 
@@ -278,7 +284,7 @@ Use `--force-recreate` after a build or an `.env` change.
 
 ## Update to a new release
 
-Proxy host: `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy).
+**Proxy host:** `update-production-deployment.sh` needs the proxy for the build. See [Proxy](#proxy).
 
 ```bash
 cd <install-dir>
@@ -341,7 +347,7 @@ How to update (on each host, QC first, prod after QC works):
    podman-compose build --pull --no-cache
    ```
 
-   Proxy host: set the proxy variables as in [Proxy](#proxy).
+   **Proxy host:** set the proxy variables as in [Proxy](#proxy).
 2. Recreate the containers: `podman-compose up -d`.
 3. Check the versions, and write them in the deployment notes:
 
@@ -378,7 +384,7 @@ grep -h -A3 "FAILED:" <HOST_LOG_DIR>/*.log                           # the failu
 
 ## Automatic update (test hosts)
 
-Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env` must be set and must not be `PROD` (see [FMS_ENV values](#fms_env-values)). Otherwise `autoupdate.py` stops.
+Test hosts only. It deletes the database at each new commit. `FMS_ENV` in `.env` must be set and must not be `PROD` (see [FMS_ENV values](oci/README.md#fms_env-values)). Otherwise `autoupdate.py` stops.
 
 1. Put the checkout on the followed branch, with no local changes:
 
@@ -499,7 +505,7 @@ Before you start, do the sections of [Initial deployment](#initial-deployment) u
    curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
    ```
 
-7. Switch the reverse proxy to the containers, as in [Reverse proxy](#reverse-proxy). Keep a copy of the old configuration before the change: [the way back](#go-back-to-the-earlier-version) needs it. The new `location /` replaces the old `location /`. Also remove the old `/static/`, `/media/` and `/api/` locations. The `web` container serves these paths. Then check the site:
+7. Switch the reverse proxy to the containers, as in [Reverse proxy](#reverse-proxy). Keep a copy of the old configuration before the change, so you can restore it. The new `location /` replaces the old `location /`. Also remove the old `/static/`, `/media/` and `/api/` locations. The `web` container serves these paths. Then check the site:
 
    ```bash
    curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                   # 200, through the reverse proxy
@@ -545,16 +551,6 @@ Do the same for `podman pull`, `podman-compose up`, `update-production-deploymen
   - Only in `dev` does `NO_PROXY` get the service names.
 - Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
   `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
-
-## Design choices
-
-- `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files, and
-  the host user that runs the stack owns them on the host.
-- uwsgi listens on a port in the container network (uwsgi protocol), for the `web` service.
-- Client address: the reverse proxy sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
-  uwsgi gets the address of the podman port forwarder as `REMOTE_ADDR`, and the `web` access log shows that address.
-  Nothing in FreezeMan uses the client address today. If it becomes necessary, add `set_real_ip_from` and
-  `real_ip_header X-Real-IP` to `oci/nginx/default.conf.template`.
 
 ## Troubleshooting
 

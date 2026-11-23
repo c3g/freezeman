@@ -12,9 +12,9 @@ Contents:
 - [Overview](#overview)
 - [Documents](#documents)
 - [Layout](#layout)
-- [Shared setup](#shared-setup)
-  - [Prerequisites](#prerequisites)
-  - [The .env file](#the-env-file)
+- [Production services](#production-services)
+- [FMS_ENV values](#fms_env-values)
+- [Design choices](#design-choices)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
 - [Identify the format of a database backup](#identify-the-format-of-a-database-backup)
 - [Additional notes](#additional-notes)
@@ -26,7 +26,7 @@ Contents:
 - The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
 - The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
 - uwsgi settings are in `backend/uwsgi.ini`.
-- The services are in [Production services](../DEPLOYMENT.md#production-services) (deployment) and in [Development services](DEVELOPMENT.md#development-services) (development).
+- The services are in [Production services](#production-services) (deployment) and in [Development services](DEVELOPMENT.md#services) (development).
 
 ## Documents
 
@@ -56,6 +56,45 @@ Contents:
 | `backups/` | Usual directory of the manual database dumps. Its contents are git-ignored |
 | `DEVELOPMENT.md` | Development setup guide |
 | `DEBUGGING.md` | Debugging guide |
+
+## Production services
+
+| Service    | Image                         | What it runs                                                    |
+|------------|-------------------------------|-----------------------------------------------------------------|
+| `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
+| `backend`  | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port             |
+| `jobs`     | `localhost/freezeman-jobs`    | One daily job per run: the report (`prepare_report_data`). Host cron starts it with `jobs.py`. `up -d` does not start it. See [Daily jobs](../DEPLOYMENT.md#daily-jobs) |
+| `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
+
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](../DEPLOYMENT.md#reverse-proxy)).
+
+## FMS_ENV values
+
+- Use `PROD` on the production host, and `QC` or `DEV` on a test host.
+- The code does not validate the value. It only tests if the value is `PROD`.
+- `PROD` gives the production behaviour (column `PROD` below).
+- Any other value gives the test behaviour (right column). `QC` and `DEV` behave the same. They only label the host: the web page shows the value. A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
+- `LOCAL` is the value of the development stack.
+
+| Area | `PROD` | Any other value (`QC`, `DEV`, `LOCAL`) |
+|---|---|---|
+| Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
+| Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
+| Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
+| `autoupdate.py` | Stops with an error. It does not touch the database | Runs. It deletes the database at each new commit |
+| Daily jobs | Same for every value: each crontab line runs its job | Same. On a host with `autoupdate.py`, the next new commit replaces the database |
+
+The `web` image gets `FMS_ENV` when it is built. `backend` and `jobs` read it when they start. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
+
+## Design choices
+
+- `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files, and
+  the host user that runs the stack owns them on the host.
+- uwsgi listens on a port in the container network (uwsgi protocol), for the `web` service.
+- Client address: the reverse proxy sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
+  uwsgi gets the address of the podman port forwarder as `REMOTE_ADDR`, and the `web` access log shows that address.
+  Nothing in FreezeMan uses the client address today. If it becomes necessary, add `set_real_ip_from` and
+  `real_ip_header X-Real-IP` to `oci/nginx/default.conf.template`.
 
 ## Useful podman and podman-compose commands
 

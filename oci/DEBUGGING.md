@@ -113,7 +113,7 @@ Use it to check:
 
 - The values that `.env` gives to each service. An error such as `set FMS_ENV in .env` comes from a `${VAR:?...}` check: set the variable in `.env`.
 - The host paths of the bind mounts (`HOST_*`) and the log paths. They must be absolute.
-- The proxy variables. See [Proxy internals](../DEPLOYMENT.md#proxy-internals).
+- The proxy variables. See [Proxy internals](../DEPLOYMENT.md#internals).
 
 Checks for each service:
 
@@ -207,7 +207,7 @@ Known behaviour of podman-compose 1.5:
 
 - It reads `.env` from the directory of the compose file, not from the current directory. Give the compose file with `-f` or `COMPOSE_FILE` and run it from any directory.
 - It stops at the first `}` of a nested default such as `${A:-${B}}`. Do not use nested defaults.
-- It interpolates the `environment` of a service two times. See the `NO_PROXY` quirk in [Proxy internals](../DEPLOYMENT.md#proxy-internals).
+- It interpolates the `environment` of a service two times. See the `NO_PROXY` quirk in [Proxy internals](../DEPLOYMENT.md#internals).
 - It ignores `create_host_path` and always creates a missing bind-mount folder. A wrong `HOST_*` path gives an empty folder, not an error.
 - It puts two project labels on each container: `io.podman.compose.project=freezeman` and `com.docker.compose.project=freezeman`. Use them to filter `podman ps`.
 
@@ -312,7 +312,7 @@ Common errors:
 | `there might not be enough IDs available in the namespace` | `<user>` has no subuid or subgid range, or it is too small | Check `grep "^$USER:" /etc/subuid /etc/subgid`. Add a range of 65536 IDs with sudo ([Debug with sudo](#debug-with-sudo)), or ask IT. Then run `podman system migrate` |
 | Errors after a podman upgrade or a subuid change | Old state of podman | `podman system migrate` |
 | `short-name resolution enforced` | An image name without a registry | Use the full name (`docker.io/library/...`) |
-| An image pull fails or stops | No access to the registry, or no proxy in the shell | See [Network access](../DEPLOYMENT.md#network-access) and [Proxy](../DEPLOYMENT.md#proxy-optional) |
+| An image pull fails or stops | No access to the registry, or no proxy in the shell | See [Network access](../DEPLOYMENT.md#network-access) and [Proxy](../DEPLOYMENT.md#proxy) |
 | An error of `crun` or `conmon` | The OCI runtime or the container monitor | Run the command again with `--log-level=debug`. Read the kernel log with sudo ([Debug with sudo](#debug-with-sudo)), or send the output to IT with `rpm -q crun conmon` |
 | `podman stats` fails or shows no data | Rootless podman with `cgroupfs` and no systemd has no cgroup controllers | Normal on this host. Use `podman top` and `ps` |
 
