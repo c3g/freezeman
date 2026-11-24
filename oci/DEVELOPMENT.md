@@ -1,21 +1,23 @@
 # Development setup
 
-This guide tells you how to run the FreezeMan container stack for development.
+This guide runs the FreezeMan container stack for development.
 For the overview and layout of oci, read [README.md](README.md).
-For the clone and the submodules, see [`Installation` in ../README.md](../README.md#installation).
+For the clone and the submodules, see ["Installation" in ../README.md](../README.md#installation).
 
-> [!NOTE]
-> You can run `podman-compose` from any directory.
-> Give it the compose files once: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml:<install-dir>/oci/compose.dev.yaml`.
-> The commands below do not repeat the `-f` flags.
+Before you run `podman-compose` commands, set the compose files in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml:<install-dir>/oci/compose.dev.yaml`.
+podman-compose then works in any directory.
+It reads `.env` from the directory of the compose files.
+The commands below do not repeat the `-f` flags.
 
 Contents:
 
 - [Prerequisites](#prerequisites)
 - [Services](#services)
 - [Start the development stack](#start-the-development-stack)
-  - [Restore a production database](#restore-a-production-database)
-  - [Run the servers and the tests](#run-the-servers-and-the-tests)
+  - [dev container](#dev-container)
+  - [db container](#db-container)
+- [Restore a production database](#restore-a-production-database)
+- [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
 
@@ -31,12 +33,12 @@ Development works on any OS with podman and podman-compose.
 
 ## Services
 
-| Service    | Image                         | What it runs                                                    |
-|------------|-------------------------------|-----------------------------------------------------------------|
-| `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension. Port 5432 is published  |
-| `dev`      | `localhost/freezeman-dev`     | Idle container with the venv (`/opt/venv`), Python and Node. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
+| Service | Image | What it runs |
+|---|---|---|
+| `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension. Port 5432 is published |
+| `dev` | `localhost/freezeman-dev` | Idle container with the venv (`/opt/venv`), Python and Node. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
 
-The versions are in [`Overview` in README.md](README.md#overview).
+The versions are in ["Overview" in README.md](README.md#overview).
 
 `compose.dev.yaml` puts the production services `backend` and `web` in the profile `prod`, so `up -d` does not start them.
 
@@ -49,22 +51,37 @@ Set `HOST_LOG_DIR` in `.env` to the absolute path of `logs` in your checkout, fo
 Compose stops without it.
 If the path is relative or the directory does not exist, the containers fail with `[conmon:e]: Failed to open log file No such file or directory`.
 
-Start the stack and enter the `dev` container:
-
 ```bash
+# Start the stack.
 podman-compose up -d
+# Enter the `dev` container.
 podman-compose exec dev bash
+# The `dev` shell starts in `$CONTAINER_FMS_ROOT`.
 ```
 
 - After a change to `.env`, run `podman-compose up -d` again.
-  It compares the configuration of the containers with the compose files and `.env`.
-  If a value changed, it removes all containers of the stack and creates them again.
-  The data in the volumes stays.
-- `up` does not build an image again.
-  `CONTAINER_FMS_ROOT` is also in the `dev` image.
-  After a change to it, run `podman-compose build dev`, then `podman-compose up -d`.
+  It removes all containers of the stack and recreates them.
+- The data in the volumes stays.
 
-The `dev` shell starts in `$CONTAINER_FMS_ROOT`.
+### dev container
+
+- `up` does not rebuild images, and `CONTAINER_FMS_ROOT` is embedded into the `dev` image.
+  After changing `CONTAINER_FMS_ROOT`, run `podman-compose build dev`, then `podman-compose up -d`.
+
+The Python virtual environment is ready:
+
+- The `dev` image has the packages of `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`.
+  So `python`, `pip` and `pytest` are the ones of the venv, with no activation and no first `pip install`.
+- `pip install` works in the `dev` shell, for example to try a package.
+  However, the venv is in the image, not in a bind-mounted checkout, so the package stays only until `dev` is recreated.
+  To keep a package, add it to `backend/requirements.txt`, then rebuild the image and recreate `dev` (on the host):
+
+  ```bash
+  podman-compose build dev
+  podman-compose up -d dev
+  ```
+
+### db container
 
 `postgres` is the superuser of the database.
 It works only through the Unix socket in the `db` container (`podman-compose exec db ...`).
@@ -73,26 +90,14 @@ Django and `dev` connect as the app role `admin` (`POSTGRES_USER` of `.env`).
 - On the first start of a new database volume, `db` creates `admin` with the password of `.env` (`db/initdb/20-app-role.sh`).
 - In development, `admin` also gets `CREATEDB`: pytest creates its own test database.
 - If you restore a database backup file, see [Restore a production database](#restore-a-production-database).
-
-Python virtual environment is ready:
-
-- the `dev` image has the packages of `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`.
-  So `python`, `pip` and `pytest` are the ones of the venv, with no activation and no first `pip install`.
-- `pip install` works in the `dev` shell, for example to try a package.
-  The venv is in the image, not in the bind-mounted checkout, so the package stays only until `dev` is recreated.
-  To keep a package, add it to `backend/requirements.txt`, then build the image again and recreate `dev` (on the host):
-
-  ```bash
-  podman-compose build dev
-  podman-compose up -d dev
-  ```
+- To open `psql`, see [Database access](#database-access).
 
 ## Restore a production database
 
 Optional.
 Do this before `migrate` and `runserver` to get production data into the development database.
 
-Get a database backup file of all databases, `backups/<YYYY-MM-DD>.pgsql.gz`, from the production host (made with `pg_dumpall` as in [`Database backups` in ../DEPLOYMENT.md](../DEPLOYMENT.md#database-backups)).
+Get a database backup file of all databases, `backups/<YYYY-MM-DD>.pgsql.gz`, from the production host (made with `pg_dumpall` as in ["Database backups" in ../DEPLOYMENT.md](../DEPLOYMENT.md#database-backups)).
 Copy it to `<install-dir>/backups/`.
 The restore skips the lines that change `postgres`, so `postgres` keeps the settings of the development stack.
 
@@ -145,7 +150,7 @@ podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python 
 
 ## Run the servers and the tests
 
-In the `dev` shell (`podman-compose exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`, where the shell starts:
+In the `dev` shell (`podman-compose exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`.
 
 ```bash
 # First start and after each new migration:
@@ -218,9 +223,12 @@ Then build and start the stack.
 `web` is a default service:
 
 ```bash
-podman-compose -f <install-dir>/oci/compose.yaml build  # Proxy host: set the proxy variables, see ../DEPLOYMENT.md#proxy
+podman-compose -f <install-dir>/oci/compose.yaml build
 podman-compose -f <install-dir>/oci/compose.yaml up -d
 ```
+
+**Proxy host:** the build needs the proxy.
+See ["Proxy" in ../DEPLOYMENT.md](../DEPLOYMENT.md#proxy).
 
 - Open `http://localhost:<HOST_HTTP_PORT>` (`HOST_HTTP_PORT` of `.env`).
 - Restore a backup as in [Restore a production database](#restore-a-production-database).

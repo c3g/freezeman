@@ -2,10 +2,9 @@
 
 Container images and podman-compose configuration for FreezeMan.
 
-> [!NOTE]
-> You can run `podman-compose` from any directory.
-> Give it the compose file once: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
-> podman-compose reads `.env` from the directory of the compose file.
+Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
+podman-compose then works in any directory.
+It reads `.env` from the directory of the compose file.
 
 Contents:
 
@@ -22,13 +21,13 @@ Contents:
 - The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
 - The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
 - uwsgi settings are in `backend/uwsgi.ini`.
-- The services are in the [`Production services`](#production-services) section (deployment) and in [`Services` in DEVELOPMENT.md](DEVELOPMENT.md#services) (development).
+- The services are in [Production services](#production-services) (deployment) and in ["Services" in DEVELOPMENT.md](DEVELOPMENT.md#services) (development).
 
 ## Documents
 
 | Reader | Read |
 |---|---|
-| Host administrator | The host requirements in [`Host requirements` in ../DEPLOYMENT.md](../DEPLOYMENT.md#host-requirements) and [`Network access` in ../DEPLOYMENT.md](../DEPLOYMENT.md#network-access) |
+| Host administrator | ["Host requirements" in ../DEPLOYMENT.md](../DEPLOYMENT.md#host-requirements) and ["Network access" in ../DEPLOYMENT.md](../DEPLOYMENT.md#network-access) |
 | Deployment team | [../DEPLOYMENT.md](../DEPLOYMENT.md): the initial, routine and specific deployments |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 
@@ -47,20 +46,20 @@ Contents:
 
 ## Production services
 
-| Service    | Image                         | What it runs                                                    |
-|------------|-------------------------------|-----------------------------------------------------------------|
-| `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
-| `backend`  | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port             |
-| `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
+| Service | Image | What it runs |
+|---|---|---|
+| `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
+| `backend` | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port |
+| `web` | `localhost/freezeman-web` | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
-A reverse proxy on the host terminates TLS and passes the requests to `web` (see [`Reverse proxy` in ../DEPLOYMENT.md](../DEPLOYMENT.md#reverse-proxy)).
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see ["Reverse proxy" in ../DEPLOYMENT.md](../DEPLOYMENT.md#reverse-proxy)).
 
 ## FMS_ENV values
 
 - Use `PROD` on the production host, and `QC` or `DEV` on a test host.
-- The code does not validate the value.
+- FreezeMan does not validate the value.
   It only tests if the value is `PROD`.
-- `PROD` gives the production behaviour (column `PROD` below).
+- `PROD` gives the production behaviour (column `PROD` in the table below).
 - Any other value gives the test behaviour (right column).
   `QC` and `DEV` behave the same.
   They only label the host: the web page shows the value.

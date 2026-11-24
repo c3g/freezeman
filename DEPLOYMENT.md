@@ -1,7 +1,7 @@
 # FreezeMan deployment
 
 This guide deploys FreezeMan as containers.
-The services of the stack are in [`Production services` in oci/README.md](oci/README.md#production-services).
+The services of the stack are in ["Production services" in oci/README.md](oci/README.md#production-services).
 
 Placeholders used in this guide:
 
@@ -127,7 +127,7 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 
 ## Checkout
 
-1. Clone into `<install-dir>` as in the [`Installation` in README.md](README.md#installation) instruction.
+1. Clone into `<install-dir>` as in ["Installation" in README.md](README.md#installation).
 2. Check out the release that you deploy (`git checkout vX.Y.Z`).
 
 ## Set up podman without systemd
@@ -180,7 +180,7 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 
 Personalize `.env` before the first start.
 
-The effect of each `FMS_ENV` value is in [`FMS_ENV values` in oci/README.md](oci/README.md#fms_env-values).
+The effect of each `FMS_ENV` value is in ["FMS_ENV values" in oci/README.md](oci/README.md#fms_env-values).
 
 ## Build the images
 
@@ -358,7 +358,7 @@ podman-compose up -d
 - The `psql` command restores a `pg_dumpall` script.
   A custom-format backup file (`pg_dump -Fc`) needs `pg_restore`:
   `podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < <file>`.
-  For a parallel restore (`pg_restore -j`), see [`Restore a production database` in oci/DEVELOPMENT.md](oci/DEVELOPMENT.md#restore-a-production-database).
+  For a parallel restore (`pg_restore -j`), see ["Restore a production database" in oci/DEVELOPMENT.md](oci/DEVELOPMENT.md#restore-a-production-database).
 - Restore only into an empty `freezeman_pgdata` volume.
   If the volume is new (first start), skip the first two commands.
 - `backups/` is git-ignored.
@@ -397,7 +397,7 @@ A new patch release can break the stack.
 Test on QC before prod.
 
 Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15).
-A major change is a [specific deployment](#specific-deployments).
+A major change is in [Specific deployments](#specific-deployments).
 For PostgreSQL it also needs a backup and restore of the data.
 
 ## Report and logs
