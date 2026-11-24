@@ -24,7 +24,7 @@ Python package dependencies are listed in `requirements.txt`.
   
 ## Running in containers
 
-You can run the backend in a container stack. See [oci/DEVELOPMENT.md](../oci/DEVELOPMENT.md).
+You can run the backend in a container stack. See [../oci/DEVELOPMENT.md](../oci/DEVELOPMENT.md).
 
 The sections below describe the setup without containers.
 

@@ -22,14 +22,14 @@ Contents:
 - The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
 - The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
 - uwsgi settings are in `backend/uwsgi.ini`.
-- The services are in [Production services](#production-services) (deployment) and in [Development services](DEVELOPMENT.md#services) (development).
+- The services are in the [`Production services`](#production-services) section (deployment) and in [`Services` in DEVELOPMENT.md](DEVELOPMENT.md#services) (development).
 
 ## Documents
 
 | Reader | Read |
 |---|---|
-| Host administrator | The host requirements in [Host requirements](../DEPLOYMENT.md#host-requirements) and [Network access](../DEPLOYMENT.md#network-access) of the deployment guide |
-| Deployment team | [DEPLOYMENT.md](../DEPLOYMENT.md) in the repository root: the initial, routine and specific deployments |
+| Host administrator | The host requirements in [`Host requirements` in ../DEPLOYMENT.md](../DEPLOYMENT.md#host-requirements) and [`Network access` in ../DEPLOYMENT.md](../DEPLOYMENT.md#network-access) |
+| Deployment team | [../DEPLOYMENT.md](../DEPLOYMENT.md): the initial, routine and specific deployments |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 
 ## Layout
@@ -53,7 +53,7 @@ Contents:
 | `backend`  | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port             |
 | `web`      | `localhost/freezeman-web`     | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
-A reverse proxy on the host terminates TLS and passes the requests to `web` (see [Reverse proxy](../DEPLOYMENT.md#reverse-proxy)).
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see [`Reverse proxy` in ../DEPLOYMENT.md](../DEPLOYMENT.md#reverse-proxy)).
 
 ## FMS_ENV values
 

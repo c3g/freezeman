@@ -93,7 +93,7 @@ To keep the data of a version earlier than 6.0.0, do the optional step of [Start
 
 # Initial deployment
 
-The services of the stack are in [Production services](oci/README.md#production-services).
+The services of the stack are in [`Production services` in oci/README.md](oci/README.md#production-services).
 
 ## Host requirements
 
@@ -112,8 +112,8 @@ These steps need root.
 
 Summary:
 
-- Podman image pulls and builds: outbound ports 80 and 443 to the domains in the table below.
-- Running stack: outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST` only.
+- Podman image pulls and builds: requires outbound ports 80 and 443 to the domains in the table below.
+- Running stack: only requires outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST`.
   The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
 - Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails.
   To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
@@ -133,15 +133,13 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` | The value of `FMS_EMAIL_PORT` | Django email, only if `FMS_EMAIL_HOST` is set |
 
-Docker Hub serves the image layers from a CDN.
-Allow the CDN domains, or the pull fails after the login.
+Docker Hub also serves image layers from CDNs.
 
 ## Checkout
 
 Run these steps as `<user>`.
 
-1. Follow [Installation](README.md#installation) in the root README.md.
-   Clone into `<install-dir>`.
+1. Clone into `<install-dir>` as in the [`Installation` in README.md](README.md#installation) instruction.
 2. Check out the release that you deploy (`git checkout vX.Y.Z`).
 
 ## Set up the account of the user
@@ -201,7 +199,7 @@ cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 `.env.prod.example` is a template.
 Personalize `.env` before the first start.
 
-The effect of each `FMS_ENV` value is in [FMS_ENV values](oci/README.md#fms_env-values).
+The effect of each `FMS_ENV` value is in [`FMS_ENV values` in oci/README.md](oci/README.md#fms_env-values).
 
 ## Build the images
 
@@ -404,7 +402,7 @@ podman-compose up -d
 - The `psql` command restores a `pg_dumpall` script.
   A custom-format backup file (`pg_dump -Fc`) needs `pg_restore`:
   `podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < <file>`.
-  For a parallel restore (`pg_restore -j`), see [Restore a production database](oci/DEVELOPMENT.md#restore-a-production-database).
+  For a parallel restore (`pg_restore -j`), see [`Restore a production database` in oci/DEVELOPMENT.md](oci/DEVELOPMENT.md#restore-a-production-database).
 - Restore only into an empty `freezeman_pgdata` volume.
   If the volume is new (first start), skip the first two commands.
 - `backups/` is git-ignored.

@@ -2,7 +2,7 @@
 
 This guide tells you how to run the FreezeMan container stack for development.
 For the overview and layout of oci, read [README.md](README.md).
-For the clone and the submodules, see [Installation](../README.md#installation) in the root README.md.
+For the clone and the submodules, see [`Installation` in ../README.md](../README.md#installation).
 
 > [!NOTE]
 > You can run `podman-compose` from any directory.
@@ -36,7 +36,7 @@ Development works on any OS with podman and podman-compose.
 | `db`       | `localhost/freezeman-db`      | PostgreSQL with the `fzy` extension. Port 5432 is published  |
 | `dev`      | `localhost/freezeman-dev`     | Idle container with the venv (`/opt/venv`), Python and Node. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
 
-The versions are in [Overview](README.md#overview).
+The versions are in [`Overview` in README.md](README.md#overview).
 
 `compose.dev.yaml` puts the production services `backend` and `web` in the profile `prod`, so `up -d` does not start them.
 
@@ -92,7 +92,7 @@ Python virtual environment is ready:
 Optional.
 Do this before `migrate` and `runserver` to get production data into the development database.
 
-Get a database backup file of all databases, `backups/<YYYY-MM-DD>.pgsql.gz`, from the production host (made with `pg_dumpall` as in [Database backups](../DEPLOYMENT.md#database-backups)).
+Get a database backup file of all databases, `backups/<YYYY-MM-DD>.pgsql.gz`, from the production host (made with `pg_dumpall` as in [`Database backups` in ../DEPLOYMENT.md](../DEPLOYMENT.md#database-backups)).
 Copy it to `<install-dir>/backups/`.
 The restore skips the lines that change `postgres`, so `postgres` keeps the settings of the development stack.
 
