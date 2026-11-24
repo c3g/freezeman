@@ -1,6 +1,7 @@
 # FreezeMan deployment
 
-This guide tells you how to deploy FreezeMan as containers: the [initial deployment](#initial-deployment) of a host, the [routine deployments](#routine-deployments) of each release, and the steps of [specific deployments](#specific-deployments) for some releases.
+This guide deploys FreezeMan as containers.
+The services of the stack are in [`Production services` in oci/README.md](oci/README.md#production-services).
 
 Placeholders used in this guide:
 
@@ -24,6 +25,8 @@ Before you run `podman-compose` commands, set the compose file in the current sh
 podman-compose then works in any directory.
 It reads `.env` from the directory of the compose file.
 
+Run all steps as `<user>`, except [Host requirements](#host-requirements), which need root.
+
 Contents:
 
 - [Quick start](#quick-start)
@@ -31,7 +34,7 @@ Contents:
   - [Host requirements](#host-requirements)
   - [Network access](#network-access)
   - [Checkout](#checkout)
-  - [Set up the account of the user](#set-up-the-account-of-the-user)
+  - [Set up podman without systemd](#set-up-podman-without-systemd)
   - [Configure .env](#configure-env)
   - [Build the images](#build-the-images)
   - [Start the database](#start-the-database)
@@ -52,13 +55,8 @@ Contents:
 
 # Quick start
 
-The short install procedure for a new host.
-Each step links to its detailed section below.
-
-Before you start, the host must meet [Host requirements](#host-requirements) and [Network access](#network-access), and `<user>` must be set up ([Set up the account of the user](#set-up-the-account-of-the-user)).
-On a host with an HTTP proxy, see [Proxy](#proxy).
-
-Run these commands as `<user>`:
+First do [Host requirements](#host-requirements), [Network access](#network-access) and [Set up podman without systemd](#set-up-podman-without-systemd).
+On a proxy host, see [Proxy](#proxy).
 
 ```bash
 # Checkout
@@ -89,11 +87,7 @@ Then:
 1. Set up the [Reverse proxy](#reverse-proxy).
 2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
-To keep the data of a version earlier than 6.0.0, do the optional step of [Start the database](#start-the-database).
-
 # Initial deployment
-
-The services of the stack are in [`Production services` in oci/README.md](oci/README.md#production-services).
 
 ## Host requirements
 
@@ -115,10 +109,8 @@ Summary:
 - Podman image pulls and builds: requires outbound ports 80 and 443 to the domains in the table below.
 - Running stack: only requires outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST`.
   The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
-- Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails.
-  To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
 
-If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic.
+If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic:
 
 | Domain | Port | Used by |
 |---|---|---|
@@ -133,48 +125,40 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` | The value of `FMS_EMAIL_PORT` | Django email, only if `FMS_EMAIL_HOST` is set |
 
-Docker Hub also serves image layers from CDNs.
-
 ## Checkout
-
-Run these steps as `<user>`.
 
 1. Clone into `<install-dir>` as in the [`Installation` in README.md](README.md#installation) instruction.
 2. Check out the release that you deploy (`git checkout vX.Y.Z`).
 
-## Set up the account of the user
+## Set up podman without systemd
 
-Run these steps as `<user>`.
+1. Use the `cgroupfs` cgroup manager and the `file` event logger.
+   If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
 
-1. Set up podman without systemd.
+   ```bash
+   mkdir -p ~/.config/containers
+   cat >> ~/.config/containers/containers.conf <<'EOF'
+   [engine]
+   # Podman creates the cgroups (resource limits) of the containers itself.
+   cgroup_manager = "cgroupfs"
+   # Podman writes its events to a file.
+   events_logger = "file"
+   EOF
+   ```
 
-   a. Use the `cgroupfs` cgroup manager and the `file` event logger.
-      If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
+2. Set `XDG_RUNTIME_DIR` in every login shell.
+   Replace the placeholder with its value.
 
-      ```bash
-      mkdir -p ~/.config/containers
-      cat >> ~/.config/containers/containers.conf <<'EOF'
-      [engine]
-      # Podman creates the cgroups (resource limits) of the containers itself.
-      cgroup_manager = "cgroupfs"
-      # Podman writes its events to a file.
-      events_logger = "file"
-      EOF
-      ```
+   ```bash
+   cp ~/.bash_profile ~/.bash_profile.bak
+   cat >> ~/.bash_profile <<'EOF'
 
-   b. Set `XDG_RUNTIME_DIR` in every login shell.
-      Replace the placeholder with its value.
-
-      ```bash
-      cp ~/.bash_profile ~/.bash_profile.bak
-      cat >> ~/.bash_profile <<'EOF'
-
-      # Rootless podman: a login through su or sudo does not set XDG_RUNTIME_DIR. Podman keeps the state of
-      # the running containers there, so every shell of this user must use the same directory.
-      # The usual value is /run/user/<uid>.
-      export XDG_RUNTIME_DIR=<runtime-dir>
-      EOF
-      ```
+   # Rootless podman: a login through su or sudo does not set XDG_RUNTIME_DIR. Podman keeps the state of
+   # the running containers there, so every shell of this user must use the same directory.
+   # The usual value is /run/user/<uid>.
+   export XDG_RUNTIME_DIR=<runtime-dir>
+   EOF
+   ```
 
    Start a new login shell and run the check:
 
@@ -182,7 +166,7 @@ Run these steps as `<user>`.
    podman info --format '{{.Host.CgroupManager}}'      # cgroupfs
    ```
 
-2. Run `podman system migrate` once:
+3. Run `podman system migrate` once:
 
    ```bash
    podman system migrate
@@ -190,20 +174,15 @@ Run these steps as `<user>`.
 
 ## Configure .env
 
-Run these steps as `<user>`.
-
 ```bash
 cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 ```
 
-`.env.prod.example` is a template.
 Personalize `.env` before the first start.
 
 The effect of each `FMS_ENV` value is in [`FMS_ENV values` in oci/README.md](oci/README.md#fms_env-values).
 
 ## Build the images
-
-Run this step as `<user>`.
 
 ```bash
 podman-compose build
@@ -214,39 +193,21 @@ See [Proxy](#proxy).
 
 ## Start the database
 
-Run these steps as `<user>`.
-
-1. Start only `db`, and wait until it is ready:
-
-   ```bash
-   podman-compose up -d db
-   until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
-   ```
-
-2. Optional.
-   To keep the data of a version earlier than 6.0.0, stop the old uwsgi, create a database backup file of all databases on the old PostgreSQL server, and restore it into `db`.
-
-   ```bash
-   pg_dumpall -U postgres | gzip > fms_old.pgsql.gz   # on the old PostgreSQL server
-   # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-   gunzip -c fms_old.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
-   # The backup file sets the password of the old server on admin. Set the password of .env again.
-   podman-compose exec db psql -U postgres -d postgres -c "ALTER ROLE <POSTGRES_USER> PASSWORD '<POSTGRES_PASSWORD>'"
-   ```
-
-   - The messages "role "postgres" already exists", "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
-   - For a custom-format backup file (`pg_dump -Fc`), use `pg_restore` as in [Database backups](#database-backups).
+```bash
+# Start only db.
+podman-compose up -d db
+# Wait until the db is ready.
+until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+```
 
 ## Start the stack
 
-Run these steps as `<user>`, while `db` runs.
-Nothing applies migrations automatically.
-
-Apply the migrations in a one-off `backend` container, then start all services and check `web`:
-
 ```bash
+# Apply the migrations in a one-off `backend` container.
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+# Start all services.
 podman-compose up -d
+# Check `web`.
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
 ```
 
@@ -279,16 +240,11 @@ location / {
 }
 ```
 
-Other reverse proxies need the same settings.
-
 Check the site through the reverse proxy:
 
 ```bash
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/   # 200
 ```
-
-If the reverse proxy served a version earlier than 6.0.0, replace its old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the block above.
-The `web` container serves all these paths.
 
 ## Start at boot
 
@@ -428,7 +384,7 @@ How to update (on each host, QC first, prod after QC works):
    ```
 
    **Proxy host:** set the proxy variables as in [Proxy](#proxy).
-2. Recreate the containers: `podman-compose up -d`.
+2. Recreate the containers: `podman-compose up -d --force-recreate`.
 3. Check the versions, and write them in the deployment notes:
 
    ```bash
@@ -468,10 +424,10 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
   * Clone the new repository.
   * Modify the nginx and uwsgi for the new locations.
 * Version 3.2:
-  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
+  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
 * Version 3.3:
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
-  * Add a .env file in the /frontend directory using the exemple.env as a reference.
+  * Add a .env file in the /frontend directory using the example.env as a reference.
     Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini.
@@ -499,7 +455,19 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
   * Upgrade node.js to v24.18.0.
 * Version 6.0.0:
   * FreezeMan runs as containers.
-    To keep the data of an earlier version, restore its database as in the optional step of [Start the database](#start-the-database), and set the `HOST_*_DIR` folders of `.env`.
+    To keep the data of an earlier version, do these steps during the initial deployment:
+    1. In `.env`, set `POSTGRES_PASSWORD` to the old password of `admin` (the backup file sets it), and set the `HOST_*_DIR` folders to the folders of the old install.
+    2. Stop the old uwsgi, then make a backup file on the old PostgreSQL server.
+    3. After [Start the database](#start-the-database) and before [Start the stack](#start-the-stack), restore the file into the new, empty `db`.
+       The messages "... already exists" for `postgres`, `admin`, `fms` and `fzy` are harmless.
+
+       ```bash
+       pg_dumpall -U postgres | gzip > fms_old.pgsql.gz   # on the old PostgreSQL server
+       # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+       gunzip -c fms_old.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+       ```
+
+    4. In the reverse proxy, replace the old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the `location /` block of [Reverse proxy](#reverse-proxy).
 
 # Additional information
 
@@ -509,12 +477,9 @@ Do this section only if your host reaches the internet through an HTTP proxy.
 
 Only image pulls and builds use the proxy.
 The running services do not.
-You can clear the proxy variables after the install.
-Set them again for each update, because each update builds the images.
 
-Give the proxy to the command.
-Use the uppercase names.
-Set them before the command, so they apply only to this command and not to other commands of the shell:
+Set the proxy variables, in upper case, before the command.
+They then apply only to that command:
 
 ```bash
 HTTP_PROXY=http://<proxy-host>:<port> \
