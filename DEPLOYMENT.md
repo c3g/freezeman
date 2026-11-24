@@ -6,15 +6,23 @@ Placeholders used in this guide:
 
 - `<user>`: the non-root account that runs the stack with rootless podman.
 - `<uid>`: the numeric ID of `<user>` (`id -u`).
-- `<runtime-dir>`: the value of `XDG_RUNTIME_DIR` for `<user>`. Rootless podman keeps the state of the running containers there. The usual value is `/run/user/<uid>`.
+- `<runtime-dir>`: the value of `XDG_RUNTIME_DIR` for `<user>`.
+  Rootless podman keeps the state of the running containers there.
+  The usual value is `/run/user/<uid>`.
 - `<install-dir>`: the absolute path of the FreezeMan checkout for the stack.
-- `<domain>`: the public host name of FreezeMan. It is the value of `FMS_HOST` in `.env`.
+- `<domain>`: the public host name of FreezeMan.
+  It is the value of `FMS_HOST` in `.env`.
 - `<HOST_LOG_DIR>`: the value of `HOST_LOG_DIR` in `.env`.
-- `<HOST_HTTP_PORT>`: the value of `HOST_HTTP_PORT` in `.env`. It is the host port where the `web` container listens, and where the reverse proxy sends the requests.
-- `<POSTGRES_USER>`, `<POSTGRES_DB>`: the values of `POSTGRES_USER` and `POSTGRES_DB` in `.env`.
+- `<HOST_HTTP_PORT>`: the value of `HOST_HTTP_PORT` in `.env`.
+  It is the host port where the `web` container listens, and where the reverse proxy sends the requests.
+- `<POSTGRES_USER>`, `<POSTGRES_DB>`, `<POSTGRES_PASSWORD>`: the values of `POSTGRES_USER`, `POSTGRES_DB` and `POSTGRES_PASSWORD` in `.env`.
+  `POSTGRES_USER` (`admin`) is the app role.
+  The superuser is `postgres`, and only `podman-compose exec db` reaches it.
 - `<YYYY-MM-DD>`: the date in the name of a database backup file.
 
-Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`. podman-compose then works in any directory. It reads `.env` from the directory of the compose file.
+Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
+podman-compose then works in any directory.
+It reads `.env` from the directory of the compose file.
 
 Contents:
 
@@ -44,9 +52,11 @@ Contents:
 
 # Quick start
 
-The short install procedure for a new host. Each step links to its detailed section below.
+The short install procedure for a new host.
+Each step links to its detailed section below.
 
-Before you start, the host must meet [Host requirements](#host-requirements) and [Network access](#network-access), and `<user>` must be set up ([Set up the account of the user](#set-up-the-account-of-the-user)). On a host with an HTTP proxy, see [Proxy](#proxy).
+Before you start, the host must meet [Host requirements](#host-requirements) and [Network access](#network-access), and `<user>` must be set up ([Set up the account of the user](#set-up-the-account-of-the-user)).
+On a host with an HTTP proxy, see [Proxy](#proxy).
 
 Run these commands as `<user>`:
 
@@ -92,7 +102,8 @@ These steps need root.
 - A Linux host with podman 5.4 or later.
 - podman-compose 1.5 or later (the package of the OS, or `pip install podman-compose`).
 - A non-root `<user>` with subuid and subgid ranges, for rootless containers.
-- A `<runtime-dir>` of `<user>` that stays from boot to shutdown. With systemd, enable linger for `<user>` (`loginctl enable-linger <user>`).
+- A `<runtime-dir>` of `<user>` that stays from boot to shutdown.
+  With systemd, enable linger for `<user>` (`loginctl enable-linger <user>`).
 - A cron daemon, to start the stack at boot and to run the daily report.
 - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
 - Outbound access, as in [Network access](#network-access).
@@ -101,12 +112,13 @@ These steps need root.
 
 Summary:
 
-- Install and update: outbound ports 80 and 443 to the domains below.
-- Running stack: outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST` only. The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
-- Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails. To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
+- Podman image pulls and builds: outbound ports 80 and 443 to the domains in the table below.
+- Running stack: outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST` only.
+  The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
+- Email: if the host cannot reach `FMS_EMAIL_HOST` on `FMS_EMAIL_PORT`, Django cannot send emails, so users get no password reset emails.
+  To log the emails to the console instead, comment out all `FMS_EMAIL_*` variables in `.env`.
 
 If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic.
-Only podman image pulls and builds use the proxy. The running services do not.
 
 | Domain | Port | Used by |
 |---|---|---|
@@ -121,13 +133,15 @@ Only podman image pulls and builds use the proxy. The running services do not.
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` | The value of `FMS_EMAIL_PORT` | Django email, only if `FMS_EMAIL_HOST` is set |
 
-Docker Hub serves the image layers from a CDN. Allow the CDN domains, or the pull fails after the login.
+Docker Hub serves the image layers from a CDN.
+Allow the CDN domains, or the pull fails after the login.
 
 ## Checkout
 
 Run these steps as `<user>`.
 
-1. Follow [Installation](README.md#installation) in the root README.md. Clone into `<install-dir>`.
+1. Follow [Installation](README.md#installation) in the root README.md.
+   Clone into `<install-dir>`.
 2. Check out the release that you deploy (`git checkout vX.Y.Z`).
 
 ## Set up the account of the user
@@ -136,7 +150,8 @@ Run these steps as `<user>`.
 
 1. Set up podman without systemd.
 
-   a. Use the `cgroupfs` cgroup manager and the `file` event logger. If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
+   a. Use the `cgroupfs` cgroup manager and the `file` event logger.
+      If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
 
       ```bash
       mkdir -p ~/.config/containers
@@ -149,7 +164,8 @@ Run these steps as `<user>`.
       EOF
       ```
 
-   b. Set `XDG_RUNTIME_DIR` in every login shell. Replace the placeholder with its value.
+   b. Set `XDG_RUNTIME_DIR` in every login shell.
+      Replace the placeholder with its value.
 
       ```bash
       cp ~/.bash_profile ~/.bash_profile.bak
@@ -182,7 +198,8 @@ Run these steps as `<user>`.
 cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
 ```
 
-`.env.prod.example` is a template. Personalize `.env` before the first start. The comments in the file explain each value. To keep the files of a version earlier than 6.0.0, set the `HOST_*_DIR` folders to the folders of the old install.
+`.env.prod.example` is a template.
+Personalize `.env` before the first start.
 
 The effect of each `FMS_ENV` value is in [FMS_ENV values](oci/README.md#fms_env-values).
 
@@ -194,7 +211,8 @@ Run this step as `<user>`.
 podman-compose build
 ```
 
-**Proxy host:** this command needs the proxy. See [Proxy](#proxy).
+**Proxy host:** this command needs the proxy.
+See [Proxy](#proxy).
 
 ## Start the database
 
@@ -207,18 +225,24 @@ Run these steps as `<user>`.
    until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
    ```
 
-2. Optional. To keep the data of a version earlier than 6.0.0, stop the old uwsgi, create a database backup file of the old database, and restore it into `db`. The message "extension fzy already exists" is harmless.
+2. Optional.
+   To keep the data of a version earlier than 6.0.0, stop the old uwsgi, create a database backup file of all databases on the old PostgreSQL server, and restore it into `db`.
 
    ```bash
-   pg_dump -U postgres -Fc fms > fms_old.backup   # on the old PostgreSQL server
-   podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < fms_old.backup
+   pg_dumpall -U postgres | gzip > fms_old.pgsql.gz   # on the old PostgreSQL server
+   # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+   gunzip -c fms_old.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+   # The backup file sets the password of the old server on admin. Set the password of .env again.
+   podman-compose exec db psql -U postgres -d postgres -c "ALTER ROLE <POSTGRES_USER> PASSWORD '<POSTGRES_PASSWORD>'"
    ```
 
-   Then remove the daily report line of the old version from the crontab of its user.
+   - The messages "role "postgres" already exists", "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
+   - For a custom-format backup file (`pg_dump -Fc`), use `pg_restore` as in [Database backups](#database-backups).
 
 ## Start the stack
 
-Run these steps as `<user>`, while `db` runs. Nothing applies migrations automatically.
+Run these steps as `<user>`, while `db` runs.
+Nothing applies migrations automatically.
 
 Apply the migrations in a one-off `backend` container, then start all services and check `web`:
 
@@ -230,10 +254,14 @@ curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 20
 
 ## Reverse proxy
 
-The `web` container listens on `127.0.0.1:<HOST_HTTP_PORT>` and speaks plain HTTP. A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it. The reverse proxy must:
+The `web` container listens on `127.0.0.1:<HOST_HTTP_PORT>` and speaks plain HTTP.
+A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it.
+The reverse proxy must:
 
-- Pass `Host`, `X-Real-IP`, `X-Forwarded-For` and `X-Forwarded-Proto`. Django checks `Host` against `FMS_HOST`.
-- Allow uploads of at least 50 MB and timeouts of at least 300 s. Larger values are safe.
+- Pass `Host`, `X-Real-IP`, `X-Forwarded-For` and `X-Forwarded-Proto`.
+  Django checks `Host` against `FMS_HOST`.
+- Allow uploads of at least 50 MB and timeouts of at least 300 s.
+  Larger values are safe.
 
 nginx example, in the HTTPS server block of `<domain>`:
 
@@ -261,11 +289,13 @@ Check the site through the reverse proxy:
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/   # 200
 ```
 
-If the reverse proxy served a version earlier than 6.0.0, replace its old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the block above. The `web` container serves all these paths.
+If the reverse proxy served a version earlier than 6.0.0, replace its old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the block above.
+The `web` container serves all these paths.
 
 ## Start at boot
 
-Run this step as `<user>`, after the first start works. Add these lines to the crontab (`crontab -e`):
+Run this step as `<user>`, after the first start works.
+Add these lines to the crontab (`crontab -e`):
 
 ```cron
 XDG_RUNTIME_DIR=<runtime-dir>
@@ -273,12 +303,16 @@ PATH=<podman-compose-dir>:/usr/bin:/bin
 @reboot cd <install-dir>/oci && podman-compose up -d >> <HOST_LOG_DIR>/boot.log 2>&1
 ```
 
-- Cron does not set `XDG_RUNTIME_DIR`, and its `PATH` is short. Put the two variable lines at the top of the crontab. `<podman-compose-dir>` is the directory of `command -v podman-compose` (for example `/home/<user>/.local/bin`).
+- Cron does not set `XDG_RUNTIME_DIR`, and its `PATH` is short.
+  Put the two variable lines at the top of the crontab.
+  `<podman-compose-dir>` is the directory of `command -v podman-compose` (for example `/home/<user>/.local/bin`).
 - `podman-compose` reads `.env` in `oci/`.
 
 ## Daily report
 
-Run this step as `<user>`, after the first start works. FreezeMan needs a daily run of `prepare_report_data`, the command that prepares the data of the reports. Host cron must call it in the running `backend` container. Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot):
+FreezeMan needs a daily run of `prepare_report_data`, the command that prepares the data of the reports.
+Host cron must call it in the running `backend` container.
+Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot):
 
 ```cron
 0 1 * * * cd <install-dir>/oci && podman-compose exec -T backend python manage.py prepare_report_data >> <HOST_LOG_DIR>/report.log 2>&1
@@ -303,10 +337,12 @@ Use `--force-recreate` after a build or an `.env` change.
 
 ## Update to a new release
 
-Run these steps as `<user>`. Test the release on a test host first.
+Run these steps as `<user>`.
+Test the release on a test host first.
 
 1. Back up the database, as in [Database backups](#database-backups).
-2. Check out the release, and set its version in `.env`. `FMS_IMAGE_TAG` is the value in the `VERSION` file.
+2. Check out the release, and set its version in `.env`.
+   `FMS_IMAGE_TAG` is the value in the `VERSION` file.
 
    ```bash
    cd <install-dir>
@@ -315,7 +351,9 @@ Run these steps as `<user>`. Test the release on a test host first.
    sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat VERSION)/" oci/.env
    ```
 
-3. Build the images. **Proxy host:** this command needs the proxy. See [Proxy](#proxy).
+3. Build the images.
+   **Proxy host:** this command needs the proxy.
+   See [Proxy](#proxy).
 
    ```bash
    podman-compose build
@@ -329,19 +367,24 @@ Run these steps as `<user>`. Test the release on a test host first.
    podman-compose up -d --force-recreate
    ```
 
-If the build fails, the old containers keep running. Set `FMS_IMAGE_TAG` back to the old version. If the migration fails, the stack stays down.
+If the build fails, the old containers keep running.
+Set `FMS_IMAGE_TAG` back to the old version.
+If the migration fails, the stack stays down.
 
 ## Database backups
 
-The stack has no automatic backup yet. To create a database backup file of all databases now, run this command while `db` runs. `pg_dumpall` copies the roles too:
+The stack has no automatic backup yet.
+To create a database backup file of all databases now, run this command while `db` runs.
+`pg_dumpall` copies the roles too, so it runs as the superuser `postgres`:
 
 ```bash
 mkdir -p <install-dir>/backups
 # -T: no pseudo-TTY, which would turn the line endings of the backup file into CRLF.
-podman-compose exec -T db pg_dumpall -U <POSTGRES_USER> | gzip > <install-dir>/backups/$(date +%F).pgsql.gz
+podman-compose exec -T db pg_dumpall -U postgres | gzip > <install-dir>/backups/$(date +%F).pgsql.gz
 ```
 
-To restore, stop the stack, so the site is offline and no service writes to the database. Delete the old data volume, start only `db`, restore, then start the rest.
+To restore, stop the stack, so the site is offline and no service writes to the database.
+Delete the old data volume, start only `db`, restore, then start the rest.
 
 ```bash
 podman-compose down
@@ -349,25 +392,29 @@ podman volume rm freezeman_pgdata     # deletes the current database
 podman-compose up -d db
 until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
-gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U <POSTGRES_USER> -d postgres
+gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+# The backup file sets the password of admin at backup time. Set the password of .env again.
+podman-compose exec db psql -U postgres -d postgres -c "ALTER ROLE <POSTGRES_USER> PASSWORD '<POSTGRES_PASSWORD>'"
 # Apply the migrations that the backup does not have, while only db runs.
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
 ```
 
-- The messages "role already exists", "database already exists" and "extension fzy already exists" are harmless.
-- The `psql` command restores a `pg_dumpall` script. For a file of another format, see
-  [Identify the format of a database backup](oci/README.md#identify-the-format-of-a-database-backup).
-- Restore only into an empty `freezeman_pgdata` volume. If the volume is new (first start), skip the first two commands.
-- If `POSTGRES_PASSWORD` changed after the backup, set it back to the value at backup time.
-- `backups/` is git-ignored. Copy the backups off the host.
+- The messages "role "postgres" already exists", "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
+- The `psql` command restores a `pg_dumpall` script.
+  A custom-format backup file (`pg_dump -Fc`) needs `pg_restore`:
+  `podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < <file>`.
+  For a parallel restore (`pg_restore -j`), see [Restore a production database](oci/DEVELOPMENT.md#restore-a-production-database).
+- Restore only into an empty `freezeman_pgdata` volume.
+  If the volume is new (first start), skip the first two commands.
+- `backups/` is git-ignored.
+  Copy the backups off the host.
 
 ## Keep the base images up to date
 
-The Containerfiles use floating tags (`python:3.14-slim-trixie`, `node:24-trixie-slim`, `nginx-unprivileged:stable-alpine`,
-`postgres:15-trixie`). A floating tag moves to each new patch release, but a host does not fetch it by itself: podman
-keeps the image it pulled first. Without the steps below, a host stays on old base images and misses security fixes,
-and QC and prod can run different versions for the same commit.
+The Containerfiles use floating tags (`python:3.14-slim-trixie`, `node:24-trixie-slim`, `nginx-unprivileged:stable-alpine`, `postgres:15-trixie`).
+A floating tag moves to each new patch release, but a host does not fetch it by itself: podman keeps the image it pulled first.
+Without the steps below, a host stays on old base images and misses security fixes, and QC and prod can run different versions for the same commit.
 
 When to update:
 
@@ -375,8 +422,8 @@ When to update:
 
 How to update (on each host, QC first, prod after QC works):
 
-1. Pull the new base images and rebuild without the layer cache. `--pull` alone is not enough: the cached `apt-get`,
-   `pip` and `npm` layers would keep the old packages.
+1. Pull the new base images and rebuild without the layer cache.
+   `--pull` alone is not enough: the cached `apt-get`, `pip` and `npm` layers would keep the old packages.
 
    ```bash
    podman-compose build --pull --no-cache
@@ -392,16 +439,21 @@ How to update (on each host, QC first, prod after QC works):
    podman-compose exec db postgres --version
    ```
 
-A new patch release can break the stack. Test on QC before prod.
+A new patch release can break the stack.
+Test on QC before prod.
 
-Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15). A major change is a [specific deployment](#specific-deployments).
+Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15).
+A major change is a [specific deployment](#specific-deployments).
 For PostgreSQL it also needs a backup and restore of the data.
 
 ## Report and logs
 
-The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report). The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
+The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report).
+The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
 
-The crontab lines write to `<HOST_LOG_DIR>/boot.log` and `<HOST_LOG_DIR>/report.log`. The containers write `<HOST_LOG_DIR>/<service>.log`. Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`.
+The crontab lines write to `<HOST_LOG_DIR>/boot.log` and `<HOST_LOG_DIR>/report.log`.
+The containers write `<HOST_LOG_DIR>/<service>.log`.
+Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`.
 
 ```bash
 podman-compose logs -f backend                                       # follow the backend log through podman
@@ -421,7 +473,8 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
   * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
 * Version 3.3:
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
-  * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
+  * Add a .env file in the /frontend directory using the exemple.env as a reference.
+    Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini.
 * Version 4.4.0:
@@ -447,7 +500,8 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
 * Version 5.9.0:
   * Upgrade node.js to v24.18.0.
 * Version 6.0.0:
-  * FreezeMan runs as containers. To keep the data of an earlier version, restore its database as in the optional step of [Start the database](#start-the-database), and set the `HOST_*_DIR` folders of `.env`.
+  * FreezeMan runs as containers.
+    To keep the data of an earlier version, restore its database as in the optional step of [Start the database](#start-the-database), and set the `HOST_*_DIR` folders of `.env`.
 
 # Additional information
 
@@ -455,9 +509,14 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
 
 Do this section only if your host reaches the internet through an HTTP proxy.
 
-Only image pulls and builds use the proxy. The running services do not. You can clear the proxy variables after the install. Set them again for each update, because each update builds the images.
+Only image pulls and builds use the proxy.
+The running services do not.
+You can clear the proxy variables after the install.
+Set them again for each update, because each update builds the images.
 
-Give the proxy to the command. Use the uppercase names. Set them before the command, so they apply only to this command and not to other commands of the shell:
+Give the proxy to the command.
+Use the uppercase names.
+Set them before the command, so they apply only to this command and not to other commands of the shell:
 
 ```bash
 HTTP_PROXY=http://<proxy-host>:<port> \
@@ -467,34 +526,3 @@ podman-compose build
 ```
 
 Do the same for `podman pull` and `podman-compose up`.
-
-### Internals
-
-- Image pulls (`docker.io/...`) need the proxy in the shell. The podman process does the pull, and it does not read `.env`.
-- The builds (`apt-get`, `pip`, `npm ci`) and the `dev` container get the proxy from compose. Compose reads the shell
-  first, then `oci/.env`. Use the proxy block of `.env` when compose starts without the shell proxy.
-  Then run `podman pull` for the base images (the `FROM` lines of the Containerfiles) once, from a shell that has the proxy.
-- `NO_PROXY` always gets the service names `db`, `backend` and `web`, so traffic between the containers never uses the proxy.
-  You do not add them.
-- Runtime proxy:
-  - The proxy values are build arguments of podman and stay out of the images.
-  - At runtime, only `dev` gets the proxy (from `compose.dev.yaml`).
-  - The other services (`db`, `backend`, `web`) get empty proxy variables from `compose.yaml`.
-  - The empty values override the proxy that podman copies from its own environment (`http_proxy = true`, the default of
-    `containers.conf`).
-  - These services make no outbound HTTP calls, so they do not need a proxy.
-  - Only in `dev` does `NO_PROXY` get the service names.
-- Known quirk: podman-compose interpolates the `environment` of a service twice. If the shell has a proxy but no `NO_PROXY`,
-  `podman-compose config` shows `db,backend,web` twice in the `NO_PROXY` and `no_proxy` of `dev`. The duplicates have no effect.
-
-## Troubleshooting
-
-| Symptom | Likely cause |
-|---|---|
-| 502 at the reverse proxy | `web` is not running, or `HOST_HTTP_PORT` does not match the port of the reverse proxy. Check `podman-compose ps` and `curl http://127.0.0.1:<HOST_HTTP_PORT>/`. If `web` answers, check the port in the [Reverse proxy](#reverse-proxy) configuration |
-| 502 on `/api/` from `web` | `backend` is not running. Check `podman-compose logs backend` |
-| 400 Bad Request | `FMS_HOST` is not the host name of the request |
-| 413 on upload | The upload limit is missing in the reverse proxy. Add `client_max_body_size` as in [Reverse proxy](#reverse-proxy) |
-| `backend` exits at start with an error about missing tables or columns | The migrations did not run. Run the migration step of [Update to a new release](#update-to-a-new-release) |
-| `[conmon:e]: Failed to open log file No such file or directory` | `HOST_LOG_DIR` in `.env` is a relative path or the directory does not exist. Set it to an existing absolute path, then run `podman-compose up -d --force-recreate` |
-| The stack does not start at boot, or a podman error about the runtime directory | The environment has no `XDG_RUNTIME_DIR`. Set it in `~/.bash_profile` and at the top of the crontab (see [Set up the account of the user](#set-up-the-account-of-the-user) and [Start at boot](#start-at-boot)) |

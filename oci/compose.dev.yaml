@@ -23,29 +23,18 @@ x-proxy: &proxy
 
 services:
   db:
-    # Make `postgres` the superuser, not the app role of .env (POSTGRES_USER, `admin`). A backup file
-    # of all databases (pg_dumpall) runs `ALTER ROLE admin` with the production attributes (no
-    # SUPERUSER, no CREATEDB). If `admin` were the only superuser, the restore would remove its
-    # privileges and nothing could give them back. DEVELOPMENT.md creates `admin` by hand.
+    # pytest creates its own test database, so the app role gets CREATEDB (db/initdb/20-app-role.sh).
     environment:
-      POSTGRES_USER: postgres
+      FMS_DB_CREATEDB: "true"
 
-    # Accept `postgres` only through the Unix socket in the container (db/pg_hba.dev.conf).
-    # Compose replaces `command` of compose.yaml, so the log_timezone flag is repeated.
+    # Compose replaces `command` of compose.yaml, so the log_timezone and hba_file flags are repeated.
     # max_locks_per_transaction: pytest-xdist workers migrate their test databases at the same
     # time, and migration 0055 changes 46 primary keys in one transaction. The default shared lock
     # table (64 × max_connections) is too small and PostgreSQL stops with "out of shared memory".
     # Cost: about 14 MB of shared memory. PostgreSQL 18 also fixes the problem with the defaults:
     # its fast-path lock slots per connection scale with max_locks_per_transaction, so fewer locks
     # use the shared table. On PostgreSQL 18 or later, the flag is probably not necessary.
-    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.dev.conf", "-c", "max_locks_per_transaction=512"]
-    volumes:
-      - type: bind
-        source: ./db/pg_hba.dev.conf
-        target: /etc/postgresql/pg_hba.dev.conf
-        read_only: true
-        bind:
-          selinux: z
+    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.conf", "-c", "max_locks_per_transaction=512"]
 
     # Publish the database port, so a host `psql` or a GUI client can connect to `localhost:5432`.
     ports:

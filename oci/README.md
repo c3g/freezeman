@@ -3,9 +3,9 @@
 Container images and podman-compose configuration for FreezeMan.
 
 > [!NOTE]
-> You can run `podman-compose` from any directory. Give it the compose file once:
-> `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`. podman-compose reads `.env` from the directory of the
-> compose file.
+> You can run `podman-compose` from any directory.
+> Give it the compose file once: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
+> podman-compose reads `.env` from the directory of the compose file.
 
 Contents:
 
@@ -14,11 +14,7 @@ Contents:
 - [Layout](#layout)
 - [Production services](#production-services)
 - [FMS_ENV values](#fms_env-values)
-- [Design choices](#design-choices)
 - [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
-- [Identify the format of a database backup](#identify-the-format-of-a-database-backup)
-- [Additional notes](#additional-notes)
-- [Docker compatibility](#docker-compatibility)
 
 ## Overview
 
@@ -43,7 +39,7 @@ Contents:
 | `Containerfile` | Images of the backend (`dev`, `backend-prod`) and `web`. The build context is the repository root |
 | `compose.yaml` | The production-like stack (all services) |
 | `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
-| `db/` | `Containerfile` of the `db` image, `initdb/10-fzy.sql` (enables `fzy` at the first start) |
+| `db/` | `Containerfile` of the `db` image, `initdb/10-fzy.sql` (enables `fzy` at the first start), `initdb/20-app-role.sh` (creates the app role of `.env` at the first start), `pg_hba.conf` (accepts `postgres` only through the Unix socket) |
 | `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
 | `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
 | `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
@@ -62,9 +58,13 @@ A reverse proxy on the host terminates TLS and passes the requests to `web` (see
 ## FMS_ENV values
 
 - Use `PROD` on the production host, and `QC` or `DEV` on a test host.
-- The code does not validate the value. It only tests if the value is `PROD`.
+- The code does not validate the value.
+  It only tests if the value is `PROD`.
 - `PROD` gives the production behaviour (column `PROD` below).
-- Any other value gives the test behaviour (right column). `QC` and `DEV` behave the same. They only label the host: the web page shows the value. A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
+- Any other value gives the test behaviour (right column).
+  `QC` and `DEV` behave the same.
+  They only label the host: the web page shows the value.
+  A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
 - `LOCAL` is the value of the development stack.
 
 | Area | `PROD` | Any other value (`QC`, `DEV`, `LOCAL`) |
@@ -73,17 +73,9 @@ A reverse proxy on the host terminates TLS and passes the requests to `web` (see
 | Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
 | Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
 
-The `web` image gets `FMS_ENV` when it is built. `backend` reads it when it starts. After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
-
-## Design choices
-
-- `userns_mode: keep-id:uid=1000,gid=1000` on `backend`. The image user `fms` (uid 1000) writes the media files, and
-  the host user that runs the stack owns them on the host.
-- uwsgi listens on a port in the container network (uwsgi protocol), for the `web` service.
-- Client address: the reverse proxy sends `X-Real-IP` and `X-Forwarded-For`, but the `web` nginx does not use them.
-  uwsgi gets the address of the podman port forwarder as `REMOTE_ADDR`, and the `web` access log shows that address.
-  Nothing in FreezeMan uses the client address today. If it becomes necessary, add `set_real_ip_from` and
-  `real_ip_header X-Real-IP` to `oci/nginx/default.conf.template`.
+The `web` image gets `FMS_ENV` when it is built.
+`backend` reads it when it starts.
+After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
 
 ## Useful podman and podman-compose commands
 
@@ -104,48 +96,3 @@ podman volume ls                                   # named volumes
 podman inspect --format '{{.HostConfig.LogConfig}}' freezeman_backend_1   # log driver and log file
 podman info --format '{{.Host.CgroupManager}}'     # cgroupfs on the deployment host
 ```
-
-## Identify the format of a database backup
-
-The restore command depends on the format of the database backup file. Find the format before you restore:
-
-```bash
-file <backup>                     # "PostgreSQL custom database dump": a pg_dump -Fc file
-gunzip -c <backup>.gz | head -5   # a .gz file: the first lines of the SQL script
-head -5 <backup>                  # a plain .pgsql file
-```
-
-| What you see | Format | Restore with | Parallel restore (`pg_restore -j`) |
-|---|---|---|---|
-| `PostgreSQL database cluster dump` | `pg_dumpall` SQL script (the `.pgsql.gz` files of [Database backups](../DEPLOYMENT.md#database-backups)) | `psql -d postgres` | No |
-| `PostgreSQL database dump` | `pg_dump` SQL script (one database) | `psql -d fms` | No |
-| `PostgreSQL custom database dump` (`file`), or `PGDMP` as the first bytes | `pg_dump -Fc` | `pg_restore` ([Start the database](../DEPLOYMENT.md#start-the-database)) | Yes, from a file, not from stdin |
-| A directory with `toc.dat` | `pg_dump -Fd` | `pg_restore` | Yes |
-
-- `psql` runs a SQL script one statement at a time. Only `pg_restore` can restore in parallel.
-- `pg_restore -j` needs the backup file in the container (a bind mount or `podman cp`). It cannot read from `<` or a pipe.
-
-## Docker compatibility
-
-The stack targets rootless podman and podman-compose. Docker Engine with Docker Compose does not run it.
-The Docker daemon rejects these podman-only settings:
-
-| Setting | Where | Why podman needs it |
-|---|---|---|
-| `userns_mode: keep-id` | `dev` (`compose.dev.yaml`) and `backend` (`compose.yaml`) | Files that the container writes belong to the host user. Docker accepts only `userns_mode: host` |
-| `logging.driver: k8s-file` | All services | Writes each container log to `HOST_LOG_DIR/<service>.log`. Docker has no `k8s-file` driver |
-
-`x-podman` is ignored by other tools. `bind.selinux: z`, `profiles` and the `${VAR:?...}` checks also work in Docker Compose.
-
-The Docker Compose v2 program can also talk to the podman socket instead of a Docker daemon. This is not tested.
-
-Docker support would need a separate override file and another way to set file owners. It is not planned.
-
-## Additional notes
-
-Portability:
-
-- `bind.selinux: z` on all bind mounts, with no exception: required on any SELinux host (Fedora, RHEL, CentOS Stream), harmless elsewhere.
-- Fully qualified image names (`docker.io/library/...`): RHEL-family systems enforce
-  short-name resolution, and fully qualified names avoid prompts on any registry setup.
-- `x-podman: in_pod: false`: `userns_mode: keep-id` (development) cannot be used for containers inside a pod.

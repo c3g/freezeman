@@ -99,16 +99,25 @@ services:
         # apt-get installs the compiler and the PostgreSQL headers to build the fzy extension.
         <<: *proxy
 
+    # Make `postgres` the superuser and the role of .env (POSTGRES_USER, `admin`) the app role, as on
+    # the production server. A backup file of all databases (pg_dumpall) runs `ALTER ROLE admin`
+    # with the production attributes (no SUPERUSER, no CREATEDB). If `admin` were the only
+    # superuser, the restore would remove its privileges and nothing could give them back.
+    # db/initdb/20-app-role.sh creates `admin` (FMS_DB_*) on the first start of a new volume.
     environment:
       <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: postgres
+      # Default value: pg_hba.conf accepts `postgres` only through the Unix socket in the container.
+      POSTGRES_PASSWORD: postgres
+      FMS_DB_USER: ${POSTGRES_USER}
+      FMS_DB_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-UTC}
 
     # log_timezone is set in postgresql.conf when initdb first runs (UTC if TZ was unset then).
     # The flag overrides it for an existing data directory too.
-    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}"]
+    # hba_file: accept `postgres` only through the Unix socket in the container (db/pg_hba.conf).
+    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
 
     # Keep the data in the named volume `pgdata`, so it stays after `down`, which removes the
     # container.
@@ -117,6 +126,12 @@ services:
       - type: volume
         source: pgdata
         target: /var/lib/postgresql/data
+      - type: bind
+        source: ./db/pg_hba.conf
+        target: /etc/postgresql/pg_hba.conf
+        read_only: true
+        bind:
+          selinux: z
 
     # Write the log of the container to ${HOST_LOG_DIR}/<service>.log on the host. Each service has
     # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`

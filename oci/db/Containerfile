@@ -35,7 +35,7 @@ FROM ${POSTGRES_IMAGE}
 # Copy the compiled fzy extension into the system directories of the server.
 COPY --from=build /out/ /
 
-# Copy the `initdb` scripts. They enable the extension.
+# Copy the `initdb` scripts. They enable the extension and create the app role of .env.
 # The PostgreSQL image runs the files in `/docker-entrypoint-initdb.d/` once, when it creates a
 # new data directory.
 COPY oci/db/initdb/ /docker-entrypoint-initdb.d/
