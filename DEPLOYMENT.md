@@ -43,7 +43,6 @@ Contents:
   - [Start at boot](#start-at-boot)
   - [Daily report](#daily-report)
 - [Routine deployments](#routine-deployments)
-  - [Start, stop and restart](#start-stop-and-restart)
   - [Update to a new release](#update-to-a-new-release)
   - [Database backups](#database-backups)
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
@@ -97,7 +96,6 @@ These steps need root.
 - podman-compose 1.5 or later (the package of the OS, or `pip install podman-compose`).
 - A non-root `<user>` with subuid and subgid ranges, for rootless containers.
 - A `<runtime-dir>` of `<user>` that stays from boot to shutdown.
-  With systemd, enable linger for `<user>` (`loginctl enable-linger <user>`).
 - A cron daemon, to start the stack at boot and to run the daily report.
 - A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
 - Outbound access, as in [Network access](#network-access).
@@ -277,17 +275,6 @@ Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of
 - `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
 
 # Routine deployments
-
-## Start, stop and restart
-
-Use `--force-recreate` after a build or an `.env` change.
-
-| Command | When to use it |
-|---|---|
-| `podman-compose up -d` | Start the stack. |
-| `podman-compose down` | Stop the stack and remove the containers. The volumes and the log files stay. |
-| `podman-compose restart backend` | Restart the process of one service in the same container. The image and the `.env` do not change. Use it for a hung service. |
-| `podman-compose up -d --force-recreate` | Replace the containers with new ones from the current images and `.env`. Use it after a build or an `.env` change. |
 
 ## Update to a new release
 
