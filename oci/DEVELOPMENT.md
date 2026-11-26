@@ -41,7 +41,7 @@ The versions are in ["Overview" in README.md](README.md#overview).
 
 `compose.dev.yaml` puts the production services `backend` and `web` in the profile `prod`, so `up -d` does not start them.
 
-- The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`CONTAINER_FMS_ROOT` of `.env`, also an environment variable in `dev`).
+- The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`/workspace/freezeman`, also an environment variable in `dev`).
 
 ## Start the development stack
 
@@ -63,9 +63,6 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 - The data in the volumes stays.
 
 ### dev container
-
-- `up` does not rebuild images, and `CONTAINER_FMS_ROOT` is embedded into the `dev` image.
-  After changing `CONTAINER_FMS_ROOT`, run `podman-compose -f compose.yaml -f compose.dev.yaml build dev`, then `podman-compose -f compose.yaml -f compose.dev.yaml up -d`.
 
 The Python virtual environment is ready:
 

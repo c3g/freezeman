@@ -54,7 +54,7 @@ services:
         # apt-get (git, psql client), pip and npm download packages while the image builds.
         <<: *proxy
         # Path of the project in the container (x-build-root of compose.yaml).
-        CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
+        CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}
 
     # No env_file, so the HOST_* settings of .env never reach the container. The Django settings
     # repeat x-django-env of compose.yaml (YAML anchors do not cross files).
@@ -63,7 +63,9 @@ services:
       <<: *proxy
       FMS_ENV: LOCAL
       FMS_DEBUG: "True"
-      FMS_SECRET_KEY: ${FMS_SECRET_KEY}
+      # No value: if .env has no FMS_SECRET_KEY, the variable stays unset and Django uses the
+      # development key of settings.py. An empty value would stop Django.
+      FMS_SECRET_KEY:
       FMS_HOST: ${FMS_HOST:-}
       # Django writes fms.log in the mount of HOST_LOG_DIR below.
       FMS_LOG_DIR: /var/log/fms
@@ -76,16 +78,16 @@ services:
       FMS_EMAIL_PASSWORD:
       FMS_EMAIL_TLS:
       TZ: ${TZ:-UTC}
-      PG_DATABASE: ${POSTGRES_DB}
-      PG_USER: ${POSTGRES_USER}
+      PG_DATABASE: ${POSTGRES_DB:-fms}
+      PG_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       PG_PASSWORD: ${POSTGRES_PASSWORD}
       PG_HOST: db
       PG_PORT: "5432"
       # psql in this container reads these (DEVELOPMENT.md: "Database access")
       PGHOST: db
       PGPORT: "5432"
-      PGDATABASE: ${POSTGRES_DB}
-      PGUSER: ${POSTGRES_USER}
+      PGDATABASE: ${POSTGRES_DB:-fms}
+      PGUSER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       PGPASSWORD: ${POSTGRES_PASSWORD}
 
     # Run the container as the host user. keep-id keeps files written into the repository
@@ -99,7 +101,7 @@ services:
       # need no mount of their own.
       - type: bind
         source: ..
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}
         bind:
           selinux: z
           create_host_path: true
@@ -108,7 +110,7 @@ services:
       # the container user, so `npm ci` can write to it.
       - type: volume
         source: frontend_node_modules
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/frontend/node_modules
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/frontend/node_modules
       - type: bind
         source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
         target: /var/log/fms

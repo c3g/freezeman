@@ -16,8 +16,8 @@ ARG PYTHON_IMAGE=docker.io/library/python:3.14-slim-trixie
 ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
 ARG NGINX_IMAGE=docker.io/nginxinc/nginx-unprivileged:stable-alpine
 
-# Path of the project in the containers. No default: compose passes CONTAINER_FMS_ROOT of oci/.env,
-# the single source of the value. Each stage that uses it declares it again: an ARG before the
+# Path of the project in the containers. No default here: compose passes CONTAINER_FMS_ROOT (its
+# default, or the value of oci/.env), the single source of the value. Each stage that uses it declares it again: an ARG before the
 # first FROM is not visible in a stage until the stage declares it.
 ARG CONTAINER_FMS_ROOT
 
@@ -35,7 +35,7 @@ FROM ${PYTHON_IMAGE} AS python-base
 ARG CONTAINER_FMS_ROOT
 ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
 RUN test -n "$CONTAINER_FMS_ROOT" \
- || { echo "Set the build argument CONTAINER_FMS_ROOT (oci/.env)" >&2; exit 1; }
+ || { echo "Set the build argument CONTAINER_FMS_ROOT (compose.yaml passes it)" >&2; exit 1; }
 
 # `PYTHONDONTWRITEBYTECODE` stops Python from writing `.pyc` files. `PYTHONUNBUFFERED` sends the
 # output at once.
@@ -121,7 +121,7 @@ FROM node-runtime AS node-base
 ARG CONTAINER_FMS_ROOT
 ENV CONTAINER_FMS_ROOT=${CONTAINER_FMS_ROOT}
 RUN test -n "$CONTAINER_FMS_ROOT" \
- || { echo "Set the build argument CONTAINER_FMS_ROOT (oci/.env)" >&2; exit 1; }
+ || { echo "Set the build argument CONTAINER_FMS_ROOT (compose.yaml passes it)" >&2; exit 1; }
 
 # Install git.
 # webpack.config.js shells out to git for the commit hash, branch and date.

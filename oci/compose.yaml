@@ -31,8 +31,8 @@ x-podman:
 
 # Set the database settings of the Django service (`backend`).
 x-backend-env: &backend-env
-  PG_DATABASE: ${POSTGRES_DB}
-  PG_USER: ${POSTGRES_USER}
+  PG_DATABASE: ${POSTGRES_DB:-fms}
+  PG_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
   PG_PASSWORD: ${POSTGRES_PASSWORD}
   PG_HOST: db
   PG_PORT: "5432"
@@ -80,12 +80,13 @@ x-no-proxy: &no-proxy
   https_proxy: ""
   no_proxy: ""
 
-# Path of the project in the containers, from .env (the single source of the value). The image
-# builds get it as a build argument and export it as ENV. The bind targets below use it too:
+# Path of the project in the containers. Fixed by default: set CONTAINER_FMS_ROOT in .env only to
+# change it, then rebuild all images. The image builds get it as a build argument and export it as
+# ENV. The bind targets below use it too:
 # compose resolves them on the host, where the ENV of the image is not visible.
 # `db` does not use it.
 x-build-root: &build-root
-  CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}
+  CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}
 
 services:
   # PostgreSQL 15 with the fzy extension.
@@ -106,11 +107,11 @@ services:
     # db/initdb/20-app-role.sh creates `admin` (FMS_DB_*) on the first start of a new volume.
     environment:
       <<: *no-proxy
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB:-fms}
       POSTGRES_USER: postgres
       # Default value: pg_hba.conf accepts `postgres` only through the Unix socket in the container.
       POSTGRES_PASSWORD: postgres
-      FMS_DB_USER: ${POSTGRES_USER}
+      FMS_DB_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       FMS_DB_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-UTC}
 
@@ -185,31 +186,31 @@ services:
     volumes:
       - type: bind
         source: ${HOST_MEDIA_DIR:-../backend/media}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/media
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/media
         bind:
           selinux: z
           create_host_path: true
       - type: bind
         source: ${HOST_RUN_INFO_DIR:-../backend/triggers/lims-run-info}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-run-info
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-run-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
         source: ${HOST_VALIDATED_FILES_DIR:-../backend/triggers/lims-validation-info}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-validation-info
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-validation-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
         source: ${HOST_RELEASED_FILES_DIR:-../backend/triggers/lims-release-info}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/triggers/lims-release-info
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-release-info
         bind:
           selinux: z
           create_host_path: true
       - type: bind
         source: ${HOST_AUTOMATIONS_WORK_DIR:-../backend/automations_work}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/automations_work
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/automations_work
         bind:
           selinux: z
           create_host_path: true
@@ -263,7 +264,7 @@ services:
     volumes:
       - type: bind
         source: ${HOST_MEDIA_DIR:-../backend/media}
-        target: ${CONTAINER_FMS_ROOT:?set CONTAINER_FMS_ROOT in .env}/backend/media
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/media
         read_only: true
         bind:
           selinux: z
