@@ -29,13 +29,8 @@ Run all steps as `<user>`.
 
 Contents:
 
-- [Quick start](#quick-start)
 - [Initial deployment](#initial-deployment)
-  - [Checkout](#checkout)
-  - [Configure .env](#configure-env)
-  - [Build the images](#build-the-images)
-  - [Start the database](#start-the-database)
-  - [Start the stack](#start-the-stack)
+  - [Quick start](#quick-start)
   - [Start at boot](#start-at-boot)
   - [Daily report](#daily-report)
 - [Routine deployments](#routine-deployments)
@@ -47,88 +42,50 @@ Contents:
 - [Additional information](#additional-information)
   - [Proxy](#proxy)
 
-# Quick start
-
-First do [PREREQUISITES.md](PREREQUISITES.md).
-On a proxy host, see [Proxy](#proxy).
-
-```bash
-# Checkout
-git clone https://github.com/c3g/freezeman <install-dir>
-cd <install-dir>
-git checkout vX.Y.Z
-git config url."https://github.com/".insteadOf "git://github.com/"
-git submodule update --init --recursive
-
-# Configure .env: copy the template, then personalize oci/.env (see the comments in the file)
-cd oci
-cp .env.prod.example .env
-
-# Build the images
-podman-compose build
-
-# Start the database
-podman-compose up -d db
-until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
-
-# Start the stack
-podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
-podman-compose up -d
-```
-
-Then:
-
-1. Check the site through the reverse proxy: `curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/` gives `200`.
-2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
-
 # Initial deployment
 
-## Checkout
+## Quick start
 
-1. Clone into `<install-dir>` as in ["Installation" in README.md](README.md#installation).
-2. Check out the release that you deploy (`git checkout vX.Y.Z`).
+First do [PREREQUISITES.md](PREREQUISITES.md).
+On a proxy host, `podman-compose build` needs the proxy (see [Proxy](#proxy)).
 
-## Configure .env
+1. Check out the release that you deploy, and copy the `.env` template:
 
-```bash
-cd <install-dir>/oci
-cp .env.prod.example .env
-```
+   ```bash
+   git clone https://github.com/c3g/freezeman <install-dir>
+   cd <install-dir>
+   git checkout vX.Y.Z
+   git config url."https://github.com/".insteadOf "git://github.com/"
+   git submodule update --init --recursive
+   cd oci
+   cp .env.prod.example .env
+   ```
 
-Personalize `.env` before the first start.
+2. Personalize `.env` before the first start.
+   The comments in the file tell what to set.
+   The effect of each `FMS_ENV` value is in ["FMS_ENV values" in oci/README.md](oci/README.md#fms_env-values).
 
-The effect of each `FMS_ENV` value is in ["FMS_ENV values" in oci/README.md](oci/README.md#fms_env-values).
+3. Build the images, start the database, apply the migrations and start the stack:
 
-## Build the images
+   ```bash
+   podman-compose build
+   # Start only db, and wait until it is ready.
+   podman-compose up -d db
+   until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+   # Apply the migrations in a one-off `backend` container.
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+   # Start all services.
+   podman-compose up -d
+   ```
 
-```bash
-podman-compose build
-```
+4. Check `web`, then the site through the reverse proxy (see ["Reverse proxy" in PREREQUISITES.md](PREREQUISITES.md#reverse-proxy)):
 
-**Proxy host:** this command needs the proxy.
-See [Proxy](#proxy).
+   ```bash
+   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
+   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                    # 200
+   ```
 
-## Start the database
-
-```bash
-# Start only db.
-podman-compose up -d db
-# Wait until the db is ready.
-until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
-```
-
-## Start the stack
-
-```bash
-# Apply the migrations in a one-off `backend` container.
-podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
-# Start all services.
-podman-compose up -d
-# Check `web`.
-curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
-# Check the site through the reverse proxy (see "Reverse proxy" in PREREQUISITES.md).
-curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/   # 200
-```
+5. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
 ## Start at boot
 
@@ -277,7 +234,7 @@ For PostgreSQL it also needs a backup and restore of the data.
 ## Report and logs
 
 The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report).
-The log directory is `HOST_LOG_DIR` in `.env` (see [Configure .env](#configure-env)).
+The log directory is `HOST_LOG_DIR` in `.env` (see step 2 of [Quick start](#quick-start)).
 
 The crontab lines write to `<HOST_LOG_DIR>/boot.log` and `<HOST_LOG_DIR>/report.log`.
 The containers write `<HOST_LOG_DIR>/<service>.log`.
@@ -334,7 +291,7 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
        `HOST_MEDIA_DIR` to `MEDIA_ROOT`, `HOST_RUN_INFO_DIR` to `FMS_RUN_INFO_PATH`, `HOST_VALIDATED_FILES_DIR` to `FMS_VALIDATED_FILES_PATH`, `HOST_RELEASED_FILES_DIR` to `FMS_RELEASED_FILES_PATH` and `HOST_AUTOMATIONS_WORK_DIR` to `FMS_AUTOMATIONS_WORK_PATH` of the old `uwsgi.ini`.
        If the old `uwsgi.ini` does not set a path, use the matching folder of the old checkout.
     2. Stop the old uwsgi, then make a backup file on the old PostgreSQL server.
-    3. After [Start the database](#start-the-database) and before [Start the stack](#start-the-stack), restore the file into the new, empty `db`.
+    3. In step 3 of [Quick start](#quick-start), after `db` is ready and before the migrations, restore the file into the new, empty `db`.
        The messages "... already exists" for `postgres`, `admin`, `fms` and `fzy` are harmless.
 
        ```bash
