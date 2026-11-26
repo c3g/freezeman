@@ -47,7 +47,6 @@ Contents:
 ## Quick start
 
 First do [PREREQUISITES.md](PREREQUISITES.md).
-On a proxy host, `podman-compose build` needs the proxy (see [Proxy](#proxy)).
 
 1. Check out the release that you deploy, and copy the `.env` template:
 
@@ -68,6 +67,10 @@ On a proxy host, `podman-compose build` needs the proxy (see [Proxy](#proxy)).
 3. Build the images, start the database, apply the migrations and start the stack:
 
    ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
    podman-compose build
    # Start only db, and wait until it is ready.
    podman-compose up -d db
@@ -136,11 +139,13 @@ Test the release on a test host first.
    sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat ../VERSION)/" .env
    ```
 
-3. Build the images.
-   **Proxy host:** this command needs the proxy.
-   See [Proxy](#proxy).
+3. Build the images:
 
    ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
    podman-compose build
    ```
 
@@ -211,10 +216,13 @@ How to update (on each host, QC first, prod after QC works):
    `--pull` alone is not enough: the cached `apt-get`, `pip` and `npm` layers would keep the old packages.
 
    ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
    podman-compose build --pull --no-cache
    ```
 
-   **Proxy host:** set the proxy variables as in [Proxy](#proxy).
 2. Recreate the containers: `podman-compose up -d --force-recreate`.
 3. Check the versions, and write them in the deployment notes:
 
@@ -312,11 +320,12 @@ Only image pulls and builds use the proxy.
 The running services do not.
 
 Set the proxy variables, in upper case, before the command.
+Replace `...` with the proxy address, for example `http://proxy.example.org:3128`.
 They then apply only to that command:
 
 ```bash
-HTTP_PROXY=http://<proxy-host>:<port> \
-HTTPS_PROXY=http://<proxy-host>:<port> \
+HTTP_PROXY=... \
+HTTPS_PROXY=... \
 NO_PROXY=localhost,127.0.0.1 \
 podman-compose build
 ```
