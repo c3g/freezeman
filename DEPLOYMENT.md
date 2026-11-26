@@ -48,7 +48,6 @@ Contents:
 - [Specific deployments](#specific-deployments)
 - [Additional information](#additional-information)
   - [Proxy](#proxy)
-  - [Troubleshooting](#troubleshooting)
 
 # Quick start
 
