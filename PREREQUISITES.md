@@ -1,7 +1,14 @@
 # FreezeMan host prerequisites
 
 The host administrator prepares the host before the [deployment](DEPLOYMENT.md).
-The placeholders (`<user>`, `<runtime-dir>`) are in [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Placeholders used in this guide:
+
+- `<user>`: the non-root account that runs the stack with rootless podman.
+- `<uid>`: the numeric ID of `<user>` (`id -u`).
+- `<runtime-dir>`: the value of `XDG_RUNTIME_DIR` for `<user>`.
+  Rootless podman keeps the state of the running containers there.
+  The usual value is `/run/user/<uid>`.
 
 ## Host requirements
 
