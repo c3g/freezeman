@@ -37,7 +37,8 @@ Contents:
   - [Update to a new release](#update-to-a-new-release)
   - [Database backups](#database-backups)
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
-  - [Report and logs](#report-and-logs)
+  - [Reporting](#reporting)
+  - [Logs](#logs)
 - [Specific deployments](#specific-deployments)
 - [Proxy](#proxy)
 
@@ -225,21 +226,30 @@ Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15).
 A major change is in [Specific deployments](#specific-deployments).
 For PostgreSQL it also needs a backup and restore of the data.
 
-## Report and logs
+## Reporting
 
-The crontab lines are in [Start at boot](#start-at-boot) and [Daily report](#daily-report).
-The log directory is `HOST_LOG_DIR` in `.env` (see step 2 of [Quick start](#quick-start)).
-
-The crontab lines write to `<HOST_LOG_DIR>/boot.log` and `<HOST_LOG_DIR>/report.log`.
-The containers write `<HOST_LOG_DIR>/<service>.log`.
-Django also writes `<HOST_LOG_DIR>/fms.log`, and `prepare_report_data` writes `<HOST_LOG_DIR>/report_preparation.log`.
+`prepare_report_data` prepares the data of the reports.
+Host cron runs it every day (see [Daily report](#daily-report)).
+It writes its log to `<HOST_LOG_DIR>/report_preparation.log`, and the crontab line writes its output to `<HOST_LOG_DIR>/report.log`.
 
 ```bash
-podman-compose logs -f backend                                       # follow the backend log through podman
-tail -f <HOST_LOG_DIR>/backend.log                                   # the same log, read from the host file (works after `down`)
-tail -f <HOST_LOG_DIR>/fms.log                                       # the Django log (WARNING+ on PROD, DEBUG+ elsewhere)
-tail -f <HOST_LOG_DIR>/report_preparation.log                        # the report job
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
+tail -f <HOST_LOG_DIR>/report_preparation.log                        # follow the report log
+```
+
+## Logs
+
+All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-start)):
+
+- `<service>.log`: the log of each container.
+- `fms.log`: the Django log (`WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere).
+- `boot.log`: the output of the crontab line of [Start at boot](#start-at-boot).
+- `report.log` and `report_preparation.log`: see [Reporting](#reporting).
+
+```bash
+podman-compose logs -f backend          # follow the backend log through podman
+tail -f <HOST_LOG_DIR>/backend.log      # the same log, read from the host file (works after `down`)
+tail -f <HOST_LOG_DIR>/fms.log          # the Django log
 ```
 
 # Specific deployments
