@@ -27,7 +27,7 @@ Contents:
 
 | Reader | Read |
 |---|---|
-| Host administrator | ["Host requirements" in ../DEPLOYMENT.md](../DEPLOYMENT.md#host-requirements) and ["Network access" in ../DEPLOYMENT.md](../DEPLOYMENT.md#network-access) |
+| Host administrator | [../PREREQUISITES.md](../PREREQUISITES.md) |
 | Deployment team | [../DEPLOYMENT.md](../DEPLOYMENT.md): the initial, routine and specific deployments |
 | Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
 

@@ -1,6 +1,7 @@
 # FreezeMan deployment
 
 This guide deploys FreezeMan as containers.
+Prepare the host first, as in [PREREQUISITES.md](PREREQUISITES.md).
 The services of the stack are in ["Production services" in oci/README.md](oci/README.md#production-services).
 
 Placeholders used in this guide:
@@ -24,14 +25,12 @@ Placeholders used in this guide:
 Run all the `podman-compose` commands in `<install-dir>/oci`, so you can copy them as they are.
 There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
 
-Run all steps as `<user>`, except [Host requirements](#host-requirements), which need root.
+Run all steps as `<user>`.
 
 Contents:
 
 - [Quick start](#quick-start)
 - [Initial deployment](#initial-deployment)
-  - [Host requirements](#host-requirements)
-  - [Network access](#network-access)
   - [Checkout](#checkout)
   - [Set up podman without systemd](#set-up-podman-without-systemd)
   - [Configure .env](#configure-env)
@@ -53,7 +52,7 @@ Contents:
 
 # Quick start
 
-First do [Host requirements](#host-requirements), [Network access](#network-access) and [Set up podman without systemd](#set-up-podman-without-systemd).
+First do [PREREQUISITES.md](PREREQUISITES.md) and [Set up podman without systemd](#set-up-podman-without-systemd).
 On a proxy host, see [Proxy](#proxy).
 
 ```bash
@@ -86,41 +85,6 @@ Then:
 2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
 # Initial deployment
-
-## Host requirements
-
-These steps need root.
-
-- A Linux host with podman 5.4 or later.
-- podman-compose 1.5 or later (the package of the OS, or `pip install podman-compose`).
-- A non-root `<user>` with subuid and subgid ranges, for rootless containers.
-- A `<runtime-dir>` of `<user>` that stays from boot to shutdown.
-- A cron daemon, to start the stack at boot and to run the daily report.
-- A reverse proxy with TLS in front of the stack (see [Reverse proxy](#reverse-proxy)).
-- Outbound access, as in [Network access](#network-access).
-
-## Network access
-
-Summary:
-
-- Podman image pulls and builds: requires outbound ports 80 and 443 to the domains in the table below.
-- Running stack: only requires outbound `FMS_EMAIL_PORT` to `FMS_EMAIL_HOST`.
-  The stack opens no inbound port (the `web` port binds to `127.0.0.1`).
-
-If the host uses a proxy or a firewall with an allow list, allow these domains for outbound traffic:
-
-| Domain | Port | Used by |
-|---|---|---|
-| The package repositories of the host OS | 443 or 80 | Installation of `podman`, `podman-compose` and a cron daemon |
-| `pypi.org`, `files.pythonhosted.org` | 443 | `pip install podman-compose`, only if the OS gives no `podman-compose` |
-| `github.com` | 443 | `git clone --recurse-submodules` of the source and its submodules. |
-| `registry-1.docker.io`, `auth.docker.io`, `production.cloudfront.docker.com` | 443 | Image pulls (`docker.io/library/python`, `docker.io/library/node`, `docker.io/library/postgres`, `docker.io/nginxinc/nginx-unprivileged`) |
-| `production.cloudflare.docker.com`, `*.r2.cloudflarestorage.com` | 443 | Docker Hub can serve image layers from this CDN instead of `production.cloudfront.docker.com` |
-| `deb.debian.org` | 80 | Image builds: `apt-get` in the Debian trixie stages (also `debian-security`) |
-| `apt.postgresql.org` | 80 | Image build of `db`: `postgresql-server-dev` from the PostgreSQL repository of the `postgres` image |
-| `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
-| `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
-| The value of `FMS_EMAIL_HOST` | The value of `FMS_EMAIL_PORT` | Django email, only if `FMS_EMAIL_HOST` is set |
 
 ## Checkout
 
