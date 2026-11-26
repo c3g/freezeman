@@ -129,10 +129,8 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
       if (name_exists) {
         nameExistsError()
       }
-      const exists = name_exists || barcode_exists
-      if (exists) {
-        /* Fast return if already exists in frontend display */
-        return exists
+      if (name_exists || barcode_exists) {
+        return name_exists || barcode_exists
       }
 
       /* Get existing containers from freezeman */
