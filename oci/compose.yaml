@@ -32,7 +32,7 @@ x-podman:
 # Set the database settings of the Django service (`backend`).
 x-backend-env: &backend-env
   PG_DATABASE: ${POSTGRES_DB:-fms}
-  PG_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+  PG_USER: ${POSTGRES_USER:-admin}
   PG_PASSWORD: ${POSTGRES_PASSWORD}
   PG_HOST: db
   PG_PORT: "5432"
@@ -105,13 +105,17 @@ services:
     # with the production attributes (no SUPERUSER, no CREATEDB). If `admin` were the only
     # superuser, the restore would remove its privileges and nothing could give them back.
     # db/initdb/20-app-role.sh creates `admin` (FMS_DB_*) on the first start of a new volume.
+    # No POSTGRES_USER here: the image names its superuser `postgres` by default. podman-compose
+    # fills a variable that .env does not set from the environment of the service, so a
+    # POSTGRES_USER here would replace the app role in ${POSTGRES_USER} below.
     environment:
       <<: *no-proxy
       POSTGRES_DB: ${POSTGRES_DB:-fms}
-      POSTGRES_USER: postgres
-      # Default value: pg_hba.conf accepts `postgres` only through the Unix socket in the container.
+      # Password of `postgres`. pg_hba.conf accepts `postgres` only through the Unix socket in the
+      # container, so the value does not matter. .env always sets POSTGRES_PASSWORD, so this key
+      # does not replace it in ${POSTGRES_PASSWORD} below.
       POSTGRES_PASSWORD: postgres
-      FMS_DB_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      FMS_DB_USER: ${POSTGRES_USER:-admin}
       FMS_DB_PASSWORD: ${POSTGRES_PASSWORD}
       TZ: ${TZ:-UTC}
 

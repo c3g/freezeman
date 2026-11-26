@@ -80,7 +80,7 @@ services:
       FMS_EMAIL_TLS:
       TZ: ${TZ:-UTC}
       PG_DATABASE: ${POSTGRES_DB:-fms}
-      PG_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      PG_USER: ${POSTGRES_USER:-admin}
       PG_PASSWORD: ${POSTGRES_PASSWORD}
       PG_HOST: db
       PG_PORT: "5432"
@@ -88,7 +88,7 @@ services:
       PGHOST: db
       PGPORT: "5432"
       PGDATABASE: ${POSTGRES_DB:-fms}
-      PGUSER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      PGUSER: ${POSTGRES_USER:-admin}
       PGPASSWORD: ${POSTGRES_PASSWORD}
 
     # Run the container as the host user. keep-id keeps files written into the repository
