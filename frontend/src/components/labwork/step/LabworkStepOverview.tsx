@@ -148,7 +148,7 @@ const LabworkStepOverview = ({
       if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
         const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
         notification.error({
-          message:
+          title:
             `Too many samples selected. Keep selection under ` + MAX_STEP_SAMPLE_SELECTION + `.`,
           key: TOO_MANY_SELECTED_NOTIFICATION_KEY,
           duration: 5,

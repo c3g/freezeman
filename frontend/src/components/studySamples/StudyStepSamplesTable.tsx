@@ -189,7 +189,7 @@ export function ActionButton({ sample, step, studyID }: ActionButtonProps) {
             try {
               const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
               notification.info({
-                message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
+                title: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
                 key: REMOVE_NOTIFICATION_KEY,
               })
               setButtonLabel("Removing...")
@@ -204,7 +204,7 @@ export function ActionButton({ sample, step, studyID }: ActionButtonProps) {
           } else if (info.key === "Skip") {
             const SKIPPING_KEY = `StudyStepSamplesTable.skip-${studyID}-${step.stepID}-${sample.id}`
             notification.info({
-              message: `Skipping step '${step.stepName}' for sample '${sample?.name}'`,
+              title: `Skipping step '${step.stepName}' for sample '${sample?.name}'`,
               key: SKIPPING_KEY,
             })
             try {
@@ -214,7 +214,7 @@ export function ActionButton({ sample, step, studyID }: ActionButtonProps) {
             } catch (e) {
               const ERROR_KEY = `StudyStepSamplesTable.skip_error-${studyID}-${step.stepID}-${sample.id}`
               notification.error({
-                message: e.data,
+                title: e.data,
                 key: ERROR_KEY,
               })
             } finally {
