@@ -39,8 +39,7 @@ Contents:
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
   - [Report and logs](#report-and-logs)
 - [Specific deployments](#specific-deployments)
-- [Additional information](#additional-information)
-  - [Proxy](#proxy)
+- [Proxy](#proxy)
 
 # Initial deployment
 
@@ -163,9 +162,7 @@ If the migration fails, the stack stays down.
 
 ## Database backups
 
-The stack has no automatic backup yet.
-To create a database backup file of all databases now, run this command while `db` runs.
-`pg_dumpall` copies the roles too, so it runs as the superuser `postgres`:
+### Dump
 
 ```bash
 mkdir -p <install-dir>/backups
@@ -173,8 +170,7 @@ mkdir -p <install-dir>/backups
 podman-compose exec -T db pg_dumpall -U postgres | gzip > <install-dir>/backups/$(date +%F).pgsql.gz
 ```
 
-To restore, stop the stack, so the site is offline and no service writes to the database.
-Delete the old data volume, start only `db`, restore, then start the rest.
+### Restore
 
 ```bash
 podman-compose down
@@ -189,16 +185,6 @@ podman-compose exec db psql -U postgres -d postgres -c "ALTER ROLE <POSTGRES_USE
 podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
 podman-compose up -d
 ```
-
-- The messages "role "postgres" already exists", "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
-- The `psql` command restores a `pg_dumpall` script.
-  A custom-format backup file (`pg_dump -Fc`) needs `pg_restore`:
-  `podman-compose exec -T db pg_restore -U <POSTGRES_USER> -d <POSTGRES_DB> --no-owner --no-acl < <file>`.
-  For a parallel restore (`pg_restore -j`), see ["Restore a production database" in oci/DEVELOPMENT.md](oci/DEVELOPMENT.md#restore-a-production-database).
-- Restore only into an empty `freezeman_pgdata` volume.
-  If the volume is new (first start), skip the first two commands.
-- `backups/` is git-ignored.
-  Copy the backups off the host.
 
 ## Keep the base images up to date
 
@@ -310,9 +296,7 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
 
     4. In the reverse proxy, replace the old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the `location /` block of ["Reverse proxy" in PREREQUISITES.md](PREREQUISITES.md#reverse-proxy).
 
-# Additional information
-
-## Proxy
+# Proxy
 
 Do this section only if your host reaches the internet through an HTTP proxy.
 
