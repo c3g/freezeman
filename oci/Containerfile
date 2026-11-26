@@ -45,7 +45,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/venv/bin:$PATH
 
 # Install `libpq5` (the PostgreSQL client library).
-# Create the (non-root) user `fms` with uid 1000 and the directory for the report log (~/reports/log).
+# Create the (non-root) user `fms` with uid 1000.
 #
 # Uid 1000 is the user that `userns_mode: keep-id` gives to `backend` in compose.yaml,
 # so the files of the bind mounts belong to the host user.
@@ -53,8 +53,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libpq5 \
  && rm -rf /var/lib/apt/lists/* \
- && useradd --uid 1000 --create-home --shell /bin/sh fms \
- && install -d -o fms -g fms /home/fms/reports
+ && useradd --uid 1000 --create-home --shell /bin/sh fms
 
 # Copy the entrypoint (`fms-entrypoint`).
 # `--chmod=755` sets the execute bit at the copy, so no extra `RUN` layer is necessary.

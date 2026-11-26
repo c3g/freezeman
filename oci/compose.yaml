@@ -171,8 +171,9 @@ services:
     environment:
       <<: [*backend-env, *django-env, *no-proxy]
       UWSGI_PROCESSES: ${UWSGI_PROCESSES:-3}
-      # Django writes fms.log in the mount of HOST_LOG_DIR below.
-      FMS_LOG_DIR: /home/fms/reports/log
+      # Django writes fms.log, and prepare_report_data writes report_preparation.log, in the mount
+      # of HOST_LOG_DIR below.
+      FMS_LOG_DIR: /var/log/fms
 
     # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
     # django owns the files on the host.
@@ -216,8 +217,7 @@ services:
           create_host_path: true
       - type: bind
         source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
-        # prepare_report_data writes report_preparation.log in ~/reports/log (no setting changes it).
-        target: /home/fms/reports/log
+        target: /var/log/fms
         bind:
           selinux: z
           create_host_path: true
