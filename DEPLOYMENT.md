@@ -37,7 +37,6 @@ Contents:
   - [Update to a new release](#update-to-a-new-release)
   - [Database backups](#database-backups)
   - [Keep the base images up to date](#keep-the-base-images-up-to-date)
-  - [Reporting](#reporting)
   - [Logs](#logs)
 - [Specific deployments](#specific-deployments)
 - [Proxy](#proxy)
@@ -118,7 +117,15 @@ Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of
 
 - Cron uses the time zone of the host.
 - `-T`: cron has no terminal.
-- `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
+- The crontab line writes the output of the command to `<HOST_LOG_DIR>/report.log`.
+  `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
+
+To run the report now, or to follow its log:
+
+```bash
+podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
+tail -f <HOST_LOG_DIR>/report_preparation.log                        # follow the report log
+```
 
 # Routine deployments
 
@@ -226,17 +233,6 @@ Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15).
 A major change is in [Specific deployments](#specific-deployments).
 For PostgreSQL it also needs a backup and restore of the data.
 
-## Reporting
-
-`prepare_report_data` prepares the data of the reports.
-Host cron runs it every day (see [Daily report](#daily-report)).
-It writes its log to `<HOST_LOG_DIR>/report_preparation.log`, and the crontab line writes its output to `<HOST_LOG_DIR>/report.log`.
-
-```bash
-podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-tail -f <HOST_LOG_DIR>/report_preparation.log                        # follow the report log
-```
-
 ## Logs
 
 All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-start)):
@@ -244,7 +240,7 @@ All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-sta
 - `<service>.log`: the log of each container.
 - `fms.log`: the Django log (`WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere).
 - `boot.log`: the output of the crontab line of [Start at boot](#start-at-boot).
-- `report.log` and `report_preparation.log`: see [Reporting](#reporting).
+- `report.log` and `report_preparation.log`: the daily report (see [Daily report](#daily-report)).
 
 ```bash
 podman-compose logs -f backend          # follow the backend log through podman
