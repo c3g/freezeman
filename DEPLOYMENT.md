@@ -32,7 +32,6 @@ Contents:
 - [Quick start](#quick-start)
 - [Initial deployment](#initial-deployment)
   - [Checkout](#checkout)
-  - [Set up podman without systemd](#set-up-podman-without-systemd)
   - [Configure .env](#configure-env)
   - [Build the images](#build-the-images)
   - [Start the database](#start-the-database)
@@ -51,7 +50,7 @@ Contents:
 
 # Quick start
 
-First do [PREREQUISITES.md](PREREQUISITES.md) and [Set up podman without systemd](#set-up-podman-without-systemd).
+First do [PREREQUISITES.md](PREREQUISITES.md).
 On a proxy host, see [Proxy](#proxy).
 
 ```bash
@@ -89,48 +88,6 @@ Then:
 
 1. Clone into `<install-dir>` as in ["Installation" in README.md](README.md#installation).
 2. Check out the release that you deploy (`git checkout vX.Y.Z`).
-
-## Set up podman without systemd
-
-1. Use the `cgroupfs` cgroup manager and the `file` event logger.
-   If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
-
-   ```bash
-   mkdir -p ~/.config/containers
-   cat >> ~/.config/containers/containers.conf <<'EOF'
-   [engine]
-   # Podman creates the cgroups (resource limits) of the containers itself.
-   cgroup_manager = "cgroupfs"
-   # Podman writes its events to a file.
-   events_logger = "file"
-   EOF
-   ```
-
-2. Set `XDG_RUNTIME_DIR` in every login shell.
-   Replace the placeholder with its value.
-
-   ```bash
-   cp ~/.bash_profile ~/.bash_profile.bak
-   cat >> ~/.bash_profile <<'EOF'
-
-   # Rootless podman: a login through su or sudo does not set XDG_RUNTIME_DIR. Podman keeps the state of
-   # the running containers there, so every shell of this user must use the same directory.
-   # The usual value is /run/user/<uid>.
-   export XDG_RUNTIME_DIR=<runtime-dir>
-   EOF
-   ```
-
-   Start a new login shell and run the check:
-
-   ```bash
-   podman info --format '{{.Host.CgroupManager}}'      # cgroupfs
-   ```
-
-3. Run `podman system migrate` once:
-
-   ```bash
-   podman system migrate
-   ```
 
 ## Configure .env
 

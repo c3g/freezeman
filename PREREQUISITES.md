@@ -1,6 +1,8 @@
 # FreezeMan host prerequisites
 
-The host administrator prepares the host before the [deployment](DEPLOYMENT.md).
+Prepare the host before the [deployment](DEPLOYMENT.md).
+The host administrator does [Host requirements](#host-requirements) and [Network access](#network-access) as root.
+`<user>` then does [Set up podman without systemd](#set-up-podman-without-systemd).
 
 Placeholders used in this guide:
 
@@ -44,3 +46,47 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 | `pypi.org`, `files.pythonhosted.org` | 443 | Image builds: Python packages of `backend/requirements.txt` and `uwsgi` |
 | `registry.npmjs.org` | 443 | Image build of `web`: `npm ci` for the frontend |
 | The value of `FMS_EMAIL_HOST` | The value of `FMS_EMAIL_PORT` | Django email, only if `FMS_EMAIL_HOST` is set |
+
+## Set up podman without systemd
+
+Run this section as `<user>`, after [Host requirements](#host-requirements).
+
+1. Use the `cgroupfs` cgroup manager and the `file` event logger.
+   If `~/.config/containers/containers.conf` exists, copy it to `containers.conf.bak` and merge the two keys into its `[engine]` section.
+
+   ```bash
+   mkdir -p ~/.config/containers
+   cat >> ~/.config/containers/containers.conf <<'EOF'
+   [engine]
+   # Podman creates the cgroups (resource limits) of the containers itself.
+   cgroup_manager = "cgroupfs"
+   # Podman writes its events to a file.
+   events_logger = "file"
+   EOF
+   ```
+
+2. Set `XDG_RUNTIME_DIR` in every login shell.
+   Replace the placeholder with its value.
+
+   ```bash
+   cp ~/.bash_profile ~/.bash_profile.bak
+   cat >> ~/.bash_profile <<'EOF'
+
+   # Rootless podman: a login through su or sudo does not set XDG_RUNTIME_DIR. Podman keeps the state of
+   # the running containers there, so every shell of this user must use the same directory.
+   # The usual value is /run/user/<uid>.
+   export XDG_RUNTIME_DIR=<runtime-dir>
+   EOF
+   ```
+
+   Start a new login shell and run the check:
+
+   ```bash
+   podman info --format '{{.Host.CgroupManager}}'      # cgroupfs
+   ```
+
+3. Run `podman system migrate` once:
+
+   ```bash
+   podman system migrate
+   ```
