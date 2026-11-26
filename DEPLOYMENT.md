@@ -21,9 +21,8 @@ Placeholders used in this guide:
   The superuser is `postgres`, and only `podman-compose exec db` reaches it.
 - `<YYYY-MM-DD>`: the date in the name of a database backup file.
 
-Before you run `podman-compose` commands, set the compose file in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml`.
-podman-compose then works in any directory.
-It reads `.env` from the directory of the compose file.
+Run all the `podman-compose` commands in `<install-dir>/oci`, so you can copy them as they are.
+There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
 
 Run all steps as `<user>`, except [Host requirements](#host-requirements), which need root.
 
@@ -66,10 +65,10 @@ git config url."https://github.com/".insteadOf "git://github.com/"
 git submodule update --init --recursive
 
 # Configure .env: copy the template, then personalize oci/.env (see the comments in the file)
-cp oci/.env.prod.example oci/.env
+cd oci
+cp .env.prod.example .env
 
 # Build the images
-export COMPOSE_FILE=<install-dir>/oci/compose.yaml
 podman-compose build
 
 # Start the database
@@ -173,7 +172,8 @@ If the host uses a proxy or a firewall with an allow list, allow these domains f
 ## Configure .env
 
 ```bash
-cp <install-dir>/oci/.env.prod.example <install-dir>/oci/.env
+cd <install-dir>/oci
+cp .env.prod.example .env
 ```
 
 Personalize `.env` before the first start.
@@ -289,7 +289,8 @@ Test the release on a test host first.
    cd <install-dir>
    git fetch && git checkout vX.Y.Z
    git submodule update --init --recursive
-   sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat VERSION)/" oci/.env
+   cd oci
+   sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat ../VERSION)/" .env
    ```
 
 3. Build the images.

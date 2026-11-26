@@ -4,10 +4,9 @@ This guide runs the FreezeMan container stack for development.
 For the overview and layout of oci, read [README.md](README.md).
 For the clone and the submodules, see ["Installation" in ../README.md](../README.md#installation).
 
-Before you run `podman-compose` commands, set the compose files in the current shell: `export COMPOSE_FILE=<install-dir>/oci/compose.yaml:<install-dir>/oci/compose.dev.yaml`.
-podman-compose then works in any directory.
-It reads `.env` from the directory of the compose files.
-The commands below do not repeat the `-f` flags.
+Run all the `podman-compose` commands in `<install-dir>/oci`.
+The development commands name both compose files with `-f compose.yaml -f compose.dev.yaml`.
+`podman-compose` reads `.env` in the same directory.
 
 Contents:
 
@@ -53,20 +52,20 @@ If the path is relative or the directory does not exist, the containers fail wit
 
 ```bash
 # Start the stack.
-podman-compose up -d
+podman-compose -f compose.yaml -f compose.dev.yaml up -d
 # Enter the `dev` container.
-podman-compose exec dev bash
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 # The `dev` shell starts in `$CONTAINER_FMS_ROOT`.
 ```
 
-- After a change to `.env`, run `podman-compose up -d` again.
+- After a change to `.env`, run `podman-compose -f compose.yaml -f compose.dev.yaml up -d` again.
   It removes all containers of the stack and recreates them.
 - The data in the volumes stays.
 
 ### dev container
 
 - `up` does not rebuild images, and `CONTAINER_FMS_ROOT` is embedded into the `dev` image.
-  After changing `CONTAINER_FMS_ROOT`, run `podman-compose build dev`, then `podman-compose up -d`.
+  After changing `CONTAINER_FMS_ROOT`, run `podman-compose -f compose.yaml -f compose.dev.yaml build dev`, then `podman-compose -f compose.yaml -f compose.dev.yaml up -d`.
 
 The Python virtual environment is ready:
 
@@ -77,14 +76,14 @@ The Python virtual environment is ready:
   To keep a package, add it to `backend/requirements.txt`, then rebuild the image and recreate `dev` (on the host):
 
   ```bash
-  podman-compose build dev
-  podman-compose up -d dev
+  podman-compose -f compose.yaml -f compose.dev.yaml build dev
+  podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
   ```
 
 ### db container
 
 `postgres` is the superuser of the database.
-It works only through the Unix socket in the `db` container (`podman-compose exec db ...`).
+It works only through the Unix socket in the `db` container (`podman-compose -f compose.yaml -f compose.dev.yaml exec db ...`).
 Django and `dev` connect as the app role `admin` (`POSTGRES_USER` of `.env`).
 
 - On the first start of a new database volume, `db` creates `admin` with the password of `.env` (`db/initdb/20-app-role.sh`).
@@ -104,20 +103,20 @@ The restore skips the lines that change `postgres`, so `postgres` keeps the sett
 Restore the file:
 
 ```bash
-podman-compose down
+podman-compose -f compose.yaml -f compose.dev.yaml down
 podman volume rm freezeman_pgdata     # deletes the development database
-podman-compose up -d db
-until podman-compose exec db pg_isready -h 127.0.0.1 -U postgres -d fms; do sleep 2; done
+podman-compose -f compose.yaml -f compose.dev.yaml up -d db
+until podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_isready -h 127.0.0.1 -U postgres -d fms; do sleep 2; done
 
 # Skip the lines that change postgres.
 # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
 gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz \
   | grep -vE '^(CREATE|ALTER) ROLE postgres[ ;]' \
-  | podman-compose exec -T db psql -U postgres -d postgres
+  | podman-compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U postgres -d postgres
 
 # Start dev, then apply the migrations of your branch that the backup file does not have.
-podman-compose up -d
-podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
+podman-compose -f compose.yaml -f compose.dev.yaml up -d
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
 - The messages "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
@@ -128,7 +127,7 @@ podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python 
   Replace `<POSTGRES_PASSWORD>` with the value of `.env`:
 
   ```bash
-  podman-compose exec db psql -U postgres -d postgres \
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U postgres -d postgres \
     -c "ALTER ROLE admin LOGIN CREATEDB PASSWORD '<POSTGRES_PASSWORD>'" \
     -c "ALTER DATABASE fms OWNER TO admin"
   ```
@@ -137,20 +136,20 @@ podman-compose exec dev sh -c 'cd backend && python manage.py migrate && python 
   `pg_restore` can restore in parallel (`-j`), but it cannot read from `<` or a pipe, so copy the file into the `db` container first:
 
   ```bash
-  # On the production host. -T: no pseudo-TTY, keeps the binary file intact.
-  podman-compose -f <install-dir>/oci/compose.yaml exec -T db pg_dump -U postgres -Fc fms > fms.backup
+  # On the production host, in <install-dir>/oci. -T: no pseudo-TTY, keeps the binary file intact.
+  podman-compose exec -T db pg_dump -U postgres -Fc fms > fms.backup
   # On your machine, after the first four commands of the restore above.
   # --no-owner: give all objects to admin, the role that connects. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
   podman cp <install-dir>/backups/fms.backup freezeman_db_1:/tmp/fms.backup
-  podman-compose exec db pg_restore -U admin -d fms --no-owner --no-acl -j 4 /tmp/fms.backup
-  podman-compose exec db rm /tmp/fms.backup
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_restore -U admin -d fms --no-owner --no-acl -j 4 /tmp/fms.backup
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db rm /tmp/fms.backup
   ```
 
 - If you need the uploaded files, copy `backend/media` of the production host into `backend/media` of your checkout.
 
 ## Run the servers and the tests
 
-In the `dev` shell (`podman-compose exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`.
+In the `dev` shell (`podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash`), the commands start in `$CONTAINER_FMS_ROOT`.
 
 ```bash
 # First start and after each new migration:
@@ -185,7 +184,7 @@ Run the backend tests in the `dev` shell:
 Or run them from the host, without a `dev` shell:
 
 ```bash
-podman-compose exec dev sh -c 'cd backend && pytest'
+podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && pytest'
 ```
 
 The tests need no database setup.
@@ -210,7 +209,7 @@ There are three ways:
 - From the host, through the `db` container (the user and database are `POSTGRES_USER` and `POSTGRES_DB` of `.env`):
 
   ```bash
-  podman-compose exec db psql -U admin -d fms
+  podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d fms
   ```
 
 - From the host with a host `psql` or a GUI client: connect to `localhost:5432` (`compose.dev.yaml` publishes the port).
@@ -223,8 +222,8 @@ Then build and start the stack.
 `web` is a default service:
 
 ```bash
-podman-compose -f <install-dir>/oci/compose.yaml build
-podman-compose -f <install-dir>/oci/compose.yaml up -d
+podman-compose build
+podman-compose up -d
 ```
 
 **Proxy host:** the build needs the proxy.
