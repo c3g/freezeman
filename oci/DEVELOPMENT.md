@@ -34,7 +34,7 @@ Development works on any OS with podman and podman-compose.
 
 | Service | Image | What it runs |
 |---|---|---|
-| `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension. Port 5432 is published |
+| `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension. Published on the host port `HOST_DB_PORT` of `.env` (default 5432) |
 | `dev` | `localhost/freezeman-dev` | Idle container with the venv (`/opt/venv`), Python and Node. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
 
 The versions are in ["Overview" in README.md](README.md#overview).
@@ -209,7 +209,7 @@ There are three ways:
   podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U admin -d fms
   ```
 
-- From the host with a host `psql` or a GUI client: connect to `localhost:5432` (`compose.dev.yaml` publishes the port).
+- From the host with a host `psql` or a GUI client: connect to `localhost:<HOST_DB_PORT>` (`HOST_DB_PORT` of `.env`, default 5432).
   Use the user, the database and the password of `.env`.
 
 ## Test the production stack locally

@@ -36,9 +36,10 @@ services:
     # use the shared table. On PostgreSQL 18 or later, the flag is probably not necessary.
     command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.conf", "-c", "max_locks_per_transaction=512"]
 
-    # Publish the database port, so a host `psql` or a GUI client can connect to `localhost:5432`.
+    # Publish the database port, so a host `psql` or a GUI client can connect to
+    # `localhost:<HOST_DB_PORT>`. The port in the container network stays 5432.
     ports:
-      - "5432:5432"
+      - "${HOST_DB_PORT:-5432}:5432"
 
   # The development container. It runs `sleep infinity` (the `CMD` of the `dev` target). In it,
   # the developer runs `migrate`, `runserver` and `npm start` by hand, in place of the production
