@@ -444,7 +444,9 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
 * Version 6.0.0:
   * FreezeMan runs as containers.
     To keep the data of an earlier version, do these steps during the initial deployment:
-    1. In `.env`, set `POSTGRES_PASSWORD` to the old password of `admin` (the backup file sets it), and set the `HOST_*_DIR` folders to the folders of the old install.
+    1. In `.env`, set `POSTGRES_PASSWORD` to the old password of `admin` (the backup file sets it), and set the `HOST_*_DIR` folders to the folders of the old install:
+       `HOST_MEDIA_DIR` to `MEDIA_ROOT`, `HOST_RUN_INFO_DIR` to `FMS_RUN_INFO_PATH`, `HOST_VALIDATED_FILES_DIR` to `FMS_VALIDATED_FILES_PATH`, `HOST_RELEASED_FILES_DIR` to `FMS_RELEASED_FILES_PATH` and `HOST_AUTOMATIONS_WORK_DIR` to `FMS_AUTOMATIONS_WORK_PATH` of the old `uwsgi.ini`.
+       If the old `uwsgi.ini` does not set a path, use the matching folder of the old checkout.
     2. Stop the old uwsgi, then make a backup file on the old PostgreSQL server.
     3. After [Start the database](#start-the-database) and before [Start the stack](#start-the-stack), restore the file into the new, empty `db`.
        The messages "... already exists" for `postgres`, `admin`, `fms` and `fzy` are harmless.
