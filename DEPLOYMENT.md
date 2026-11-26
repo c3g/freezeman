@@ -226,13 +226,6 @@ How to update (on each host, QC first, prod after QC works):
    podman-compose exec db postgres --version
    ```
 
-A new patch release can break the stack.
-Test on QC before prod.
-
-Stay on the same major version (Python 3.14, Node 24, PostgreSQL 15).
-A major change is in [Specific deployments](#specific-deployments).
-For PostgreSQL it also needs a backup and restore of the data.
-
 ## Logs
 
 All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-start)):

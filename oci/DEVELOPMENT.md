@@ -111,7 +111,6 @@ podman-compose -f compose.yaml -f compose.dev.yaml up -d
 podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend && python manage.py migrate && python manage.py createinitialrevisions'
 ```
 
-- The messages "role "admin" already exists", "database "fms" already exists" and "extension "fzy" already exists" are harmless.
 - A backup file of all databases also restores the roles.
   `admin` gets the production password and the production privileges (no `CREATEDB`).
   Then `dev` reports "password authentication failed", and `pytest` cannot create its test database.
@@ -122,19 +121,6 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
   podman-compose -f compose.yaml -f compose.dev.yaml exec db psql -U postgres -d postgres \
     -c "ALTER ROLE admin LOGIN CREATEDB PASSWORD '<POSTGRES_PASSWORD>'" \
     -c "ALTER DATABASE fms OWNER TO admin"
-  ```
-
-- Other formats: a custom-format backup file (`pg_dump -Fc`) of the `fms` database restores with `pg_restore`, not `psql`.
-  `pg_restore` can restore in parallel (`-j`), but it cannot read from `<` or a pipe, so copy the file into the `db` container first:
-
-  ```bash
-  # On the production host, in <install-dir>/oci. -T: no pseudo-TTY, keeps the binary file intact.
-  podman-compose exec -T db pg_dump -U postgres -Fc fms > fms.backup
-  # On your machine, after the first four commands of the restore above.
-  # --no-owner: give all objects to admin, the role that connects. --no-acl: skip GRANT and REVOKE of roles that do not exist here.
-  podman cp <install-dir>/backups/fms.backup freezeman_db_1:/tmp/fms.backup
-  podman-compose -f compose.yaml -f compose.dev.yaml exec db pg_restore -U admin -d fms --no-owner --no-acl -j 4 /tmp/fms.backup
-  podman-compose -f compose.yaml -f compose.dev.yaml exec db rm /tmp/fms.backup
   ```
 
 - If you need the uploaded files, copy `backend/media` of the production host into `backend/media` of your checkout.
