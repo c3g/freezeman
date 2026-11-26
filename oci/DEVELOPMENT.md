@@ -37,8 +37,6 @@ Development works on any OS with podman and podman-compose.
 | `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension. Published on the host port `HOST_DB_PORT` of `.env` (default 5432) |
 | `dev` | `localhost/freezeman-dev` | Idle container with the venv (`/opt/venv`), Python and Node. You start the Django server (`runserver`) and the frontend dev server (webpack) by hand inside it. It takes the place of the production `backend` service |
 
-The versions are in ["Overview" in README.md](README.md#overview).
-
 `compose.dev.yaml` puts the production services `backend` and `web` in the profile `prod`, so `up -d` does not start them.
 
 - The repository is bind-mounted at `$CONTAINER_FMS_ROOT` (`/workspace/freezeman`, also an environment variable in `dev`).
@@ -64,18 +62,15 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 
 ### dev container
 
-The Python virtual environment is ready:
+The `dev` image has the packages of `backend/requirements.txt` in a virtual environment.
+`python`, `pip` and `pytest` in the `dev` shell use it.
 
-- The `dev` image has the packages of `backend/requirements.txt` in `/opt/venv`, and `/opt/venv/bin` is first in `PATH`.
-  So `python`, `pip` and `pytest` are the ones of the venv, with no activation and no first `pip install`.
-- `pip install` works in the `dev` shell, for example to try a package.
-  However, the venv is in the image, not in a bind-mounted checkout, so the package stays only until `dev` is recreated.
-  To keep a package, add it to `backend/requirements.txt`, then rebuild the image and recreate `dev` (on the host):
+To add a package to the backend, add it to `backend/requirements.txt`, then run on the host:
 
-  ```bash
-  podman-compose -f compose.yaml -f compose.dev.yaml build dev
-  podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
-  ```
+```bash
+podman-compose -f compose.yaml -f compose.dev.yaml build dev
+podman-compose -f compose.yaml -f compose.dev.yaml up -d dev
+```
 
 ### db container
 
