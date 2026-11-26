@@ -73,7 +73,7 @@ const ExperimentRunsSamples = ({
       return processMeasurements
         .filter((pm) => pm.child_sample == sampleID)
         .map((pm) => renderProcessMeasurement(pm))
-    } else return [<React.Fragment key="empty" />]
+    } else return []
   }
 
   return (
