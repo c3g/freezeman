@@ -52,7 +52,7 @@ Contents:
 | `backend` | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port |
 | `web` | `localhost/freezeman-web` | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
 
-A reverse proxy on the host terminates TLS and passes the requests to `web` (see ["Reverse proxy" in ../DEPLOYMENT.md](../DEPLOYMENT.md#reverse-proxy)).
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see ["Reverse proxy" in ../PREREQUISITES.md](../PREREQUISITES.md#reverse-proxy)).
 
 ## FMS_ENV values
 

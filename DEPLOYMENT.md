@@ -36,7 +36,6 @@ Contents:
   - [Build the images](#build-the-images)
   - [Start the database](#start-the-database)
   - [Start the stack](#start-the-stack)
-  - [Reverse proxy](#reverse-proxy)
   - [Start at boot](#start-at-boot)
   - [Daily report](#daily-report)
 - [Routine deployments](#routine-deployments)
@@ -79,7 +78,7 @@ podman-compose up -d
 
 Then:
 
-1. Set up the [Reverse proxy](#reverse-proxy).
+1. Check the site through the reverse proxy: `curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/` gives `200`.
 2. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
 # Initial deployment
@@ -127,40 +126,7 @@ podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noin
 podman-compose up -d
 # Check `web`.
 curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
-```
-
-## Reverse proxy
-
-The `web` container listens on `127.0.0.1:<HOST_HTTP_PORT>` and speaks plain HTTP.
-A reverse proxy on the host terminates TLS for `<domain>` and passes all paths to it.
-The reverse proxy must:
-
-- Pass `Host`, `X-Real-IP`, `X-Forwarded-For` and `X-Forwarded-Proto`.
-  Django checks `Host` against `FMS_HOST`.
-- Allow uploads of at least 50 MB and timeouts of at least 300 s.
-  Larger values are safe.
-
-nginx example, in the HTTPS server block of `<domain>`:
-
-```nginx
-client_max_body_size 50M;
-client_body_timeout 300s;
-
-location / {
-    proxy_pass http://127.0.0.1:<HOST_HTTP_PORT>;
-    proxy_http_version 1.1;
-    proxy_set_header Host              $host;
-    proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 300s;
-    proxy_send_timeout 300s;
-}
-```
-
-Check the site through the reverse proxy:
-
-```bash
+# Check the site through the reverse proxy (see "Reverse proxy" in PREREQUISITES.md).
 curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/   # 200
 ```
 
@@ -377,7 +343,7 @@ podman-compose exec -T backend python manage.py prepare_report_data  # run the r
        gunzip -c fms_old.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
        ```
 
-    4. In the reverse proxy, replace the old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the `location /` block of [Reverse proxy](#reverse-proxy).
+    4. In the reverse proxy, replace the old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the `location /` block of ["Reverse proxy" in PREREQUISITES.md](PREREQUISITES.md#reverse-proxy).
 
 # Additional information
 
