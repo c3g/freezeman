@@ -68,7 +68,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 
 ### dev container
 
-The `dev` image has the packages of `backend/requirements.txt` in a virtual environment.
+The `dev` image has the packages of `backend/requirements.txt` in a virtual environment at `/opt/venv`.
 `python`, `pip` and `pytest` in the `dev` shell use it.
 
 To add a package to the backend, add it to `backend/requirements.txt`, then run on the host:
