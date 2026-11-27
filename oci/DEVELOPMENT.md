@@ -21,6 +21,7 @@ Contents:
   - [dev container](#dev-container)
   - [db container](#db-container)
 - [Restore a production database](#restore-a-production-database)
+- [Copy the uploaded files](#copy-the-uploaded-files)
 - [Run the servers and the tests](#run-the-servers-and-the-tests)
 - [Database access](#database-access)
 - [Test the production stack locally](#test-the-production-stack-locally)
@@ -128,7 +129,13 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev sh -c 'cd backend &&
     -c "ALTER DATABASE fms OWNER TO admin"
   ```
 
-- If you need the uploaded files, copy `backend/media` of the production host into `backend/media` of your checkout.
+## Copy the uploaded files
+
+Optional.
+Do this to get the files that users uploaded in production.
+
+Copy the media folder of the production host into `backend/media` of your checkout.
+On the production host, the media folder is `HOST_MEDIA_DIR` of `.env` (default `<install-dir>/backend/media`).
 
 ## Run the servers and the tests
 
