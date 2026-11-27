@@ -216,8 +216,5 @@ podman-compose build
 podman-compose up -d
 ```
 
-**Proxy host:** the build needs the proxy.
-See ["Proxy" in ../DEPLOYMENT.md](../DEPLOYMENT.md#proxy).
-
 - Open `http://localhost:<HOST_HTTP_PORT>` (`HOST_HTTP_PORT` of `.env`).
 - Restore a backup as in [Restore a production database](#restore-a-production-database).
