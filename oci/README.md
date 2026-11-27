@@ -1,0 +1,103 @@
+# FreezeMan containers
+
+Container images and podman-compose configuration for FreezeMan.
+
+> [!NOTE]
+> Run the `podman-compose` commands in one of these two ways:
+>
+> - In `<install-dir>/oci`: copy the commands as they are.
+>   There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
+> - In another directory: add `-f <install-dir>/oci/compose.yaml` after `podman-compose`.
+>   `podman-compose` reads `.env` in the directory of `compose.yaml`.
+>
+> For development, add `-f compose.yaml -f compose.dev.yaml` (see [DEVELOPMENT.md](DEVELOPMENT.md)).
+
+Contents:
+
+- [Overview](#overview)
+- [Documents](#documents)
+- [Layout](#layout)
+- [Production services](#production-services)
+- [FMS_ENV values](#fms_env-values)
+- [Useful podman and podman-compose commands](#useful-podman-and-podman-compose-commands)
+
+## Overview
+
+- The stack runs Python 3.14, Node 24, uwsgi 2.0 behind nginx, and PostgreSQL 15.
+- The PostgreSQL version is the `POSTGRES_IMAGE` build argument in `db/Containerfile`.
+- The uwsgi version is `UWSGI_VERSION` in `Containerfile`.
+- uwsgi settings are in `backend/uwsgi.ini`.
+- The services are in [Production services](#production-services) (deployment) and in ["Services" in DEVELOPMENT.md](DEVELOPMENT.md#services) (development).
+
+## Documents
+
+| Reader | Read |
+|---|---|
+| Host administrator | [../PREREQUISITES.md](../PREREQUISITES.md) |
+| Deployment team | [../DEPLOYMENT.md](../DEPLOYMENT.md): the initial, routine and specific deployments |
+| Developers | [DEVELOPMENT.md](DEVELOPMENT.md): the development stack, the servers, the tests and a database restore |
+
+## Layout
+
+| Item | What it is |
+|---|---|
+| `Containerfile` | Images of the backend (`dev`, `backend-prod`) and `web`. The build context is the repository root |
+| `compose.yaml` | The production-like stack (all services) |
+| `compose.dev.yaml` | Development override: adds the `dev` container, publishes the `db` port, puts the production services in the profile `prod` |
+| `db/` | `Containerfile` of the `db` image, `initdb/10-fzy.sql` (enables `fzy` at the first start), `initdb/20-app-role.sh` (creates the app role of `.env` at the first start), `pg_hba.conf` (accepts `postgres` only through the Unix socket) |
+| `nginx/` | `default.conf.template`: the configuration of the `web` nginx |
+| `backend/` | `entrypoint.py` (container entrypoint) and `uwsgi.ini` |
+| `.env.prod.example`, `.env.dev.example` | Templates of `.env` for a server and for development. Copy one to `.env`. Commit only the templates |
+| `DEVELOPMENT.md` | Development setup guide |
+
+## Production services
+
+| Service | Image | What it runs |
+|---|---|---|
+| `db` | `localhost/freezeman-db` | PostgreSQL with the `fzy` extension (`backend/dependencies/pg_fzy`) |
+| `backend` | `localhost/freezeman-backend` | Django on uwsgi: uwsgi protocol on an internal port |
+| `web` | `localhost/freezeman-web` | nginx in a container: the built frontend, Django static files, `/media/`. Passes `/api/` to uwsgi. The reverse proxy on the host passes HTTP to it |
+
+A reverse proxy on the host terminates TLS and passes the requests to `web` (see ["Reverse proxy" in ../PREREQUISITES.md](../PREREQUISITES.md#reverse-proxy)).
+
+## FMS_ENV values
+
+- Use `PROD` on the production host, and `QC` or `DEV` on a test host.
+- FreezeMan does not validate the value.
+  It only tests if the value is `PROD`.
+- `PROD` gives the production behaviour (column `PROD` in the table below).
+- Any other value gives the test behaviour (right column).
+  `QC` and `DEV` behave the same.
+  They only label the host: the web page shows the value.
+  A value such as `potato` also gets the test behaviour, and the web page shows `potato`.
+- `LOCAL` is the value of the development stack.
+
+| Area | `PROD` | Any other value (`QC`, `DEV`, `LOCAL`) |
+|---|---|---|
+| Django log (`<HOST_LOG_DIR>/fms.log`, rotated at 2 GB, 1 old file kept) | `WARNING` and higher. These lines also go to the console, so to `<HOST_LOG_DIR>/backend.log` | `DEBUG` and higher |
+| Allowed hosts (`FMS_DEBUG=False`) | `FMS_HOST` only | `FMS_HOST` and `localhost` |
+| Web page | Normal header | Header with a different background and the value in red. The About page also shows the value |
+
+The `web` image gets `FMS_ENV` when it is built.
+`backend` reads it when it starts.
+After a change of `FMS_ENV` in `.env`, run `podman-compose build web`, then `podman-compose up -d --force-recreate`.
+
+## Useful podman and podman-compose commands
+
+```bash
+podman-compose ps                                  # containers of the stack and their state
+podman-compose logs -f backend                     # follow the backend logs
+podman-compose logs -f -n                          # follow the logs of all services, each line with its container name
+podman-compose exec backend python manage.py shell  # Django shell in the backend
+podman-compose exec db psql -U admin -d fms        # psql session on the fms database
+
+# Follow the logs of all services, each container in its own color. podman-compose has no --color option.
+# `freezeman` is the project name (`name:` in compose.yaml).
+podman logs -f --names --color $(podman ps -q --filter label=io.podman.compose.project=freezeman)
+
+podman ps -a                                       # all containers, also stopped ones
+podman images                                      # built images
+podman volume ls                                   # named volumes
+podman inspect --format '{{.HostConfig.LogConfig}}' freezeman_backend_1   # log driver and log file
+podman info --format '{{.Host.CgroupManager}}'     # cgroupfs on the deployment host
+```

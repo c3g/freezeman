@@ -13,8 +13,8 @@ from fms_report.services.report_data_preparation import prepare_production_repor
 
 # constants
 HOME = expanduser("~")
-REPORTS_PATH = "/reports/"
-LOG_PATH = "log/"
+# The containers set FMS_LOG_DIR to the mount of HOST_LOG_DIR, so this log stays next to fms.log.
+LOG_DIR = os.environ.get("FMS_LOG_DIR") or os.path.join(HOME, "reports", "log")
 LOG_NAME = "report_preparation"
 SERVER_PLATFORM = "Linux"  # Platform for the server
 SERVER_TZ = "America/Montreal"  # Local timezone
@@ -23,10 +23,9 @@ class Command(BaseCommand):
     help = 'Prepare report data'
 
     def init_logging(self, log_name, timestamp):
-        path = HOME + REPORTS_PATH + LOG_PATH
-        if not os.path.exists(path):
-            os.makedirs(path)
-        filename = path + log_name + ".log"
+        if not os.path.exists(LOG_DIR):
+            os.makedirs(LOG_DIR)
+        filename = os.path.join(LOG_DIR, log_name + ".log")
         formatter = logging.Formatter("%(asctime)s || %(levelname)s || %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
         handler = logging.FileHandler(filename, "a+")
         handler.setFormatter(formatter)
@@ -41,9 +40,8 @@ class Command(BaseCommand):
             os.environ["TZ"] = SERVER_TZ
             time.tzset()
         timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-        dst_path = HOME + REPORTS_PATH + LOG_PATH
-        if not os.path.exists(dst_path):
-            os.makedirs(dst_path)
+        if not os.path.exists(LOG_DIR):
+            os.makedirs(LOG_DIR)
         
         log = self.init_logging(LOG_NAME, timestamp)
         # log info identifying the current execution

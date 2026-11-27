@@ -1,0 +1,291 @@
+# # FreezeMan production-like stack
+#
+# This file starts the services of FreezeMan: the database, Django and nginx.
+# Run `podman-compose` from this directory.
+#
+#   cd oci && cp .env.prod.example .env   # then edit .env (development: .env.dev.example)
+#   podman-compose build
+#   podman-compose up -d
+#
+# The default services include "web" (container nginx). The host nginx (HTTPS) passes the requests to
+# 127.0.0.1:${HOST_HTTP_PORT} (see PREREQUISITES.md, "Reverse proxy").
+#
+# Development: see compose.dev.yaml and DEVELOPMENT.md.
+#
+# After rebuilding images or editing .env, apply with
+#   podman-compose up -d --force-recreate
+# (plain `up -d` only recreates containers when this file's resolved config changes).
+
+# Name the project. `name` is the prefix of the container, network and volume names (for example
+# `freezeman_pgdata`).
+name: freezeman
+
+x-podman:
+  # Use a plain bridge network with service-name DNS. Each service finds
+  # the others by name (for example `db` and `backend`).
+  # (Pods would also conflict with userns_mode in compose.dev.yaml.)
+  in_pod: false
+
+# A key that starts with `x-` is not a service. `&name` gives a block a name (an anchor), and
+# `<<: *name` (a merge key) copies that block into a service. An anchor must be above its first use.
+
+# Set the database settings of the Django service (`backend`).
+x-backend-env: &backend-env
+  PG_DATABASE: ${POSTGRES_DB:-fms}
+  PG_USER: ${POSTGRES_USER:-admin}
+  PG_PASSWORD: ${POSTGRES_PASSWORD}
+  PG_HOST: db
+  PG_PORT: "5432"
+  TZ: ${TZ:-UTC}
+
+# Set the Django settings of the Django service (`backend`). The containers get no
+# env_file, so the HOST_* settings of .env never reach them.
+x-django-env: &django-env
+  FMS_SECRET_KEY: ${FMS_SECRET_KEY}
+  FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
+  FMS_DEBUG: ${FMS_DEBUG:-False}
+  FMS_HOST: ${FMS_HOST:-}
+  # A key with no value passes the value of .env, and leaves the variable unset if .env has
+  # none. Do not write `${FMS_EMAIL_HOST:-}` here: an empty value counts as set for Django
+  # (settings.py: an empty FMS_EMAIL_HOST turns on SMTP, an empty FMS_EMAIL_PORT stops `int()`).
+  FMS_EMAIL_HOST:
+  FMS_EMAIL_PORT:
+  FMS_EMAIL_FROM:
+  FMS_EMAIL_USER:
+  FMS_EMAIL_PASSWORD:
+  FMS_EMAIL_TLS:
+
+# Proxy for the image builds (apt, pip, npm). Compose reads the shell first, then .env, so a
+# developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
+# lists the service names, so traffic between the containers never goes through the proxy.
+# Build arguments only: podman keeps the predefined proxy arguments out of the image.
+# At runtime no service gets the proxy (see x-no-proxy).
+x-proxy: &proxy
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
+
+# Runtime: no proxy. Podman copies the proxy of its own environment into each container
+# (containers.conf http_proxy = true). Empty values override it.
+x-no-proxy: &no-proxy
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: ""
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
+
+# Path of the project in the containers. Fixed by default: set CONTAINER_FMS_ROOT in .env only to
+# change it, then rebuild all images. The image builds get it as a build argument and export it as
+# ENV. The bind targets below use it too:
+# compose resolves them on the host, where the ENV of the image is not visible.
+# `db` does not use it.
+x-build-root: &build-root
+  CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}
+
+services:
+  # PostgreSQL 15 with the fzy extension.
+  db:
+    # Build the server image of oci/db/Containerfile (default target).
+    image: localhost/freezeman-db:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/db/Containerfile
+      args:
+        # apt-get installs the compiler and the PostgreSQL headers to build the fzy extension.
+        <<: *proxy
+
+    # Make `postgres` the superuser and the role of .env (POSTGRES_USER, `admin`) the app role, as on
+    # the production server. A backup file of all databases (pg_dumpall) runs `ALTER ROLE admin`
+    # with the production attributes (no SUPERUSER, no CREATEDB). If `admin` were the only
+    # superuser, the restore would remove its privileges and nothing could give them back.
+    # db/initdb/20-app-role.sh creates `admin` (FMS_DB_*) on the first start of a new volume.
+    # No POSTGRES_USER here: the image names its superuser `postgres` by default. podman-compose
+    # fills a variable that .env does not set from the environment of the service, so a
+    # POSTGRES_USER here would replace the app role in ${POSTGRES_USER} below.
+    environment:
+      <<: *no-proxy
+      POSTGRES_DB: ${POSTGRES_DB:-fms}
+      # Password of `postgres`. pg_hba.conf accepts `postgres` only through the Unix socket in the
+      # container, so the value does not matter. .env always sets POSTGRES_PASSWORD, so this key
+      # does not replace it in ${POSTGRES_PASSWORD} below.
+      POSTGRES_PASSWORD: postgres
+      FMS_DB_USER: ${POSTGRES_USER:-admin}
+      FMS_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-UTC}
+
+    # log_timezone is set in postgresql.conf when initdb first runs (UTC if TZ was unset then).
+    # The flag overrides it for an existing data directory too.
+    # hba_file: accept `postgres` only through the Unix socket in the container (db/pg_hba.conf).
+    command: ["postgres", "-c", "log_timezone=${TZ:-UTC}", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
+
+    # Keep the data in the named volume `pgdata`, so it stays after `down`, which removes the
+    # container.
+    volumes:
+      # PostgreSQL 15 image: PGDATA is /var/lib/postgresql/data, declared as a VOLUME
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: ./db/pg_hba.conf
+        target: /etc/postgresql/pg_hba.conf
+        read_only: true
+        bind:
+          selinux: z
+
+    # Write the log of the container to ${HOST_LOG_DIR}/<service>.log on the host. Each service has
+    # its own file. The file stays after `down` and `--force-recreate`, and `podman-compose logs`
+    # still reads it. HOST_LOG_DIR has no default: set it in .env. The path must be absolute: a
+    # relative path breaks `podman restart` from another directory. A relative path or a missing
+    # directory gives "[conmon:e]: Failed to open log file No such file or directory". Do not use
+    # a nested default such as ${A:-${B}}: podman-compose 1.5 (Rocky 9.6) stops at the first `}`.
+    logging:
+      driver: k8s-file
+      options:
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/db.log
+
+    # Restart a container that exits while podman runs. It does not start containers at boot.
+    # The @reboot crontab line does that (DEPLOYMENT.md: "Start at boot").
+    restart: always
+
+  # Django on uwsgi (the `CMD` of `backend-prod`). uwsgi listens on port 8000 (uwsgi protocol) in
+  # the container network. The port is not published. Only `web` connects to it.
+  #
+  # Migrations are manual. Stop `web` and `backend`, start only `db`, then run
+  #   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+  # (a one-off container of this service, with the same image and settings). See DEPLOYMENT.md.
+  backend:
+    image: localhost/freezeman-backend:${FMS_IMAGE_TAG:-latest}
+    # Build the `backend-prod` image of oci/Containerfile.
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: backend-prod
+      args:
+        # apt-get (libpq, gcc) and pip (requirements.txt, uwsgi) download packages.
+        <<: [*proxy, *build-root]
+
+    # No FMS_RUN_INFO_PATH and similar: the Django defaults (settings.py) are the mount targets of
+    # the volumes below.
+    environment:
+      <<: [*backend-env, *django-env, *no-proxy]
+      UWSGI_PROCESSES: ${UWSGI_PROCESSES:-3}
+      # Django writes fms.log, and prepare_report_data writes report_preparation.log, in the mount
+      # of HOST_LOG_DIR below.
+      FMS_LOG_DIR: /var/log/fms
+
+    # keep-id: the files belong to the host user, as uid 1000 (the image user fms).
+    # django owns the files on the host.
+    userns_mode: keep-id:uid=1000,gid=1000
+
+    # `create_host_path` makes podman-compose create a missing host directory (podman-compose 1.5
+    # always does, and ignores the key).
+    # The container paths are fixed. The variables of .env choose only the host folders, so
+    # the files stay where they are on the host.
+    # Django uses only the three trigger folders, not their parent, so each one has its own mount.
+    volumes:
+      - type: bind
+        source: ${HOST_MEDIA_DIR:-../backend/media}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/media
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_RUN_INFO_DIR:-../backend/triggers/lims-run-info}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-run-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_VALIDATED_FILES_DIR:-../backend/triggers/lims-validation-info}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-validation-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_RELEASED_FILES_DIR:-../backend/triggers/lims-release-info}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/triggers/lims-release-info
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_AUTOMATIONS_WORK_DIR:-../backend/automations_work}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/automations_work
+        bind:
+          selinux: z
+          create_host_path: true
+      - type: bind
+        source: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}
+        target: /var/log/fms
+        bind:
+          selinux: z
+          create_host_path: true
+
+    # Start as soon as the `db` container starts. The entrypoint of the image waits until the
+    # database accepts connections.
+    depends_on:
+      db:
+        condition: service_started
+
+    logging:
+      driver: k8s-file
+      options:
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/backend.log
+
+    restart: always
+
+  # nginx in a container: the production entry. The host nginx passes HTTP to it.
+  # It serves the frontend build, the Django static files and
+  # `/media/`, and passes `/api/` to `backend`.
+  web:
+    # Build the `web` image of oci/Containerfile.
+    image: localhost/freezeman-web:${FMS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: oci/Containerfile
+      target: web
+      args:
+        # apt-get (git) and npm ci download packages for the frontend build that web copies.
+        <<: [*proxy, *build-root]
+        FMS_ENV: ${FMS_ENV:?set FMS_ENV in .env (PROD, QC or DEV)}
+
+    environment:
+      <<: *no-proxy
+      BACKEND_UPSTREAM: backend:8000
+      TZ: ${TZ:-UTC}
+
+    # Publish port 8080 of the container on the host.
+    # Only the host nginx can reach it. A developer in a VM or container sets HOST_HTTP_ADDR=0.0.0.0.
+    ports:
+      - "${HOST_HTTP_ADDR:-127.0.0.1}:${HOST_HTTP_PORT:-8080}:8080"
+
+    # `read_only` makes the mount read-only, because nginx only reads the media files.
+    volumes:
+      - type: bind
+        source: ${HOST_MEDIA_DIR:-../backend/media}
+        target: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}/backend/media
+        read_only: true
+        bind:
+          selinux: z
+          create_host_path: true
+
+    # nginx exits if "backend" does not resolve at startup; the condition starts "backend" first,
+    # and restart: always is the fallback if the name does not resolve yet.
+    depends_on:
+      backend:
+        condition: service_started
+
+    logging:
+      driver: k8s-file
+      options:
+        path: ${HOST_LOG_DIR:?set HOST_LOG_DIR in .env to an absolute path}/web.log
+
+    restart: always
+
+# Declare the named volume of `db`. Podman manages it, so the data stays when a container is
+# removed.
+volumes:
+  pgdata:

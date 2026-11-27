@@ -1,211 +1,263 @@
-<h1 align="center">
-  Server Deployment checklist
-</h1>
+# FreezeMan deployment
 
-<p>
-On this page we list the various steps needed for deployments. The first section contains the information pertaining to the initial deployment of the production server. The second section contains steps that need to be executed for each release. The last section contains additional steps to be performed for specific releases.
-</p>
+This guide deploys FreezeMan as containers.
+Prepare the host first, as in [PREREQUISITES.md](PREREQUISITES.md).
+The services of the stack are in ["Production services" in oci/README.md](oci/README.md#production-services).
 
+Placeholders used in this guide:
+
+- `<user>`: the non-root account that runs the stack with rootless podman.
+- `<uid>`: the numeric ID of `<user>` (`id -u`).
+- `<runtime-dir>`: the value of `XDG_RUNTIME_DIR` for `<user>`.
+  Rootless podman keeps the state of the running containers there.
+  The usual value is `/run/user/<uid>`.
+- `<install-dir>`: the absolute path of the FreezeMan checkout for the stack.
+- `<domain>`: the public host name of FreezeMan.
+  It is the value of `FMS_HOST` in `.env`.
+- `<HOST_LOG_DIR>`: the value of `HOST_LOG_DIR` in `.env`.
+- `<HOST_HTTP_PORT>`: the value of `HOST_HTTP_PORT` in `.env`.
+  It is the host port where the `web` container listens, and where the reverse proxy sends the requests.
+- `<POSTGRES_USER>`, `<POSTGRES_DB>`, `<POSTGRES_PASSWORD>`: the values of `POSTGRES_USER`, `POSTGRES_DB` and `POSTGRES_PASSWORD` in `.env`.
+  `POSTGRES_USER` (`admin`) is the app role.
+  The superuser is `postgres`, and only `podman-compose exec db` reaches it.
+- `<YYYY-MM-DD>`: the date in the name of a database backup file.
+
+> [!NOTE]
+> Run the `podman-compose` commands in one of these two ways:
+>
+> - In `<install-dir>/oci`: copy the commands as they are.
+>   There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
+> - In another directory: add `-f <install-dir>/oci/compose.yaml` after `podman-compose`.
+>   `podman-compose` reads `.env` in the directory of `compose.yaml`.
+
+Run all steps as `<user>`.
+
+Contents:
+
+- [Initial deployment](#initial-deployment)
+  - [Quick start](#quick-start)
+  - [Start at boot](#start-at-boot)
+  - [Daily report](#daily-report)
+- [Routine deployments](#routine-deployments)
+  - [Update to a new release](#update-to-a-new-release)
+  - [Database backups](#database-backups)
+  - [Keep the base images up to date](#keep-the-base-images-up-to-date)
+  - [Logs](#logs)
+- [Specific deployments](#specific-deployments)
+- [Proxy](#proxy)
 
 # Initial deployment
-  * Users / group
-  * Sudoers
-  * Setup yum repos
-    ```
-    cat >/etc/yum.repos.d/nginx.repo <<EOT
 
-      [nginx]
-      name=nginx repo
-      baseurl=https://nginx.org/packages/centos/\$releasever/\$basearch/
-      gpgcheck=0
-      enabled=1
+## Quick start
 
-    EOT
-    ```
-  * Install / setup postgreSQL 15
-    ```
-    yum install centos-release-scl -y
-    yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-    yum install postgresql15 postgresql15-server postgresql15-devel -y
+First do [PREREQUISITES.md](PREREQUISITES.md).
 
-    cat >/etc/profile.d/pg_conf.sh <<EOF
-      #!/bin/bash
-      export PATH=/usr/pgsql-15/bin:\$PATH
-    EOF
-    export PATH=$PATH:/usr/pgsql-15/bin
+1. Check out the release that you deploy, and copy the `.env` template:
 
-    /usr/pgsql-15/bin/postgresql-15-setup initdb
-    systemctl enable postgresql-15
-    systemctl start postgresql-15
+   ```bash
+   git clone https://github.com/c3g/freezeman <install-dir>
+   cd <install-dir>
+   git checkout vX.Y.Z
+   git config url."https://github.com/".insteadOf "git://github.com/"
+   git submodule update --init --recursive
+   cd oci
+   cp .env.prod.example .env
+   ```
 
-    cd /
-    sudo -u postgres createdb fms
-    sudo -u postgres createuser admin
-    echo "alter user admin with encrypted password 'XXXXXX';" | sudo -u postgres psql
-    echo "grant all privileges on database fms to admin ;" | sudo -u postgres psql
-    echo "GRANT USAGE, CREATE ON SCHEMA public TO admin ;" | sudo -u postgres psql -d fms
+2. Personalize `.env` before the first start.
+   The comments in the file tell what to set.
+   The effect of each `FMS_ENV` value is in ["FMS_ENV values" in oci/README.md](oci/README.md#fms_env-values).
 
-    cat >/var/lib/pgsql/15/data/pg_hba.conf <<EOT
+3. Build the images, start the database, apply the migrations and start the stack:
 
-        # TYPE  DATABASE        USER            ADDRESS                 METHOD
+   ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
+   podman-compose build
+   # Start only db, and wait until it is ready.
+   podman-compose up -d db
+   until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+   # Apply the migrations in a one-off `backend` container.
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+   # Start all services.
+   podman-compose up -d
+   ```
 
-        # "local" is for Unix domain socket connections only
-        #local   all             all                                     md5
-        local   all postgres peer
-        # IPv4 local connections:
-        host    all             all             127.0.0.1/32            md5
-        # IPv6 local connections:
-        host    all             all             ::1/128                 ident
-        # Allow replication connections from localhost, by a user with the
-        # replication privilege.
-        local   replication     all                                     peer
-        host    replication     all             127.0.0.1/32            ident
-        host    replication     all             ::1/128                 ident
+4. Check `web`, then the site through the reverse proxy (see ["Reverse proxy" in PREREQUISITES.md](PREREQUISITES.md#reverse-proxy)):
 
-    EOT
+   ```bash
+   curl -sfo /dev/null -w '%{http_code}\n' http://127.0.0.1:<HOST_HTTP_PORT>/  # 200
+   curl -sfo /dev/null -w '%{http_code}\n' https://<domain>/                    # 200
+   ```
 
-    service postgresql-15 restart
-    ```
-  * Install essential packages
-    ```
-    yum install git -y
-    yum install -y gcc openssl-devel bzip2-devel libffi-devel
-    ```
-  * Install Openssl 1.1.1u
-    ```
-    cd /opt/
-    wget https://ftp.openssl.org/source/openssl-1.1.1u.tar.gz --no-check-certificate
-    tar xzf openssl-1.1.1u.tar.gz
-    cd openssl-1.1.1u
-    ./config --prefix=/usr/local --openssldir=/etc/ssl --libdir=lib  no-shared zlib-dynamic
-    make -j1 depend
-    make -j2
-    make install_sw
+5. Add the crontab lines of [Start at boot](#start-at-boot) and [Daily report](#daily-report).
 
-    # To test
-    /usr/local/bin/openssl version
-    ```
-  * Install sqlite
-    ```
-    wget https://www.sqlite.org/2026/sqlite-src-3530100.zip
-    unzip sqlite-src-3530100.zip
-    cd sqlite-src-3530100
+## Start at boot
 
-    ./configure --prefix=/usr/local CFLAGS="-O2 -fPIC"
+Run this step as `<user>`, after the first start works.
+Add these lines to the crontab (`crontab -e`):
 
-    make -j4
-    make install
-    ```
-  * Install 3.14 with sqlite
-    ```
-    yum install -y centos-release-scl devtoolset-11
-    scl enable devtoolset-11 bash
+```cron
+XDG_RUNTIME_DIR=<runtime-dir>
+PATH=<podman-compose-dir>:/usr/bin:/bin
+@reboot cd <install-dir>/oci && podman-compose up -d >> <HOST_LOG_DIR>/boot.log 2>&1
+```
 
-    cd /opt/
-    wget https://www.python.org/ftp/python/3.14.4/Python-3.14.4.tgz
-    tar xzf Python-3.14.4
-    cd Python-3.14.4
+- Cron does not set `XDG_RUNTIME_DIR`, and its `PATH` is short.
+  Put the two variable lines at the top of the crontab.
+  `<podman-compose-dir>` is the directory of `command -v podman-compose` (for example `/home/<user>/.local/bin`).
+- `podman-compose` reads `.env` in `oci/`.
 
-    make clean
-    make distclean
+## Daily report
 
-    export CPPFLAGS="-I/usr/local/include"
-    export LDFLAGS="-L/usr/local/lib"
-    export LD_RUN_PATH="/usr/local/lib"
-    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+FreezeMan needs a daily run of `prepare_report_data`, the command that prepares the data of the reports.
+Host cron must call it in the running `backend` container.
+Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of [Start at boot](#start-at-boot):
 
-    ./configure --enable-optimizations --with-openssl=/usr/local --with-openssl-rpath=auto
-    make -j4
-    make altinstall #to prevent replacing the default python binary file /usr/bin/python
+```cron
+0 1 * * * cd <install-dir>/oci && podman-compose exec -T backend python manage.py prepare_report_data >> <HOST_LOG_DIR>/report.log 2>&1
+```
 
-    export PATH=/usr/local/bin:$PATH
+- Cron uses the time zone of the host.
+- `-T`: cron has no terminal.
+- The crontab line writes the output of the command to `<HOST_LOG_DIR>/report.log`.
+  `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
 
-    # test
-    /usr/local/bin/python3.14 -V
-    /usr/local/bin/pip3.14 -V
+To run the report now, or to read the log of the last run:
 
-    # ssl test
-    /usr/local/bin/python3.14 -m ssl
-
-    # sqlite3 test
-    /usr/local/bin/python3.14  -c "import sqlite3"
-    ```
-  * Install Node.js
-    ```
-    export PATH=/opt/torque/x86_64/bin:/usr/pgsql-15/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/django/.local/bin:/home/django/bin
-    npm cache clean
-    sudo /usr/local/bin/npm install -g n
-    sudo /bin/n 24.18.0
-    ```
-  * Install and Configure nginx
-    ```
-    yum install nginx -y
-
-    cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.BKP
-
-    # Edit /etc/nginx/conf.d/default.conf add/replace the following lines:
-
-      location / {
-      root /data/freezeman/frontend/dist/;
-      index index.html;
-      uwsgi_read_timeout 300s;
-      }
-
-      location /static/ {
-      alias /data/freezeman/backend/staticfiles/;
-      }
-
-      location /media/ {
-      alias /data/freezeman/backend/media/;
-      }
-
-      location /api/ {
-      include uwsgi_params;
-      uwsgi_pass unix:/data/freezeman/backend/fms.sock;
-      uwsgi_read_timeout 300s;
-      }
-
-      location = /favicon.ico { access_log off; log_not_found off; }
-
-      error_page 404 /index.html;
-
-    systemctl restart nginx
-    ```
-  * Install certificate
+```bash
+podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
+tail -n 50 <HOST_LOG_DIR>/report_preparation.log                     # read the last run
+```
 
 # Routine deployments
-  * Backup the database (`pg_dumpall > backup_release_vX_X_X.pgsql`)
-  * Kill the uwsgi processes (`ps -aux | grep uwsgi` to find, `kill -9 PROCESS_NUMBER` may need only kill the master)
-  * Move to the repository base directory (`cd ./freezeman`)
-  * Fetch updates on the repository (`git fetch`) and checkout the release tag from the repository (`git checkout vX.X.X`)
-  * Update the submodule pg_fzy (`git submodule update --init --recursive`) (if changed)
-  * Move to the frontend (`cd frontend`) and install any new dependency (`npm install`) and fix security issues (`npm audit fix`)
-  * Compile the frontend (`npm run build`)
-  * Move to the backend directory (`cd ../backend`) and activate the the virtual environment (`. env/bin/activate`)
-  * Install any new dependency (`pip install -r requirements.txt`)
-  * Install pg_fzy (`cd backend/dependencies/pg_fzy && make && sudo make install`) (`make restore_precompiled_binary` to get precompiled binaries) (if needed)
-  * Move back to the backend root (`cd ../..`) and migrate the database (`python manage.py migrate`)
-  * Create the first revisions for newly created models (`python manage.py createinitialrevisions`)
-  * Serve new and modified templates (`python manage.py collectstatic`)
-  * Activate the pg_fzy module (`psql -u postgres -d fms -c "create extension fzy;"`)
-  * Restart the uwsgi (`./env/bin/uwsgi uwsgi.ini &`)
 
-### Notes on submodule setup
-  * If the `git submodule update --init --recursive` command fails to reach the repo and set the submodule, check the inside the .git hidden directory of the repo base directory. Inside, open the config file and replace in the section [submodule "backend/dependencies/pg_fzy"], "url = git:" by "url = https:". Execute `git submodule update --init --recursive` then go into .git/modules/backend/dependencies/pg_fzy and open "config". Replace in the section [submodule "fzy_native"], "url = git:" by "url = https:". Execute `git submodule update --init --recursive` again.
-  * To update submodule to latest commit, `git submodule update --remote --merge`
+## Update to a new release
 
+Run these steps as `<user>`.
+Test the release on a test host first.
+
+1. Back up the database, as in [Database backups](#database-backups).
+2. Check out the release, and set its version in `.env`.
+   `FMS_IMAGE_TAG` is the value in the `VERSION` file.
+
+   ```bash
+   cd <install-dir>
+   git fetch && git checkout vX.Y.Z
+   git submodule update --init --recursive
+   cd oci
+   sed -i "s/^FMS_IMAGE_TAG=.*/FMS_IMAGE_TAG=$(cat ../VERSION)/" .env
+   ```
+
+3. Build the images:
+
+   ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
+   podman-compose build
+   ```
+
+4. Stop `web` and `backend`, apply the migrations, then start the stack with the new images:
+
+   ```bash
+   podman-compose stop web backend
+   podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+   podman-compose up -d --force-recreate
+   ```
+
+If the build fails, the old containers keep running.
+Set `FMS_IMAGE_TAG` back to the old version.
+If the migration fails, the stack stays down.
+
+## Database backups
+
+### Dump
+
+```bash
+mkdir -p <install-dir>/backups
+# -T: no pseudo-TTY, which would turn the line endings of the backup file into CRLF.
+podman-compose exec -T db pg_dumpall -U postgres | gzip > <install-dir>/backups/$(date +%F).pgsql.gz
+```
+
+### Restore
+
+```bash
+podman-compose down
+podman volume rm freezeman_pgdata     # deletes the current database
+podman-compose up -d db
+until podman-compose exec db pg_isready -h 127.0.0.1 -U <POSTGRES_USER> -d <POSTGRES_DB>; do sleep 2; done
+# -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+gunzip -c <install-dir>/backups/<YYYY-MM-DD>.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+# The backup file sets the password of admin at backup time. Set the password of .env again.
+podman-compose exec db psql -U postgres -d postgres -c "ALTER ROLE <POSTGRES_USER> PASSWORD '<POSTGRES_PASSWORD>'"
+# Apply the migrations that the backup does not have, while only db runs.
+podman-compose run --rm --no-deps backend sh -c 'python manage.py migrate --noinput && python manage.py createinitialrevisions'
+podman-compose up -d
+```
+
+## Keep the base images up to date
+
+The Containerfiles use floating tags (`python:3.14-slim-trixie`, `node:24-trixie-slim`, `nginx-unprivileged:stable-alpine`, `postgres:15-trixie`).
+A floating tag moves to each new patch release, but a host does not fetch it by itself: podman keeps the image it pulled first.
+Without the steps below, a host stays on old base images and misses security fixes, and QC and prod can run different versions for the same commit.
+
+When to update:
+
+- When a CVE affects Python, Node, nginx, PostgreSQL, Debian trixie or Alpine.
+
+How to update (on each host, QC first, prod after QC works):
+
+1. Pull the new base images and rebuild without the layer cache.
+   `--pull` alone is not enough: the cached `apt-get`, `pip` and `npm` layers would keep the old packages.
+
+   ```bash
+   # Proxy host only: replace ... with the proxy address (see Proxy). Without a proxy, remove the three variable lines.
+   HTTP_PROXY=... \
+   HTTPS_PROXY=... \
+   NO_PROXY=localhost,127.0.0.1 \
+   podman-compose build --pull --no-cache
+   ```
+
+2. Recreate the containers: `podman-compose up -d --force-recreate`.
+3. Check the versions, and write them in the deployment notes:
+
+   ```bash
+   podman-compose exec backend python --version
+   podman-compose exec web nginx -v
+   podman-compose exec db postgres --version
+   ```
+
+## Logs
+
+All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-start)):
+
+- `<service>.log`: the log of each container.
+- `fms.log`: the Django log (`WARNING` and higher on `PROD`, `DEBUG` and higher otherwise).
+- `boot.log`: the output of the crontab line of [Start at boot](#start-at-boot).
+- `report.log` and `report_preparation.log`: the daily report (see [Daily report](#daily-report)).
+
+```bash
+podman-compose logs -f backend          # follow the backend log through podman
+tail -f <HOST_LOG_DIR>/backend.log      # the same log, read from the host file (works after `down`)
+tail -f <HOST_LOG_DIR>/fms.log          # the Django log
+```
 
 # Specific deployments
 
-* Version 3.1 : 
+* Version 3.1:
   * Upgrade Python version to 3.8.
   * Clone the new repository.
   * Modify the nginx and uwsgi for the new locations.
-* Version 3.2 : 
-  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
-* Version 3.3 :
+* Version 3.2:
+  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
+* Version 3.3:
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
-  * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
+  * Add a .env file in the /frontend directory using the example.env as a reference.
+    Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini.
 * Version 4.4.0:
@@ -230,3 +282,37 @@ On this page we list the various steps needed for deployments. The first section
   * Upgrade Django version to 6.0.4.
 * Version 5.9.0:
   * Upgrade node.js to v24.18.0.
+* Version 6.0.0:
+  * FreezeMan runs as containers.
+    To keep the data of an earlier version, do these steps during the initial deployment:
+    1. In `.env`, set `POSTGRES_PASSWORD` to the old password of `admin` (the backup file sets it), and set the `HOST_*_DIR` folders to the folders of the old install:
+       `HOST_MEDIA_DIR` to `MEDIA_ROOT`, `HOST_RUN_INFO_DIR` to `FMS_RUN_INFO_PATH`, `HOST_VALIDATED_FILES_DIR` to `FMS_VALIDATED_FILES_PATH`, `HOST_RELEASED_FILES_DIR` to `FMS_RELEASED_FILES_PATH` and `HOST_AUTOMATIONS_WORK_DIR` to `FMS_AUTOMATIONS_WORK_PATH` of the old `uwsgi.ini`.
+       If the old `uwsgi.ini` does not set a path, use the matching folder of the old checkout.
+    2. Stop the old uwsgi, then make a backup file on the old PostgreSQL server.
+    3. In step 3 of [Quick start](#quick-start), after `db` is ready and before the migrations, restore the file into the new, empty `db`.
+
+       ```bash
+       pg_dumpall -U postgres | gzip > fms_old.pgsql.gz   # on the old PostgreSQL server
+       # -d postgres: psql must start in another database than fms, because the script runs \connect fms.
+       gunzip -c fms_old.pgsql.gz | podman-compose exec -T db psql -U postgres -d postgres
+       ```
+
+    4. In the reverse proxy, replace the old `location` blocks (`/`, `/static/`, `/media/`, `/api/`) with the `location /` block of ["Reverse proxy" in PREREQUISITES.md](PREREQUISITES.md#reverse-proxy).
+
+# Proxy
+
+Do this section only if your host reaches the internet through an HTTP proxy.
+
+Only image pulls and builds use the proxy.
+The running services do not.
+
+Set the proxy variables, in upper case, before the command.
+Replace `...` with the proxy address, for example `http://proxy.example.org:3128`.
+They then apply only to that command:
+
+```bash
+HTTP_PROXY=... \
+HTTPS_PROXY=... \
+NO_PROXY=localhost,127.0.0.1 \
+podman-compose build # or pull
+```

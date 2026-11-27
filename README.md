@@ -26,6 +26,7 @@
 # Clone the repository
 git clone https://github.com/c3g/freezeman
 cd freezeman
+git config url."https://github.com/".insteadOf "git://github.com/"
 git submodule update --init --recursive
 ```
 
@@ -42,5 +43,5 @@ contributors to the Django project. See relevant licenses:
 
   * `/backend/templates/admin/base_site.html`
 
-Portions copyright: Bojan Mihelac and individual contributors to the 
+Portions copyright: Bojan Mihelac and individual contributors to the
 `django-import-export` project.
