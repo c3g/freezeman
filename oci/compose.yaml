@@ -59,8 +59,7 @@ x-django-env: &django-env
 # developer without a proxy needs no setting. apt reads only the lowercase names. NO_PROXY always
 # lists the service names, so traffic between the containers never goes through the proxy.
 # Build arguments only: podman keeps the predefined proxy arguments out of the image.
-# At runtime only "dev" (compose.dev.yaml) gets the proxy. The other services get no proxy
-# (see x-no-proxy).
+# At runtime no service gets the proxy (see x-no-proxy).
 x-proxy: &proxy
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}
@@ -70,8 +69,7 @@ x-proxy: &proxy
   no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
 
 # Runtime: no proxy. Podman copies the proxy of its own environment into each container
-# (containers.conf http_proxy = true). Empty values override it. Only "dev" (compose.dev.yaml)
-# keeps the proxy.
+# (containers.conf http_proxy = true). Empty values override it.
 x-no-proxy: &no-proxy
   HTTP_PROXY: ""
   HTTPS_PROXY: ""

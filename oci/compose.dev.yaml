@@ -10,17 +10,6 @@
 #
 # Frontend: http://localhost:9000   Backend: http://localhost:8000
 
-# Same proxy block as compose.yaml (YAML anchors do not cross files). It also reaches the
-# environment of "dev", so npm ci and pip run through the proxy when compose starts without
-# the shell proxy.
-x-proxy: &proxy
-  HTTP_PROXY: ${HTTP_PROXY:-}
-  HTTPS_PROXY: ${HTTPS_PROXY:-}
-  NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
-  http_proxy: ${HTTP_PROXY:-}
-  https_proxy: ${HTTPS_PROXY:-}
-  no_proxy: ${NO_PROXY:-localhost,127.0.0.1},db,backend,web
-
 services:
   db:
     # pytest creates its own test database, so the app role gets CREATEDB (db/initdb/20-app-role.sh).
@@ -52,8 +41,6 @@ services:
       dockerfile: oci/Containerfile
       target: dev
       args:
-        # apt-get (git, psql client), pip and npm download packages while the image builds.
-        <<: *proxy
         # Path of the project in the container (x-build-root of compose.yaml).
         CONTAINER_FMS_ROOT: ${CONTAINER_FMS_ROOT:-/workspace/freezeman}
 
@@ -61,7 +48,6 @@ services:
     # repeat x-django-env of compose.yaml (YAML anchors do not cross files).
     # No FMS_RUN_INFO_PATH and similar: the Django defaults are in the repository mount.
     environment:
-      <<: *proxy
       FMS_ENV: LOCAL
       FMS_DEBUG: "True"
       # No value: if .env has no FMS_SECRET_KEY, the variable stays unset and Django uses the
