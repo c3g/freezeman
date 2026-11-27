@@ -236,7 +236,7 @@ How to update (on each host, QC first, prod after QC works):
 All logs are in `HOST_LOG_DIR` of `.env` (see step 2 of [Quick start](#quick-start)):
 
 - `<service>.log`: the log of each container.
-- `fms.log`: the Django log (`WARNING` and higher on `PROD`, `DEBUG` and higher elsewhere).
+- `fms.log`: the Django log (`WARNING` and higher on `PROD`, `DEBUG` and higher otherwise).
 - `boot.log`: the output of the crontab line of [Start at boot](#start-at-boot).
 - `report.log` and `report_preparation.log`: the daily report (see [Daily report](#daily-report)).
 
