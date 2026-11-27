@@ -290,7 +290,6 @@ tail -f <HOST_LOG_DIR>/fms.log          # the Django log
        If the old `uwsgi.ini` does not set a path, use the matching folder of the old checkout.
     2. Stop the old uwsgi, then make a backup file on the old PostgreSQL server.
     3. In step 3 of [Quick start](#quick-start), after `db` is ready and before the migrations, restore the file into the new, empty `db`.
-       The messages "... already exists" for `postgres`, `admin`, `fms` and `fzy` are harmless.
 
        ```bash
        pg_dumpall -U postgres | gzip > fms_old.pgsql.gz   # on the old PostgreSQL server
@@ -315,7 +314,5 @@ They then apply only to that command:
 HTTP_PROXY=... \
 HTTPS_PROXY=... \
 NO_PROXY=localhost,127.0.0.1 \
-podman-compose build
+podman-compose build # or pull
 ```
-
-Do the same for `podman pull` and `podman-compose up`.
