@@ -65,6 +65,7 @@ podman-compose -f compose.yaml -f compose.dev.yaml exec dev bash
 - After a change to `.env`, run `podman-compose -f compose.yaml -f compose.dev.yaml up -d` again.
   It removes all containers of the stack and recreates them.
 - The data in the volumes stays.
+- To stop the development stack: `podman-compose -f compose.yaml -f compose.dev.yaml down`.
 
 ### dev container
 
