@@ -125,11 +125,11 @@ Add this line to the crontab (`crontab -e`), below the `XDG_RUNTIME_DIR` line of
 - The crontab line writes the output of the command to `<HOST_LOG_DIR>/report.log`.
   `prepare_report_data` writes its own log to `<HOST_LOG_DIR>/report_preparation.log`.
 
-To run the report now, or to follow its log:
+To run the report now, or to read the log of the last run:
 
 ```bash
 podman-compose exec -T backend python manage.py prepare_report_data  # run the report now (-T: no terminal)
-tail -f <HOST_LOG_DIR>/report_preparation.log                        # follow the report log
+tail -n 50 <HOST_LOG_DIR>/report_preparation.log                     # read the last run
 ```
 
 # Routine deployments
