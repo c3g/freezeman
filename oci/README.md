@@ -2,9 +2,15 @@
 
 Container images and podman-compose configuration for FreezeMan.
 
-Run the `podman-compose` commands in `<install-dir>/oci`.
-There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
-For development, add `-f compose.yaml -f compose.dev.yaml` (see [DEVELOPMENT.md](DEVELOPMENT.md)).
+> [!NOTE]
+> Run the `podman-compose` commands in one of these two ways:
+>
+> - In `<install-dir>/oci`: copy the commands as they are.
+>   There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
+> - In another directory: add `-f <install-dir>/oci/compose.yaml` after `podman-compose`.
+>   `podman-compose` reads `.env` in the directory of `compose.yaml`.
+>
+> For development, add `-f compose.yaml -f compose.dev.yaml` (see [DEVELOPMENT.md](DEVELOPMENT.md)).
 
 Contents:
 

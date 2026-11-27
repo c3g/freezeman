@@ -4,9 +4,14 @@ This guide runs the FreezeMan container stack for development.
 For the overview and layout of oci, read [README.md](README.md).
 For the clone and the submodules, see ["Installation" in ../README.md](../README.md#installation).
 
-Run all the `podman-compose` commands in `<install-dir>/oci`.
-The development commands name both compose files with `-f compose.yaml -f compose.dev.yaml`.
-`podman-compose` reads `.env` in the same directory.
+> [!NOTE]
+> Run the `podman-compose` commands in one of these two ways:
+>
+> - In `<install-dir>/oci`: copy the commands as they are.
+>   The development commands name both compose files with `-f compose.yaml -f compose.dev.yaml`.
+> - In another directory: replace `-f compose.yaml -f compose.dev.yaml` with `-f <install-dir>/oci/compose.yaml -f <install-dir>/oci/compose.dev.yaml`.
+>
+> In both ways, `podman-compose` reads `.env` in the directory of `compose.yaml`.
 
 Contents:
 

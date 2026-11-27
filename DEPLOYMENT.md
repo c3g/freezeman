@@ -22,8 +22,13 @@ Placeholders used in this guide:
   The superuser is `postgres`, and only `podman-compose exec db` reaches it.
 - `<YYYY-MM-DD>`: the date in the name of a database backup file.
 
-Run all the `podman-compose` commands in `<install-dir>/oci`, so you can copy them as they are.
-There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
+> [!NOTE]
+> Run the `podman-compose` commands in one of these two ways:
+>
+> - In `<install-dir>/oci`: copy the commands as they are.
+>   There, `podman-compose` reads `compose.yaml` and `.env` with no `-f` flag.
+> - In another directory: add `-f <install-dir>/oci/compose.yaml` after `podman-compose`.
+>   `podman-compose` reads `.env` in the directory of `compose.yaml`.
 
 Run all steps as `<user>`.
 
